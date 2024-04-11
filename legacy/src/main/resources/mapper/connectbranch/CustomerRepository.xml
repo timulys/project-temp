@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kep.legacy.repository.CustomerRepository">
+
+	<select id="findById" resultType="com.kep.legacy.model.entity.Customer" parameterType="Map">
+		select * from customer
+		where
+			id = #{id}
+	</select>
+
+	<select id="findOne" resultType="com.kep.legacy.model.entity.Customer" parameterType="Map">
+		select * from customer
+		<where>
+			<if test="id != null">
+				id = #{id}
+			</if>
+		</where>
+	</select>
+
+	<select id="findAll" resultType="com.kep.legacy.model.entity.Customer" parameterType="Map">
+		select * from customer
+		<where>
+			<if test="id != null">
+				id = #{id}
+			</if>
+		</where>
+		<if test="sort != null">
+		order by ${sort}
+		</if>
+	</select>
+</mapper>

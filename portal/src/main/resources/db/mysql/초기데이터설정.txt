@@ -1,0 +1,238 @@
+
+CREATE DATABASE always default CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;
+
+CREATE USER 'always'@'localhost' IDENTIFIED BY 'always2023!';
+CREATE USER 'always'@'%' IDENTIFIED BY 'always2023!';
+GRANT ALL PRIVILEGES ON *.* TO 'always'@'localhost';
+GRANT ALL PRIVILEGES ON *.* TO 'always'@'%';
+FLUSH PRIVILEGES;
+
+a
+CREATE TABLE `hibernate_sequence` (
+  `next_val` bigint(20) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+INSERT INTO hibernate_sequence (next_val) VALUES (100);
+UNLOCK TABLES;
+
+DELIMITER $$
+CREATE FUNCTION `nextval`()
+RETURNS BIGINT UNSIGNED
+MODIFIES SQL DATA
+DETERMINISTIC
+BEGIN
+ DECLARE ret BIGINT UNSIGNED;
+ UPDATE hibernate_sequence SET next_val=next_val+1;
+ SELECT next_val INTO ret FROM hibernate_sequence limit 1;
+ RETURN ret;
+END
+
+CREATE TABLE `scheduler_lock` (
+  `name` varchar(64) COLLATE utf8mb4_bin NOT NULL,
+  `lock_until` timestamp(3) NULL DEFAULT NULL,
+  `locked_at` timestamp(3) NULL DEFAULT NULL,
+  `locked_by` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL,
+  PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+
+Backend 배포
+ 
+INSERT INTO levels (id, name, type) VALUES (1, '상담원', 'OPERATOR');
+INSERT INTO levels (id, name, type) VALUES (2, '매니저', 'MANAGER');
+INSERT INTO levels (id, name, type) VALUES (3, '관리자', 'ADMIN');
+INSERT INTO levels (id, name, type) VALUES (4, '마스터', 'MASTER');
+
+INSERT INTO roles (ID, MODIFIED, MODIFIER, NAME, TYPE, LEVEL_ID) VALUES (1, now(), 1, '상담원', 'OPERATOR_1', 1);
+INSERT INTO roles (ID, MODIFIED, MODIFIER, NAME, TYPE, LEVEL_ID) VALUES (2, now(), 1, '매니저', 'MANAGER_1', 2);
+INSERT INTO roles (ID, MODIFIED, MODIFIER, NAME, TYPE, LEVEL_ID) VALUES (3, now(), 1, '관리자', 'ADMIN_1', 3);
+INSERT INTO roles (ID, MODIFIED, MODIFIER, NAME, TYPE, LEVEL_ID) VALUES (4, now(), 1, '마스터', 'MASTER_1', 4);
+
+
+INSERT INTO branch (ID, ASSIGN, CREATED, CREATOR, ENABLED, FIRST_MESSAGE_TYPE, HEAD_QUARTERS, MAX_COUNSEL, MAX_COUNSEL_TYPE, MAX_MEMBER_COUNSEL, MODIFIED, MODIFIER, NAME, OFF_DUTY_HOURS, STATUS)
+VALUES (1, 'branch', now(), 1, 'Y', 'member', 'Y', 50, 'batch', 100, now(), 1, '본사', 'Y', 'on');
+
+INSERT INTO member (ID, BRANCH_ID, CREATED, CREATOR, ENABLED, FIRST_MESSAGE, MANAGED, MAX_COUNSEL, MODIFIED, MODIFIER, NICKNAME, PASSWORD, PROFILE, SETTING, STATUS, USERNAME)
+VALUES (9000000001, 1, now(), 1, 'N', null, 'N', 0, now(), 1, '시스템', '{bcrypt}$2a$10$WMhur0a3BIrHefd3w7Xlge2WowQDIr71WRtBXYOZ/7P/gLu1lKvim', null, null, 'off', 'system');
+INSERT INTO member (ID, BRANCH_ID, CREATED, CREATOR, ENABLED, FIRST_MESSAGE, MANAGED, MAX_COUNSEL, MODIFIED, MODIFIER, NICKNAME, PASSWORD, PROFILE, SETTING, STATUS, USERNAME)
+VALUES (9000000002, 1, now(), 1, 'N', null, 'N', 0, now(), 1, '오픈빌더', '{bcrypt}$2a$10$ddRQcGFDi/Ng0pwztKnTS.4vnTg1df1o4MNeWLWfBIAKh.ZZRpmR2', null, null, 'off', 'openbuilder');
+
+INSERT INTO member (ID, BRANCH_ID, CREATED, CREATOR, ENABLED, FIRST_MESSAGE, MANAGED, MAX_COUNSEL, MODIFIED, MODIFIER, NICKNAME, PASSWORD, PROFILE, SETTING, STATUS, USERNAME)
+VALUES (1, 1, now(), 1, 'Y', null, 'N', 0, now(), 1, '마스터1', '{noop}master1', null, null, 'off', 'master1');
+INSERT INTO member (ID, BRANCH_ID, CREATED, CREATOR, ENABLED, FIRST_MESSAGE, MANAGED, MAX_COUNSEL, MODIFIED, MODIFIER, NICKNAME, PASSWORD, PROFILE, SETTING, STATUS, USERNAME)
+VALUES (2, 1, now(), 1, 'Y', null, 'Y', 0, now(), 1, '관리자1', '{noop}admin1', null, null, 'off', 'admin1');
+INSERT INTO member (ID, BRANCH_ID, CREATED, CREATOR, ENABLED, FIRST_MESSAGE, MANAGED, MAX_COUNSEL, MODIFIED, MODIFIER, NICKNAME, PASSWORD, PROFILE, SETTING, STATUS, USERNAME)
+VALUES (3, 1, now(), 1, 'Y', null, 'Y', 0, now(), 1, '매니저1', '{noop}manager1', null, null, 'off', 'manager1');
+INSERT INTO member (ID, BRANCH_ID, CREATED, CREATOR, ENABLED, FIRST_MESSAGE, MANAGED, MAX_COUNSEL, MODIFIED, MODIFIER, NICKNAME, PASSWORD, PROFILE, SETTING, STATUS, USERNAME)
+VALUES (4, 1, now(), 1, 'Y', null, 'Y', 50, now(), 1, '상담원1', '{noop}member1', null, null, 'on', 'member1');
+
+INSERT INTO member_role (ID, MEMBER_ID, MODIFIED, MODIFIER, ROLE_ID) VALUES (1, 1, SYSDATE, 1, 4);
+INSERT INTO member_role (ID, MEMBER_ID, MODIFIED, MODIFIER, ROLE_ID) VALUES (2, 2, SYSDATE, 1, 3);
+INSERT INTO member_role (ID, MEMBER_ID, MODIFIED, MODIFIER, ROLE_ID) VALUES (3, 3, SYSDATE, 1, 2);
+INSERT INTO member_role (ID, MEMBER_ID, MODIFIED, MODIFIER, ROLE_ID) VALUES (4, 4, SYSDATE, 1, 1);
+
+INSERT INTO assign_method (ID, ENABLED, NAME, SIGNATURE, SORT)
+VALUES (10, 'Y', '시스템 근무시간 체크', 'assignBySystemOfficeHours', 10);
+INSERT INTO assign_method (ID, ENABLED, NAME, SIGNATURE, SORT)
+VALUES (20, 'Y', '상담 불가 체크', 'assignByDisabled', 20);
+INSERT INTO assign_method (ID, ENABLED, NAME, SIGNATURE, SORT)
+VALUES (30, 'Y', '배정 대기 건수 체크', 'assignByOpenedCount', 30);
+INSERT INTO assign_method (ID, ENABLED, NAME, SIGNATURE, SORT)
+VALUES (40, 'Y', '브랜치 상담원 구하기', 'assignByBranchMember', 60);
+INSERT INTO assign_method (ID, ENABLED, NAME, SIGNATURE, SORT)
+VALUES (50, 'Y', '카테고리 상담원 구하기', 'assignByIssueCategoryMember', 50);
+INSERT INTO assign_method (ID, ENABLED, NAME, SIGNATURE, SORT)
+VALUES (60, 'Y', '상담원 한명 구하기 ', 'assignByGetMember', 40);
+INSERT INTO assign_method (ID, ENABLED, NAME, SIGNATURE, SORT)
+VALUES (70, 'Y', '상담원 근무시간 체크', 'assignByMemberOfficeHours', 70);
+INSERT INTO assign_method (ID, ENABLED, NAME, SIGNATURE, SORT)
+VALUES (80, 'N', '상담원 근무외 시간 체크', 'assignOffDutyHours', 80);
+INSERT INTO assign_method (ID, ENABLED, NAME, SIGNATURE, SORT)
+VALUES (1000, 'Y', '상담원 랜덤 한명구하기', 'assignByMemberRandom', 1000);
+
+INSERT INTO 
+  menu (id, depth, enabled, master_only, name1, name2, name3, name4, parent_id, type, master_used) 
+VALUES 
+  ('10000', '1', 'Y', 'N', '상담포탈', NULL, NULL, NULL, NULL, 'menu', 'N'), 
+  ('11000', '2', 'Y', 'N', '상담포탈', '홈', NULL, NULL, '10000', 'menu', 'N'), 
+  ('12000', '2', 'Y', 'N', '상담포탈', '고객목록', NULL, NULL, '10000', 'menu', 'N'), 
+  ('12001', '3', 'Y', 'N', '상담포탈', '고객목록', '알림톡', NULL, '12000', 'object', 'N'), 
+  ('12002', '3', 'Y', 'N', '상담포탈', '고객목록', '친구톡', NULL, '12000', 'object', 'N'), 
+  ('12003', '3', 'Y', 'N', '상담포탈', '고객목록', '선물하기', NULL, '12000', 'object', 'N'), 
+  ('13000', '2', 'Y', 'N', '상담포탈', '대화목록', NULL, NULL, '10000', 'menu', 'N'), 
+  ('13001', '3', 'Y', 'N', '상담포탈', '대화목록', '메모', NULL, '13000', 'object', 'N'), 
+  ('13002', '3', 'Y', 'N', '상담포탈', '대화목록', '캘린더', NULL, '13000', 'object', 'N'), 
+  ('13003', '3', 'Y', 'N', '상담포탈', '대화목록', '상담검토요청', NULL, '13000', 'object', 'N'), 
+  ('13004', '3', 'Y', 'N', '상담포탈', '대화목록', '상담직원전환', NULL, '13000', 'object', 'N'), 
+  ('13005', '3', 'Y', 'N', '상담포탈', '대화목록', '상담이력', NULL, '13000', 'object', 'N'), 
+  ('13006', '3', 'Y', 'N', '상담포탈', '대화목록', '상담가이드', NULL, '13000', 'object', 'N'), 
+  ('13007', '3', 'Y', 'N', '상담포탈', '대화목록', '상품설명서', NULL, '13000', 'object', 'N'), 
+  ('13008', '3', 'Y', 'N', '상담포탈', '대화목록', '모바일청약 가이드', NULL, '13000', 'object', 'N'), 
+  ('13009', '3', 'Y', 'N', '상담포탈', '대화목록', '콘텐츠', NULL, '13000', 'object', 'N'), 
+  ('80000', '1', 'Y', 'N', '상담관리', NULL, NULL, NULL, NULL, 'menu', 'N'), 
+  ('81000', '2', 'Y', 'N', '상담관리', '대시보드', NULL, NULL, '80000', 'menu', 'N'), 
+  ('81100', '3', 'Y', 'N', '상담관리', '대시보드', '대시보드', NULL, '81000', 'menu', 'N'), 
+  ('82000', '2', 'Y', 'N', '상담관리', '요청 관리', NULL, NULL, '80000', 'menu', 'N'), 
+  ('82100', '3', 'Y', 'N', '상담관리', '요청 관리', '상담 지원 요청', NULL, '82000', 'menu', 'N'), 
+  ('82200', '3', 'Y', 'N', '상담관리', '요청 관리', '톡 발송 요청', NULL, '82000', 'menu', 'N'), 
+  ('83000', '2', 'Y', 'N', '상담관리', '상담조회', NULL, NULL, '80000', 'menu', 'N'), 
+  ('83100', '3', 'Y', 'N', '상담관리', '상담조회', '상담 진행 목록', NULL, '83000', 'menu', 'N'), 
+  ('83200', '3', 'Y', 'N', '상담관리', '상담조회', '상담 이력', NULL, '83000', 'menu', 'N'), 
+  ('83300', '3', 'Y', 'N', '상담관리', '상담조회', '톡 발송 이력', NULL, '83000', 'menu', 'N'), 
+  ('84000', '2', 'Y', 'N', '상담관리', '상담 지원', NULL, NULL, '80000', 'menu', 'N'), 
+  ('84100', '3', 'Y', 'N', '상담관리', '상담 지원', '공지사항', NULL, '84000', 'menu', 'N'), 
+  ('84200', '3', 'Y', 'N', '상담관리', '상담 지원', '상담가이드', NULL, '84000', 'menu', 'N'), 
+  ('84300', '3', 'Y', 'N', '상담관리', '상담 지원', '상품설명서', NULL, '84000', 'menu', 'N'), 
+  ('84400', '3', 'Y', 'N', '상담관리', '상담 지원', '금지어', NULL, '84000', 'menu', 'N'), 
+  ('85000', '2', 'Y', 'N', '상담관리', '메시지 발송 지원', NULL, NULL, '80000', 'menu', 'N'), 
+  ('85100', '3', 'Y', 'N', '상담관리', '메시지 발송 지원', '알림톡 템플릿', NULL, '85000', 'menu', 'N'), 
+  ('85200', '3', 'Y', 'N', '상담관리', '메시지 발송 지원', '친구톡 템플릿', NULL, '85000', 'menu', 'N'), 
+  ('85300', '3', 'Y', 'N', '상담관리', '메시지 발송 지원', '자동 발송 룰', NULL, '85000', 'menu', 'N'), 
+  ('90000', '1', 'Y', 'N', '시스템 설정', NULL, NULL, NULL, NULL, 'menu', 'Y'), 
+  ('91000', '2', 'Y', 'N', '시스템 설정', '서비스 관리', NULL, NULL, '90000', 'menu', 'Y'), 
+  ('91100', '3', 'Y', 'Y', '시스템 설정', '서비스 관리', '권한 관리', NULL, '91000', 'menu', 'Y'), 
+  ('91200', '3', 'Y', 'Y', '시스템 설정', '서비스 관리', '브랜치/채널 관리', NULL, '91000', 'menu', 'Y'), 
+  ('91300', '3', 'Y', 'N', '시스템 설정', '서비스 관리', '계정 관리', NULL, '91000', 'menu', 'Y'), 
+  ('92000', '2', 'Y', 'N', '시스템 설정', '상담 설정', NULL, NULL, '90000', 'menu', 'N'), 
+  ('92100', '3', 'Y', 'N', '시스템 설정', '상담 설정', '근무 조건 설정', NULL, '92000', 'menu', 'N'), 
+  ('92200', '3', 'Y', 'N', '시스템 설정', '상담 설정', '상담 환경 설정', NULL, '92000', 'menu', 'N'), 
+  ('92300', '3', 'Y', 'N', '시스템 설정', '상담 설정', '자동메세지 설정', NULL, '92000', 'menu', 'N'), 
+  ('92400', '3', 'Y', 'N', '시스템 설정', '상담 설정', '상담 배분 설정', NULL, '92000', 'menu', 'N'), 
+  ('93000', '2', 'Y', 'N', '시스템 설정', '통계', NULL, NULL, '90000', 'menu', 'N'), 
+  ('93100', '3', 'Y', 'N', '시스템 설정', '통계', '상담현황 대시보드', NULL, '93000', 'menu', 'N'), 
+  ('93200', '3', 'Y', 'N', '시스템 설정', '통계', '서버 자원 현황 및 통계', NULL, '93000', 'menu', 'N'), 
+  ('93300', '3', 'Y', 'N', '시스템 설정', '통계', '비용', NULL, '93000', 'menu', 'N');
+  
+INSERT INTO 
+  role_menu (id, role_id, menu_id) 
+VALUES 
+  ('33450', '1', '10000'), 
+  ('33451', '2', '10000'), 
+  ('33453', '1', '11000'), 
+  ('33454', '2', '11000'), 
+  ('33456', '1', '12000'), 
+  ('33457', '2', '12000'), 
+  ('33459', '1', '12001'), 
+  ('33460', '2', '12001'), 
+  ('33462', '1', '12002'), 
+  ('33463', '2', '12002'), 
+  ('33465', '1', '12003'), 
+  ('33466', '2', '12003'), 
+  ('33468', '1', '13000'), 
+  ('33469', '2', '13000'), 
+  ('33471', '1', '13001'), 
+  ('33472', '2', '13001'), 
+  ('33474', '1', '13002'), 
+  ('33475', '2', '13002'), 
+  ('33477', '1', '13003'), 
+  ('33478', '2', '13003'), 
+  ('33480', '1', '13004'), 
+  ('33481', '2', '13004'), 
+  ('33483', '1', '13005'), 
+  ('33484', '2', '13005'), 
+  ('33486', '1', '13006'), 
+  ('33487', '2', '13006'), 
+  ('33489', '1', '13007'), 
+  ('33490', '2', '13007'), 
+  ('33492', '1', '13008'), 
+  ('33493', '2', '13008'), 
+  ('33495', '1', '13009'), 
+  ('33496', '2', '13009'), 
+  ('33498', '2', '80000'), 
+  ('33499', '3', '80000'), 
+  ('33501', '2', '81000'), 
+  ('33502', '3', '81000'), 
+  ('33504', '2', '81100'), 
+  ('33505', '3', '81100'), 
+  ('33507', '2', '82000'), 
+  ('33508', '3', '82000'), 
+  ('33510', '2', '82100'), 
+  ('33511', '3', '82100'), 
+  ('33513', '2', '82200'), 
+  ('33514', '3', '82200'), 
+  ('33516', '2', '83000'), 
+  ('33517', '3', '83000'), 
+  ('33519', '2', '83100'), 
+  ('33520', '3', '83100'), 
+  ('33522', '2', '83200'), 
+  ('33523', '3', '83200'), 
+  ('33525', '2', '83300'), 
+  ('33526', '3', '83300'), 
+  ('33528', '2', '84000'), 
+  ('33529', '3', '84000'), 
+  ('33531', '2', '84100'), 
+  ('33532', '3', '84100'), 
+  ('33534', '2', '84200'), 
+  ('33535', '3', '84200'), 
+  ('33537', '2', '84300'), 
+  ('33538', '3', '84300'), 
+  ('33540', '2', '84400'), 
+  ('33541', '3', '84400'), 
+  ('33543', '2', '85000'), 
+  ('33544', '3', '85000'), 
+  ('33546', '2', '85100'), 
+  ('33547', '3', '85100'), 
+  ('33549', '2', '85200'), 
+  ('33550', '3', '85200'), 
+  ('33552', '2', '85300'),
+  ('33553', '3', '85300'),
+  ('33555', '3', '90000'),
+  ('33557', '3', '91000'),
+  ('33559', '3', '91300'),
+  ('33561', '3', '92000'),
+  ('33563', '3', '92100'),
+  ('33565', '3', '92200'),
+  ('33567', '3', '92300'),
+  ('33569', '3', '92400'),
+  ('33571', '3', '93000'),
+  ('33573', '3', '93100'),
+  ('33575', '3', '93200'),
+  ('33577', '3', '93300'),
+  ('33579', '4', '90000'),
+  ('33580', '4', '91000'),
+  ('33581', '4', '91100'),
+  ('33582', '4', '91200'),
+  ('33583', '4', '91300');
+
+
+

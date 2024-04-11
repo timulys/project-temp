@@ -1,0 +1,9 @@
+acl:
+  masters: "ROLE_MASTER_1,ROLE_MASTER_2"
+  admins: "ROLE_ADMIN_1,ROLE_ADMIN_4"
+  managers: "ROLE_MANAGER_1,ROLE_MANAGER_3"
+  operators: "ROLE_OPERATOR_1,ROLE_OPERATOR_2,ROLE_OPERATOR_22302,ROLE_OPERATOR_31587"
+  masters-admins: "${acl.masters},${acl.admins}"
+  admins-managers: "${acl.admins},${acl.managers}"
+  counselers: "${acl.managers},${acl.operators}" #상담 수행
+  admins-counselers: "${acl.admins},${acl.counselers}" #마스터 이외 사용자

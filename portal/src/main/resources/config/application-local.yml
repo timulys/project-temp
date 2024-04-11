@@ -1,0 +1,57 @@
+spring:
+  config:
+    import:
+      - optional:./portal-local.yml
+      - optional:./mysql-local.yml
+  #      - optional:./h2-local.yml
+  #      - optional:${DB_VENDOR:./mysql-local.yml}
+
+  security:
+    debug: true
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      enabled: true
+    add-properties: true
+  thymeleaf:
+    cache: false
+
+  redis:
+    password: ${REDIS_PASSWORD:}
+    lettuce:
+      pool:
+        max-active: 8
+    cluster:
+      nodes:
+        127.0.0.1:7001,127.0.0.1:7002,127.0.0.1:7003,127.0.0.1:7004,127.0.0.1:7005,127.0.0.1:7006
+
+
+logging:
+  level:
+    root: info
+    org.hibernate.SQL: info
+    org.hibernate.type: info
+    #    org.hibernate.type.descriptor.sql.BasicBinder: trace
+    #    jdbc.sqlonly: debug
+    #    jdbc.resultsettable: debug
+    com.kep.portal.config.debug.DebugFilter: info
+    org.springframework.web.client.RestTemplate: debug
+    reactor.netty.http.client: debug
+#  level:
+#    root: info
+#    org.hibernate.SQL: debug
+#    org.hibernate.type: trace
+##    org.hibernate.type.descriptor.sql.BasicBinder: trace
+##    jdbc.sqlonly: debug
+##    jdbc.resultsettable: debug
+#    com.kep.portal.config.debug.DebugFilter: info
+#    org.springframework.web.client.RestTemplate: debug
+#    reactor.netty.http.client: debug
+application:
+  core:
+    #    sync-client-id: 15a497d976ccf083f21572d0b1ff8111
+    #로컬
+    sync-client-id: 5c3a2963a9a33c85427b040b76d55c5b 
+
+    

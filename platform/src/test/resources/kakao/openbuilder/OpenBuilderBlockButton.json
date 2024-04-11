@@ -1,0 +1,92 @@
+{
+	"timestamp": 1574600234144,
+	"profileId": 306886428,
+	"userKey": "eZXM3njX1-1o",
+	"messages": [
+		{
+			"cards": [
+				{
+					"linkUrl": {
+						"webUrl": "https://bus.go.kr",
+						"pcCustomScheme": "",
+						"androidStoreUrl": "",
+						"androidUrl": "",
+						"iosStoreUrl": "",
+						"macCustomScheme": "",
+						"moUrl": "",
+						"type": "WEB",
+						"pcUrl": "",
+						"iosUrl": ""
+					},
+					"description": "투수객 이용후기 설명",
+					"height": -1,
+					"buttons": [
+						{
+							"data": {
+								"blockId": "5d80c908b617ea0001e16bce"
+							},
+							"label": "블록 일",
+							"message": "블록 일",
+							"type": "block",
+							"blockId": "5d80c908b617ea0001e16bce"
+						},
+						{
+							"data": {
+								"blockId": "5d83288bb617ea0001e17c3b"
+							},
+							"label": "상담원 연결 (스킬)",
+							"message": "상담원 연결 (스킬)",
+							"type": "block",
+							"blockId": "5d83288bb617ea0001e17c3b"
+						},
+						{
+							"data": {
+								"url": "https://kep-talk2.codeclick.co.kr/portal"
+							},
+							"label": "상담원 연결 (링크)",
+							"type": "url",
+							"url": "https://kep-talk2.codeclick.co.kr/portal"
+						}
+					],
+					"fixedRatio": false,
+					"originVersion": "1.0",
+					"title": "투숙객 이용후기 타이틀",
+					"imageUrl": "http://k.kakaocdn.net/dn/blaqkx/btqynR3E2Gr/7RNCH8wv8rkwZHPggTKNik/2x1.jpg",
+					"width": -1
+				}
+			],
+			"lock": false,
+			"type": "card.image",
+			"forwardable": false
+		},
+		{
+			"type": "quickreply",
+			"items": [
+				{
+					"data": {
+						"blockId": "5d3e5d038192ac0001fc311f"
+					},
+					"label": "이전으로",
+					"type": "block",
+					"message": "이전으로"
+				},
+				{
+					"data": {
+						"blockId": "5d3fae83b617ea0001a3216e"
+					},
+					"label": "처음으로",
+					"type": "block",
+					"message": "처음으로"
+				}
+			]
+		}
+	],
+	"utterance": "버튼1번",
+	"speech": "",
+	"appUserId": "1170551443",
+	"footprint": "chp-c32aa2341cc445be89faea0140052543",
+	"blockId": "5d3e56678192ac0001fc30e8",
+	"blockName": "투숙객 이용후기",
+	"trigger": "BLOCK_BUTTON",
+	"extra": null
+}

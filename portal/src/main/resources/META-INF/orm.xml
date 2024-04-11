@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm" version="2.2">
+
+<!--native SQL query MySQL용 타 DB의 경우 수정 필요-->
+<!-- 일정 주기로 고객 대기 통계의 기본 정보 생성 -->
+<!--<named-native-query name="ReplyStatus.findReplyStatusForBatch"-->
+<!--                    result-set-mapping="toReplyStatusDto">-->
+<!--    <query><![CDATA[-->
+<!--        SELECT SUM(entry_count) AS entry_count, SUM(reply_count) AS reply_count, branch_id-->
+<!--            FROM (SELECT COUNT(id) AS entry_count, 0 AS reply_count, branch_id-->
+<!--                  FROM   issue-->
+<!--                  WHERE  created >= STR_TO_DATE(:startTime, '%Y%m%d%H%i')-->
+<!--                  AND    created < STR_TO_DATE(:endTime, '%Y%m%d%H%i')-->
+<!--                  AND    type = 'chat'-->
+<!--                  GROUP BY branch_id-->
+<!--                  UNION-->
+<!--                  SELECT 0 AS entry_count, COUNT(issue_id) AS reply_count, branch_id-->
+<!--                  FROM   guest_waiting_time-->
+<!--                  WHERE  first_reply_time >= STR_TO_DATE(:startTime, '%Y%m%d%H%i')-->
+<!--                  AND    first_reply_time < STR_TO_DATE(:endTime, '%Y%m%d%H%i')-->
+<!--                  GROUP BY branch_id) TA-->
+<!--            GROUP BY branch_id-->
+<!--    ]]></query>-->
+<!--</named-native-query>-->
+
+<!--고객 대기시간 통계 정보 : 3개월별 전사 평균 -->
+<named-native-query name="GuestWaitingTime.findAverageReplyTimesGroupBy3Month"
+                    result-set-mapping="toGuestWaitingTimeAverageDto">
+    <query><![CDATA[
+        SELECT SUBSTRING(entry_time_group, 1, 6) AS date_range, ROUND(AVG(waiting_time), 0) AS waiting_time_average
+        FROM guest_waiting_time
+        WHERE entry_time  > LAST_DAY(NOW() - INTERVAL 4 MONTH)
+        AND   entry_time <= LAST_DAY(NOW() - INTERVAL 1 MONTH)
+        GROUP BY SUBSTRING(entry_time_group, 1, 6)
+    ]]></query>
+</named-native-query>
+
+<!--고객 대기시간 통계 정보 : 3개월별 branch 평균  -->
+<named-native-query name="GuestWaitingTime.findAverageReplyTimesGroupBy3MonthOfBranch"
+                    result-set-mapping="toGuestWaitingTimeAverageDto">
+    <query><![CDATA[
+        SELECT SUBSTRING(entry_time_group, 1, 6) AS date_range, ROUND(AVG(waiting_time), 0) AS waiting_time_average
+        FROM   guest_waiting_time
+        WHERE  entry_time  > LAST_DAY(NOW() - INTERVAL 4 MONTH)
+        AND    entry_time <= LAST_DAY(NOW() - INTERVAL 1 MONTH)
+        AND    branch_id = :branchId
+        GROUP BY SUBSTRING(entry_time_group, 1, 6)
+    ]]></query>
+</named-native-query>
+
+
+<!--고객 대기시간 통계 정보 : 3주별 전사 평균 -->
+<named-native-query name="GuestWaitingTime.findAverageReplyTimesGroupBy3Week"
+                    result-set-mapping="toGuestWaitingTimeAverageDto">
+    <query><![CDATA[
+        SELECT DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 20 DAY),'%Y%m%d') AS date_range, IFNULL(ROUND(AVG(waiting_time), 0), 0) AS waiting_time_average
+        FROM   guest_waiting_time
+        WHERE  entry_time < STR_TO_DATE(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 13 DAY),'%Y%m%d0000'), '%Y%m%d%H%i')
+        AND    entry_time >= STR_TO_DATE(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 20 DAY),'%Y%m%d0000'), '%Y%m%d%H%i')
+        UNION
+        SELECT DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 13 DAY),'%Y%m%d'), IFNULL(ROUND(AVG(waiting_time), 0), 0)
+        FROM   guest_waiting_time
+        WHERE  entry_time < STR_TO_DATE(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 6 DAY),'%Y%m%d0000'), '%Y%m%d%H%i')
+        AND    entry_time >= STR_TO_DATE(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 13 DAY),'%Y%m%d0000'), '%Y%m%d%H%i')
+        UNION
+        SELECT DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 6 DAY),'%Y%m%d'), IFNULL(ROUND(AVG(waiting_time), 0), 0)
+        FROM   guest_waiting_time
+        WHERE  entry_time < STR_TO_DATE(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) - 1 DAY),'%Y%m%d0000'), '%Y%m%d%H%i')
+        AND    entry_time >= STR_TO_DATE(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 6 DAY),'%Y%m%d0000'), '%Y%m%d%H%i')
+    ]]></query>
+</named-native-query>
+
+<!--고객 대기시간 통계 정보 : 3주별 평균 -->
+<named-native-query name="GuestWaitingTime.findAverageReplyTimesGroupBy3WeekOfBranch"
+                    result-set-mapping="toGuestWaitingTimeAverageDto">
+    <query><![CDATA[
+        SELECT DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 20 DAY),'%Y%m%d') AS date_range, IFNULL(ROUND(AVG(waiting_time), 0), 0) AS waiting_time_average
+        FROM   guest_waiting_time
+        WHERE  entry_time < STR_TO_DATE(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 13 DAY),'%Y%m%d0000'), '%Y%m%d%H%i')
+        AND    entry_time >= STR_TO_DATE(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 20 DAY),'%Y%m%d0000'), '%Y%m%d%H%i')
+        AND    branch_id = :branchId
+        UNION
+        SELECT DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 13 DAY),'%Y%m%d'), IFNULL(ROUND(AVG(waiting_time), 0), 0)
+        FROM   guest_waiting_time
+        WHERE  entry_time < STR_TO_DATE(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 6 DAY),'%Y%m%d0000'), '%Y%m%d%H%i')
+        AND    entry_time >= STR_TO_DATE(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 13 DAY),'%Y%m%d0000'), '%Y%m%d%H%i')
+        AND    branch_id = :branchId
+        UNION
+        SELECT DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 6 DAY),'%Y%m%d'), IFNULL(ROUND(AVG(waiting_time), 0), 0)
+        FROM   guest_waiting_time
+        WHERE  entry_time < STR_TO_DATE(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) - 1 DAY),'%Y%m%d0000'), '%Y%m%d%H%i')
+        AND    entry_time >= STR_TO_DATE(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 6 DAY),'%Y%m%d0000'), '%Y%m%d%H%i')
+        AND    branch_id = :branchId
+    ]]></query>
+</named-native-query>
+
+
+<!--고객 대기시간 통계 정보 : 3개월 전사 평균 -->
+<named-native-query name="GuestWaitingTime.findAverageReplyTimesBy3Month"
+                    result-set-mapping="toGuestWaitingTimeAverageDto">
+    <query><![CDATA[
+        SELECT MIN(SUBSTRING(entry_time_group, 1, 6)) AS date_range, ROUND(AVG(waiting_time), 0) AS waiting_time_average
+        FROM guest_waiting_time
+        WHERE entry_time  > LAST_DAY(NOW() - INTERVAL 4 MONTH)
+        AND   entry_time <= LAST_DAY(NOW() - INTERVAL 1 MONTH)
+        LIMIT 1
+    ]]></query>
+</named-native-query>
+<!--고객 대기시간 통계 정보 : 3개월 branch 평균 -->
+<named-native-query name="GuestWaitingTime.findAverageReplyTimesBy3MonthOfBranch"
+                    result-set-mapping="toGuestWaitingTimeAverageDto">
+    <query><![CDATA[
+        SELECT MIN(SUBSTRING(entry_time_group, 1, 6)) AS date_range, ROUND(AVG(waiting_time), 0) AS waiting_time_average
+        FROM guest_waiting_time
+        WHERE entry_time  > LAST_DAY(NOW() - INTERVAL 4 MONTH)
+        AND   entry_time <= LAST_DAY(NOW() - INTERVAL 1 MONTH)
+        AND    branch_id = :branchId
+        LIMIT 1
+    ]]></query>
+</named-native-query>
+
+<!--고객 대기시간 통계 정보 : 3주 전사 평균 -->
+<named-native-query name="GuestWaitingTime.findAverageReplyTimesBy3Week"
+                    result-set-mapping="toGuestWaitingTimeAverageDto">
+    <query><![CDATA[
+        SELECT DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 20 DAY),'%Y%m%d') AS date_range, IFNULL(ROUND(AVG(waiting_time), 0), 0) AS waiting_time_average
+        FROM   guest_waiting_time
+        WHERE  entry_time < STR_TO_DATE(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) - 1 DAY),'%Y%m%d0000'), '%Y%m%d%H%i')
+        AND    entry_time >= STR_TO_DATE(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 20 DAY),'%Y%m%d0000'), '%Y%m%d%H%i')
+    ]]></query>
+</named-native-query>
+
+<!--고객 대기시간 통계 정보 : 3주 branch 평균 -->
+<named-native-query name="GuestWaitingTime.findAverageReplyTimesBy3WeekOfBranch"
+                    result-set-mapping="toGuestWaitingTimeAverageDto">
+    <query><![CDATA[
+        SELECT DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 20 DAY),'%Y%m%d') AS date_range, IFNULL(ROUND(AVG(waiting_time), 0), 0) AS waiting_time_average
+        FROM   guest_waiting_time
+        WHERE  entry_time < STR_TO_DATE(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) - 1 DAY),'%Y%m%d0000'), '%Y%m%d%H%i')
+        AND    entry_time >= STR_TO_DATE(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL (DAYOFWEEK(NOW())) + 20 DAY),'%Y%m%d0000'), '%Y%m%d%H%i')
+        AND    branch_id = :branchId
+    ]]></query>
+</named-native-query>
+
+<!-- 오늘 현황 요약 -->
+<!--<named-native-query name="ReplyStatus.findTodaySummary"-->
+<!--                    result-set-mapping="toTodaySummaryDto">-->
+<!--    <query><![CDATA[-->
+<!--        SELECT guest_sum, counseling_count, waiting_count, missing_count, delay_count,-->
+<!--               IF((closed_count - missing_count) >= 0, closed_count - missing_count, 0) AS closed_count,-->
+<!--               0 AS counseler_count-->
+<!--        FROM  (SELECT IFNULL(COUNT(*), 0) AS guest_sum,                         -->
+<!--                      IFNULL(SUM(IF(status = 'close', 1, 0)), 0) AS closed_count, '1' AS k-->
+<!--               FROM  issue-->
+<!--               WHERE DATE_FORMAT(created, '%Y%m%d') = :today) ta-->
+<!--        JOIN  (SELECT IFNULL(SUM(IF(status IN ('ask', 'reply'), 1, 0)), 0) AS counseling_count, '1' AS k-->
+<!--               FROM  issue-->
+<!--               WHERE DATE_FORMAT(created, '%Y%m%d') = :today) tb-->
+<!--        ON     (ta.k = tb.k)-->
+<!--        JOIN  (SELECT IFNULL(count(*), 0) AS missing_count, '1' AS k-->
+<!--               FROM   issue a-->
+<!--               LEFT JOIN (SELECT issue_id, 'send' AS status-->
+<!--                          FROM issue_log-->
+<!--                          WHERE status = 'send' -->
+<!--                          AND creator < 9000000000-->
+<!--                          GROUP BY issue_id) b-->
+<!--               ON   (a.id = b.issue_id)-->
+<!--               WHERE b.status IS NULL-->
+<!--               AND   DATE_FORMAT(a.created, '%Y%m%d') = :today) tc-->
+<!--        ON    (ta.k = tc.k)-->
+<!--        JOIN  (SELECT IFNULL(SUM(IF(status IN ('open', 'assign'), 1, 0)), 0) AS waiting_count,-->
+<!--                      IFNULL(SUM(IF(status = 'urgent', 1, 0)), 0) AS delay_count, '1' AS k-->
+<!--               FROM   issue) td-->
+<!--        ON    (ta.k = td.k)-->
+<!--    ]]></query>-->
+<!--</named-native-query>-->
+
+<!-- 오늘 지점 현황 요약 -->
+<named-native-query name="ReplyStatus.findTodaySummaryOfBranch"
+                    result-set-mapping="toTodaySummaryDto">
+    <query><![CDATA[
+        SELECT guest_sum, counseling_count, waiting_count, missing_count, delay_count,
+               IF((closed_count - missing_count) >= 0, closed_count - missing_count, 0) AS closed_count,
+               0 AS counseler_count
+        FROM  (SELECT IFNULL(COUNT(*), 0) AS guest_sum,                       
+                      IFNULL(SUM(IF(status = 'close', 1, 0)), 0) AS closed_count, '1' AS k
+               FROM  issue
+               WHERE DATE_FORMAT(created, '%Y%m%d') = :today
+               AND   branch_id = :branchId) ta
+        JOIN  (SELECT IFNULL(SUM(IF(status IN ('ask', 'reply'), 1, 0)), 0) AS counseling_count, '1' AS k
+               FROM  issue
+               WHERE branch_id = :branchId) tb
+        ON     (ta.k = tb.k)
+        JOIN  (SELECT IFNULL(count(*), 0) AS missing_count, '1' AS k
+               FROM   issue a
+               LEFT JOIN (SELECT issue_id, 'send' AS status
+                          FROM issue_log
+                          WHERE status = 'send'
+                          AND   creator < 9000000000
+                          GROUP BY issue_id) b
+                ON    (a.id = b.issue_id)
+                WHERE  b.status IS NULL
+                AND    DATE_FORMAT(a.created, '%Y%m%d') = :today
+                AND    a.branch_id = :branchId) tc
+        ON     (ta.k = tc.k)
+        JOIN   (SELECT IFNULL(SUM(IF(status IN ('open', 'assign'), 1, 0)), 0) AS waiting_count,
+                       IFNULL(SUM(IF(status = 'urgent', 1, 0)), 0) AS delay_count, '1' AS k
+                FROM   issue
+                WHERE  branch_id = :branchId) td
+        ON (ta.k = td.k)
+    ]]></query>
+</named-native-query>
+
+<sql-result-set-mapping name="toReplyStatusDto">
+    <constructor-result target-class="com.kep.portal.model.dto.statistics.ReplyStatusDto">
+        <column name="entry_count" class="java.lang.Long"  />
+        <column name="reply_count" class="java.lang.Long" />
+        <column name="branch_id" class="java.lang.Long" />
+    </constructor-result>
+</sql-result-set-mapping>
+
+<sql-result-set-mapping name="toGuestWaitingTimeAverageDto">
+    <constructor-result target-class="com.kep.portal.model.dto.statistics.GuestWaitingTimeAverageDto">
+        <column name="date_range" class="java.lang.String"  />
+        <column name="waiting_time_average" class="java.lang.Long" />
+    </constructor-result>
+</sql-result-set-mapping>
+
+<sql-result-set-mapping name="toTodaySummaryDto">
+    <constructor-result target-class="com.kep.portal.model.dto.statistics.TodaySummaryDto">
+        <column name="guest_sum" class="java.lang.Long" />                    
+        <column name="counseling_count" class="java.lang.Long"  />
+        <column name="waiting_count" class="java.lang.Long" />
+        <column name="missing_count" class="java.lang.Long" />
+        <column name="delay_count" class="java.lang.Long" />
+        <column name="closed_count" class="java.lang.Long"  />
+        <column name="counseler_count" class="java.lang.Long" />
+    </constructor-result>
+</sql-result-set-mapping>
+</entity-mappings>

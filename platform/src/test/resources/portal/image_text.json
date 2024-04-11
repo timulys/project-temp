@@ -1,0 +1,18 @@
+{
+	"v": "0.1",
+	"chapters": [
+		{
+			"sections": [
+				{
+					"type": "file",
+					"display": "image/jpg",
+					"data": "http://mud-kage.kakao.com/dn/bgA4RE/btrTbvmhKFc/cyVXi6fsmQ27KhNyREkha1/img_l.jpg"
+				},
+				{
+					"type": "text",
+					"data": "텍스트와 이미지가 있는 단일 말풍선 메세지\n카카오 상담톡의 경우 하나의 메세지로 나가려면 LI 타입 메세지로 전송해야하며 이미지는 link 타입으로 업로드해야 한다"
+				}
+			]
+		}
+	]
+}

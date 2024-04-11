@@ -1,0 +1,26 @@
+package com.kep.portal.service.customer;
+
+import java.util.List;
+
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+
+import org.springframework.stereotype.Service;
+
+import com.kep.portal.model.entity.customer.Customer;
+
+@Service
+/*
+ *  @생성일자      / 만든사람      / 수정내용
+ *  2023.04.12 / asher.shin   / 카테고리별 조회 및 즐겨찾기 변경 추가
+ *  2023.05.23 / asher.shin   / 관심상품 리스트 가져오기 추가
+ *  2023.06.12 / asher.shin    / getCustomerCategoryList name 검색을 위해 파라미터 추가
+ *  
+ */
+public interface CustomerService {
+
+	Customer findById(@NotNull @Positive Long id);
+
+	List<Customer> search(@NotNull String subject, @NotNull String query);
+
+}

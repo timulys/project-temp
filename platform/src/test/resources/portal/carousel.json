@@ -1,0 +1,44 @@
+{
+	"v": "0.1",
+	"chapters": [
+		{
+			"sections": [
+				{
+					"type": "file",
+					"display": "image/jpg",
+					"data": "http://mud-kage.kakao.com/dn/bgA4RE/btrTbvmhKFc/cyVXi6fsmQ27KhNyREkha1/img_l.jpg"
+				},
+				{
+					"type": "text",
+					"data": "텍스트와 이미지가 있는 캐러셀 메세지\n카카오 상담톡의 경우 하나의 메세지로 나가려면 LI 타입 메세지로 전송해야하며 이미지는 link 타입으로 업로드해야 한다"
+				}
+			]
+		},
+		{
+			"sections": [
+				{
+					"type": "action",
+					"actionType": "link",
+					"actions": [
+						{
+							"name": "카카오 엔터프라이즈",
+							"data": "https://kakaoenterprise.com",
+							"extra": "customerId=1011291"
+						}
+					]
+				},
+				{
+					"type": "action",
+					"actionType": "hotkey",
+					"actions": [
+						{
+							"name": "상담원 연결 핫키",
+							"data": "KEPTalk/ConnectCounselor",
+							"extra": "customerId=1011291,memberId=95720"
+						}
+					]
+				}
+			]
+		}
+	]
+}

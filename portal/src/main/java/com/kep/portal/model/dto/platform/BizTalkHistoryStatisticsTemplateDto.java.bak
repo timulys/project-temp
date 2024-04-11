@@ -1,0 +1,5 @@
+package com.kep.portal.model.dto.platform;
+
+public class BizTalkHistoryStatisticsTemplateDto {
+
+}

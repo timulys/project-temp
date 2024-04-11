@@ -1,0 +1,12 @@
+package com.kep.portal.repository.platform;
+
+import com.kep.portal.model.dto.platform.BizTalkHistoryCondition;
+import com.kep.portal.model.entity.platform.BizTalkHistory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import javax.validation.constraints.NotNull;
+
+public interface BizTalkHistorySearchRepository {
+    Page<BizTalkHistory> search(@NotNull BizTalkHistoryCondition condition, @NotNull Pageable pageable);
+}

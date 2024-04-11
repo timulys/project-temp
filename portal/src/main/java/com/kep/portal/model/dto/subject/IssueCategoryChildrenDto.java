@@ -1,0 +1,41 @@
+package com.kep.portal.model.dto.subject;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
+
+import javax.validation.constraints.Positive;
+import java.util.List;
+
+/**
+ * 이슈 분류 (하위 분류 목록 포함)
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode(of = "id")
+public class IssueCategoryChildrenDto {
+
+	@Positive
+	private Long id;
+
+	private String name;
+
+	@JsonIgnore
+	private Long parentId;
+
+	@JsonIgnore
+	private Integer sort;
+
+	@JsonIgnore
+	private Integer depth;
+
+	private Long channelId;
+	
+	@JsonIgnore
+	private String bnkCode;
+
+	private List<IssueCategoryChildrenDto> children;
+
+	public static class IssueCategoryChildrenDtoBuilder {}
+}

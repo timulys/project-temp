@@ -1,0 +1,30 @@
+spring:
+  redis:
+    cluster:
+      nodes: 127.0.0.1:7001,127.0.0.1:7002,127.0.0.1:7003,127.0.0.1:7004,127.0.0.1:7005,127.0.0.1:7006
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    io.codeclick.platform.config.debug.DebugFilter: DEBUG
+    org.springframework.web.filter.GenericFilterBean: DEBUG
+    org.springframework.web.client.RestTemplate: DEBUG
+    reactor.netty.http.client: DEBUG
+
+application:
+  platform:
+    platforms:
+      kakao_alert_talk:
+        api-base-url: https://bizmsg-web.kakaoenterprise.com
+        api-key: ${KAKAO_BIZ_API_KEY:1234}
+      kakao_friend_talk:
+        api-base-url: https://bizmsg-web.kakaoenterprise.com
+        api-key: ${KAKAO_BIZ_API_KEY:1234}
+      kakao_template:
+        api-base-url: https://bizmsg-web.kakaoenterprise.com
+        api-key: ${KAKAO_BIZ_API_KEY:1234}
+serviceIdKey:
+  bnk: /open/@mtk27zwymtu3oou?extra=

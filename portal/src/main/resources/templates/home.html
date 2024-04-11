@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="kr"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Home</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <style>
+        img.emoji {
+            cursor: pointer;
+            height: 1em;
+            width: 1em;
+            margin: 0 .05em 0 .1em;
+            vertical-align: -0.1em;
+        }
+
+        td {
+            font-size: 39px;
+        }
+
+        .notice-area {
+            position: absolute;
+            right: 3%;
+            top: 3%;
+        }
+
+        .notice-button {
+            width: 30px;
+            height: 30px;
+            background-color: #f1f1f1;
+            border-radius: 10px;
+            text-align: center;
+            line-height: 30px;
+            margin-left: auto;
+        }
+
+        .notice-button:hover {
+            cursor: pointer;
+        }
+
+        ul, li {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        .notice-content {
+            width: 300px;
+            border: 1px solid black;
+            display: none;
+        }
+
+        .notice-content li {
+            list-style: none;
+        }
+    </style>
+    <script th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script th:src="@{/webjars/sockjs-client/sockjs.min.js}"></script>
+    <script th:src="@{/webjars/stomp-websocket/stomp.min.js}"></script>
+    <script th:src="@{/js/socket-client.js}"></script>
+    <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js" crossorigin="anonymous"></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="text/javascript">
+
+        /*<![CDATA[*/
+        let apiServer = '[[${serviceUrl}]]' + '/portal';
+        let messageChannel = null;
+        // Ajax 요청시 CSRF 토큰
+        let csrfToken = null;
+        // 웹소켓 커넥션 헤더
+        let headers = {
+            login: 'loginId'
+        };
+        /*]]>*/
+
+        // CSRF 토큰 요청
+        // $.ajax({
+        // 	type: 'get',
+        // 	url: apiServer + '/csrf',
+        // 	dataType: 'text'
+        // }).done(function(data) {
+        // 	console.info(data);
+        // 	csrfToken = data;
+        // 	// 웹소켓 헤더에 토큰 세팅
+        // 	headers['X-XSRF-TOKEN'] = data;
+        // 	console.info(headers);
+        // }).fail(function(jqXHR, textStatus, errorThrown) {
+        // 	console.error('FAIL REQUEST: ', jqXHR.status, jqXHR.responseJSON);
+        // });
+
+        // 웹소켓 클라이언트 생성
+        socketClient = new SocketClient(
+            // 연결시, 헤더
+            headers,
+
+            // 연결 성공시, 콜백
+            function (frame) {
+
+                console.log('connected, frame', frame);
+                // const wsTransportUrl = socketClient.getStompClient().ws._transport.url;
+                // const regexp = /[0-9]+\/(?<simpSessionId>[^/]+)\/websocket/;
+                // const matches = wsTransportUrl.match(regexp);
+                // console.log('simpSessionId', matches.groups.simpSessionId);
+
+                setConnected(true);
+
+                // 전체 이벤트 구독
+                messageChannel = socketClient.getStompClient().subscribe('/topic/general', function (message) {
+                    // 메세지 수신시, 처리 로직
+                    showNotification(JSON.parse(message.body));
+                    showMessageOutput(JSON.parse(message.body));
+                });
+                // 브랜치 이벤트 구독
+                messageChannel = socketClient.getStompClient().subscribe('/topic/branch.'+$('#branchId').val(), function (message) {
+                    // 메세지 수신시, 처리 로직
+                    showNotification(JSON.parse(message.body));
+                    showMessageOutput(JSON.parse(message.body));
+                });
+                // 개인 이벤트 구독
+                messageChannel = socketClient.getStompClient().subscribe('/topic/direct.' + $('#memberId').val(), function (message) {
+                    // 메세지 수신시, 처리 로직
+                    showNotification(JSON.parse(message.body));
+                    showMessageOutput(JSON.parse(message.body));
+                });
+                // 채팅방 목록 구독
+                messageChannel = socketClient.getStompClient().subscribe('/topic/issue', function (message) {
+                    // 메세지 수신시, 처리 로직
+                    showListOutput(JSON.parse(message.body));
+                });
+                // 채팅방 구독 (채팅방 입장시)
+                messageChannel = socketClient.getStompClient().subscribe('/topic/issue.' + $('#issueId').val() + '.message', function (message) {
+                    // 메세지 수신시, 처리 로직
+                    showMessageOutput(JSON.parse(message.body));
+                });
+            },
+
+            // 연결 실패시, 콜백
+            null);
+
+        function setConnected(connected) {
+            document.getElementById('conversationDiv').style.visibility = connected ? 'visible' : 'hidden';
+            document.getElementById('response').innerHTML = '';
+        }
+
+        function connect() {
+            // 웹소켓 연결
+            socketClient.connect();
+        }
+
+        function unsubscribe() {
+            if (messageChannel != null) {
+                // 채팅방 구독 해지
+                messageChannel.unsubscribe('QWIQMS', headers);
+                messageChannel = null;
+            }
+        }
+
+        function disconnect() {
+            // 웹소켓 연결 해제
+            if (socketClient.getStompClient() != null) {
+                socketClient.getStompClient().disconnect();
+            }
+
+            setConnected(false);
+            console.log("Disconnected");
+        }
+
+        // 메세지 포맷
+        let payload = {
+            version: '0.1',
+            chapters: [
+                {
+                    sections: [
+                        {
+                            type: 'text',
+                            data: 'This document specifies an Internet standards track protocol for the'
+                                + 'Internet community, and requests discussion and suggestions for'
+                                + 'improvements.  Please refer to the current edition of the "Internet'
+                                + 'Official Protocol Standards" (STD 1) for the standardization state'
+                                + 'and status of this protocol.  Distribution of this memo is unlimited.'
+                        },
+                        {
+                            type: 'action',
+                            actions: [
+                                {
+                                    type: 'link',
+                                    name: '전문 읽기',
+                                    device_type: 'all',
+                                    data: 'https://www.rfc-editor.org/rfc/rfc2616.html'
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+        let payloadStringify = JSON.stringify(payload);
+
+        // Rest API 발신
+        function sendAPI() {
+
+            $.ajax({
+                type: 'post',
+                url: apiServer + '/api/v1/issue/' + $('#issueId').val() + '/event-by-operator/message',
+                // headers: {'X-XSRF-TOKEN': csrfToken},
+                contentType: "application/json; charset=utf-8",
+                data: payloadStringify
+            }).done(function (data) {
+                console.info(data);
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                console.error('FAIL REQUEST: ', jqXHR.status, jqXHR.responseJSON);
+            });
+        }
+
+        function showListOutput(message) {
+
+            console.info(message);
+
+            let response = document.getElementById('response');
+            let p = document.createElement('p');
+            p.style.wordWrap = 'break-word';
+            p.appendChild(document.createTextNode('ISSUE: '));
+            p.appendChild(document.createTextNode(message.id));
+            p.appendChild(document.createTextNode(', '));
+            p.appendChild(document.createTextNode(message.status));
+            response.appendChild(p);
+        }
+
+        function showMessageOutput(message) {
+
+            console.info(message);
+            let payload = JSON.parse(message.payload);
+
+            let response = document.getElementById('response');
+            let p = document.createElement('p');
+            p.style.wordWrap = 'break-word';
+            p.appendChild(document.createTextNode(payload.chapters[0].sections[0].data));
+            p.appendChild(document.createTextNode(message.created));
+            response.appendChild(p);
+        }
+
+        function fileUpload(el) {
+            let files = el.files;
+            let issueId = $('#issueId').val();
+
+            let form = new FormData();
+            for (let file of files) {
+                form.append("files", file);
+            }
+
+            fetch(`${apiServer}/api/v1/issue/${issueId}/event-by-operator/upload`, {
+                method: "POST",
+                body: form
+            }).then(response => response.json())
+                .then((data) => console.log(data))
+                .finally(() => {
+                    el.value = "";
+                })
+        }
+
+        function showNotification(message) {
+            switch (message.display_type) {
+                case "toast":
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        timerProgressBar: true,
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer);
+                            toast.addEventListener('mouseleave', Swal.resumeTimer);
+                        }
+                    })
+
+                    Toast.fire({
+                        icon: 'success',
+                        title: `${message.type}`,
+                        html: `<div><b>${message.title}</b></div><div>${message.payload}</div>`
+                    })
+                    break;
+                case "alert":
+                    Swal.fire({
+                        icon: 'success',
+                        title: message.title,
+                        text: message.payload,
+                    });
+                    break;
+                case "confirm":
+                    Swal.fire({
+                        title: message.title,
+                        text: message.payload,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: '승인',
+                        cancelButtonText: '취소'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire(
+                                '승인이 완료되었습니다.',
+                                'success'
+                            )
+                        }
+                    })
+                    break;
+            }
+        }
+    </script>
+</head>
+
+<body onload="disconnect()">
+<div>
+    <div sec:authorize="hasRole('ADMIN')">
+        ADMIN
+    </div>
+    <div sec:authorize="hasRole('MEMBER')">
+        USER
+    </div>
+    <div sec:authorize="isAuthenticated()">
+        <input type="hidden" id="sessionId" name="sessionId" th:value="${#httpSession.id}"/>
+        <input type="hidden" id="sessionHits" name="sessionHits" th:value="${#httpSession.getAttribute('hits')}"/>
+        <!--		<input type="hidden" th:if="${_csrf != null && _csrf.token != null}" th:id="${_csrf.parameterName}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />-->
+        <input type="hidden" id="memberId" name="memberId" value="2"/>
+        <input type="hidden" id="branchId" name="branchId" value="19"/>
+        <input type="text" id="issueId" name="issueId" value="" placeholder="issueId" />
+    </div>
+    <br/>
+    <div>
+        <button id="connect" onclick="connect();">Connect</button>
+        <!--		<button id="unsubscribe" onclick="unsubscribe();">Unsubscribe</button>-->
+        <button id="disconnect" onclick="disconnect();">Disconnect</button>
+    </div>
+    <br/>
+    <div id="conversationDiv">
+        <div class="notice-area">
+            <div class="notice-button" id="noticeButton">
+                🔔
+            </div>
+            <div class="notice-content">
+                <ul>
+                </ul>
+            </div>
+        </div>
+        <input type="file" id="file" onchange="fileUpload(this);" multiple/><br>
+        <table id="emojiArea">
+            <tr>
+                <td>&#x1F600;</td>
+                <td>&#x1F601;</td>
+                <td>&#x1F602;</td>
+                <td>&#x1F604;</td>
+            </tr>
+        </table>
+        <div>
+            <select id="guideL" name="large">
+            </select>
+            <select id="guideM" name="medium">
+                <option value="중분류 선택">중분류 선택</option>
+            </select>
+            <select id="guideS" name="small">
+                <option value="소분류 선택">소분류 선택</option>
+            </select>
+        </div>
+        <input type="text" id="text" placeholder="message..." value="TEST MESSAGE"/><br>
+        <button id="sendSocket" onclick="sendSocket();" disabled="disabled">Send (Socket)</button>
+        <button id="sendAPI" onclick="sendAPI();">Send (API)</button>
+        <!--		<button id="sendQueueMessage" onclick="sendQueueMessage();">Send (Queue)</button>-->
+        <!--		<button id="sendTopicMessage" onclick="sendTopicMessage();">Send (Topic)</button>-->
+        <p id="response"></p>
+    </div>
+</div>
+<script>
+    let emojiArea = document.querySelector("#emojiArea");
+    // twemoji.parse(emojiArea, {"size": 72});
+    let emojiList = document.querySelectorAll(".emoji");
+
+    function sendEmoji(emoji) {
+        document.querySelector("#text").value += emoji;
+    }
+
+    for (let i = 0; i < emojiList.length; i++) {
+        emojiList[i].addEventListener("click", () => {
+            sendEmoji(emojiList[i].alt)
+        });
+    }
+    $(function () {
+        let guideCategory;
+        let largeSelect = $("#guideL");
+        let mediumSelect = $("#guideM");
+        let smallSelect = $("#guideS");
+        let largeIndex;
+        let mediumIndex;
+        let smallIndex;
+
+        largeSelect.change(function (event) {
+            if (event.target.value === 'default') return;
+            largeIndex = event.target.value;
+            smallSelect.empty();
+            mediumSelect.empty();
+            mediumSelect.append(`<option value="default">중분류 선택</option>`);
+            smallSelect.append(`<option value="default">소분류 선택</option>`);
+            guideCategory[largeIndex].children.forEach((item, index) => {
+                mediumSelect.append(`<option value="${index}">${item.name}</option>`);
+            })
+        })
+
+        mediumSelect.change(function (event) {
+            if (event.target.value === 'default') return;
+            mediumIndex = event.target.value;
+            smallSelect.empty();
+            smallSelect.append(`<option value="default">소분류 선택</option>`);
+            guideCategory[largeIndex].children[mediumIndex].children.forEach((item, index) => {
+                smallSelect.append(`<option value="${index}">${item.name}</option>`);
+            })
+        })
+
+        smallSelect.change(function (event) {
+            if (event.target.value === 'default') return;
+            smallIndex = event.target.value;
+            fetch(`${apiServer}/api/v1/guide?page=0&size=10&category_id=${smallIndex}`, {
+                method: "GET",
+            }).then(response => response.json())
+                .then((data) => {
+                    console.log(data.payload.content);
+                });
+        })
+
+        fetch(`${apiServer}/api/v1/guide/category`, {
+            method: "GET",
+        }).then(response => response.json())
+            .then((data) => {
+                guideCategory = data.payload;
+                largeSelect.append(`<option value="default">대분류 선택</option>`);
+                guideCategory.forEach((item, index) => {
+                    largeSelect.append(`<option value="${index}">${item.name}</option>`);
+                })
+            });
+        $('#noticeButton').click(function () {
+
+            if ($('.notice-content').css('display') == 'none') {
+                let notiUl = document.querySelector("#conversationDiv > div > div.notice-content > ul");
+
+                while (notiUl.hasChildNodes()) {
+                    notiUl.removeChild(notiUl.firstChild);
+                }
+
+                fetch(`${apiServer}/api/v1/notification`, {
+                    method: "GET",
+                }).then(response => response.json())
+                    .then((data) => {
+                        if (data.code === "failed") {
+                            Swal.fire({
+                                icon: 'error',
+                                title: data.code,
+                                text: data.message,
+                            });
+                            return;
+                        }
+
+                        let notiUl = document.querySelector("#conversationDiv > div > div.notice-content > ul");
+
+                        for (let message of data.payload.content) {
+                            const li = document.createElement("li");
+                            const div = document.createElement("div");
+
+                            div.innerHTML = `<div><h3>${message.type}</h3></div><div>${message.title}</div><div>${message.payload}</div><div>${message.created}</div>`;
+                            li.appendChild(div);
+                            li.setAttribute("data-id", message.id);
+                            notiUl.appendChild(li);
+
+                        }
+                        $('.notice-content').slideToggle(100, 'linear');
+                    })
+            } else {
+                $('.notice-content').slideToggle(100, 'linear');
+            }
+        });
+    })
+</script>
+</body>
+</html>

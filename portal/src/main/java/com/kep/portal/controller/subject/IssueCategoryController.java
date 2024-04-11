@@ -1,0 +1,231 @@
+package com.kep.portal.controller.subject;
+
+import com.kep.core.model.dto.ApiResult;
+import com.kep.core.model.dto.ApiResultCode;
+import com.kep.core.model.dto.legacy.LegacyBnkCategoryDto;
+import com.kep.core.model.dto.subject.IssueCategoryBasicDto;
+import com.kep.core.model.dto.subject.IssueCategoryDto;
+import com.kep.portal.model.dto.subject.IssueCategoryChildrenDto;
+import com.kep.portal.model.dto.subject.IssueCategoryStoreDto;
+import com.kep.portal.model.dto.subject.IssueCategoryWithChannelDto;
+import com.kep.portal.model.entity.subject.IssueCategory;
+import com.kep.portal.service.subject.IssueCategoryService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import java.util.List;
+
+/**
+ * 상담 배분 설정, SB-SA-006
+ * 상담 관리, 상담 이력, SB-CA-P01
+ * 상담 관리, 상담 진행 목록, SB-CA-P01
+ */
+@Slf4j
+@RestController
+@RequestMapping("/api/v1/issue/category")
+public class IssueCategoryController {
+
+	@Resource
+	private IssueCategoryService issueCategoryService;
+
+	// ////////////////////////////////////////////////////////////////////////
+	// 상담 배분 설정
+	// ////////////////////////////////////////////////////////////////////////
+	/**
+	 * 상담직원 배정, 분류 목록
+	 */
+	@GetMapping("/tree")
+	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN','READ_MANAGE')")
+	public ResponseEntity<ApiResult<List<IssueCategoryChildrenDto>>> get(
+			@RequestParam(value = "channel_id") Long channelId,
+			@RequestParam(value = "name", required = false) String name) throws Exception {
+
+		log.info("ISSUE CATEGORY, GET TREE, NAME: {}", name);
+
+		List<IssueCategoryChildrenDto> issueCategories = issueCategoryService.search(channelId, name);
+
+		ApiResult<List<IssueCategoryChildrenDto>> response = ApiResult.<List<IssueCategoryChildrenDto>>builder()
+				.code(ApiResultCode.succeed)
+				.payload(issueCategories)
+				.build();
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+
+	// ////////////////////////////////////////////////////////////////////////
+	// 상담 배분 설정
+	// ////////////////////////////////////////////////////////////////////////
+	/**
+	 * 상담직원 배정, 분류 목록
+	 */
+	@GetMapping("/parent")
+	//@PreAuthorize(("hasAnyAuthority('WRITE_ASSIGN')")
+	public ResponseEntity<ApiResult<List<IssueCategoryChildrenDto> >> getCategoryParentWith(
+			@RequestParam(value = "category_id") Long categoryId,
+			@RequestParam Long channelId
+			) throws Exception {
+
+		log.info("ISSUE CATEGORY, GET TREE, CATEGORY_ID: {}", categoryId);
+
+		List<IssueCategoryChildrenDto> issueCategories = issueCategoryService.searchById(categoryId, channelId);
+
+		ApiResult<List<IssueCategoryChildrenDto> > response = ApiResult.<List<IssueCategoryChildrenDto> >builder()
+				.code(ApiResultCode.succeed)
+				.payload(issueCategories)
+				.build();
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	/**
+	 * 분류 관리, 목록
+	 */
+	@GetMapping
+	public ResponseEntity<ApiResult<List<IssueCategoryBasicDto>>> get(
+			@RequestParam(value = "channel_id", required = false) Long channelId,
+			@RequestParam(value = "parent_id", required = false) Long parentId,
+			@RequestParam(value = "enabled", required = false) Boolean enabled) throws Exception {
+
+		log.info("ISSUE CATEGORY, GET, CHANNEL: {}, PARENT: {}, ENABLED: {}", channelId, parentId, enabled);
+
+		List<IssueCategoryBasicDto> issueCategories = issueCategoryService.getAll(channelId, parentId, enabled);
+
+		ApiResult<List<IssueCategoryBasicDto>> response = ApiResult.<List<IssueCategoryBasicDto>>builder()
+				.code(ApiResultCode.succeed)
+				.payload(issueCategories)
+				.build();
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	/**
+	 * 분류 관리, 생성
+	 */
+	@PostMapping
+	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN')")
+	public ResponseEntity<ApiResult<IssueCategoryBasicDto>> post(
+			@RequestParam(value = "channel_id") Long channelId,
+			@RequestBody IssueCategoryStoreDto issueCategoryStoreDto) {
+
+		log.info("ISSUE CATEGORY, POST, BODY: {}", issueCategoryStoreDto);
+
+		IssueCategoryBasicDto issueCategory = issueCategoryService.store(channelId, issueCategoryStoreDto);
+
+		ApiResult<IssueCategoryBasicDto> response = ApiResult.<IssueCategoryBasicDto>builder()
+				.code(ApiResultCode.succeed)
+				.payload(issueCategory)
+				.build();
+		return new ResponseEntity<>(response, HttpStatus.CREATED);
+	}
+
+	/**
+	 * 분류 관리, 수정
+	 */
+	@PutMapping("/{id}")
+	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN')")
+	public ResponseEntity<ApiResult<IssueCategoryBasicDto>> put(
+			@PathVariable(value = "id") Long id,
+			@RequestBody IssueCategoryStoreDto issueCategoryStoreDto) {
+
+		log.info("ISSUE CATEGORY, GET, ID: {}, BODY: {}", id, issueCategoryStoreDto);
+
+		IssueCategoryBasicDto issueCategory = issueCategoryService.store(issueCategoryStoreDto, id);
+
+		ApiResult<IssueCategoryBasicDto> response = ApiResult.<IssueCategoryBasicDto>builder()
+				.code(ApiResultCode.succeed)
+				.payload(issueCategory)
+				.build();
+		return new ResponseEntity<>(response, HttpStatus.ACCEPTED);
+	}
+
+	/**
+	 * 분류 관리, 삭제
+	 */
+	@DeleteMapping("/{id}")
+	public ResponseEntity<ApiResult<String>> delete(
+			@PathVariable(value = "id") Long id) {
+
+		log.info("ISSUE CATEGORY, DELETE, ID: {}", id);
+
+		issueCategoryService.delete(id);
+
+		ApiResult<String> response = ApiResult.<String>builder()
+				.code(ApiResultCode.succeed)
+				.build();
+		return new ResponseEntity<>(response, HttpStatus.ACCEPTED);
+	}
+
+	// ////////////////////////////////////////////////////////////////////////
+	// 상담 관리
+	// ////////////////////////////////////////////////////////////////////////
+	/**
+	 * 브랜치에 포함된 채널에 포함된 분류 목록
+	 *
+	 * <li>상담 포탈, 상담 직원 전환, 시스템 전환, 검색 조건
+	 * <li>상담 관리, 상담 이력, 검색 조건
+	 * <li>상담 관리, 상담 진행 목록, 검색 조건
+	 */
+	@GetMapping("/by-branch")
+	public ResponseEntity<ApiResult<List<IssueCategoryWithChannelDto>>> get(
+			@RequestParam(value = "branch_id", required = false) Long branchId,
+			@RequestParam(value = "parent_id", required = false) Long parentId) throws Exception {
+
+		log.info("ISSUE CATEGORY BY BRANCH, GET, BRANCH: {}, PARENT: {}", branchId, parentId);
+
+		List<IssueCategoryWithChannelDto> issueCategories = issueCategoryService.getAllByBranch(branchId, parentId);
+
+		ApiResult<List<IssueCategoryWithChannelDto>> response = ApiResult.<List<IssueCategoryWithChannelDto>>builder()
+				.code(ApiResultCode.succeed)
+				.payload(issueCategories)
+				.build();
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	/**
+     * BNK 카테고리 
+     *
+     * 조회 구분, 현업 이관 업무, 현업 이관 부서에 따라 BNK의 카테고리 정보를 조회합니다.
+     * - 조회구분 (L): 사용자의 조회구분 선택값을 기반으로 IssueCategoryController에서 요청합니다.
+     * - 조회구분 (M): 조회구분에서 선택된 값(value)을 fld_cd로 설정하여 API 호출합니다.
+     * - 현업이관부서 (S): 조회구분에서 선택된 값(value)을 fld_cd로, 현업이관업무에서 선택된 값(value)을 wrk_seq로 설정하여 API 호출합니다.
+     *
+     * @param gubun 조회 구분값 (L, M, S 중 하나)
+     * @param fld_cd 현업 이관 업무 코드값 (조회구분에서 반환된 value 값)
+     * @param wrk_seq 현업 이관 부서 코드값 (조회구분, 현업이관업무에서 반환된 value 값)
+     */
+	// 조회구분 (gubun = L) 요청
+	@GetMapping("/bnkCategoryGubun")
+	public ResponseEntity<ApiResult<LegacyBnkCategoryDto>> bnkCategoryByGubun(
+	        @RequestParam(value ="gubun") String gubun,
+	        @RequestParam(value ="fld_cd", required = false) String fldCd,
+	        @RequestParam(value ="wrk_seq", required = false) String wrkSeq) {
+		log.info("bnkCategoryByGubun called with gubun: {}, fld_cd: {}, wrk_seq: {}", gubun, fldCd, wrkSeq);
+	    LegacyBnkCategoryDto requestDto = new LegacyBnkCategoryDto();
+
+	    switch (gubun) {
+	        case "L":
+	            requestDto = LegacyBnkCategoryDto.builder().gubun("L").build();
+	            break;
+	        case "M":
+	            requestDto = LegacyBnkCategoryDto.builder().gubun("M").fldCd(fldCd).build();
+	            break;
+	        case "S":
+	            requestDto = LegacyBnkCategoryDto.builder().gubun("S").fldCd(fldCd).wrkSeq(wrkSeq).build();
+	            break;
+	        default:
+	            throw new IllegalArgumentException("Invalid gubun provided: " + gubun);
+	    }
+	    log.debug("Request DTO created: {}", requestDto);
+	    LegacyBnkCategoryDto responseDto = issueCategoryService.getBnkCategoryInfo(requestDto);
+	    ApiResult<LegacyBnkCategoryDto> result = ApiResult.<LegacyBnkCategoryDto>builder()
+	            .code(ApiResultCode.succeed)
+	            .payload(responseDto)
+	            .build();
+	    log.info("bnkCategoryByGubun responded with payload: {}", responseDto);
+	    return new ResponseEntity<>(result, HttpStatus.OK);
+	}
+
+
+}

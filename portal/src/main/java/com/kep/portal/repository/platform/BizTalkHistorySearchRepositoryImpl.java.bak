@@ -1,0 +1,137 @@
+package com.kep.portal.repository.platform;
+
+import com.kep.core.model.dto.customer.CustomerContactType;
+import com.kep.core.model.dto.platform.PlatformType;
+import com.kep.portal.model.dto.platform.BizTalkHistoryCondition;
+import com.kep.portal.model.entity.platform.BizTalkHistory;
+import com.kep.core.model.dto.platform.BizTalkSendStatus;
+import com.kep.portal.model.entity.platform.QBizTalkHistory;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.util.ObjectUtils;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static com.kep.portal.model.entity.customer.QCustomer.customer;
+import static com.kep.portal.model.entity.customer.QCustomerContact.customerContact;
+import static com.kep.portal.model.entity.platform.QBizTalkHistory.bizTalkHistory;
+
+public class BizTalkHistorySearchRepositoryImpl implements BizTalkHistorySearchRepository {
+
+    private final JPAQueryFactory queryFactory;
+
+    public BizTalkHistorySearchRepositoryImpl(JPAQueryFactory queryFactory) {
+        this.queryFactory = queryFactory;
+    }
+
+    @Override
+    public Page<BizTalkHistory> search(BizTalkHistoryCondition condition, Pageable pageable) {
+        QBizTalkHistory qBizHistory = new QBizTalkHistory("bizTalkHistory");
+
+        Long totalElements = queryFactory.select(qBizHistory.count())
+                .from(qBizHistory)
+                .where(getSearchCondition(condition))
+                .fetchFirst();
+        List<BizTalkHistory> fetch = Collections.emptyList();
+
+        if (totalElements > 0) {
+            fetch = queryFactory.selectFrom(qBizHistory)
+                    .where(getSearchCondition(condition))
+                    .offset(pageable.getOffset())
+                    .limit(pageable.getPageSize())
+                    .orderBy(getOrderSpecifiers(pageable))
+                    .fetch();
+        }
+        return new PageImpl<>(fetch,pageable,totalElements);
+    }
+
+    private OrderSpecifier<?>[] getOrderSpecifiers(Pageable pageable) {
+        List<OrderSpecifier> orders = new ArrayList<>();
+
+        if (!ObjectUtils.isEmpty(pageable)) {
+            for (Sort.Order order : pageable.getSort()) {
+                Order direction = order.getDirection().isAscending() ? Order.ASC : Order.DESC;
+                PathBuilder<BizTalkHistory> pathBuilder = new PathBuilder<BizTalkHistory>(BizTalkHistory.class, order.getProperty());
+                orders.add(new OrderSpecifier(direction, pathBuilder));
+            }
+        }
+        return orders.stream().toArray(OrderSpecifier[]::new);
+    }
+
+    private BooleanBuilder getSearchCondition(BizTalkHistoryCondition condition) {
+        BooleanBuilder mainBuilder = new BooleanBuilder();
+        mainBuilder.and(dateBetween(condition.getStartDate(), condition.getEndDate()));
+        mainBuilder.and(platformEq(condition.getType()));
+        mainBuilder.and(statusIn(condition.getStatus()));
+        mainBuilder.and(branchIdEq(condition.getBranchId()));
+        mainBuilder.and(teamIdEq(condition.getTeamId()));
+        mainBuilder.and(memberIdEq(condition.getMemberId()));
+        mainBuilder.and(customerEq(condition.getKeywordType(), condition.getKeyword()));
+        return mainBuilder;
+
+    }
+
+    private BooleanExpression customerEq(String keywordType, String keyword) {
+        if (!ObjectUtils.isEmpty(keywordType) && !ObjectUtils.isEmpty(keyword)) {
+            if ("name".equals(keywordType)) {
+                return bizTalkHistory.customerId.in(JPAExpressions.select(customer.id).from(customer).where(customer.name.eq(keyword)));
+            } else if ("phone".equals(keywordType)) {
+                return bizTalkHistory.customerId.in(JPAExpressions.select(customerContact.customerId).from(customerContact).where(customerContact.type.eq(CustomerContactType.call).and(customerContact.payload.eq(keyword))));
+            } else if ("email".equals(keywordType)) {
+                return bizTalkHistory.customerId.in(JPAExpressions.select(customer.id).from(customer).where(customer.identifier.contains(keyword)));
+            }
+        }
+        return null;
+    }
+
+    private BooleanExpression memberIdEq(Long memberId) {
+        return !ObjectUtils.isEmpty(memberId) ? bizTalkHistory.creator.eq(memberId) : null;
+    }
+
+    private BooleanExpression teamIdEq(Long teamId) {
+        return !ObjectUtils.isEmpty(teamId) ? bizTalkHistory.teamId.eq(teamId) : null;
+    }
+
+    private BooleanExpression branchIdEq(Long branchId) {
+        return !ObjectUtils.isEmpty(branchId) ? bizTalkHistory.branchId.eq(branchId) : null;
+    }
+
+    private BooleanExpression statusIn(List<BizTalkSendStatus> status) {
+        return !ObjectUtils.isEmpty(status) ? bizTalkHistory.status.in(status) : null;
+    }
+
+    private BooleanExpression platformEq(PlatformType type) {
+        if (!ObjectUtils.isEmpty(type)) {
+            return bizTalkHistory.type.eq(type);
+        } else {
+            return bizTalkHistory.type.isNull();
+        }
+    }
+
+    private BooleanExpression dateBetween(LocalDate startDate, LocalDate endDate) {
+        ZonedDateTime from;
+        ZonedDateTime to;
+        if (!ObjectUtils.isEmpty(startDate) && !ObjectUtils.isEmpty(endDate)) {
+            from = startDate.atStartOfDay(ZoneId.systemDefault());
+            to = endDate.plusDays(1L).atStartOfDay(ZoneId.systemDefault());
+        } else {
+            from = ZonedDateTime.now().minusMonths(1L);
+            to = ZonedDateTime.now();
+        }
+        return bizTalkHistory.sendDate.between(from, to);
+    }
+}

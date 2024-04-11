@@ -1,0 +1,19 @@
+logging:
+  level:
+    io.codeclick.platform.config.debug.DebugFilter: debug
+    org.springframework.web.filter.GenericFilterBean: debug
+    org.springframework.web.client.RestTemplate: debug
+    reactor.netty.http.client: debug
+
+application:
+  platform:
+    platforms:
+      kakao_alert_talk:
+        api-base-url: https://bizmsg-web.kakaoenterprise.com
+        api-key: ${KAKAO_BIZ_API_KEY:1234}
+      kakao_friend_talk:
+        api-base-url: https://bizmsg-web.kakaoenterprise.com
+        api-key: ${KAKAO_BIZ_API_KEY:1234}
+      kakao_template:
+        api-base-url: https://bizmsg-web.kakaoenterprise.com
+        api-key: ${KAKAO_BIZ_API_KEY:1234}

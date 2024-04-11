@@ -1,0 +1,14 @@
+application:
+  codes:
+    -
+      group: PLATFORM
+      code: PF001
+      name: Web
+      enabled: true
+      sort: 1
+    -
+      group: PLATFORM
+      code: PF002
+      name: Kakao
+      enabled: true
+      sort: 2

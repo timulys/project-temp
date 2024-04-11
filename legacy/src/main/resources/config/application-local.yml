@@ -1,0 +1,42 @@
+spring:
+  datasource:
+    connectbranch:
+      url: jdbc:h2:tcp://${DB_URL:localhost:1521}/${DB_PATH:test};OLD_INFORMATION_SCHEMA=TRUE;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;IGNORECASE=TRUE;INIT=CREATE SCHEMA IF NOT EXISTS CONNECT_BRANCH\;SET SCHEMA CONNECT_BRANCH
+      jdbc-url: ${spring.datasource.connectbranch.url}
+      username: ${DB_USER:ENC(FtLBCHAdSAdacNSsXTcqIA==)}
+      password: ${DB_PASSWD:}
+      driver-class-name: org.h2.Driver
+      hikari:
+        maximum-pool-size: 5
+    legacy:
+      url: >-
+        jdbc:oracle:thin:@
+        (
+        DESCRIPTION=
+        (ADDRESS_LIST=
+        (ADDRESS=(PROTOCOL=TCP)(HOST=database-1.csndvegemmbq.ap-northeast-2.rds.amazonaws.com)(PORT=1521))
+        )
+        (CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=ORCL))
+        )
+      jdbc-url: ${spring.datasource.legacy.url}
+      username: ${DB_USER:oauth}
+      password: ${DB_PASSWD:codeclick1234!}
+      driver-class-name: oracle.jdbc.OracleDriver
+      hikari:
+        maximum-pool-size: 5
+
+legacy:
+  api-base-url: http://localhost:8080/customer/api/v1
+
+logging:
+  level:
+    root: info
+    com.kep.legacy.repository: debug
+
+application:
+  core:
+    whitelist:
+      - 192.168.0/24
+      - 127.0.0.1
+      - ::1
+      - 0:0:0:0:0:0:0:1

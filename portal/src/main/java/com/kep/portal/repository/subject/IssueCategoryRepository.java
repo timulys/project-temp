@@ -1,0 +1,71 @@
+package com.kep.portal.repository.subject;
+
+import com.kep.portal.model.entity.subject.IssueCategory;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import java.util.ArrayList;
+import java.util.List;
+
+@Repository
+public interface IssueCategoryRepository extends JpaRepository<IssueCategory, Long> {
+
+	@Query(value = "select ic from IssueCategory ic"
+			+ " where"
+//			+ " (ic.channelId = :channelId or ic.exposed = :exposed)"
+			+ " ic.channelId = :channelId"
+			+ " and ic.enabled = :enabled"
+			+ " and ic.exposed = :exposed"
+//			+ " and ic.depth = :depth"
+			+ " and ic.name like %:name%"
+			+ " order by ic.sort"
+	)
+	List<IssueCategory> search(@Param(value = "channelId") @NotNull Long channelId,
+							   @Param(value = "exposed") @NotNull Boolean exposed,
+							   @Param(value = "enabled") @NotNull Boolean enabled,
+//							   @Param(value = "depth") @NotNull Integer depth,
+							   @Param(value = "name") @NotEmpty String name);
+
+	@Query(value = "select ic from IssueCategory ic"
+			+ " where 1=1"
+			+ " and ic.depth = :depth"
+			+ " and ic.id = :id"
+	)
+	List<IssueCategory> searchById(@Param(value = "depth") @NotNull Integer depth,
+							   @Param(value = "id") @NotEmpty Long id);
+
+	@Query(value = "select ic from IssueCategory ic"
+			+ " where"
+//			+ " (ic.channelId = :channelId or ic.exposed = :exposed)"
+			+ " ic.channelId = :channelId"
+			+ " and ic.enabled = :enabled"
+			+ " and ic.exposed = :exposed"
+			+ " and ic.depth = :depth"
+			+ " order by ic.sort"
+	)
+	List<IssueCategory> search(@Param(value = "channelId") @NotNull Long channelId,
+							   @Param(value = "exposed") @NotNull Boolean exposed,
+							   @Param(value = "enabled") @NotNull Boolean enabled,
+							   @Param(value = "depth") @NotNull Integer depth);
+
+	@Query(value = "select ic from IssueCategory ic"
+			+ " where"
+			+ " ic.channelId in (:channelIds)"
+			+ " and (:parent is null or ic.parent = :parent)"
+			+ " and (:depth is null or ic.depth = :depth)"
+			+ " and ic.enabled = true"
+			+ " order by ic.channelId, ic.sort"
+	)
+	List<IssueCategory> search(@Param(value = "channelIds") @NotNull List<Long> channelIds,
+							   @Param(value = "parent") @Positive IssueCategory parent,
+							   @Param(value = "depth") @NotNull Integer depth);
+
+	List<IssueCategory> findAllByParentAndEnabledIsTrue(IssueCategory category);
+
+	List<IssueCategory> findByParentIdIn(List<Long> parentIds);
+}

@@ -1,0 +1,201 @@
+package com.kep.portal.repository.statisctics;
+
+import com.kep.core.model.dto.issue.IssueLogStatus;
+import com.kep.core.model.dto.issue.IssueStatus;
+import com.kep.core.model.dto.issue.IssueType;
+import com.kep.portal.model.dto.statistics.GuestWaitingTimeAverageDto;
+import com.kep.portal.model.dto.statistics.ReplyStatusDto;
+import com.kep.portal.model.dto.statistics.TodaySummaryDto;
+import com.kep.portal.model.entity.issue.QIssue;
+import com.kep.portal.model.entity.issue.QIssueLog;
+import com.kep.portal.model.entity.statistics.QGuestWaitingTime;
+
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.IterableUtils;
+import org.springframework.util.ObjectUtils;
+
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.kep.portal.model.entity.issue.QIssue.issue;
+
+@Slf4j
+public class ReplyStatusSearchRepositoryImpl implements ReplyStatusSearchRepository{
+
+    private final JPAQueryFactory queryFactory;
+
+    public ReplyStatusSearchRepositoryImpl(JPAQueryFactory queryFactory) {
+        this.queryFactory = queryFactory;
+    }
+
+    /**
+     * 일정 주기로 고객 대기 통계의 기본 정보 생성
+     * @param start
+     * @param end
+     * @return
+     */
+    @Override
+    public List<ReplyStatusDto> findReplyStatusForBatch(ZonedDateTime start, ZonedDateTime end) {
+
+        QIssue qIssue = new QIssue("issue");
+        QGuestWaitingTime qGuestWaitingTime = new QGuestWaitingTime("guestWaitingTime");
+
+        List<ReplyStatusDto> issues = queryFactory.select(Projections.fields(
+                ReplyStatusDto.class, qIssue.count().as("entryCount") , qIssue.branchId))
+                .from(qIssue)
+                .groupBy(qIssue.branchId)
+                .where(
+                        qIssue.created.between(start , end)
+                        .and(qIssue.type.eq(IssueType.chat))
+                )
+                .fetch();
+
+        Map<Long, List<ReplyStatusDto>> issueMap = new HashMap<>();
+        for (ReplyStatusDto issue : issues){
+            issueMap.computeIfAbsent(issue.getBranchId(), k -> new ArrayList<>()).add(issue);
+        }
+
+        List<ReplyStatusDto> guestWaitingTimes = queryFactory.select(Projections.fields(
+                        ReplyStatusDto.class, qGuestWaitingTime.count().as("replyCount") , qGuestWaitingTime.branchId))
+                .from(qGuestWaitingTime)
+                .groupBy(qGuestWaitingTime.branchId)
+                .where(qGuestWaitingTime.firstReplyTime.between(start , end))
+                .fetch();
+
+
+        Map<Long, List<ReplyStatusDto>> guestWaitingTimeMap = new HashMap<>();
+        for (ReplyStatusDto guestWaitingTime : guestWaitingTimes){
+            guestWaitingTimeMap.computeIfAbsent(guestWaitingTime.getBranchId(), k -> new ArrayList<>()).add(guestWaitingTime);
+        }
+
+
+        guestWaitingTimeMap.forEach((key, value) -> issueMap.merge(key, value, (v1, v2) -> v2));
+
+        Map<Long , ReplyStatusDto> list = Stream.concat(issues.stream(), guestWaitingTimes.stream())
+                .collect(Collectors.toMap(ReplyStatusDto::getBranchId, Function.identity(),
+                        (issue, guestWaitingTime) -> {
+                            Long getReplyCount = (guestWaitingTime.getReplyCount() == null) ? 0 : guestWaitingTime.getReplyCount();
+                            issue.setReplyCount(getReplyCount);
+                            return issue;
+                        }));
+
+        if(!list.isEmpty()){
+            List<ReplyStatusDto> replyStatusDtos = new ArrayList<>();
+            for( Long key : list.keySet() ){
+                ReplyStatusDto replyStatusDto = list.get(key);
+                replyStatusDtos.add(replyStatusDto);
+            }
+            return replyStatusDtos;
+        }
+        return Collections.emptyList();
+
+    }
+
+    /**
+     * 오늘 현황
+     * @param start
+     * @param end
+     * @param branchId
+     * @return
+     */
+    @Override
+    public TodaySummaryDto findTodaySummary(ZonedDateTime start, ZonedDateTime end , Long branchId , Long teamId , Long memberId) {
+
+        QIssue qIssue = new QIssue("issue");
+        QIssueLog qIssueLog = new QIssueLog("issueLog");
+
+        //고객수 , 진행 , 대기 , 지연
+        TodaySummaryDto dto = queryFactory
+                .select(Projections.fields(
+                        TodaySummaryDto.class,
+                        qIssue.count().as("guestCount")
+                        , new CaseBuilder()
+                                .when(qIssue.status.in(IssueStatus.ask,IssueStatus.reply))
+                                .then(1L)
+                                .otherwise(0L)
+                                .sum().as("counselingCount")
+                        , new CaseBuilder()
+                                .when(qIssue.status.in(IssueStatus.open,IssueStatus.assign))
+                                .then(1L)
+                                .otherwise(0L)
+                                .sum().as("waitingCount")
+                        , new CaseBuilder()
+                                .when(qIssue.status.eq(IssueStatus.urgent))
+                                .then(1L)
+                                .otherwise(0L)
+                                .sum().as("delayCount")
+                ))
+                .from(qIssue)
+                .where(
+                        qIssue.modified.between(start , end)
+                        , branchIdEq(branchId)
+                        , teamIdEq(teamId)
+                        , memberIdEq(memberId)
+                )
+                .fetchOne();
+
+        if(!ObjectUtils.isEmpty(dto)){
+            dto.setCounselingCount((dto.getCounselingCount() == null) ? 0L : dto.getCounselingCount());
+            dto.setWaitingCount((dto.getWaitingCount() == null) ? 0L : dto.getWaitingCount());
+            dto.setDelayCount((dto.getDelayCount() == null) ? 0L : dto.getDelayCount());
+        }
+
+        //놓침
+        TodaySummaryDto missing = queryFactory.select(
+                Projections.fields(
+                        TodaySummaryDto.class
+                        ,qIssue.count().as("missingCount"))
+                ).from(qIssue)
+                .leftJoin(qIssueLog).on(qIssue.id.eq(qIssueLog.issueId))
+                .where(qIssue.created.between(start , end)
+                        .and(qIssueLog.status.eq(IssueLogStatus.send))
+                        .and(qIssueLog.creator.lt(9000000000L))
+                        ,branchIdEq(branchId),teamIdEq(teamId),memberIdEq(memberId)
+                )
+                .fetchOne();
+
+
+        if(!ObjectUtils.isEmpty(dto)){
+            dto.setMissingCount(ObjectUtils.isEmpty(missing) ? 0L : missing.getMissingCount());
+        }
+
+        //종료
+        TodaySummaryDto closed = queryFactory.select(
+                Projections.fields(
+                        TodaySummaryDto.class
+                        ,qIssue.count().as("closedCount"))
+                ).from(qIssue)
+                .where(qIssue.closed.between(start , end)
+                        .and(qIssue.status.eq(IssueStatus.close))
+                        ,branchIdEq(branchId) , teamIdEq(teamId) , memberIdEq(memberId)
+                ).fetchOne();
+
+        if(!ObjectUtils.isEmpty(dto)){
+            dto.setClosedCount(ObjectUtils.isEmpty(closed) ? 0L : closed.getClosedCount());
+        }
+
+        return dto;
+    }
+    private BooleanExpression branchIdEq(Long branchId) {
+        return branchId != null ? issue.branchId.eq(branchId) : null;
+    }
+
+    private BooleanExpression teamIdEq(Long teamId){
+
+        return teamId != null ? issue.teamId.eq(teamId) : null;
+    }
+
+    private BooleanExpression memberIdEq(Long memberId){
+        return memberId != null ? issue.member.id.eq(memberId) : null;
+    }
+}

@@ -1,0 +1,235 @@
+debug: false
+spring:
+  application:
+    name: platform
+  profiles:
+    active: local
+
+  mvc:
+    throwExceptionIfNoHandlerFound: true
+  #    static-path-pattern: /static/**
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+  jmx:
+    enabled: false
+  devtools:
+    livereload:
+      enabled: false
+    restart:
+      enabled: false
+    add-properties: false
+  thymeleaf:
+    cache: true
+
+  cloud:
+    discovery:
+      client:
+        health-indicator:
+          enabled: false
+        simple:
+          instances:
+            portal-service:
+              - uri: http://localhost:8090/portal
+              - uri: http://127.0.0.1:8090/portal
+    loadbalancer:
+      health-check:
+        path:
+          default: /actuator/health
+        interval: 10000
+      retry:
+        enabled: true
+        max-retries-on-next-service-instance: 1
+        max-retries-on-same-service-instance: 0
+        retryable-status-codes: 404, 503
+        backoff:
+          enabled: true
+          jitter: 0.5
+
+  rabbitmq:
+    #    host: localhost
+    #    port: 5672
+    virtual-host: /${spring.application.name}
+    username: ${spring.application.name}
+    # TODO: encrypt
+    password: platform!#%135
+    addresses: ${QUEUE_ADDRESSES:127.0.0.1:5672,localhost:5672}
+    address-shuffle-mode: random
+
+  redis:
+    host: localhost
+    port: 6379
+    password: ${REDIS_PASSWORD:}
+    cluster:
+      nodes:
+  #    sentinel:
+  #      master: ${spring.application.name}
+  #      nodes:
+  #        - localhost:6379
+  #        - localhost:6379
+  #        - localhost:6379
+
+  session:
+    store-type: none
+
+  security:
+    debug: true
+    oauth2:
+      client:
+        registration:
+          codeclick:
+            authorization-grant-type: client_credentials
+            client-id: messaging-client
+            client-secret: secret
+            scope:
+              - message.read
+              - message.write
+          kakao-bizmsg:
+            authorization-grant-type: client_credentials
+            client-id: R000000071
+            client-secret: R000000071_uFkrhKtpTVeca4fZnn2GiA
+            scope:
+              - read
+              - write
+          kakao-template:
+            authorization-grant-type: client_credentials
+            client-id: R000000071
+            client-secret: R000000071_uFkrhKtpTVeca4fZnn2GiA
+            scope:
+              - read
+              - write
+          kakao-sync:
+            authorization-grant-type: authorization_code
+            #           bnk개발
+            client-id: 15a497d976ccf083f21572d0b1ff8111
+            #            bnk개발
+            client-secret: 15a497d976ccf083f21572d0b1ff8111
+#            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://connect-always-fe-cl.codeclick.co.kr/auth/kakao-sync/authorized}
+#            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://dev.bnkcapital.co.kr/platform/auth/kakao-sync/authorized}
+            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://bnk.codeclick.co.kr/platform/auth/kakao-sync/authorized}
+            scope:
+              - read
+              - write
+        provider:
+          codeclick:
+            token-uri: http://localhost:9001/oauth2/token
+          kakao-bizmsg:
+            token-uri: https://bizmsg-web.kakaoenterprise.com/v1/oauth/token
+          kakao-template:
+            token-uri: https://bizmsg-web.kakaoenterprise.com/mng/v1/oauth/token
+          kakao-sync:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+jasypt:
+  encryptor:
+    bean: propertyEncryptor
+
+logging:
+  pattern:
+    console: '%(%d{yyyy-MM-dd HH:mm:ss} %30.30logger:%-4line) %-5level > %msg\n'
+  level:
+    root: info
+
+server:
+  port: ${SERVER_PORT:9000}
+  servlet:
+    session:
+      timeout: 0
+    context-path: /${spring.application.name}
+  error:
+    whitelabel:
+      enabled: false
+    include-exception: true
+
+management:
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: '*'
+
+application:
+  core:
+    portal-service-uri: http://portal-service/portal
+    proxy-server:
+      host: kep-talk2.codeclick.co.kr
+      port: 8888
+      user: codeclick
+      passwd: 'beerholic123!@#'
+  platform:
+    redis-mode: ${REDIS_MODE:cluster}
+    api-version: 1
+    api-base-path: /api/v${codeclick.platform.api-version}
+    api-key-name: X-API-Key
+    api-key-method:
+    allow-receive-image: true
+    allow-receive-file: false
+    replace-message-for-prevent: '허용되지 않은 파일이 전송되었습니다.'
+    platforms:
+      solution_web:
+        api-base-url: http://localhost:8080/customer/api/v1
+        api-key:
+      kakao_counsel_talk:
+        api-base-url: https://bzc-api.kakao.com
+        api-key: ${KAKAO_COUNSEL_API_KEY:75255f38d08ff785b5695b43e4d2fdc6819c77de}
+#        api-key: ${KAKAO_COUNSEL_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
+      kakao_counsel_center:
+        api-base-url: https://bzm-center.kakao.com/api
+        api-key: ${KAKAO_COUNSEL_API_KEY:75255f38d08ff785b5695b43e4d2fdc6819c77de}
+#        api-key: ${KAKAO_COUNSEL_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
+      kakao_alert_talk:
+        api-base-url: https://bizmsg-web.kakaoenterprise.com
+        api-key: ${KAKAO_BIZ_API_KEY:1234}
+      kakao_friend_talk:
+        api-base-url: https://bizmsg-web.kakaoenterprise.com
+        api-key: ${KAKAO_BIZ_API_KEY:1234}
+      kakao_template:
+        api-base-url: https://bizmsg-web.kakaoenterprise.com
+        api-key: ${KAKAO_BIZ_API_KEY:1234}
+    # TODO: 저장소 및 관리
+    clients:
+      -
+        id: portal
+        name: portal
+        api-key: 'beerholic1'
+        roles:
+          - SEND
+      -
+        id: customer
+        name: customer
+        api-key: 'beerholic2'
+        roles:
+          - RECEIVE
+      -
+        id: codeclick_kakao_channel
+        name: codeclick_kakao_channel
+        api-key: 'beerholic3'
+        roles:
+          - RECEIVE
+      -
+        id: legacy_app
+        name: legacy_app
+        api-key: 'beerholic4'
+        roles:
+          - SEND
+          - SYS
+    whitelist:
+      - 192.168.0/24
+      - 127.0.0.1
+      - ::1
+      - 0:0:0:0:0:0:0:1
+  portal:
+    api-base-path: /api/v1/event-by-platform
+    open-path: /open
+    message-path: /message
+    relay-path: /relay
+    close-path: /close
+    callback-path: /message/callback
+    authorized-path: /authorized

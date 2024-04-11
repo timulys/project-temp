@@ -1,0 +1,71 @@
+package com.kep.portal.config.session;
+
+
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.ReadFrom;
+import io.lettuce.core.cluster.ClusterClientOptions;
+import io.lettuce.core.cluster.ClusterTopologyRefreshOptions;
+import io.lettuce.core.resource.ClientResources;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.session.config.annotation.web.http.EnableSpringHttpSession;
+
+import java.time.Duration;
+import java.util.List;
+
+public class RedisConfig {
+
+    @Value("${spring.redis.host}")
+    private String redisHost;
+    @Value("${spring.redis.port}")
+    private int redisPort;
+
+    @Value("${spring.redis.cluster.nodes}")
+    private List<String> nodes;
+
+    @Value("${spring.redis.password}")
+    private String password;
+
+    /**
+     * mode : standalone
+     * @return
+     */
+    protected LettuceConnectionFactory connectionFactory(){
+        RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
+        redisStandaloneConfiguration.setHostName(redisHost);
+        redisStandaloneConfiguration.setPort(redisPort);
+        redisStandaloneConfiguration.setPassword(password);
+        return new LettuceConnectionFactory(redisStandaloneConfiguration);
+    }
+
+    /**
+     * mode : cluster
+     * @return
+     */
+    protected LettuceConnectionFactory connectionClusterFactory(){
+        RedisClusterConfiguration redisClusterConfiguration = new RedisClusterConfiguration(nodes);
+        redisClusterConfiguration.setPassword(password);
+
+        // topology 자동 업데이트 옵션 추가
+        // enablePeriodicRefresh(tolpology 정보 감시 텀) default vaule : 60s
+        ClusterTopologyRefreshOptions clusterTopologyRefreshOptions = ClusterTopologyRefreshOptions.builder()
+                .enableAllAdaptiveRefreshTriggers()
+                .build();
+
+        ClientOptions clientOptions = ClusterClientOptions.builder()
+                .topologyRefreshOptions(clusterTopologyRefreshOptions)
+                .build();
+
+        // topology 옵션 및 timeout 세팅
+        LettuceClientConfiguration clientConfiguration = LettuceClientConfiguration.builder()
+                .clientOptions(clientOptions)
+                .readFrom(ReadFrom.REPLICA_PREFERRED)
+                .build();
+
+        return new LettuceConnectionFactory(redisClusterConfiguration , clientConfiguration);
+    }
+}

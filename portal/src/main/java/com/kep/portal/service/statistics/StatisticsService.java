@@ -1,0 +1,513 @@
+package com.kep.portal.service.statistics;
+
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
+
+import com.kep.portal.model.dto.statistics.*;
+import com.kep.portal.model.entity.customer.Customer;
+import com.kep.portal.model.entity.issue.IssueMapper;
+import com.kep.portal.model.entity.statistics.*;
+import com.kep.portal.service.branch.BranchService;
+import com.kep.portal.service.team.TeamService;
+import com.kep.portal.service.work.WorkService;
+import com.kep.portal.util.SecurityUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import com.kep.core.model.dto.branch.BranchDto;
+import com.kep.core.model.dto.issue.IssueLogStatus;
+import com.kep.core.model.dto.issue.IssueStatus;
+import com.kep.core.model.dto.work.WorkType;
+import com.kep.portal.model.entity.branch.Branch;
+import com.kep.portal.model.entity.branch.BranchMapper;
+import com.kep.portal.model.entity.customer.Guest;
+import com.kep.portal.model.entity.issue.Issue;
+import com.kep.portal.model.entity.issue.IssueExtra;
+import com.kep.portal.model.entity.member.Member;
+import com.kep.portal.model.entity.subject.IssueCategory;
+import com.kep.portal.model.entity.work.OffDutyHours;
+import com.kep.portal.model.entity.work.OfficeHours;
+import com.kep.portal.repository.assign.BranchOfficeHoursRepository;
+import com.kep.portal.repository.assign.MemberOfficeHoursRepository;
+import com.kep.portal.repository.branch.BranchRepository;
+import com.kep.portal.repository.issue.IssueLogRepository;
+import com.kep.portal.repository.issue.IssueRepository;
+import com.kep.portal.repository.member.MemberRepository;
+import com.kep.portal.repository.statisctics.GuestWaitingTimeRepository;
+import com.kep.portal.repository.statisctics.ReplyStatusRepository;
+import com.kep.portal.repository.subject.IssueCategoryRepository;
+import com.kep.portal.repository.work.BranchOffDutyHoursRepository;
+import com.kep.portal.util.ZonedDateTimeUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
+
+@Service
+@Transactional
+@Slf4j
+public class StatisticsService {
+	@Resource
+	private GuestWaitingTimeRepository guestWatingTimeRepository;
+
+	@Resource
+	private ReplyStatusRepository replyStatusRepository;
+
+	@Resource
+	private IssueRepository issueRepository;
+
+	@Resource
+	private IssueLogRepository issueLogRepository;
+
+	@Resource
+	private GuestWaitingTimeMapper guestWaitingTimeMapper;
+	@Resource
+	private IssueCategoryRepository issueCategoryRepository;
+
+	@Resource
+	private ReplyStatusMapper replyStatusMapper;
+	@Resource
+	private BranchRepository branchRepository;
+
+	@Resource
+	private BranchMapper branchMapper;
+	@Resource
+	private BranchOffDutyHoursRepository branchOffDutyHoursRepository;
+
+	@Resource
+	private BranchOfficeHoursRepository branchOfficeHoursRepository;
+
+	@Resource
+	private MemberRepository memberRepository;
+
+	@Resource
+	private MemberOfficeHoursRepository memberOfficeHoursRepository;
+
+	@Resource
+	private SecurityUtils securityUtils;
+
+	@Resource
+	private BranchService branchService;
+
+	@Resource
+	private TeamService teamService;
+
+	@Resource
+	private IssueMapper issueMapper;
+
+	@Resource
+	private WorkService workService;
+
+
+	@Value("${application.portal.dashboad.data-interval-minutes:10}")
+	int dataInterval;
+
+	private static final Long NO_BRANCH = -1L;
+
+	private static final Long SYSTEM_MEMBER_ID = 9000000001L;
+
+
+	public List<IssueStstisticsDto> getAllIssues(LocalDate date){
+
+		Long branchId = securityUtils.getBranchId();
+		Branch branch = branchService.findById(branchId);
+
+		Assert.notNull(branch , "branch is null");
+
+		List<Long> membersId = teamService.branchTeamMembersId(branch);
+
+		if(!membersId.isEmpty()){
+			List<Member> members = memberRepository.findAllById(membersId);
+			Map<String,ZonedDateTime> today = ZonedDateTimeUtil.getTodayDateTime(date);
+			if(!members.isEmpty()){
+				List<Issue> issues = issueRepository.findAllByMemberInAndCreatedBetweenOrderByIdDesc(members , today.get("start") , today.get("end"));
+				List<IssueStstisticsDto> issueStstistics = new ArrayList<>();
+				for (Issue issue : issues){
+					Customer customer = issue.getGuest().getCustomer();
+					String customerName = issue.getGuest().getName();
+					if(customer != null){
+						customerName = issue.getGuest().getCustomer().getName();
+					}
+
+					//대기 시간
+					ZonedDateTime firstAsked = (issue.getMemberFirstAsked() != null) ? issue.getMemberFirstAsked() :
+							ZonedDateTime.now();
+					String waitDateTime = ZonedDateTimeUtil.difference(issue.getCreated() , firstAsked);
+
+					//상담 시간
+					ZonedDateTime lastAsked = issue.getStatus().equals(IssueStatus.close) ? issue.getClosed() :
+							ZonedDateTime.now();
+
+					String counselDateTime = ZonedDateTimeUtil.difference(issue.getCreated() , lastAsked);
+
+					String categoryName = null;
+					if(issue.getIssueCategory() != null){
+						categoryName = issue.getIssueCategory().getName();
+					}
+
+					issueStstistics.add(IssueStstisticsDto.builder()
+									.id(issue.getId())
+									.firstTalkDateTime(issue.getMemberFirstAsked())
+									.lastTalkDateTime(issue.getLastIssueLog() != null ? issue.getLastIssueLog().getCreated() : lastAsked)
+									.memberName(issue.getMember().getNickname())
+									.customerName(customerName)
+									.issueStatus(issue.getStatus())
+									.waitDateTime(waitDateTime)
+									.counselDateTime(counselDateTime)
+									.issueCategoryName(categoryName)
+									.issueLogLastPayload(issue.getLastIssueLog() != null ? issue.getLastIssueLog().getPayload() : null)
+							.build());
+				}
+
+				if(!issueStstistics.isEmpty()){
+					return issueStstistics;
+				}
+			}
+		}
+
+		return Collections.emptyList();
+
+	}
+
+
+
+	public List<BranchDto> getAllBranches() {
+		return branchMapper.map(branchRepository.findAll());
+	}
+
+
+	public void batchReplyStatus() {
+		// 현재 시간 -10분 ~현재 시간 간 통계 정보 생성 from issue와 guest_waiting_time table
+
+		ZonedDateTime zdt = ZonedDateTime.now();
+
+		String startTime = ZonedDateTimeUtil.toMinuteGroup(zdt.minusMinutes(dataInterval));
+		String endTime = ZonedDateTimeUtil.toMinuteGroup(zdt);
+
+		log.info("DATE TIME , YMDHM START : {} , END :{}", startTime , endTime);
+		Map<String , ZonedDateTime> dateTime = ZonedDateTimeUtil.startEndDateTime(startTime , endTime);
+		log.info("DATETIME {} ", dateTime);
+
+		List<ReplyStatusDto> dtos = replyStatusRepository.findReplyStatusForBatch(dateTime.get("start"), dateTime.get("end"));
+
+
+		log.info("REPLY STATUS : {}" , dtos);
+
+		if (dtos.isEmpty()) {// 없으면
+			// 기존데이터가 있는 경우 빈 row 추가 처리를 제외하기 위해 조회
+			ReplyStatus replyStatusInfo = replyStatusRepository.findByTimeGroupAndBranchIdIsNull(startTime);
+
+			if(ObjectUtils.isEmpty(replyStatusInfo)){
+				ReplyStatus entity = ReplyStatus.builder().timeGroup(startTime).build();
+				replyStatusRepository.saveAndFlush(entity);// 빈 row 추가
+			}
+		} else {// 다건 추가
+			List<ReplyStatus> entities = new ArrayList<>();
+
+			for (ReplyStatusDto dto : dtos) {
+				ReplyStatus entity = ReplyStatus.builder().timeGroup(startTime)
+						.entryCount(dto.getEntryCount())
+						.replyCount(dto.getReplyCount())
+						.branchId(dto.getBranchId())
+				.build();
+
+				// 기존 데이터가 있는 경우 update 처리를 위해 기존 데이터 조회
+				ReplyStatus replyStatusInfo = replyStatusRepository.findByTimeGroupAndBranchId(startTime, dto.getBranchId());
+
+				// 기존 데이터가 있는 경우 update 처리를 위해 값을 세팅
+				if(!ObjectUtils.isEmpty(replyStatusInfo)){
+					entity.setId(replyStatusInfo.getId());
+				}
+
+				entities.add(entity);
+			}
+
+			replyStatusRepository.saveAllAndFlush(entities);
+		}
+
+		// 평균 상담 시간 처리(update) : 상담시간 합(놓침 시간 제외)
+		ZonedDateTime endDateTime = ZonedDateTimeUtil.toZonedDateTimeFromMinuteGroup(endTime);
+		ZonedDateTime startDateTime = ZonedDateTimeUtil.toZonedDateTimeFromMinuteGroup(startTime);
+		List<Issue> issues = issueRepository.findByStatusAndClosedGreaterThanEqualAndClosedLessThanAndMemberIdNotNull(IssueStatus.close, startDateTime, endDateTime);
+
+
+		Map<ReplyStatusKeyTemp, ReplyStatusDataTemp> counselTimes = new HashMap<>();
+		Map<ReplyStatusKeyTemp, Long> missingCountData = new HashMap<>();
+
+		for (Issue issue : issues) {// group by timeGroup, branchId 구현함
+			ReplyStatusKeyTemp replyStatusKeyTemp = new ReplyStatusKeyTemp();
+
+			replyStatusKeyTemp.timeGroup = ZonedDateTimeUtil.toMinuteGroup(issue.getCreated());// created의 인입시간대
+			replyStatusKeyTemp.branchId = issue.getBranchId();// branchId
+
+			if (isCounselMissed(issue.getId())) {// 놓침이면, 회수 세기
+				if (!missingCountData.containsKey(replyStatusKeyTemp))
+					missingCountData.put(replyStatusKeyTemp, 0L);
+
+				missingCountData.put(replyStatusKeyTemp, missingCountData.get(replyStatusKeyTemp) + 1L);
+			} else {// 정상 상담이면, 시간 및 회수 세기
+				if (!counselTimes.containsKey(replyStatusKeyTemp))// 없으면 넣기
+					counselTimes.put(replyStatusKeyTemp, new ReplyStatusDataTemp());
+
+				ReplyStatusDataTemp data = counselTimes.get(replyStatusKeyTemp);
+				data.duration += Duration.between(issue.getCreated(), issue.getClosed()).getSeconds();// 상담 시간 합
+				data.count += 1L;// 상담 건수
+			}
+		}
+
+		for (ReplyStatusKeyTemp k : counselTimes.keySet()) {
+			ReplyStatus replyStatus = replyStatusRepository.findByTimeGroupAndBranchId(k.timeGroup, k.branchId);
+
+			if (replyStatus != null) {
+				replyStatus.setAverageCounselTime(counselTimes.get(k).getAverage());// 평균 상담 시간
+				replyStatusRepository.save(replyStatus);
+			}
+		}
+
+		for (ReplyStatusKeyTemp k : missingCountData.keySet()) {
+			ReplyStatus replyStatus = replyStatusRepository.findByTimeGroupAndBranchId(k.timeGroup, k.branchId);
+
+			if (replyStatus != null) {
+				replyStatus.setMissingCount(missingCountData.get(k));// 놓침 회수
+				replyStatusRepository.save(replyStatus);
+			}
+		}
+
+		replyStatusRepository.flush();
+	}
+
+
+	public List<GuestWaitingTimeDto> getGuestWatingTimesSearch(String startTime, String endTime) {
+		return guestWaitingTimeMapper.map(guestWatingTimeRepository.findByEntryTimeGroupGreaterThanEqualAndEntryTimeGroupLessThan(startTime, endTime));
+	}
+
+	public List<GuestWaitingTimeDto> getGuestWatingTimesSearch(String startTime, String endTime, Long branchId) {
+		return guestWaitingTimeMapper.map(guestWatingTimeRepository.findByEntryTimeGroupGreaterThanEqualAndEntryTimeGroupLessThanAndBranchId(startTime, endTime, branchId));
+	}
+
+	public List<ReplyStatusDto> getReplyStatusesSearch(String startTime, String endTime) {
+		return replyStatusMapper.map(replyStatusRepository.findByTimeGroupGreaterThanEqualAndTimeGroupLessThan(startTime, endTime));
+	}
+
+	public List<ReplyStatusDto> getReplyStatusesSearch(String startTime, String endTime, Long branchId) {
+		return replyStatusMapper.map(replyStatusRepository.findByTimeGroupGreaterThanEqualAndTimeGroupLessThanAndBranchId(startTime, endTime, branchId));
+	}
+
+	public List<ReplyStatusDetailDto> getReplyStatusDetailDto(String timeGroup) {
+		return getReplyStatusDetailDto(timeGroup, NO_BRANCH);
+	}
+
+	public List<ReplyStatusDetailDto> getReplyStatusDetailDto(String timeGroup, Long branchId) {
+		ZonedDateTime startDateTime = ZonedDateTimeUtil.toZonedDateTimeFromMinuteGroup(timeGroup);
+		ZonedDateTime endDateTime = startDateTime.plusMinutes(dataInterval);
+
+		List<Issue> issues = null;
+
+		if (branchId == NO_BRANCH)
+			issues = issueRepository.findByCreatedGreaterThanEqualAndCreatedLessThanAndMemberIsNotNull(startDateTime, endDateTime);
+		else
+			issues = issueRepository.findByCreatedGreaterThanEqualAndCreatedLessThanAndMemberIsNotNullAndBranchId(startDateTime, endDateTime, branchId);
+
+		List<ReplyStatusDetailDto> replyStatusDetailDtos = new ArrayList<>();
+
+		for (Issue issue : issues) {
+			Long issueId = issue.getId();
+			log.info("issueId {}", issueId);
+			Guest guest = issue.getGuest();
+
+			String status = issue.getStatus().name();
+			String statusToShow = toStatusToShow(status);
+
+			GuestWaitingTime guestWatingTime = guestWatingTimeRepository.findById(issueId).orElse(null);
+			Long waitingTime = null;
+
+			if (guestWatingTime != null)// 있으면...
+				waitingTime = guestWatingTime.getWaitingTime();
+
+			Long counselTime = null;
+			if ("close".equals(status) && !isCounselMissed(issueId))// 놓침이 아니고, 상담 종료되었으면
+				counselTime = Duration.between(issue.getCreated(), issue.getClosed()).getSeconds();
+
+			IssueExtra issueExtra = issue.getIssueExtra();
+			log.info("issue.getIssueExtra()");
+			String categoryNames = "";
+			Long categoryId = null;
+			String summary = "";
+
+			if (issueExtra != null) {
+				summary = issueExtra.getSummary();
+
+				log.info("issueExtra != null");
+				categoryId = issueExtra.getIssueCategoryId();
+				if (categoryId != null) {
+					log.info("categoryId {}", categoryId);
+					IssueCategory category = issueCategoryRepository.findById(categoryId).orElse(null);// 소분류
+					if (category != null) {
+						categoryNames = category.getName();
+					}
+				}
+			} else
+				log.info("issueExtra is null");
+
+			ReplyStatusDetailDto.ReplyStatusDetailDtoBuilder builder = ReplyStatusDetailDto.builder();
+			ReplyStatusDetailDto replyStatusDetailDto = builder.issueId(issueId).created(issue.getCreated()).timeGroup(timeGroup).memberId(issue.getMember().getId())
+					.memberName(issue.getMember().getUsername()).guestId(guest.getId()).guestName(guest.getName()).status(status).statusToShow(statusToShow).watingTime(waitingTime).counselTime(counselTime)
+					.issueCategoryId(categoryId).closed(issue.getClosed()).issueCategoryName(categoryNames).summary(summary).build();
+			replyStatusDetailDtos.add(replyStatusDetailDto);
+		}
+
+		return replyStatusDetailDtos;
+	}
+
+	public List<GuestWaitingTimeAverageDto> getAverageReplyTimesGroupBy3Month() {
+		return guestWatingTimeRepository.findAverageReplyTimesGroupBy3Month();
+	}
+
+	public List<GuestWaitingTimeAverageDto> getAverageReplyTimesGroupBy3Month(Long branchId) {
+		return guestWatingTimeRepository.findAverageReplyTimesGroupBy3MonthOfBranch(branchId);
+	}
+
+	public List<GuestWaitingTimeAverageDto> getAverageReplyTimesGroupBy3Week(Long branchId) {
+		return guestWatingTimeRepository.findAverageReplyTimesGroupBy3Week(branchId);
+	}
+
+	public GuestWaitingTimeAverageDto getAverageReplyTimesBy3Month() {
+		return guestWatingTimeRepository.findAverageReplyTimesBy3Month();
+	}
+
+	public GuestWaitingTimeAverageDto getAverageReplyTimesBy3Month(Long branchId) {
+		return guestWatingTimeRepository.findAverageReplyTimesBy3MonthOfBranch(branchId);
+	}
+
+	public GuestWaitingTimeAverageDto getAverageReplyTimesBy3Week() {
+		return guestWatingTimeRepository.findAverageReplyTimesBy3Week();
+	}
+
+	public GuestWaitingTimeAverageDto getAverageReplyTimesBy3Week(Long branchId) {
+		return guestWatingTimeRepository.findAverageReplyTimesBy3WeekOfBranch(branchId);
+	}
+
+	private Long countWorkingCounselorInBranch(Branch branch) {
+		final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("E,H:m", Locale.ENGLISH);
+		ZonedDateTime nowDT = ZonedDateTime.now();
+		String[] temp = nowDT.format(FORMATTER).split(",");
+		String currentDayOfWeek = temp[0].toUpperCase();
+
+		if (branch == null)
+			return 0L;
+
+		Long branchId = branch.getId();
+		OfficeHours officeHours = null;
+
+		if (branch.getAssign().equals(WorkType.Cases.branch)) {// 근무시간 설정이 시스텡으로 설정되어 있으면
+			if (branch.getOffDutyHours()) {// 근무시간 예외가 true면
+				List<OffDutyHours> offDutyHours = branchOffDutyHoursRepository.findAllByBranchId(branchId);
+
+				for (OffDutyHours o : offDutyHours) {
+					if (o.getEnabled() && nowDT.compareTo(o.getStartCreated()) > 0 && nowDT.compareTo(o.getEndCreated()) < 0)
+						return 0L;
+				}
+			}
+
+			officeHours = branchOfficeHoursRepository.findByBranchId(branchId);
+
+			if (officeHours != null && officeHours.getDayOfWeek().contains(currentDayOfWeek))
+				return memberRepository.countByEnabledAndBranchId(true, branchId);
+		} else {// 근무시간 설정이 상담사로 설정되어 있으면, office hour만 체크
+			Long memberCount = 0L;
+			List<Member> members = memberRepository.findByEnabledAndBranchId(true, branchId);
+			for (Member m : members) {
+				officeHours = memberOfficeHoursRepository.findByMemberId(m.getId());
+
+				if (officeHours != null && officeHours.getDayOfWeek().contains(currentDayOfWeek))
+					memberCount++;
+			}
+
+			return memberCount;
+		}
+
+		return 0L;
+	}
+
+	public TodaySummaryDto getTodaySummary(String today , Long branchId , Long teamId , Long memberId){
+		ZonedDateTime start = ZonedDateTimeUtil.start(today);
+		ZonedDateTime end = ZonedDateTimeUtil.end(today);
+		TodaySummaryDto dto = replyStatusRepository.findTodaySummary(start , end , branchId , teamId , memberId);
+		if(branchId != null){
+			List<Member> members = workService.workMembers(branchId , teamId);
+			dto.setMemberCount((long) members.size());
+		}
+		return dto;
+	}
+
+
+	public TodaySummaryDto getTodaySummaryOfMember(Long memberId, ZonedDateTime today) {
+		Long missingCount = 0L;
+		Long waitingCount = 0L;
+		Long counselingCount = 0L;
+		Long closeCount = 0L;
+		Long delayCount = 0L;
+
+		List<Issue> issues = issueRepository.findByMemberIdAndCreatedGreaterThanEqual(memberId, today);
+		for (Issue issue : issues) {
+			IssueStatus status = issue.getStatus();
+
+			if (status.equals(IssueStatus.close) && isCounselMissed(issue.getId()))
+				missingCount++;
+
+			if (status.equals(IssueStatus.close))// 상담종료
+				closeCount++;
+			else if (status.equals(IssueStatus.ask) || status.equals(IssueStatus.reply))// 상담중
+				counselingCount++;
+			else if (status.equals(IssueStatus.assign))// 상담 대기
+				waitingCount++;
+			else if (status.equals(IssueStatus.urgent))// 고객 질의 중 미답변 시간 초과
+				delayCount++;
+		}
+
+		closeCount -= missingCount;// 상담 완료 수(놓침 제외)
+
+		return TodaySummaryDto.builder().waitingCount(waitingCount).counselingCount(counselingCount).closedCount(closeCount).delayCount(delayCount).build();
+	}
+
+	public void save(Issue issue) {
+		GuestWaitingTime guestWatingTime = GuestWaitingTime.builder().issueId(issue.getId()).branchId(issue.getBranchId()).entryTime(issue.getCreated()).build();
+		guestWatingTimeRepository.saveAndFlush(guestWatingTime);
+	}
+
+	private boolean isCounselMissed(Long issueId) {
+		return !issueLogRepository.existsByIssueIdAndStatusAndCreatorLessThan(issueId, IssueLogStatus.send, SYSTEM_MEMBER_ID);
+	}
+
+	private static String toStatusToShow(String staus) {
+		if ("urgent".equals(staus))
+			return "지연중";
+		else if ("close".equals(staus))
+			return "상담종료";
+		else if ("ask".equals(staus) || "reply".equals(staus))
+			return "상담중";
+		else
+			return "상담대기";
+	}
+
+	private class ReplyStatusKeyTemp {
+		private String timeGroup;// 시간 그룹(10분단위)
+		private long branchId;// branch Id
+
+		public String toString() {
+			return timeGroup + ":" + branchId;
+		}
+	}
+
+	private class ReplyStatusDataTemp {
+		private long duration;// 상담시간
+		private long count;// 상담건수
+
+		long getAverage() {// return 평균값
+			return (long) (duration / count);
+		}
+	}
+}

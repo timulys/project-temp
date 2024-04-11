@@ -1,0 +1,60 @@
+package com.kep.portal.config.property;
+
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+
+@ConfigurationProperties(prefix = "application.portal")
+@Validated
+@Data
+public class PortalProperty {
+
+	@NotEmpty
+	private String apiVersion;
+	@NotEmpty
+	private String apiBasePath;
+	@NotEmpty
+	private String serviceUrl;
+	@NotEmpty
+	private String serviceDomain;
+
+	@NotEmpty
+	private String storagePath;
+	@NotEmpty
+	private String uploadPath;
+	@NotEmpty
+	private String uploadUrl;
+//	@NotEmpty
+//	private String uploadRelativeUrl;
+
+	//기존 로직
+	public static final String kakaoCounselTalkBaseUrl = "https://bizmessage.kakao.com/chat";
+	//BNK 싱크 URL 추가
+	public static final String kakaoCounselTalkBnkUrl = "https://kauth.kakao.com/oauth/authorize";
+
+	@NotNull
+	@Positive
+	private Long systemMemberId;
+	@NotNull
+	@Positive
+	private Long kakaoBotMemberId;
+	/**
+	 * 고객사 고객 정보 사용 여부
+	 */
+//	@NotNull
+//	private Boolean identifyLegacyCustomer;
+	/**
+	 * 고객 개인 정보 저장 여부
+	 */
+//	@NotNull
+//	private Boolean storeCustomerPrivateInfo;
+
+	private String redisMode;
+
+//	@NotNull
+//	private Boolean enableScheduler;
+}

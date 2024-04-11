@@ -1,0 +1,71 @@
+application:
+  #  core:
+  #    internal-service-host: internal-service
+  #    servers:
+  #      -
+  #        id: 001
+  #        host: localhost
+  #        port: 9000
+  #      -
+  #        id: 002
+  #        host: 127.0.0.1
+  #        port: 9000
+  portal:
+    api-version: 1
+    #    api-base-path: /api/v${application.portal.api-version}
+    #    service-url: https://localhost:9080
+    #    service-domain: localhost:9080
+    api-base-path: /api/v${application.portal.api-version}
+    service-url: https://front.codeclick.co.kr # 프론트엔드 서비스 URL로 변경
+    service-domain: front.codeclick.co.kr # 프론트엔드 서비스 도메인으로 변경
+    # upload
+    storage-path: ${STORAGE_PATH:/opt/storage}
+    upload-path: ${application.portal.storage-path}/upload
+    upload-url: ${application.portal.service-url}/upload
+    system-member-id: 9000000001
+    kakao-bot-member-id: 9000000002
+    break-time-start: "12:00"
+    break-time-end: "13:00"
+    #BNK  유입경로
+    bnk-kakao-talk-url: https://yocodeclick.loca.lt/platform/auth/kakao-sync/getSync?state=
+    dashboad:
+      search-interval-minutes: 60
+      batch-cron: 5 0/10 * * * *
+      data-interval-minutes: 10
+    # redis mode
+    redis-mode: ${REDIS_MODE:standalone}
+
+  customer:
+    api-version: 1
+    api-base-path: /api/v${application.customer.api-version}
+  platform:
+    api-version: 1
+    api-base-path: /api/v1/portal
+    #    api-key-name: X-API-Key
+    api-key-name: Authorization
+    api-key-method: APIKey
+    message-path: /message
+    close-path: /close
+    relay-path: /relay
+    redis-mode: ${REDIS_MODE:standalone}
+  legacy:
+    api-version: 1
+    api-base-path: /legacy/api/v1
+    customer-path: /customer
+  socket:
+    endpoint: /${spring.application.name}-ws
+    general-path: /topic/general
+    direct-path: /topic/direct
+    branch-path: /topic/branch
+    manager-path: /topic/manager
+    admin-path: /topic/admin
+    manager-admin-path: /topic/manager-admin
+    issue-path: /topic/issue
+    message-broker:
+      host: localhost
+      port: 61613
+      virtual-host: /${spring.application.name}
+      username: ${spring.application.name}
+      # TODO: encrypt
+      password: portal!#%135
+      heartbeat-interval: 5000

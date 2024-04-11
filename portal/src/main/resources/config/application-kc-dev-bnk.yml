@@ -1,0 +1,61 @@
+spring:
+  config:
+    import:
+      - optional:./portal-kc-dev-bnk.yml
+      - optional:./mysql-kc-dev-bnk.yml
+
+  security:
+    debug: true
+  devtools:
+    livereload:
+      enabled: false
+    restart:
+      enabled: false
+    add-properties: true
+  thymeleaf:
+    cache: false
+
+  cloud:
+    discovery:
+      client:
+        simple:
+          instances:
+            platform-service:
+              - uri: http://localhost:8080/platform
+            legacy-service:
+              - uri: http://localhost:8080/legacy
+  rabbitmq:
+    host: localhost
+    port: 5672
+    virtual-host: /${spring.application.name}
+    username: ${spring.application.name}
+    # TODO: encrypt
+    password: portal!#%135
+    connection-timeout: 3600000
+  redis:
+    host: localhost
+    port: 6379
+    password: ${REDIS_PASSWORD:codeclick1213!}
+
+logging:
+  pattern:
+    file: '%(%d{yyyy-MM-dd HH:mm:ss} %30.30logger:%-4line) %-5level > %msg\n'
+  file:
+    path: ${LOGGING_PATH:/opt/storage/logs}/kep-talk/${spring.application.name}
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 7
+  level:
+    root: info
+    #    org.hibernate.SQL: debug
+    #    org.hibernate.type: trace
+    #    org.hibernate.type.descriptor.sql.BasicBinder: trace
+    #    jdbc.sqlonly: debug
+    #    jdbc.resultsettable: debug
+    # 추가
+    com.kep.portal.config.debug.DebugFilter: info
+application:
+  core:
+    sync-client-id: 15a497d976ccf083f21572d0b1ff8111
+    legacy-service-uri: https://rbsdev.bnkcapital.co.kr

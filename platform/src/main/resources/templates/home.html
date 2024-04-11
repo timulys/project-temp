@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="kr"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Home</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+
+<body>
+<script>
+    console.info(location.hash);
+    let hashParams = '';
+    if (location.hash != null) {
+        hashParams = location.hash.replaceAll('#', '&');
+    }
+
+    const requestParams = new URL(location.href).searchParams;
+    const code = requestParams.get('code');
+    console.info(code);
+
+    console.info('/platform/auth/kakao-sync/authorized?code=' + code + hashParams);
+    window.location.href = '/platform/auth/kakao-sync/authorized?code=' + code + hashParams;
+</script>
+</body>
+</html>

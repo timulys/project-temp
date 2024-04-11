@@ -1,0 +1,59 @@
+spring:
+  cloud:
+    discovery:
+      client:
+        simple:
+          instances:
+            portal-service:
+              - uri: http://localhost:8080/portal
+              - uri: http://127.0.0.1:8080/portal
+
+  datasource:
+    connectbranch:
+      url: >-
+        jdbc:oracle:thin:@
+          (
+            DESCRIPTION=
+              (ADDRESS_LIST=
+                (ADDRESS=(PROTOCOL=TCP)(HOST=database-1.csndvegemmbq.ap-northeast-2.rds.amazonaws.com)(PORT=1521))
+              )
+              (CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=ORCL))
+          )
+      jdbc-url: ${spring.datasource.connectbranch.url}
+      username: ${DB_USER:connect_branch}
+      password: ${DB_PASSWD:beerholic123!@#}
+      driver-class-name: oracle.jdbc.OracleDriver
+      hikari:
+        maximum-pool-size: 5
+    legacy:
+      url: >-
+        jdbc:oracle:thin:@
+        (
+        DESCRIPTION=
+        (ADDRESS_LIST=
+        (ADDRESS=(PROTOCOL=TCP)(HOST=database-1.csndvegemmbq.ap-northeast-2.rds.amazonaws.com)(PORT=1521))
+        )
+        (CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=ORCL))
+        )
+      jdbc-url: ${spring.datasource.legacy.url}
+      username: ${DB_USER:oauth}
+      password: ${DB_PASSWD:codeclick1234!}
+      driver-class-name: oracle.jdbc.OracleDriver
+      hikari:
+        maximum-pool-size: 5
+
+legacy:
+  api-base-url: http://localhost:8080/customer/api/v1
+
+logging:
+  pattern:
+    file: '%(%d{yyyy-MM-dd HH:mm:ss} %30.30logger:%-4line) %-5level > %msg\n'
+  file:
+    path: ${LOGGING_PATH:/opt/storage/logs}/kep-talk/${spring.application.name}
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 7
+  level:
+    root: info
+    com.kep.legacy.repository: debug

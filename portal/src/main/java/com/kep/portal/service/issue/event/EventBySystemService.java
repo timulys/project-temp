@@ -1,0 +1,582 @@
+package com.kep.portal.service.issue.event;
+
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import javax.annotation.Nullable;
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
+import com.kep.portal.util.SecurityUtils;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kep.core.model.dto.channel.ChannelEnvDto;
+import com.kep.core.model.dto.issue.IssueCloseType;
+import com.kep.core.model.dto.issue.IssueDto;
+import com.kep.core.model.dto.issue.IssueLogDto;
+import com.kep.core.model.dto.issue.IssueLogStatus;
+import com.kep.core.model.dto.issue.IssueStatus;
+import com.kep.core.model.dto.issue.payload.IssuePayload;
+import com.kep.core.model.dto.system.SystemEnvEnum;
+import com.kep.portal.client.PlatformClient;
+import com.kep.portal.config.property.PortalProperty;
+import com.kep.portal.config.property.SocketProperty;
+import com.kep.portal.model.entity.issue.Issue;
+import com.kep.portal.model.entity.issue.IssueLog;
+import com.kep.portal.model.entity.issue.IssueLogMapper;
+import com.kep.portal.model.entity.issue.IssueMapper;
+import com.kep.portal.model.entity.issue.IssueStorage;
+import com.kep.portal.model.entity.member.Member;
+import com.kep.portal.model.type.IssueStorageType;
+import com.kep.portal.scheduler.SendDelayFirstReplyJob;
+import com.kep.portal.service.assign.AssignConsumer;
+import com.kep.portal.service.channel.ChannelEnvService;
+import com.kep.portal.service.issue.IssueLogService;
+import com.kep.portal.service.issue.IssueService;
+import com.kep.portal.service.issue.IssueStorageService;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 시스템 이벤트, 로직 도중 호출되므로 Exception 던지지 말 것
+ */
+@Service
+@Transactional
+@Slf4j
+public class EventBySystemService {
+
+	@Resource
+	private ChannelEnvService channelEnvService;
+	@Resource
+	private SocketProperty socketProperty;
+	@Resource
+	private PortalProperty portalProperty;
+	@Resource
+	private SimpMessagingTemplate simpMessagingTemplate;
+	@Resource
+	private PlatformClient platformClient;
+	@Resource
+	private IssueService issueService;
+	@Resource
+	private IssueStorageService issueStorageService;
+	@Resource
+	private IssueMapper issueMapper;
+	@Resource
+	private IssueLogService issueLogService;
+	@Resource
+	private IssueLogMapper issueLogMapper;
+	@Resource
+	private ObjectMapper objectMapper;
+
+	@Resource
+	private SecurityUtils securityUtils;
+
+	// ////////////////////////////////////////////////////////////////////////
+	// 시스템 관리 > 상담 시작 설정 적용
+	// ////////////////////////////////////////////////////////////////////////
+	/**
+	 * 자동메세지, 배정대기 (상담접수) 안내 상담직원이 최대상담건수 진행 중으로 즉시 배정이 어려워 상담톡이 '배정대기' 상태로 시작된 경우
+	 * 아래의 메시지를 발송할 지 결정합니다.
+	 */
+	public void sendOpened(@NotNull Issue issue) {
+
+		log.info("SEND OPENED, ISSUE: {}", issue.getId());
+
+		ChannelEnvDto channelEnv = channelEnvService.getByChannel(issue.getChannel());
+		try {
+			log.info("SEND OPENED, CONFIG: {}", channelEnv.getStart().getUnable());
+			boolean enabled = channelEnv.getStart().getUnable().getEnabled();
+			if (enabled) {
+				IssuePayload issuePayload = channelEnv.getStart().getUnable().getMessage();
+				String payload = objectMapper.writeValueAsString(issuePayload);
+				IssueLog issueLog = saveSystemMessage(issue, payload);
+				// 플랫폼으로 이벤트 전송
+				platformClient.message(issueMapper.map(issue), issueLogMapper.map(issueLog));
+			}
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+		}
+	}
+
+	/**
+	 * 자동메세지, 배정대기 (상담접수, Issue.status == open) / 상담대기 (배정완료, Issue.status ==
+	 * assign) 중 고객메세지 자동응답
+	 */
+	public void sendReplyWhenOpenedAndAssigned(@NotNull Issue issue) {
+
+		log.info("SEND REPLY WHEN OPENED AND ASSIGNED, ISSUE: {}", issue.getId());
+
+		ChannelEnvDto channelEnv = channelEnvService.getByChannel(issue.getChannel());
+		try {
+			log.info("SEND REPLY WHEN OPENED AND ASSIGNED, CONFIG: {}", channelEnv.getStart().getAbsence());
+			boolean enabled = channelEnv.getStart().getAbsence().getEnabled();
+			if (enabled) {
+				IssuePayload issuePayload = channelEnv.getStart().getAbsence().getMessage();
+				String payload = objectMapper.writeValueAsString(issuePayload);
+				IssueLog issueLog = saveSystemMessage(issue, payload);
+				sendToPlatformAndSocket(issue, issueLog);
+			}
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+		}
+	}
+
+	/**
+	 * 자동메세지, 상담대기 (배정완료, Issue.status == assign) 안내, Called by
+	 * {@link AssignConsumer}
+	 */
+	public void sendAssigned(@NotNull Issue issue) {
+
+		log.info("SEND ASSIGNED, ISSUE: {}", issue.getId());
+
+		ChannelEnvDto channelEnv = channelEnvService.getByChannel(issue.getChannel());
+		try {
+			log.info("SEND ASSIGNED, CONFIG: {}", channelEnv.getStart().getWaiting());
+			boolean enabled = channelEnv.getStart().getWaiting().getEnabled();
+			if (enabled) {
+				IssuePayload issuePayload = channelEnv.getStart().getWaiting().getMessage();
+				String payload = objectMapper.writeValueAsString(issuePayload);
+				IssueLog issueLog = saveSystemMessage(issue, payload);
+				sendToPlatformAndSocket(issue, issueLog);
+			}
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+		}
+	}
+
+	/**
+	 * 상담시작 공통 인사말, 플랫폼/소켓 전송은 안함
+	 */
+	@Nullable
+	public IssueLog saveWelcome(@NotNull Issue issue) {
+
+		log.info("SAVE WELCOME, ISSUE: {}", issue.getId());
+
+		ChannelEnvDto channelEnv = channelEnvService.getByChannel(issue.getChannel());
+		try {
+			log.info("SEND WELCOME, CONFIG: {}", channelEnv.getStart().getWelcom());
+			boolean enabled = channelEnv.getStart().getWelcom().getEnabled();
+			IssuePayload issuePayload = null;
+			if (enabled) {
+				issuePayload = channelEnv.getStart().getWelcom().getMessage();
+			} else if (issue.getMember() != null) {
+				Member member = issue.getMember();
+				issuePayload = member.getFirstMessage();
+			}
+
+			if (issuePayload != null) {
+				String payload = objectMapper.writeValueAsString(issuePayload);
+
+				if (issue.getMember() != null && !ObjectUtils.isEmpty(issue.getMember().getNickname())) {
+					// TODO: 파라미터 정리 필요
+					payload = payload.replace("{{상담직원명}}", issue.getMember().getNickname());
+				}
+				return saveSystemMessage(issue, payload);
+			}
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+		}
+
+		return null;
+	}
+
+	// ////////////////////////////////////////////////////////////////////////
+	// 시스템 관리 > 상담 종료 설정 적용
+	// ////////////////////////////////////////////////////////////////////////
+	/**
+	 * 근무 외 시간 상담 접수 사용
+	 */
+	public void sendOfficeHours(@NotNull Issue issue) {
+
+		log.info("SEND OFFICE HOURS, ISSUE: {}", issue.getId());
+
+		ChannelEnvDto channelEnv = channelEnvService.getByChannel(issue.getChannel());
+		try {
+			log.info("SEND OFFICE HOURS, CONFIG: {}", channelEnv.getEnd().getRegister());
+
+			boolean enabled = channelEnv.getEnd().getRegister().getEnabled();
+			 //on 일시 설정된 메시지
+			if(enabled) {
+				IssuePayload issuePayload = channelEnv.getEnd().getRegister().getMessage();
+				String payload = objectMapper.writeValueAsString(issuePayload);
+				IssueLog issueLog = saveSystemMessage(issue, payload);
+				if(issue.getAssignCount() < 2){
+					platformClient.message(issueMapper.map(issue), issueLogMapper.map(issueLog));
+				}
+
+			} else { //off 시스템 메시지
+				this.sendDisabledAndClose(issue);
+			}
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+		}
+	}
+
+	/**
+	 * 상담대기 중 상담직원응답 지연 안내, Called by Scheduler ({@link SendDelayFirstReplyJob})
+	 */
+	public void sendDelayFirstReply(@NotNull Issue issue, @NotNull @Valid ChannelEnvDto channelEnv) {
+
+		log.info("SEND DELAY FIRST REPLY, ISSUE: {}, CONFIG: {}", issue.getId(), channelEnv.getEnd().getMemberDelay());
+
+		try {
+			IssuePayload issuePayload = channelEnv.getEnd().getMemberDelay().getMessage();
+			String payload = objectMapper.writeValueAsString(issuePayload);
+			IssueLog issueLog = saveSystemMessage(issue, payload);
+			sendToPlatformAndSocket(issue, issueLog);
+
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+		}
+	}
+
+	private void sendToPlatformAndSocket(@NotNull Issue issue, @NotNull IssueLog issueLog) {
+
+		issueService.joinIssueSupport(issue);
+		IssueDto issueDto = issueMapper.map(issue);
+		IssueLogDto issueLogDto = issueLogMapper.map(issueLog);
+
+		try {
+			// 플랫폼으로 이벤트 전송
+			platformClient.message(issueMapper.map(issue), issueLogDto);
+			// 소켓으로 이슈 전송
+			simpMessagingTemplate.convertAndSend(socketProperty.getIssuePath(), issueDto);
+			// 소켓으로 이벤트 전송
+			simpMessagingTemplate.convertAndSend(socketProperty.getIssuePath() + "." + issue.getId() + "." + "message", issueLogDto);
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+		}
+	}
+
+	/**
+	 * 고객응답 지연 자동종료 사용, Called by Scheduler (SendDelayGuestJob) Issue.status ==
+	 * IssueStatus.reply
+	 */
+	@Deprecated
+	public void sendDelayGuest(@NotNull Issue issue, @NotNull @Valid ChannelEnvDto channelEnv) {
+
+		log.info("SEND DELAY GUEST, ISSUE: {}, CONFIG: {}", issue.getId(), channelEnv.getEnd().getGuestDelay());
+
+		try {
+			IssuePayload issuePayload = channelEnv.getEnd().getGuestDelay().getMessage();
+			String payload = objectMapper.writeValueAsString(issuePayload);
+			IssueLog issueLog = saveSystemMessage(issue, payload);
+			sendToPlatformAndSocket(issue, issueLog);
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+		}
+	}
+
+	/**
+	 * 고객응답 지연 자동종료 메세지, Called by Scheduler (SendDelayGuestJob) Issue.status ==
+	 * IssueStatus.reply
+	 */
+	@Deprecated
+	public IssueLog getDelayGuest(@NotNull Issue issue, @NotNull @Valid ChannelEnvDto channelEnv) {
+
+		log.info("SAVE DELAY GUEST, ISSUE: {}, CONFIG: {}", issue.getId(), channelEnv.getEnd().getGuestDelay());
+
+		try {
+			IssuePayload issuePayload = channelEnv.getEnd().getGuestDelay().getMessage();
+			String payload = objectMapper.writeValueAsString(issuePayload);
+			return saveSystemMessage(issue, payload);
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+		}
+
+		return null;
+	}
+
+	/**
+	 * 고객응답 지연 자동종료 예고 사용, Called by Scheduler (SendWarningDelayGuestJob)
+	 * Issue.status == IssueStatus.reply
+	 */
+	public void sendWarningDelayGuest(@NotNull Issue issue, @NotNull @Valid ChannelEnvDto channelEnv) {
+
+		log.info("SEND WARNING DELAY GUEST, ISSUE: {}, CONFIG: {}", issue.getId(), channelEnv.getEnd().getGuestNoticeDelay());
+
+		try {
+			IssuePayload issuePayload = channelEnv.getEnd().getGuestNoticeDelay().getMessage();
+			String payload = objectMapper.writeValueAsString(issuePayload);
+			IssueLog issueLog = saveSystemMessage(issue, payload);
+			sendToPlatformAndSocket(issue, issueLog);
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+		}
+	}
+
+	/**
+	 * 상담종료 안내 메세지, Called by Operator
+	 */
+	public void sendClose(@NotNull Issue issue, @NotNull ChannelEnvDto channelEnv) {
+
+		log.info("SEND CLOSE, ISSUE: {}", issue.getId());
+
+		try {
+			log.info("SEND CLOSE, ISSUE: {}, CONFIG: {}", issue.getId(), channelEnv.getEnd().getGuide());
+			// 종료 안내 이벤트 발송, 발송 이력 있으면 스킵
+			// TODO: 정책, 종료 안내 계속 발송?
+			IssueStorage sendCloseIssueStorage = issueStorageService.findOne(issue.getId(), IssueStorageType.send_close);
+			if (sendCloseIssueStorage != null) {
+				
+				// [2023.05.10 / philip.lee / 강제종료 시간차 조건추가]
+				if(!sendCloseIssueStorage.getModified().isBefore(issue.getModified())){
+					log.info("SEND CLOSE, ALREADY PROCESSED: ISSUE: {}", issue.getId());
+					return;
+				} else {
+						log.info("SEND CLOSE, DELETE PROCESSED @@@ : {}", sendCloseIssueStorage);
+						issueStorageService.delete(sendCloseIssueStorage);
+				}
+			}
+
+			// 메세지
+			IssuePayload issuePayload = objectMapper.readValue(objectMapper.writeValueAsString(channelEnv.getEnd().getGuide().getMessage()), IssuePayload.class);
+			// 종료 버튼 추가
+			IssuePayload.Action action = IssuePayload.Action.builder().type(IssuePayload.ActionType.message).name("!종료").build();
+			issuePayload.add(IssuePayload.Section.builder().type(IssuePayload.SectionType.action).actions(Collections.singletonList(action)).build());
+			String payload = objectMapper.writeValueAsString(issuePayload);
+
+			IssueLog issueLog = saveSystemMessage(issue, payload,securityUtils.getMemberId());
+			sendToPlatformAndSocket(issue, issueLog);
+
+			// 종료 안내 이벤트 발송 이력 저장
+			issueStorageService.save(IssueStorage.builder().issueId(issue.getId()).type(IssueStorageType.send_close).modified(ZonedDateTime.now()).enabled(true).build());
+
+			// 종료 예고 사용시, 종료 예고 이벤트 저장, CloseWarnedIssueJob 스케줄러에서 종료
+			boolean enabled = SystemEnvEnum.IssueEndType.notice.equals(channelEnv.getEnd().getGuide().getType());
+			if (enabled) {
+				IssueStorage issueStorage = issueStorageService.findOne(issue.getId(), IssueStorageType.send_warning_close);
+				if (issueStorage == null) {
+					issueStorage = IssueStorage.builder().issueId(issue.getId()).type(IssueStorageType.send_warning_close).enabled(true).build();
+				}
+				issueStorage.setModified(ZonedDateTime.now()); // 스케줄러에서 시간제한 판별 기준
+				issueStorage = issueStorageService.save(issueStorage);
+				log.info("SEND WARNING CLOSE, STORAGE: {}", issueStorage);
+			}
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+		}
+	}
+
+	// ////////////////////////////////////////////////////////////////////////
+	// 시스템 관리 > 상담 관리/제한 적용
+	// ////////////////////////////////////////////////////////////////////////
+	/**
+	 * 상담 불가 안내 (상담 종료)
+	 */
+	public void sendDisabledAndClose(@NotNull Issue issue) {
+
+		log.info("SEND DISABLED, ISSUE: {}", issue.getId());
+
+		ChannelEnvDto channelEnv = channelEnvService.getByChannel(issue.getChannel());
+		try {
+			log.info("SEND DISABLED, CONFIG: {}", channelEnv.getImpossibleMessage());
+			IssuePayload issuePayload = channelEnv.getImpossibleMessage();
+			String payload = objectMapper.writeValueAsString(issuePayload);
+			log.info("SEND DISABLED, PAYLOAD: {}", payload);
+//            IssueLog issueLog = saveSystemMessage(issue, payload);
+//            // 플랫폼으로 이벤트 전송
+//            platformClient.message(issueMapper.map(issue), issueLogMapper.map(issueLog));
+			this.close(issue, issuePayload, false);
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+		}
+	}
+
+	/**
+	 * 배정대기 건수 제한
+	 */
+	public void sendOverAssignedAndClose(@NotNull Issue issue, @NotNull ChannelEnvDto channelEnv) {
+
+		log.info("SEND OVER ASSIGNED, ISSUE: {}", issue.getId());
+
+		try {
+			log.info("SEND OVER ASSIGNED, CONFIG: {}", channelEnv.getAssignStandby());
+			// TODO: 화면 변경 반영 예정, 커스텀 메세지 사용 여부로 변경
+			boolean enabled = channelEnv.getAssignStandby().getEnabled();
+			if (enabled) {
+				IssuePayload issuePayload = channelEnv.getAssignStandby().getMessage();
+				String payload = objectMapper.writeValueAsString(issuePayload);
+				IssueLog issueLog = saveSystemMessage(issue, payload);
+				if(issue.getAssignCount() < 2) {
+					platformClient.message(issueMapper.map(issue), issueLogMapper.map(issueLog));
+				}
+			} else {
+				this.sendDisabledAndClose(issue);
+			}
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+		}
+	}
+
+	/**
+	 * 고객 상담평가 요청 메세지 저장, 플랫폼/소켓 전송은 안함
+	 */
+	@Nullable
+	public IssueLog saveEvaluation(@NotNull Issue issue) {
+
+		log.info("SAVE EVALUATION, ISSUE: {}", issue.getId());
+
+		ChannelEnvDto channelEnv = channelEnvService.getByChannel(issue.getChannel());
+		try {
+			log.info("BUILD EVALUATION, CONFIG: {}", channelEnv.getEvaluation());
+			boolean enabled = channelEnv.getEvaluation().getEnabled();
+			if (enabled) {
+				IssuePayload issuePayload = channelEnv.getEvaluation().getMessage();
+				String payload = objectMapper.writeValueAsString(issuePayload);
+				return saveSystemMessage(issue, payload);
+			}
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+		}
+
+		return null;
+	}
+
+	// ////////////////////////////////////////////////////////////////////////
+	// 공통
+	// ////////////////////////////////////////////////////////////////////////
+	/**
+	 * 시스템 메세지 {@link Issue}, {@link IssueLog}에 저장
+	 */
+	private IssueLog saveSystemMessage(@NotNull Issue issue, @NotNull String payload , Long memberId) {
+		log.info("SAVE SYSTEM MESSAGE, PAYLOAD: {}", payload);
+
+		// 시스템 메세지 저장
+		IssueLog issueLog = IssueLog.builder().issueId(issue.getId()).status(IssueLogStatus.send)
+				               .payload(payload).creator(memberId).created(ZonedDateTime.now()).build();
+		issueLog = issueLogService.save(issueLog, null);
+
+		// 마지막 메세지로 저장
+		issue.setLastIssueLog(issueLog);
+		issue.setModified(ZonedDateTime.now());
+		issueService.save(issue);
+
+		return issueLog;
+	}
+
+	/**
+	 * 상담원 아이디 추가 상위 클론
+	 * @param issue
+	 * @param payload
+	 * @return
+	 */
+	private IssueLog saveSystemMessage(@NotNull Issue issue, @NotNull String payload) {
+		return this.saveSystemMessage(issue , payload , portalProperty.getSystemMemberId());
+	}
+
+	/**
+	 * 상담 종료 (by 시스템)
+	 *
+	 * @param closeIssuePayload 종료시, 같이 보낼 메세지
+	 */
+	public void close(@NotNull Long issueId, IssuePayload closeIssuePayload) {
+
+		close(issueId, closeIssuePayload, true);
+	}
+
+	/**
+	 * 상담 종료 (by 시스템)
+	 *
+	 * @param closeIssuePayload 종료시, 같이 보낼 메세지
+	 */
+	public void close(@NotNull Long issueId, IssuePayload closeIssuePayload, boolean evaluation) {
+
+		// 이슈 검색
+		Issue issue = issueService.findById(issueId);
+		if (issue == null) {
+			log.error("ISSUE NOT FOUND, ID: {}", issueId);
+			return;
+		}
+
+		close(issue, closeIssuePayload, evaluation);
+	}
+
+	/**
+	 * 상담 종료 (by 시스템)
+	 *
+	 * @param closeIssuePayload 종료시, 같이 보낼 메세지
+	 */
+	public void close(@NotNull @Valid Issue issue, IssuePayload closeIssuePayload) {
+
+		close(issue, closeIssuePayload, true);
+	}
+
+	/**
+	 * 상담 종료 (by 시스템)
+	 *
+	 * @param closeIssuePayload 종료시, 같이 보낼 메세지
+	 * @param evaluation        고객 상담 평가 전송 여부
+	 */
+	public void close(@NotNull @Valid Issue issue, IssuePayload closeIssuePayload, boolean evaluation) {
+
+		// 이미 종료된 이슈
+		if (IssueStatus.close.equals(issue.getStatus())) {
+			log.warn("ISSUE IS ALREADY CLOSED, ID: {}", issue.getId());
+			return;
+		}
+
+		List<IssueLogDto> closeIssueLogs = new ArrayList<>();
+
+		try {
+			// 메세지가 있는 경우 종료 이벤트와 함께 전송
+			if (closeIssuePayload != null) {
+				String closePayload = objectMapper.writeValueAsString(closeIssuePayload);
+				IssueLog closeIssueLog = saveSystemMessage(issue, closePayload);
+				closeIssueLogs.add(issueLogMapper.map(closeIssueLog));
+			}
+
+			// 고객 상담 평가 요청, 종료 이벤트와 함께 전송
+			// TODO: 정책, 시스템 종료시에도 고객 팡가 요청
+			if (evaluation) {
+				IssueLog evaluationIssueLog = this.saveEvaluation(issue);
+				if (evaluationIssueLog != null) {
+					closeIssueLogs.add(issueLogMapper.map(evaluationIssueLog));
+				}
+			}
+
+			// 이슈 상태 변경
+			issue.setStatus(IssueStatus.close);
+			issue.setCloseType(IssueCloseType.system);
+			issue.setClosed(ZonedDateTime.now());
+			// TODO: 정책, 종료는 상태변경 시간 업데이트 예외?
+			issue.setStatusModified(ZonedDateTime.now());
+
+			// 미답변 카운트, 시간 초기화
+			issue.setAskCount(0L);
+			issue.setFirstAsked(null);
+
+			issue = issueService.save(issue);
+			issueService.joinIssueSupport(issue);
+			IssueDto issueDto = issueMapper.map(issue);
+
+			// 플랫폼으로 이슈 전송
+			// TODO: 종료 메세지, 무과금 메세지로? (ModeProperty 로 가능)
+			if (!ObjectUtils.isEmpty(closeIssueLogs)) {
+				platformClient.close(issueDto, closeIssueLogs);
+				// 소켓으로 이벤트 전송
+				for (IssueLogDto issueLogDto : closeIssueLogs) {
+					simpMessagingTemplate.convertAndSend(socketProperty.getIssuePath() + "." + issue.getId() + "." + "message", issueLogDto);
+				}
+			} else {
+				platformClient.close(issueDto);
+			}
+
+			// 소켓으로 이슈 전송
+			simpMessagingTemplate.convertAndSend(socketProperty.getIssuePath(), issueDto);
+
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+		}
+
+		log.warn("CLOSE ISSUE BY SYSTEM, ID: {}", issue.getId());
+		// TODO: close, 통계 등 필요한 데이터 생성
+	}
+}

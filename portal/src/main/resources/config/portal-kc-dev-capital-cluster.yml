@@ -1,0 +1,74 @@
+application:
+  #  core:
+  #    internal-service-host: internal-service
+  #    servers:
+  #      -
+  #        id: 001
+  #        host: localhost
+  #        port: 8080
+  #      -
+  #        id: 002
+  #        host: 127.0.0.1
+  #        port: 8080
+  portal:
+    api-version: 1
+    api-base-path: /api/v${application.portal.api-version}
+    service-url: https://ckchat.bnkcapital.co.kr
+    service-domain: ckchat.bnkcapital.co.kr
+    # upload
+    storage-path: ${STORAGE_PATH:/opt/storage}
+    upload-path: ${application.portal.storage-path}/upload
+    upload-url: ${application.portal.service-url}/upload
+    system-member-id: 9000000001
+    kakao-bot-member-id: 9000000002
+    break-time-start: "12:00"
+    break-time-end: "13:00"
+    #BNK  유입경로
+    bnk-kakao-talk-url: https://ckchat.bnkcapital.co.kr/platform/auth/kakao-sync/getSync?state=
+    dashboad:
+      search-interval-minutes: 60
+      batch-cron: 5 0/10 * * * *
+    # redis mode
+    redis-mode: ${REDIS_MODE:cluster}
+  customer:
+    api-version: 1
+    api-base-path: /api/v${application.customer.api-version}
+  platform:
+    api-version: 1
+    api-base-path: /api/v1/portal
+    #    api-key-name: X-API-Key
+    api-key-name: Authorization
+    api-key-method: APIKey
+    message-path: /message
+    close-path: /close
+    relay-path: /relay
+    redis-mode: ${REDIS_MODE:cluster}
+  socket:
+    endpoint: /${spring.application.name}-ws
+    general-path: /topic/general
+    direct-path: /topic/direct
+    branch-path: /topic/branch
+    manager-path: /topic/manager
+    admin-path: /topic/admin
+    manager-admin-path: /topic/manager-admin
+    issue-path: /topic/issue
+    message-broker:
+      addresses:
+        - 192.168.214.97:61613
+        - 192.168.214.98:61613
+        - 192.168.214.99:61613
+      host: not.exist.host
+      port: 44444
+      virtual-host: /${spring.application.name}
+      username: ${spring.application.name}
+      # TODO: encrypt
+      password: portal!#%135
+      heartbeat-interval: 5000
+#
+#
+#server:
+#  servlet:
+#    session:
+#      cookie:
+#        path: /
+#        domain: codeclick.co.kr

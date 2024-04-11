@@ -1,0 +1,6 @@
+package com.kep.portal.event;
+
+public class IssueStatisticsEventListener {
+	
+
+}

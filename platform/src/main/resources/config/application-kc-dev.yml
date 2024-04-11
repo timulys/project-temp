@@ -1,0 +1,88 @@
+spring:
+  cloud:
+    discovery:
+      client:
+        simple:
+          instances:
+            portal-service:
+              - uri: http://localhost:8080/portal
+
+  security:
+    debug: true
+    oauth2:
+      client:
+        registration:
+          kakao-bizmsg:
+            authorization-grant-type: client_credentials
+            client-id: R000000071
+            client-secret: R000000071_uFkrhKtpTVeca4fZnn2GiA
+            scope:
+              - read
+              - write
+          kakao-template:
+            authorization-grant-type: client_credentials
+            client-id: R000000071
+            client-secret: R000000071_uFkrhKtpTVeca4fZnn2GiA
+            scope:
+              - read
+              - write
+          kakao-sync:
+            authorization-grant-type: authorization_code
+            client-id: 15a497d976ccf083f21572d0b1ff8111
+            client-secret: 15a497d976ccf083f21572d0b1ff8111
+            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://bnk.codeclick.co.kr/platform/auth/kakao-sync/authorized}
+            scope:
+              - read
+              - write
+        provider:
+          kakao-bizmsg:
+            token-uri: https://bizmsg-web.kakaoenterprise.com/v1/oauth/token
+          kakao-template:
+            token-uri: https://bizmsg-web.kakaoenterprise.com/mng/v1/oauth/token
+          kakao-sync:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+  rabbitmq:
+    virtual-host: /${spring.application.name}
+    username: ${spring.application.name}
+    # TODO: encrypt
+    password: platform!#%135
+    addresses: ${QUEUE_ADDRESSES:127.0.0.1:5672,localhost:5672}
+  redis:
+    host: localhost
+    port: 6379
+    password: ${REDIS_PASSWORD:codeclick1213!}
+
+application:
+  platform:
+    redis-mode: ${REDIS_MODE:standalone}
+    platforms:
+      kakao_counsel_talk:
+        api-base-url: https://bzc-api.kakao.com
+        api-key: ${KAKAO_COUNSEL_API_KEY:75255f38d08ff785b5695b43e4d2fdc6819c77de}
+      kakao_counsel_center:
+        api-base-url: https://bzm-center.kakao.com/api
+        api-key: ${KAKAO_COUNSEL_API_KEY:75255f38d08ff785b5695b43e4d2fdc6819c77de}
+    whitelist:
+      - 192.168.0/24
+      - 127.0.0.1
+      - ::1
+      - 0:0:0:0:0:0:0:1
+      - 172.22.0.1
+      - 10.0.1.15
+      - 10.0.1.219
+      - 172.18.0.1
+      - 172.18.0.2
+
+logging:
+  file:
+    path: ${LOGGING_PATH:/opt/storage/logs}/kep-talk/${spring.application.name}
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 7
+serviceIdKey:
+  bnk: /open/@mzk4qjeymzvosy6?extra=
+

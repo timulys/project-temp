@@ -1,0 +1,427 @@
+package com.kep.platform.service.kakao.counsel;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kep.core.model.dto.issue.payload.IssuePayload;
+import com.kep.core.model.dto.platform.PlatformType;
+import com.kep.core.model.dto.upload.UploadPlatformRequestDto;
+import com.kep.platform.config.property.PlatformProperty;
+import com.kep.platform.model.dto.KakaoCounselReceiveRelayBotEvent;
+import com.kep.platform.model.dto.KakaoCounselSendEvent;
+import com.kep.platform.model.dto.KakaoCounselSendResponse;
+import com.kep.platform.util.FileUtils;
+import com.kep.platform.util.ImageUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.*;
+import org.springframework.lang.Nullable;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
+
+import javax.annotation.Resource;
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Positive;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * 카카오 상담톡 API
+ */
+@Service
+@Slf4j
+public class KakaoCounselService {
+    /*
+     * to_do : property 파일로 빼야 되지 않을지
+     */
+    public static final String WRITE_PATH = "/v2/{API_KEY}/chat/write"; // POST
+    public static final String END_PATH = "/v2/{API_KEY}/chat/end"; // POST
+    public static final String END_WITH_BOT_PATH = "/v2/{API_KEY}/chat/endWithBot"; // POST
+    public static final String UPLOAD_IMAGE_PATH = "/v1/{API_KEY}/image/upload"; // POST
+    public static final String UPLOAD_FILE_PATH = "/v1/{API_KEY}/file/upload"; // POST
+    public static final String RELAY_PATH = "/v2/{API_KEY}/chatbot/messages"; // POST
+
+    @Resource
+    private PlatformProperty platformProperty;
+    @Resource
+    private ObjectMapper objectMapper;
+    @Resource(name = "externalRestTemplate")
+    private RestTemplate externalRestTemplate;
+    @Resource
+    private KakaoCounselParser kakaoCounselParser;
+
+    @Resource
+    private FileUtils fileUtils;
+    @Resource
+    private ImageUtils imageUtils;
+
+    // TODO: platform.yml
+    private final boolean editImage = false;
+
+    /**
+     * 메시지 발신
+     */
+    @Retryable(value = {RestClientException.class}
+            , maxAttempts = 3
+            , backoff = @Backoff(delay = 1000, multiplier = 2))
+    public KakaoCounselSendResponse write(
+            @Valid KakaoCounselSendEvent message
+            , @Positive Long trackKey) throws Exception {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<KakaoCounselSendEvent> request = new HttpEntity<>(message, headers);
+
+        String requestUrl = getRequestUrl(WRITE_PATH);
+        log.info("KAKAO COUNSEL, WRITE, TRACK KEY: {}, URL: {}", trackKey, requestUrl);
+        log.info("KAKAO COUNSEL, WRITE, TRACK KEY: {}, BODY: {}", trackKey, objectMapper.writeValueAsString(message));
+
+        ResponseEntity<String> responseEntity = externalRestTemplate.exchange(requestUrl, HttpMethod.POST, request, String.class);
+        log.info("KAKAO COUNSEL, WRITE, TRACK KEY: {}, RETURN CODE: {}, RESPONSE BODY: {}", trackKey, responseEntity.getStatusCode(), responseEntity.getBody());
+
+        String responseBody = responseEntity.getBody();
+        KakaoCounselSendResponse response = objectMapper.readValue(responseBody, KakaoCounselSendResponse.class);
+        if (response.getCode() != 0) {
+            log.error("KAKAO COUNSEL, WRITE, TRACK KEY: {}, FAILED: {}", trackKey, responseBody);
+            throw new UnsupportedOperationException("KAKAO COUNSEL, WRITE, TRACK KEY: " + trackKey + ", FAILED: " + response.getCode());
+        }
+
+        return response;
+    }
+
+    /**
+     * 재시도(@Retryable) 실패시 Fallback
+     */
+    @Recover
+    public KakaoCounselSendResponse writeFallback(
+            RestClientException e
+            , @Valid KakaoCounselSendEvent message
+            , @Positive Long trackKey) throws Exception {
+
+        log.error("KAKAO COUNSEL, FALLBACK, TRACK KEY: {}, FAILED, BODY: {}, ERROR: {}"
+                , trackKey, objectMapper.writeValueAsString(message)
+                , e.getLocalizedMessage());
+
+        return KakaoCounselSendResponse.builder()
+                .code(500)
+                .message(e.getLocalizedMessage())
+                .build();
+    }
+
+    /**
+     * 이미지 업로드
+     *
+     * <li>이미지 타입 확장자 : jpg, png, gif
+     * <li>이미지 타입 용량 : 최대 5MB
+     * <li>link 버튼용 확장자 : jpg, png
+     * <li>link 버튼용 용량 : 0.5 MB
+     * <li>link 버튼용 권장사이즈 : 720px*720px
+     * <li>link 버튼용 업로드 주의사항 : 가로 500px 미만 또는 가로:세로 비율이 2:1 미만 또는 3:4 초과시 업로드 불가
+     */
+    @Nullable
+    public String uploadImage(
+            @NotNull @Valid UploadPlatformRequestDto uploadPlatformRequestDto,
+            @NotEmpty String serviceKey) {
+
+        return uploadImage(uploadPlatformRequestDto, serviceKey, System.currentTimeMillis());
+    }
+
+    private static final java.util.regex.Pattern kakaoImageUploadPattern = java.util.regex.Pattern.compile("kakao.com|k.kakaocdn.net");
+    private static final java.util.regex.Pattern kakaoFileUploadPattern = java.util.regex.Pattern.compile("kakao.com|k.kakaocdn.net");
+
+    @Nullable
+    public String uploadImage(
+            @NotNull @Valid UploadPlatformRequestDto uploadPlatformRequestDto,
+            @NotEmpty String serviceKey,
+            @NotNull Long trackKey) {
+
+        File file;
+
+        try {
+
+            if(!ObjectUtils.isEmpty(uploadPlatformRequestDto.getSourceUrl())){
+//                String sourceUrl = uploadPlatformRequestDto.getSourceUrl().replace("dn-m.talk.kakao.com","k.kakaocdn.net");
+                String sourceUrl = uploadPlatformRequestDto.getSourceUrl().replace("dn.api1.kage.kakao.com","k.kakaocdn.net");
+//                String sourceUrl = uploadPlatformRequestDto.getSourceUrl();
+                uploadPlatformRequestDto.setSourceUrl(sourceUrl);
+
+            }
+
+
+            if (!ObjectUtils.isEmpty(uploadPlatformRequestDto.getSourcePath())) {
+                file = new File(uploadPlatformRequestDto.getSourcePath());
+            } else if (!ObjectUtils.isEmpty(uploadPlatformRequestDto.getSourceUrl())) {
+                if (kakaoImageUploadPattern.matcher(uploadPlatformRequestDto.getSourceUrl()).find()) {
+                    log.info("ALREADY UPLOADED IMAGE: {}", uploadPlatformRequestDto.getSourceUrl());
+                    return uploadPlatformRequestDto.getSourceUrl();
+                }
+                file = fileUtils.save(uploadPlatformRequestDto.getSourceUrl());
+            } else if (!ObjectUtils.isEmpty(uploadPlatformRequestDto.getSourceFile())) {
+                // TODO:
+                log.info("KAKAO COUNSEL, UPLOAD IMAGE, FAILED, NOT IMPLEMENTED");
+                return null;
+            } else {
+                log.info("KAKAO COUNSEL, UPLOAD IMAGE, FAILED, UNKNOWN UPLOAD METHOD");
+                return null;
+            }
+            return uploadImage(serviceKey, file, uploadPlatformRequestDto.getImageType());
+        } catch (Exception e) {
+            log.error("KAKAO COUNSEL, UPLOAD IMAGE, FAILED, UPLOAD: {}, ERROR: {}",
+                    uploadPlatformRequestDto, e.getLocalizedMessage(), e);
+            return null;
+        }
+    }
+
+    @Nullable
+    public String uploadImage(
+            @NotEmpty String serviceKey
+            , @NotNull File file
+            , @Pattern(regexp = "link") String imageType) {
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("sender_key", serviceKey);
+        body.add("image_type", imageType);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
+        String uploadUrl = null;
+
+        try {
+            if (editImage) {
+                if ("link".equals(imageType)) { // 링크타입용 이미지, 720x720 으로 resize, crop
+                    // 가로 길이 기준 720 으로 resize
+                    file = imageUtils.resizeImageByWidth(file, 720, 720, true);
+                    log.debug("resized file: {}, fileSize: {} KB", file, file.length() / 1024);
+                    // 가로 길이 기준으로 1:1 비율로 세로 길이 crop
+                    file = imageUtils.cropImage(file, 1, 1, true);
+                    log.debug("cropped file: {}, fileSize: {} KB", file, file.length() / 1024);
+
+                    // 링크타입용 이미지 파일 사이즈 제한에 걸릴 경우 흑백으로 변환
+                    if (file.length() / 1024 > KakaoCounselSendEvent.MAX_LINK_IMAGE_FILE_SIZE) {
+                        file = imageUtils.grayScale(file, KakaoCounselSendEvent.MAX_LINK_IMAGE_FILE_SIZE, true);
+                        log.debug("gray scaled file: {}, fileSize: {} KB", file, file.length() / 1024);
+                    }
+                } else { // 일반 이미지
+                    // 가로 길이 기준 최대 720, 최소 500 으로 resize
+                    file = imageUtils.resizeImageByWidth(file, 720, 500, true);
+                    log.debug("resized file: {}, fileSize: {} KB", file, file.length() / 1024);
+
+                    // 일반 이미지 파일 사이즈 제한에 걸릴 경우 흑백으로 변환
+                    if (file.length() / 1024 > KakaoCounselSendEvent.MAX_IMAGE_FILE_SIZE) {
+                        file = imageUtils.grayScale(file, KakaoCounselSendEvent.MAX_IMAGE_FILE_SIZE, true);
+                        log.debug("gray scaled file: {}, fileSize: {} KB", file, file.length() / 1024);
+                    }
+                }
+            }
+
+            body.add("image", new FileSystemResource(file));
+
+            String requestUrl = getRequestUrl(UPLOAD_IMAGE_PATH);
+            ResponseEntity<String> responseEntity = externalRestTemplate.exchange(requestUrl, HttpMethod.POST, request, String.class);
+            log.info("KAKAO COUNSEL, UPLOAD IMAGE, RETURN CODE: {}, RESPONSE BODY: {}", responseEntity.getStatusCode(), responseEntity.getBody());
+            KakaoCounselSendResponse response = objectMapper.readValue(responseEntity.getBody(), KakaoCounselSendResponse.class);
+            log.info("dlalalalalalalalalal ====>{}",response.getCode()  );
+            if (response.getCode() == 0) {
+                uploadUrl = response.getImage();
+            } else {
+                log.error("KAKAO COUNSEL, UPLOAD IMAGE, FAILED, FILE: {}, TYPE: {}, RESPONSE BODY: {}",
+                        file.getAbsolutePath(), imageType, responseEntity.getBody());
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("KAKAO COUNSEL, UPLOAD IMAGE, FAILED, FILE: {}, TYPE: {}, ERROR: {}",
+                    file.getAbsolutePath(), imageType, e.getLocalizedMessage(), e);
+            return null;
+        }
+
+        return uploadUrl;
+    }
+
+    /**
+     * 파일 입로드
+     */
+    @Nullable
+    public String uploadFile(
+            @NotNull @Valid UploadPlatformRequestDto uploadPlatformRequestDto,
+            @NotEmpty String serviceKey) {
+
+        return uploadFile(uploadPlatformRequestDto, serviceKey, System.currentTimeMillis());
+    }
+
+    /**
+     * 파일 입로드
+     */
+    public String uploadFile(
+            @NotNull @Valid UploadPlatformRequestDto uploadPlatformRequestDto,
+            @NotEmpty String serviceKey,
+            @NotNull Long trackKey) {
+
+        File file;
+
+        try {
+
+            if(!ObjectUtils.isEmpty(uploadPlatformRequestDto.getSourceUrl())){
+//                String sourceUrl = uploadPlatformRequestDto.getSourceUrl().replace("dn-m.talk.kakao.com","k.kakaocdn.net");
+//                String sourceUrl = uploadPlatformRequestDto.getSourceUrl();
+                String sourceUrl = uploadPlatformRequestDto.getSourceUrl().replace("dn.api1.kage.kakao.com","k.kakaocdn.net");
+                uploadPlatformRequestDto.setSourceUrl(sourceUrl);
+            }
+
+            if (!ObjectUtils.isEmpty(uploadPlatformRequestDto.getSourcePath())) {
+                file = new File(uploadPlatformRequestDto.getSourcePath());
+            } else if (!ObjectUtils.isEmpty(uploadPlatformRequestDto.getSourceUrl())) {
+                if (kakaoFileUploadPattern.matcher(uploadPlatformRequestDto.getSourceUrl()).find()) {
+                    log.info("ALREADY UPLOADED FILE: {}", uploadPlatformRequestDto.getSourceUrl());
+                    return uploadPlatformRequestDto.getSourceUrl();
+                }
+                file = fileUtils.save(uploadPlatformRequestDto.getSourceUrl());
+            } else if (!ObjectUtils.isEmpty(uploadPlatformRequestDto.getSourceFile())) {
+                // TODO:
+                log.warn("Upload using Multipart File, Not Implemented");
+                return null;
+            } else {
+                // TODO:
+                log.warn("Not Implemented");
+                return null;
+            }
+            return uploadFile(serviceKey, file);
+        } catch (Exception e) {
+            log.error("KAKAO COUNSEL, UPLOAD IMAGE, FAILED, UPLOAD: {}, ERROR: {}",
+                    uploadPlatformRequestDto, e.getLocalizedMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * 파일 입로드
+     */
+    public String uploadFile(
+            @NotEmpty String serviceKey
+            , @NotNull File file) {
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("sender_key", serviceKey);
+        body.add("file", new FileSystemResource(file));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
+        String uploadUrl = null;
+
+        try {
+            String requestUrl = getRequestUrl(UPLOAD_FILE_PATH);
+            ResponseEntity<String> responseEntity = externalRestTemplate.exchange(requestUrl, HttpMethod.POST, request, String.class);
+            log.info("KAKAO COUNSEL, UPLOAD FILE, RETURN CODE: {}, RESPONSE BODY: {}", responseEntity.getStatusCode(), responseEntity.getBody());
+
+            KakaoCounselSendResponse response = objectMapper.readValue(responseEntity.getBody(), KakaoCounselSendResponse.class);
+            if (response.getCode() == 0) {
+                uploadUrl = response.getFile();
+            } else {
+                log.error("KAKAO COUNSEL, UPLOAD FILE, FAILED, FILE: {}, RESPONSE BODY: {}",
+                        file.getAbsolutePath(), responseEntity.getBody());
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("KAKAO COUNSEL, UPLOAD IMAGE, FAILED, FILE: {}, ERROR: {}",
+                    file.getAbsolutePath(), e.getLocalizedMessage(), e);
+            return null;
+        }
+
+        return uploadUrl;
+    }
+
+    /**
+     * 봇 대화 내역
+     */
+    @Retryable(value = {RestClientException.class}
+            , maxAttempts = 3
+            , backoff = @Backoff(delay = 1000, multiplier = 2))
+    public List<IssuePayload> relay(
+            @Valid KakaoCounselSendEvent message
+            , @Positive Long trackKey) throws Exception {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<KakaoCounselSendEvent> request = new HttpEntity<>(message, headers);
+
+        String requestUrl = getRequestUrl(RELAY_PATH);
+        log.info("KAKAO COUNSEL, RELAY, TRACK KEY: {}, URL: {}", trackKey, requestUrl);
+        log.info("KAKAO COUNSEL, RELAY, TRACK KEY: {}, BODY: {}", trackKey, objectMapper.writeValueAsString(message));
+        ResponseEntity<String> responseEntity = externalRestTemplate.exchange(requestUrl, HttpMethod.POST, request, String.class);
+        log.info("KAKAO COUNSEL, RELAY, TRACK KEY: {}, RETURN CODE: {}, RESPONSE BODY: {}", trackKey, responseEntity.getStatusCode(), responseEntity.getBody());
+
+        String responseBody = responseEntity.getBody();
+        KakaoCounselSendResponse response = objectMapper.readValue(responseBody, KakaoCounselSendResponse.class);
+        if (response.getCode() != 0) {
+            log.error("KAKAO COUNSEL, RELAY, FAILED: {}", responseBody);
+            return Collections.emptyList();
+        }
+
+        List<IssuePayload> botMessages = new ArrayList<>();
+        if (!ObjectUtils.isEmpty(response.getChatbotMessages())) {
+            log.info("{}", response.getChatbotMessages().stream().map(KakaoCounselReceiveRelayBotEvent::getTimestamp).collect(Collectors.toList()));
+            Collections.sort(response.getChatbotMessages());
+            log.info("{}", response.getChatbotMessages().stream().map(KakaoCounselReceiveRelayBotEvent::getTimestamp).collect(Collectors.toList()));
+            for (KakaoCounselReceiveRelayBotEvent event : response.getChatbotMessages()) {
+                // 고객 발화
+                botMessages.add(kakaoCounselParser.parseRelayAsk(event));
+                // 봇 답변
+                botMessages.addAll(kakaoCounselParser.parseRelayReply(event));
+            }
+        }
+
+        return botMessages;
+    }
+
+    /**
+     * 상담톡 세션 종료
+     */
+    public String end(
+            @Valid KakaoCounselSendEvent message
+            , @Positive Long trackKey) throws Exception {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<KakaoCounselSendEvent> request = new HttpEntity<>(message, headers);
+
+        String requestUrl = getRequestUrl(END_PATH);
+        log.info("KAKAO COUNSEL, END, TRACK KEY: {}, BODY: {}", trackKey, objectMapper.writeValueAsString(message));
+        ResponseEntity<String> responseEntity = externalRestTemplate.exchange(requestUrl, HttpMethod.POST, request, String.class);
+        log.info("KAKAO COUNSEL, END, TRACK KEY: {}, RETURN CODE: {}, RESPONSE BODY: {}", trackKey, responseEntity.getStatusCode(), responseEntity.getBody());
+
+        return responseEntity.getBody();
+    }
+
+    /**
+     * 상담톡 세션 종료 (with 오픈빌더 블록 실행)
+     */
+    public String endWithBot(
+            @Valid KakaoCounselSendEvent message
+            , @Positive Long trackKey) throws Exception {
+
+        return end(message, trackKey);
+    }
+
+    private String getRequestUrl(@NotEmpty String endPoint) {
+
+        PlatformProperty.Platform platform = platformProperty.getPlatforms().get(PlatformType.kakao_counsel_talk.name());
+        String apiKey = platform.getApiKey();
+        String baseUrl = platform.getApiBaseUrl();
+
+        String requestUrl = baseUrl + endPoint;
+        // 허브 파트너 키 적용
+        return requestUrl.replaceFirst("\\{API_KEY}", apiKey);
+    }
+}

@@ -1,0 +1,8 @@
+application:
+  exceptions:
+    -
+      code: SB-SA-001-001
+      message: SB-SA-001-001
+    -
+      code: SB-SA-001-002
+      message: SB-SA-001-002

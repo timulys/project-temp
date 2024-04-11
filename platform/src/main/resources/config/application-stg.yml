@@ -1,0 +1,39 @@
+spring:
+  cloud:
+    discovery:
+      client:
+        simple:
+          instances:
+            portal-service:
+              - uri: http://localhost:8080/portal
+              - uri: http://127.0.0.1:8080/portal
+
+logging:
+  file:
+    path: ${LOGGING_PATH:/opt/storage/logs}/always/${spring.application.name}
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 7
+
+application:
+  platform:
+    platforms:
+      kakao_alert_talk:
+        api-base-url: https://bizmsg-web.kakaoenterprise.com
+        api-key: ${KAKAO_BIZ_API_KEY:1234}
+      kakao_friend_talk:
+        api-base-url: https://bizmsg-web.kakaoenterprise.com
+        api-key: ${KAKAO_BIZ_API_KEY:1234}
+      kakao_template:
+        api-base-url: https://bizmsg-web.kakaoenterprise.com
+        api-key: ${KAKAO_BIZ_API_KEY:1234}
+    whitelist:
+      - 192.168.0/24
+      - 127.0.0.1
+      - ::1
+      - 0:0:0:0:0:0:0:1
+      - 10.182.101.100
+      - 203.133.162.185
+      - 203.133.162.195
+      - 203.133.162.196

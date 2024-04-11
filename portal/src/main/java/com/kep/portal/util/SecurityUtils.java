@@ -1,0 +1,114 @@
+package com.kep.portal.util;
+
+import com.kep.portal.model.entity.privilege.Level;
+import com.kep.portal.model.security.AuthMember;
+import com.kep.portal.model.security.AuthMemberMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.Nullable;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
+
+import javax.annotation.Resource;
+import javax.validation.constraints.NotEmpty;
+import java.util.List;
+
+/**
+ * 세션 정보 (로그인 사용자 이벤트시에만 사용할 것)
+ */
+@Component
+@Slf4j
+public class SecurityUtils {
+
+	@Resource
+	private AuthMemberMapper authMemberMapper;
+
+	public AuthMember getAuthMember() {
+
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		try {
+			return (AuthMember) authentication.getPrincipal();
+		} catch (Exception e) {
+			log.error("principal: {}, {}", authentication.getPrincipal(), e.getLocalizedMessage());
+			throw new AccessDeniedException("can not find principal");
+		}
+	}
+
+	public Long getMemberId() {
+
+		AuthMember authMember = getAuthMember();
+		return authMember.getId();
+	}
+	
+	//BNK vndrCustNo 상담원 번호 추가
+	public String getVndrCustNo() {
+
+		AuthMember authMember = getAuthMember();
+		return authMember.getVndrCustNo();
+	}
+	
+	//BNK username 상담원 이름 추가
+	public String getUsername() {
+		
+		AuthMember authMember = getAuthMember();
+		return authMember.getUsername();
+	}
+
+	public Long getBranchId() {
+
+		AuthMember authMember = getAuthMember();
+		return authMember.getBranchId();
+	}
+
+	@Nullable
+	public Long getTeamId() {
+
+		AuthMember authMember = getAuthMember();
+		if (!ObjectUtils.isEmpty(authMember.getTeamIds())) {
+			return authMember.getTeamIds().get(0);
+		}
+
+		return null;
+	}
+
+	public List<String> getRoles() {
+
+		AuthMember authMember = getAuthMember();
+		return authMember.getRoles();
+	}
+
+	public boolean hasRole(@NotEmpty String roleType) {
+
+		List<String> roles = getRoles();
+		return roles.contains(roleType);
+	}
+
+	public boolean isMaster() {
+
+		return this.hasRole(Level.ROLE_MASTER);
+	}
+
+	public boolean isHeadQuarters() {
+
+		return this.hasRole(Level.ROLE_HEAD_QUARTERS);
+	}
+
+	public boolean isAdmin(){
+		return this.hasRole(Level.ROLE_ADMIN);
+	}
+
+	public boolean isManager(){
+		return this.hasRole(Level.ROLE_MANAGER);
+	}
+
+	/**
+	 * async
+	 * @param authentication
+	 * @return
+	 */
+	public AuthMember authMember(Authentication authentication){
+		return (AuthMember) authentication.getPrincipal();
+	}
+}

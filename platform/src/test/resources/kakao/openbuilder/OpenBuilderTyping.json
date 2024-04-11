@@ -1,0 +1,140 @@
+{
+  "timestamp": 1574595916521,
+  "profileId": 306886428,
+  "userKey": "eZXM3njX1-1o",
+  "messages": [
+    {
+      "text": "안녕하세요 익스피디아봇입니다 :)\n\n무엇을 도와드릴까요? \n[챗봇 서비스 이용 안내] \n해당 챗봇은 상담이 불가하므로 상담을 원할 경우, 익스피디아 고객센터로 연락 주시기 바랍니다. ",
+      "type": "text",
+      "forwardable": false
+    },
+    {
+      "cards": [
+        {
+          "linkUrl": {
+            "webUrl": "https://www.heungkukfire.co.kr/",
+            "pcCustomScheme": "",
+            "androidStoreUrl": "",
+            "androidUrl": "",
+            "iosStoreUrl": "",
+            "macCustomScheme": "",
+            "moUrl": "",
+            "type": "WEB",
+            "pcUrl": "",
+            "iosUrl": ""
+          },
+          "description": "알 아 먹을 수 없겠다구 잘 얘기해봐",
+          "height": -1,
+          "buttons": [
+            {
+              "data": {
+                "blockId": "5d3e5d038192ac0001fc311f"
+              },
+              "label": "관리",
+              "message": "관리",
+              "type": "block",
+              "blockId": "5d3e5d038192ac0001fc311f"
+            },
+            {
+              "data": {
+                "blockId": "5d3e56678192ac0001fc30e8"
+              },
+              "label": "버튼1번",
+              "message": "버튼1번",
+              "type": "block",
+              "blockId": "5d3e56678192ac0001fc30e8"
+            },
+            {
+              "data": {
+                "url": "https://kep-talk2.codeclick.co.kr/"
+              },
+              "label": "버튼2번",
+              "type": "url",
+              "url": "https://kep-talk2.codeclick.co.kr/"
+            }
+          ],
+          "fixedRatio": false,
+          "originVersion": "1.0",
+          "title": "알 아 먹을 수 없어",
+          "imageUrl": "http://k.kakaocdn.net/dn/sMepp/btqwCQeLiRp/n25KXPjTVLRufZjfEgpYIk/2x1.jpg",
+          "width": -1
+        },
+        {
+          "linkUrl": {
+            "webUrl": "",
+            "pcCustomScheme": "",
+            "androidStoreUrl": "",
+            "androidUrl": "",
+            "iosStoreUrl": "",
+            "macCustomScheme": "",
+            "moUrl": "",
+            "type": "WEB",
+            "pcUrl": "",
+            "iosUrl": ""
+          },
+          "description": "두 번째 카드 설명",
+          "height": -1,
+          "buttons": [
+            {
+              "data": {
+                "blockId": "5d3e8446ffa7480001a736e1"
+              },
+              "label": "회계",
+              "message": "회계",
+              "type": "block",
+              "blockId": "5d3e8446ffa7480001a736e1"
+            }
+          ],
+          "fixedRatio": false,
+          "originVersion": "1.0",
+          "title": "두 번째 카드",
+          "imageUrl": "http://k.kakaocdn.net/dn/sMepp/btqwCQeLiRp/n25KXPjTVLRufZjfEgpYIk/2x1.jpg",
+          "width": -1
+        },
+        {
+          "linkUrl": {
+            "webUrl": "",
+            "pcCustomScheme": "",
+            "androidStoreUrl": "",
+            "androidUrl": "",
+            "iosStoreUrl": "",
+            "macCustomScheme": "",
+            "moUrl": "",
+            "type": "WEB",
+            "pcUrl": "",
+            "iosUrl": ""
+          },
+          "description": "",
+          "height": -1,
+          "buttons": [
+            {
+              "data": {
+                "blockId": "5d3eaa5992690d00019dfee0"
+              },
+              "label": "마케팅",
+              "message": "마케팅",
+              "type": "block",
+              "blockId": "5d3eaa5992690d00019dfee0"
+            }
+          ],
+          "fixedRatio": false,
+          "originVersion": "1.0",
+          "title": "",
+          "imageUrl": "http://k.kakaocdn.net/dn/sMepp/btqwCQeLiRp/n25KXPjTVLRufZjfEgpYIk/2x1.jpg",
+          "width": -1
+        }
+      ],
+      "lock": false,
+      "type": "card.image",
+      "forwardable": false
+    }
+  ],
+  "utterance": "걱",
+  "speech": "안녕하세요 익스피디아봇입니다 :)\n\n무엇을 도와드릴까요? \n[챗봇 서비스 이용 안내] \n해당 챗봇은 상담이 불가하므로 상담을 원할 경우, 익스피디아 고객센터로 연락 주시기 바랍니다. ",
+  "appUserId": "1170551443",
+  "footprint": "chp-fe590722a4cf4e8293cd618f4d98776c",
+  "blockId": "5d22d4e7ffa7480001c5bb0c",
+  "blockName": "폴백 블록",
+  "trigger": "TEXT_INPUT",
+  "extra": null
+}

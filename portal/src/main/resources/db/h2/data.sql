@@ -1,0 +1,954 @@
+-- ////////////////////////////////////////////////////////////////////////////
+-- 사이트 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO SITE (ID, BRANCH_COUNT, CHANNEL_COUNT, MEMBER_COUNT, NAME, TEAM_COUNT)
+VALUES (1, 0, 0, 12, '커넥트 브랜치', 0);
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 브랜치 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO BRANCH (ID, ASSIGN, CREATED, CREATOR, ENABLED, FIRST_MESSAGE_TYPE, HEAD_QUARTERS, MAX_COUNSEL, MAX_COUNSEL_TYPE, MAX_MEMBER_COUNSEL, MODIFIED, MODIFIER, NAME, OFF_DUTY_HOURS, STATUS, MAX_GUIDE_CATEGORY_DEPTH)
+VALUES (1, 'branch', now(), 1, 'Y', 'member', 'Y', 50, 'batch', 100, now(), 1, '본사', 'Y', 'on', 0);
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 채널 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO CHANNEL (ID, BRANCH_ID, MODIFIED, MODIFIER, NAME, PLATFORM, SERVICE_ID, SERVICE_KEY)
+VALUES (1, 1, now(), 1, '기본 채널', 'kakao_counsel_talk', '@ntg2vdu2mtfllux', '8a598afbec5daa59702cc5b45e409213acd81810');
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 브랜치 - 채널 매칭 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO BRANCH_CHANNEL (ID, CREATED, CREATOR, OWNED, BRANCH_ID, CHANNEL_ID)
+VALUES (1, now(), 1, 'Y', 1, 1);
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 브랜치 상담 시간 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO BRANCH_OFFICE_HOURS (ID, CREATED, CREATOR, DAY_OF_WEEK, END_COUNSEL_TIME, MODIFIED, MODIFIER, START_COUNSEL_TIME, BRANCH_ID)
+VALUES (1, now(), 1, 'MON,TUE,WED,THUR,FRI', '23:0', now(), 1, '8:0', 1);
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 상담 설정 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO COUNSEL_ENV (ID, BRANCH_ID, ISSUE_AUTO_CLOSE_ENABLED, ISSUE_DELAY_ENABLED, ISSUE_DELAY_MINUTE, ISSUE_FILE_ENABLED, ISSUE_FILE_MIME_TYPE, MEMBER_AUTO_TRANSFORM_ENABLED, MODIFIED, MODIFIER, REQUEST_BLOCK_ENABLED)
+VALUES (1, 1, 'Y', 'Y', 60, 'Y', 'all', 'Y', now(), 1, 'N');
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 상담 그룹 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO TEAM (ID, CREATED, CREATOR, MEMBER_COUNT, MODIFIED, MODIFIER, NAME)
+VALUES (1, now(), 1, 0, now(), 30, '기본 상담 그룹');
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 유저 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO MEMBER (ID, BRANCH_ID, CREATED, CREATOR, ENABLED, FIRST_MESSAGE, MANAGED, MAX_COUNSEL, MODIFIED, MODIFIER, NICKNAME, PASSWORD, PROFILE, SETTING, STATUS, USERNAME)
+VALUES (9000000001, 1, now(), 1, 'N', null, 'N', 0, now(), 1, '시스템', '{bcrypt}$2a$10$WMhur0a3BIrHefd3w7Xlge2WowQDIr71WRtBXYOZ/7P/gLu1lKvim', null, null, 'off', 'system');
+INSERT INTO MEMBER (ID, BRANCH_ID, CREATED, CREATOR, ENABLED, FIRST_MESSAGE, MANAGED, MAX_COUNSEL, MODIFIED, MODIFIER, NICKNAME, PASSWORD, PROFILE, SETTING, STATUS, USERNAME)
+VALUES (9000000002, 1, now(), 1, 'N', null, 'N', 0, now(), 1, '오픈빌더', '{bcrypt}$2a$10$ddRQcGFDi/Ng0pwztKnTS.4vnTg1df1o4MNeWLWfBIAKh.ZZRpmR2', null, null, 'off', 'openbuilder');
+INSERT INTO MEMBER (ID, BRANCH_ID, CREATED, CREATOR, ENABLED, FIRST_MESSAGE, MANAGED, MAX_COUNSEL, MODIFIED, MODIFIER, NICKNAME, PASSWORD, PROFILE, SETTING, STATUS, USERNAME)
+VALUES (1, 1, now(), 1, 'Y', null, 'N', 0, now(), 1, '마스터1', '{noop}master1', null, null, 'off', 'master1');
+INSERT INTO MEMBER (ID, BRANCH_ID, CREATED, CREATOR, ENABLED, FIRST_MESSAGE, MANAGED, MAX_COUNSEL, MODIFIED, MODIFIER, NICKNAME, PASSWORD, PROFILE, SETTING, STATUS, USERNAME)
+VALUES (2, 1, now(), 1, 'Y', null, 'Y', 0, now(), 1, '관리자1', '{noop}admin1', null, null, 'off', 'admin1');
+INSERT INTO MEMBER (ID, BRANCH_ID, CREATED, CREATOR, ENABLED, FIRST_MESSAGE, MANAGED, MAX_COUNSEL, MODIFIED, MODIFIER, NICKNAME, PASSWORD, PROFILE, SETTING, STATUS, USERNAME)
+VALUES (3, 1, now(), 1, 'Y', null, 'Y', 0, now(), 1, '매니저1', '{noop}manager1', null, null, 'off', 'manager1');
+INSERT INTO MEMBER (ID, BRANCH_ID, CREATED, CREATOR, ENABLED, FIRST_MESSAGE, MANAGED, MAX_COUNSEL, MODIFIED, MODIFIER, NICKNAME, PASSWORD, PROFILE, SETTING, STATUS, USERNAME)
+VALUES (4, 1, now(), 1, 'Y', null, 'Y', 50, now(), 1, '상담원1', '{noop}member1', null, null, 'on', 'member1');
+INSERT INTO MEMBER (ID, BRANCH_ID, CREATED, CREATOR, ENABLED, FIRST_MESSAGE, MANAGED, MAX_COUNSEL, MODIFIED, MODIFIER, NICKNAME, PASSWORD, PROFILE, SETTING, STATUS, USERNAME)
+VALUES (5, 1, now(), 1, 'Y', null, 'Y', 50, now(), 1, '상담원2', '{noop}member2', null, null, 'on', 'member2');
+
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 유저 근무시간 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO MEMBER_OFFICE_HOURS (ID, CREATED, CREATOR, DAY_OF_WEEK, END_COUNSEL_TIME, MODIFIED, MODIFIER, START_COUNSEL_TIME, MEMBER_ID)
+VALUES (1, '2023-03-16 14:25:00.890000', 1, 'MON,TUE,WED,THUR,FRI', '23:0', '2023-03-16 14:25:00.890000', 1, '8:0', 1);
+INSERT INTO MEMBER_OFFICE_HOURS (ID, CREATED, CREATOR, DAY_OF_WEEK, END_COUNSEL_TIME, MODIFIED, MODIFIER, START_COUNSEL_TIME, MEMBER_ID)
+VALUES (2, '2023-03-16 14:25:00.890000', 1, 'MON,TUE,WED,THUR,FRI', '23:0', '2023-03-16 14:25:00.890000', 1, '8:0', 2);
+INSERT INTO MEMBER_OFFICE_HOURS (ID, CREATED, CREATOR, DAY_OF_WEEK, END_COUNSEL_TIME, MODIFIED, MODIFIER, START_COUNSEL_TIME, MEMBER_ID)
+VALUES (3, '2023-03-16 14:25:00.890000', 1, 'MON,TUE,WED,THUR,FRI', '23:0', '2023-03-16 14:25:00.890000', 1, '8:0', 3);
+INSERT INTO MEMBER_OFFICE_HOURS (ID, CREATED, CREATOR, DAY_OF_WEEK, END_COUNSEL_TIME, MODIFIED, MODIFIER, START_COUNSEL_TIME, MEMBER_ID)
+VALUES (4, '2023-03-16 14:25:00.890000', 1, 'MON,TUE,WED,THUR,FRI', '23:0', '2023-03-16 14:25:00.890000', 1, '8:0', 4);
+INSERT INTO MEMBER_OFFICE_HOURS (ID, CREATED, CREATOR, DAY_OF_WEEK, END_COUNSEL_TIME, MODIFIED, MODIFIER, START_COUNSEL_TIME, MEMBER_ID)
+VALUES (5, '2023-03-16 14:25:00.890000', 1, 'MON,TUE,WED,THUR,FRI', '23:0', '2023-03-16 14:25:00.890000', 1, '8:0', 5);
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 브랜치 - 상담 그룹 매칭 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO BRANCH_TEAM (ID, CREATED, CREATOR, BRANCH_ID, MEMBER_ID, TEAM_ID)
+VALUES (1, now(), 1, 1, 3, 1);
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 상담 그룹 - 유저 매칭 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO TEAM_MEMBER (ID, MEMBER_ID, MODIFIED, MODIFIER, TEAM_ID)
+VALUES (1, 3, now(), 1, 1);
+INSERT INTO TEAM_MEMBER (ID, MEMBER_ID, MODIFIED, MODIFIER, TEAM_ID)
+VALUES (2, 4, now(), 1, 1);
+INSERT INTO TEAM_MEMBER (ID, MEMBER_ID, MODIFIED, MODIFIER, TEAM_ID)
+VALUES (3, 5, now(), 1, 1);
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 레벨 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO levels (id, name, type)
+VALUES (1, '상담원', 'OPERATOR');
+INSERT INTO levels (id, name, type)
+VALUES (2, '매니저', 'MANAGER');
+INSERT INTO levels (id, name, type)
+VALUES (3, '관리자', 'ADMIN');
+INSERT INTO levels (id, name, type)
+VALUES (4, '마스터', 'MASTER');
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 역할 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO ROLES (ID, MODIFIED, MODIFIER, NAME, TYPE, LEVEL_ID)
+VALUES (1, now(), 1, '상담원', 'OPERATOR_1', 1);
+INSERT INTO ROLES (ID, MODIFIED, MODIFIER, NAME, TYPE, LEVEL_ID)
+VALUES (2, now(), 1, '매니저', 'MANAGER_1', 2);
+INSERT INTO ROLES (ID, MODIFIED, MODIFIER, NAME, TYPE, LEVEL_ID)
+VALUES (3, now(), 1, '관리자', 'ADMIN_1', 3);
+INSERT INTO ROLES (ID, MODIFIED, MODIFIER, NAME, TYPE, LEVEL_ID)
+VALUES (4, now(), 1, '마스터', 'MASTER_1', 4);
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 브랜치 - 역할 매칭 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO BRANCH_ROLE (ID, BRANCH_ID, MODIFIED, MODIFIER, ROLE_ID)
+VALUES (1, 1, now(), 1, 1);
+INSERT INTO BRANCH_ROLE (ID, BRANCH_ID, MODIFIED, MODIFIER, ROLE_ID)
+VALUES (2, 1, now(), 1, 2);
+INSERT INTO BRANCH_ROLE (ID, BRANCH_ID, MODIFIED, MODIFIER, ROLE_ID)
+VALUES (3, 1, now(), 1, 3);
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 유저 - 역할 매칭 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO MEMBER_ROLE (ID, MEMBER_ID, MODIFIED, MODIFIER, ROLE_ID)
+VALUES (1, 1, now(), 1, 4);
+INSERT INTO MEMBER_ROLE (ID, MEMBER_ID, MODIFIED, MODIFIER, ROLE_ID)
+VALUES (2, 2, now(), 1, 3);
+INSERT INTO MEMBER_ROLE (ID, MEMBER_ID, MODIFIED, MODIFIER, ROLE_ID)
+VALUES (3, 3, now(), 1, 2);
+INSERT INTO MEMBER_ROLE (ID, MEMBER_ID, MODIFIED, MODIFIER, ROLE_ID)
+VALUES (4, 4, now(), 1, 1);
+INSERT INTO MEMBER_ROLE (ID, MEMBER_ID, MODIFIED, MODIFIER, ROLE_ID)
+VALUES (5, 5, now(), 1, 1);
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 자동메시지 설정 (상담 시작) (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO CHANNEL_START_AUTO (ID, ABSENCE_CODE, ABSENCE_ENABLED, ABSENCE_MESSAGE, ST_CODE, ST_ENABLED, ST_MESSAGE, UNABLE_CODE, UNABLE_ENABLED, UNABLE_MESSAGE, WAITING_CODE, WAITING_ENABLED, WAITING_MESSAGE, WELCOM_ENABLED, WELCOM_MESSAGE)
+VALUES (1, 'S2', 'Y', '{
+  "version" : "0.1",
+  "chapters" : [ {
+    "sections" : [ {
+      "type" : "platform_answer",
+      "data" : "no_operator"
+    } ]
+  } ]
+}', 'ST', 'Y', '{
+  "version" : "0.1",
+  "chapters" : [ {
+    "sections" : [ {
+      "type" : "text",
+      "data" : "1:1채팅을 요청하셨습니다. 채팅 내용은 상담 품질 관리를 위해 {위탁사명}에 저장됩니다. 상담을 시작하려면 메시지를입력해주세요. 채팅을 원치 않으시면 “!종료”를 입력해주세요."
+    } ]
+  } ]
+}', 'S2', 'Y', '{
+  "version" : "0.1",
+  "chapters" : [ {
+    "sections" : [ {
+      "type" : "platform_answer",
+      "data" : "off"
+    } ]
+  } ]
+}', 'S4', 'Y', '{
+  "version" : "0.1",
+  "chapters" : [ {
+    "sections" : [ {
+      "type" : "platform_answer",
+      "data" : "wait"
+    } ]
+  } ]
+}', 'Y', '{
+  "version" : "0.1",
+  "chapters" : [ {
+    "sections" : [ {
+      "type" : "text",
+      "data" : "사랑하는 고객님 반갑습니다. 상담직원 {{상담직원명}} 입니다. 무엇을 도와드릴까요?"
+    } ]
+  } ]
+}');
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 자동메시지 설정 (상담 종료) (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO CHANNEL_END_AUTO (ID, GUEST_DELAY_ENABLED, GUEST_DELAY_MESSAGE, GUEST_DELAY_MINUTE, GUEST_NOTICE_DELAY_ENABLED, GUEST_NOTICE_DELAY_MESSAGE, GUEST_NOTICE_DELAYE_MINUTE, GUIDE_MESSAGE, GUIDE_NOTICE_MESSAGE, GUIDE_NUMBER, GUIDE_TYPE, MEMBER_DELAY_ENABLED, MEMBER_DELAY_MESSAGE, MEMBER_DELAY_MINUTE, REGISTER_ENABLED, REGISTER_MESSAGE)
+VALUES (1, 'Y', '{
+  "version" : "0.1",
+  "chapters" : [ {
+    "sections" : [ {
+      "type" : "text",
+      "data" : "고객님 말씀이 없으셔서 다음 상담을 위해 상담을 종료합니다. 궁금하신 내용이 생기시면 언제든 다시 문의주시기 바라며,오늘도 행복한 하루되세요^^"
+    } ]
+  } ]
+}', 7, 'Y', '{
+  "version" : "0.1",
+  "chapters" : [ {
+    "sections" : [ {
+      "type" : "text",
+      "data" : "추가 문의가 없으시면 5분 뒤 상담이 자동 종료됩니다. 궁금하신 내용이 있으시면 말씀해주세요~"
+    } ]
+  } ]
+}', 2, '{
+  "version" : "0.1",
+  "chapters" : [ {
+    "sections" : [ {
+      "type" : "text",
+      "data" : "추가 문의가 없으신가요? 즉시 상담을 종료하시려면 아래 ‘!종료’ 버튼을 눌러주세요."
+    } ]
+  } ]
+}', '{
+  "version" : "0.1",
+  "chapters" : [ {
+    "sections" : [ {
+      "type" : "text",
+      "data" : "고객님 말씀이 없으셔서 다음 상담을 위해 상담을 종료합니다. 궁금하신 내용이 생기시면 언제든 다시 문의주시기 바라며, 오늘도 행복한 하루되세요^^"
+    } ]
+  } ]
+}', 11, 'notice', 'Y', '{
+  "version" : "0.1",
+  "chapters" : [ {
+    "sections" : [ {
+      "type" : "text",
+      "data" : "고객님 죄송합니다. 현재는 상담직원 응대가 어렵습니다. 상담이 가능할 때 즉시 상담 도와드릴 예정이니 종료하지말고 기다려주세요!"
+    } ]
+  } ]
+}', 7, 'Y', '{
+  "version" : "0.1",
+  "chapters" : [ {
+    "sections" : [ {
+      "type" : "text",
+      "data" : "현재는 상담직원 응대가 어렵습니다. 근무시간(평일 오전9:00 ~ 오후6:00)에 다시 문의해주세요."
+    } ]
+  } ]
+}');
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 채널 상담 설정 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO CHANNEL_ENV (ID, ASSIGN_STANDBY_ENABLED, ASSIGN_STANDBY_MESSAGE, ASSIGN_STANDBY_NUMBER, CREATED, CREATOR, CUSTOMER_CONNECTION, EVALUATION_ENABLED, EVALUATION_MESSAGE, IMPOSSIBLE_MESSAGE, MAX_ISSUE_CATEGORY_DEPTH, MEMBER_ASSIGN, MEMBER_DIRECT_ENABLED, MODIFIED, MODIFIER, REQUEST_BLOCK_ENABLED, CHANNEL_ID, CHANNEL_END_AUTO_ID, CHANNEL_START_AUTO_ID ,MAX_ISSUE_CATEGORY_DEPTH)
+VALUES (1, 'Y', '{
+  "version" : "0.1",
+  "chapters" : [ {
+    "sections" : [ {
+      "type" : "text",
+      "data" : "죄송합니다. 현재 먼저 접수된 상담이 많아 채팅상담이 지연되고 있습니다. 잠시 후 다시 이용 부탁드립니다."
+    } ]
+  } ]
+}', 50, now(), 1, 'basic', 'N', '{
+  "version" : "0.1",
+  "chapters" : [ {
+    "sections" : [ {
+      "type" : "text",
+      "data" : "상담에 만족하셨나요? 상담품질 개선을 위해 만족도 평가를 부탁드립니다^^"
+    } ]
+  } ]
+}', '{
+  "version" : "0.1",
+  "chapters" : [ {
+    "sections" : [ {
+      "type" : "text",
+      "data" : "죄송합니다. 현재 원활한 상담이 어렵습니다. 추후에 다시 이용 부탁드립니다."
+    } ]
+  } ]
+}', 0, 'category', 'Y', now(), 1, 'N', 1, 1, 1 , 3);
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 분류 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (1, 1, 1, 'Y', 'Y', now(), 1, '대분류1', 1, null);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (2, 1, 1, 'Y', 'Y', now(), 1, '대분류2', 2, null);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (3, 1, 1, 'Y', 'Y', now(), 1, '대분류3', 3, null);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (4, 1, 2, 'Y', 'Y', now(), 1, '중분류11', 1, 1);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (5, 1, 2, 'Y', 'Y', now(), 1, '중분류12', 2, 1);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (6, 1, 2, 'Y', 'Y', now(), 1, '중분류13', 3, 1);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (7, 1, 2, 'Y', 'Y', now(), 1, '중분류21', 1, 2);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (8, 1, 2, 'Y', 'Y', now(), 1, '중분류22', 2, 2);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (9, 1, 2, 'Y', 'Y', now(), 1, '중분류23', 3, 2);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (10, 1, 3, 'Y', 'Y', now(), 1, '소분류221', 1, 8);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (11, 1, 3, 'Y', 'Y', now(), 1, '소분류222', 2, 8);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (12, 1, 3, 'Y', 'Y', now(), 1, '소분류231', 3, 9);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (13, 1, 2, 'Y', 'Y', now(), 1, '중분류31', 1, 3);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (14, 1, 2, 'Y', 'Y', now(), 1, '중분류32', 2, 3);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (31, 1, 3, 'Y', 'Y', now(), 1, '소분류312', 1, 13);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (32, 1, 3, 'Y', 'Y', now(), 1, '소분류321', 2, 14);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (33, 1, 3, 'Y', 'Y', now(), 1, '소분류322', 1, 14);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (34, 1, 3, 'Y', 'Y', now(), 1, '소분류323', 2, 14);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (21, 1, 3, 'Y', 'Y', now(), 1, '소분류211', 1, 7);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (22, 1, 3, 'Y', 'Y', now(), 1, '소분류212', 2, 7);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (23, 1, 3, 'Y', 'Y', now(), 1, '소분류232', 1, 9);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (24, 1, 3, 'Y', 'Y', now(), 1, '소분류311', 2, 13);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (35, 1, 3, 'Y', 'Y', now(), 1, '소분류111', 3, 4);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (36, 1, 3, 'Y', 'Y', now(), 1, '소분류112', 3, 4);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (37, 1, 3, 'Y', 'Y', now(), 1, '소분류121', 3, 5);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (38, 1, 3, 'Y', 'Y', now(), 1, '소분류122', 3, 5);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (39, 1, 3, 'Y', 'Y', now(), 1, '소분류131', 3, 6);
+INSERT INTO ISSUE_CATEGORY (ID, CHANNEL_ID, DEPTH, ENABLED, EXPOSED, MODIFIED, MODIFIER, NAME, SORT, PARENT_ID)
+VALUES (40, 1, 3, 'Y', 'Y', now(), 1, '소분류132', 3, 6);
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 메뉴 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (100, 1, null, null, 'Y', null, 'N', '상담포털', null, null, null, 'Y', 100, 100);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (110, 2, null, null, 'Y', null, 'N', '상담포털', '홈', null, null, 'Y', 110, 100);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (120, 2, null, null, 'Y', null, 'N', '상담포털', '고객목록', null, null, 'Y', 120, 100);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (121, 3, null, null, 'Y', null, 'N', '상담포털', '고객목록', '알림톡', null, 'Y', 121, 100);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (122, 3, null, null, 'Y', null, 'N', '상담포털', '고객목록', '친구톡', null, 'Y', 122, 100);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (123, 3, null, null, 'Y', null, 'N', '상담포털', '고객목록', '선물하기', null, 'Y', 123, 100);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (130, 2, null, null, 'Y', null, 'N', '상담포털', '대화목록', null, null, 'Y', 130, 100);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (131, 3, null, null, 'Y', null, 'N', '상담포털', '대화목록', '상담이력', null, 'Y', 131, 100);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (132, 3, null, null, 'Y', null, 'N', '상담포털', '대화목록', '상담가이드', null, 'Y', 132, 100);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (133, 3, null, null, 'Y', null, 'N', '상담포털', '대화목록', '상품설명서', null, 'Y', 133, 100);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (200, 1, null, null, 'Y', null, 'N', '상담관리', null, null, null, 'Y', 200, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (210, 2, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '대시보드', null, null, 'Y', 210, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (211, 3, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '대시보드', '대시보드', null, 'Y', 211, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (220, 2, null, null, 'Y', null, 'N', '상담관리', '요청관리', null, null, 'Y', 220, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (221, 3, null, null, 'Y', null, 'N', '상담관리', '요청관리', '상담 지원 요청', null, 'Y', 221, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (222, 3, null, null, 'Y', null, 'N', '상담관리', '요청관리', '톡 발송 요청', null, 'Y', 222, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (230, 2, null, null, 'Y', null, 'N', '상담관리', '상담', null, null, 'Y', 230, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (231, 3, null, null, 'Y', null, 'N', '상담관리', '상담', '상담 진행 목록', null, 'Y', 231, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (232, 3, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '상담', '상담 이력', null, 'Y', 232, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (233, 3, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '상담', '톡 발송 이력', null, 'Y', 233, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (234, 3, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '상담', '톡 발송 예약 목록', null, 'Y', 234, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (235, 3, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '상담', '파일 전송 이력', null, 'Y', 235, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (240, 2, null, null, 'Y', null, 'N', '상담관리', '상담지원', null, null, 'Y', 240, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (241, 3, null, null, 'Y', null, 'N', '상담관리', '상담지원', '공지사항', null, 'Y', 241, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (242, 3, null, null, 'Y', null, 'N', '상담관리', '상담지원', '상담가이드', null, 'Y', 242, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (245, 3, null, null, 'N', null, 'N', '상담관리', '상담지원', '상품설명서', null, 'Y', 245, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (246, 3, null, null, 'Y', null, 'N', '상담관리', '상담지원', '템플릿 관리', null, 'Y', 246, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (247, 3, null, null, 'Y', null, 'N', '상담관리', '상담지원', '상담 보조 콘텐츠', null, 'Y', 247, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (250, 2, null, null, 'N', null, 'N', '상담관리', '톡 발송 관리', null, null, 'Y', 250, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (251, 3, null, null, 'N', null, 'N', '상담관리', '톡 발송 관리', '톡 발송 관리', null, 'Y', 251, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (260, 2, null, null, 'N', null, 'N', '상담관리', '통계', null, null, 'Y', 260, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (261, 3, null, null, 'N', null, 'N', '상담관리', '통계', '통계', null, 'Y', 261, 200);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (300, 1, 'OPERATOR', null, 'Y', null, 'Y', '시스템설정', null, null, null, 'Y', 300, 300);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (310, 2, 'OPERATOR', null, 'Y', null, 'Y', '시스템설정', '계정 관리', null, null, 'Y', 310, 300);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (311, 3, 'OPERATOR', null, 'Y', null, 'Y', '시스템설정', '계정 관리', '권한 관리', null, 'N', 311, 300);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (312, 3, 'OPERATOR', null, 'Y', null, 'Y', '시스템설정', '계정 관리', '브랜치/채널 관리', null, 'N', 312, 300);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (314, 3, 'OPERATOR', null, 'Y', null, 'Y', '시스템설정', '계정 관리', '계정 관리', null, 'Y', 314, 300);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (320, 2, 'OPERATOR', null, 'Y', null, 'N', '시스템설정', '상담 설정', null, null, 'Y', 320, 300);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (321, 3, 'OPERATOR', null, 'Y', null, 'N', '시스템설정', '상담 설정', '근무 조건 설정', null, 'Y', 321, 300);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (322, 3, 'OPERATOR', null, 'Y', null, 'N', '시스템설정', '상담 설정', '상담 환경 설정', null, 'Y', 322, 300);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (323, 3, 'OPERATOR', null, 'Y', null, 'N', '시스템설정', '상담 설정', '자동메세지 설정', null, 'Y', 323, 300);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (325, 3, 'OPERATOR', null, 'Y', null, 'N', '시스템설정', '상담 설정', '상담 배분 설정', null, 'Y', 325, 300);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (390, 2, 'OPERATOR', null, 'N', null, 'N', '시스템설정', '서비스 관리', null, null, 'Y', 390, 300);
+INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
+VALUES (391, 3, 'OPERATOR', null, 'N', null, 'Y', '시스템설정', '서비스 관리', '서비스 이용 내역', null, 'Y', 391, 300);
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 권한 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+-- 상담 포털
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (100, '상담 포털 조회', 'READ_PORTAL');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (110, '홈 조회', 'READ_HOME');
+
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (120, '고객 조회', 'READ_CUSTOMER');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (121, '알림톡', 'WRITE_KAKAO_ALERT_TALK');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (122, '친구톡', 'WRITE_KAKAO_FRIEND_TALK');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (123, '선물하기 (카카오)', 'WRITE_KAKAO_GIFT');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (124, '선물하기 (고객사)', 'WRITE_LEGACY_GIFT');
+
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (130, '이슈 조회', 'READ_ISSUE');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (131, '이슈 수정', 'WRITE_ISSUE');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (132, '상담 가이드 조회', 'READ_GUIDE');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (133, '상품 설명서 조회', 'READ_MANUAL');
+
+-- 상담 관리
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (200, '상담 관리 조회', 'READ_MANAGE');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (211, '대시보드 조회', 'READ_DASHBOARD');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (221, '상담 지원 요청 수정', 'WRITE_SUPPORT');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (222, '톡 발송 요청 수정', 'WRITE_TALK');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (231, '상담 진행 목록 수정', 'WRITE_ISSUE_OPEN');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (232, '상담 이력 수정', 'WRITE_ISSUE_HISTORY');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (233, '톡 발송 이력 조회', 'READ_TALK_HISTORY');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (234, '톡 예약 목록 수정', 'WRITE_TALK_TASK');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (235, '파일 전송 이력 조회', 'READ_FILE_HISTORY');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (241, '공지사항 수정', 'WRITE_NOTICE');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (242, '상담 가이드 수정', 'WRITE_GUIDE');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (243, '상담 가이드 분류 수정', 'WRITE_GUIDE_CATEGORY');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (245, '상품 설명서 수정', 'WRITE_MANUAL');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (246, '템플릿 관리 수정', 'WRITE_PLATFORM_TEMPLATE');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (247, '상담 보조 컨텐츠 수정', 'WRITE_CONTENTS');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (251, '톡 관리 수정', 'WRITE_TALK_MANAGE');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (261, '통계 조회', 'READ_STATISTICS');
+
+-- 시스템 설정
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (300, '시스템 설정 조회', 'READ_SYSTEM');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (311, '권한 수정', 'WRITE_PRIVILEGE');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (312, '브렌치 수정', 'WRITE_BRANCH');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (313, '채널 수정', 'WRITE_CHANNEL');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (314, '계정 수정', 'WRITE_ACCOUNT');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (321, '근무 조건 수정', 'WRITE_WORK');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (322, '상담 환경 수정', 'WRITE_COUNSEL');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (323, '자동 메세지 수정', 'WRITE_AUTO_MESSAGE');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (325, '상담 배분 수정', 'WRITE_ASSIGN');
+INSERT INTO PRIVILEGE (ID, NAME, TYPE)
+VALUES (391, '시스템 이용 내역 조회', 'READ_LOG');
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 메뉴 - 권한 매칭 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+-- 상담 포털
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (101, 100, 100);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (102, 110, 110);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (103, 120, 120);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (104, 121, 121);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (105, 122, 122);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (106, 123, 123);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (107, 124, 124);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (108, 130, 130);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (109, 131, 131);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (110, 132, 132);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (111, 133, 133);
+-- 상담 관리
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (200, 200, 200);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (211, 211, 211);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (221, 221, 221);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (222, 222, 222);
+
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (231, 231, 231);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (232, 232, 232);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (233, 233, 233);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (234, 234, 234);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (235, 235, 235);
+
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (241, 241, 241);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (242, 242, 242);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (243, 242, 243);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (245, 245, 245);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (246, 246, 246);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (247, 247, 247);
+
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (251, 251, 251);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (261, 261, 261);
+
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (300, 300, 300);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (311, 311, 311);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (312, 312, 312);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (313, 312, 313);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (314, 314, 314);
+
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (321, 321, 321);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (322, 322, 322);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (323, 323, 323);
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (325, 325, 325);
+
+INSERT INTO MENU_PRIVILEGE (ID, MENU_ID, PRIVILEGE_ID) VALUES (391, 391, 391);
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 레벨 - 메뉴 매칭 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+-- 상담원
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (1, 1, 100);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (2, 1, 110);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (3, 1, 120);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (4, 1, 121);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (5, 1, 122);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (6, 1, 123);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (7, 1, 130);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (8, 1, 131);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (9, 1, 132);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (10, 1, 133);
+-- 매니저
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (21, 2, 100);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (22, 2, 110);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (23, 2, 120);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (24, 2, 121);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (25, 2, 122);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (26, 2, 123);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (27, 2, 130);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (28, 2, 131);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (29, 2, 132);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (30, 2, 133);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (41, 2, 200);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (42, 2, 210);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (43, 2, 211);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (44, 2, 220);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (45, 2, 221);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (46, 2, 222);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (47, 2, 230);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (48, 2, 231);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (49, 2, 232);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (50, 2, 233);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (51, 2, 234);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (52, 2, 235);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (53, 2, 240);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (54, 2, 241);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (55, 2, 242);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (56, 2, 245);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (57, 2, 246);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (58, 2, 247);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (59, 2, 250);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (60, 2, 251);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (61, 2, 260);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (62, 2, 261);
+-- 관리자
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (101, 3, 200);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (102, 3, 210);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (103, 3, 211);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (104, 3, 220);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (105, 3, 221);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (106, 3, 222);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (107, 3, 230);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (108, 3, 231);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (109, 3, 232);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (110, 3, 233);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (111, 3, 234);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (112, 3, 235);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (113, 3, 240);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (114, 3, 241);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (115, 3, 242);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (116, 3, 245);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (117, 3, 246);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (118, 3, 247);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (119, 3, 250);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (120, 3, 251);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (121, 3, 260);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (122, 3, 261);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (131, 3, 300);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (132, 3, 310);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (133, 3, 311);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (134, 3, 312);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (135, 3, 314);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (136, 3, 320);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (137, 3, 321);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (138, 3, 322);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (139, 3, 323);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (140, 3, 325);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (141, 3, 390);
+INSERT INTO LEVEL_MENU (ID, LEVEL_ID, MENU_ID) VALUES (142, 3, 391);
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 역할 - 메뉴 매칭 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+-- 상담원
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (1, 1, 100, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (2, 1, 110, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (3, 1, 120, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (4, 1, 121, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (5, 1, 122, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (6, 1, 123, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (7, 1, 130, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (8, 1, 131, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (9, 1, 132, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (10, 1, 133, 1, now());
+-- 매니저
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (21, 2, 100, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (22, 2, 110, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (23, 2, 120, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (24, 2, 121, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (25, 2, 122, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (26, 2, 123, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (27, 2, 130, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (28, 2, 131, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (29, 2, 132, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (30, 2, 133, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (41, 2, 200, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (42, 2, 210, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (43, 2, 211, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (44, 2, 220, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (45, 2, 221, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (46, 2, 222, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (47, 2, 230, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (48, 2, 231, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (49, 2, 232, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (50, 2, 233, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (51, 2, 234, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (52, 2, 235, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (53, 2, 240, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (54, 2, 241, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (55, 2, 242, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (56, 2, 245, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (57, 2, 246, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (58, 2, 247, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (59, 2, 250, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (60, 2, 251, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (61, 2, 260, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (62, 2, 261, 1, now());
+-- 관리자
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (101, 3, 300, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (102, 3, 310, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (105, 3, 314, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (106, 3, 320, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (107, 3, 321, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (108, 3, 322, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (109, 3, 323, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (110, 3, 325, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (111, 3, 390, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (112, 3, 391, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (113, 3, 200, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (114, 3, 210, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (115, 3, 211, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (116, 3, 220, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (117, 3, 221, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (118, 3, 222, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (119, 3, 230, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (120, 3, 231, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (121, 3, 232, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (122, 3, 233, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (123, 3, 234, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (124, 3, 235, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (125, 3, 240, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (126, 3, 241, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (127, 3, 242, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (128, 3, 245, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (129, 3, 246, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (130, 3, 247, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (131, 3, 250, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (132, 3, 251, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (133, 3, 260, 1, now());
+INSERT INTO ROLE_MENU (ID, ROLE_ID, MENU_ID, MODIFIER, MODIFIED)
+VALUES (134, 3, 261, 1, now());
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 역할 - 권한 매칭 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+-- 상담원
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (1, now(), 1, 1, 100);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (2, now(), 1, 1, 110);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (3, now(), 1, 1, 120);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (4, now(), 1, 1, 121);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (5, now(), 1, 1, 122);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (6, now(), 1, 1, 123);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (7, now(), 1, 1, 124);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (8, now(), 1, 1, 130);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (9, now(), 1, 1, 131);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (10, now(), 1, 1, 132);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (11, now(), 1, 1, 133);
+
+-- 매니저
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (20, now(), 1, 2, 100);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (21, now(), 1, 2, 110);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (22, now(), 1, 2, 120);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (23, now(), 1, 2, 121);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (24, now(), 1, 2, 122);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (25, now(), 1, 2, 123);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (26, now(), 1, 2, 124);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (27, now(), 1, 2, 130);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (28, now(), 1, 2, 131);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (29, now(), 1, 2, 132);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (30, now(), 1, 2, 133);
+
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (31, now(), 1, 2, 200);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (32, now(), 1, 2, 211);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (33, now(), 1, 2, 221);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (34, now(), 1, 2, 222);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (35, now(), 1, 2, 231);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (36, now(), 1, 2, 232);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (37, now(), 1, 2, 233);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (38, now(), 1, 2, 234);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (39, now(), 1, 2, 235);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (40, now(), 1, 2, 241);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (41, now(), 1, 2, 242);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (42, now(), 1, 2, 243);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (43, now(), 1, 2, 245);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (44, now(), 1, 2, 246);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (45, now(), 1, 2, 247);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (46, now(), 1, 2, 251);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (47, now(), 1, 2, 261);
+
+-- 관리자
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (50, now(), 1, 3, 200);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (51, now(), 1, 3, 211);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (52, now(), 1, 3, 221);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (53, now(), 1, 3, 222);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (54, now(), 1, 3, 231);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (55, now(), 1, 3, 232);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (56, now(), 1, 3, 233);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (57, now(), 1, 3, 234);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (58, now(), 1, 3, 235);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (59, now(), 1, 3, 241);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (60, now(), 1, 3, 242);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (61, now(), 1, 3, 243);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (62, now(), 1, 3, 245);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (63, now(), 1, 3, 246);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (64, now(), 1, 3, 247);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (65, now(), 1, 3, 251);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (66, now(), 1, 3, 261);
+
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (70, now(), 1, 3, 300);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (71, now(), 1, 3, 314);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (72, now(), 1, 3, 321);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (73, now(), 1, 3, 322);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (74, now(), 1, 3, 323);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (75, now(), 1, 3, 325);
+INSERT INTO ROLE_PRIVILEGE (ID, CREATED, CREATOR, ROLE_ID, PRIVILEGE_ID)
+VALUES (76, now(), 1, 3, 391);
+
+-- ////////////////////////////////////////////////////////////////////////////
+-- 배정 메소드 코드 (Static)
+-- ////////////////////////////////////////////////////////////////////////////
+INSERT INTO ASSIGN_METHOD (ID, ENABLED, NAME, SIGNATURE, SORT)
+VALUES (10, 'Y', '시스템 근무시간 체크', 'assignBySystemOfficeHours', 10);
+INSERT INTO ASSIGN_METHOD (ID, ENABLED, NAME, SIGNATURE, SORT)
+VALUES (20, 'Y', '상담 불가 체크', 'assignByDisabled', 20);
+INSERT INTO ASSIGN_METHOD (ID, ENABLED, NAME, SIGNATURE, SORT)
+VALUES (30, 'Y', '배정 대기 건수 체크', 'assignByOpenedCount', 30);
+INSERT INTO ASSIGN_METHOD (ID, ENABLED, NAME, SIGNATURE, SORT)
+VALUES (40, 'Y', '브랜치 상담원 구하기', 'assignByBranchMember', 60);
+INSERT INTO ASSIGN_METHOD (ID, ENABLED, NAME, SIGNATURE, SORT)
+VALUES (50, 'Y', '카테고리 상담원 구하기', 'assignByIssueCategoryMember', 50);
+INSERT INTO ASSIGN_METHOD (ID, ENABLED, NAME, SIGNATURE, SORT)
+VALUES (60, 'Y', '상담원 한명 구하기 ', 'assignByGetMember', 40);
+INSERT INTO ASSIGN_METHOD (ID, ENABLED, NAME, SIGNATURE, SORT)
+VALUES (70, 'Y', '상담원 근무시간 체크', 'assignByMemberOfficeHours', 70);
+INSERT INTO ASSIGN_METHOD (ID, ENABLED, NAME, SIGNATURE, SORT)
+VALUES (80, 'N', '상담원 근무외 시간 체크', 'assignOffDutyHours', 80);
+INSERT INTO ASSIGN_METHOD (ID, ENABLED, NAME, SIGNATURE, SORT)
+VALUES (1000, 'Y', '상담원 랜덤 한명구하기', 'assignByMemberRandom', 1000);
