@@ -32,7 +32,8 @@ public class IpWhitelistAuthenticationFilter extends OncePerRequestFilter {
 		}
 
 		// 솔루션
-		else if (request.getRequestURI().contains("/api/v1/portal/")) {
+//		else if (request.getRequestURI().contains("/api/v1/portal/")) {
+		else if (request.getRequestURI().contains("/api/v1/counsel-portal/")) {
 			String userIp = request.getRemoteAddr();
 			log.info("IP WHITELIST FILTER, SOLUTION, IP: {}", userIp);
 			IpWhitelistAuthenticationToken authToken = new IpWhitelistAuthenticationToken(userIp, AuthorityUtils.NO_AUTHORITIES);

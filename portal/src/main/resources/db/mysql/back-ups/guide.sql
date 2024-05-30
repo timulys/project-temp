@@ -46,7 +46,7 @@ CREATE TABLE `guide` (
 LOCK TABLES guide WRITE;
 
 INSERT INTO 
-  guide (id, created, enabled, is_branch_open, is_team_open, modified, name, type, branch_id, creator, guide_category_id, modifier, team_id) 
+  guide (id, created, enabled, is_branch_open, is_team_open, modified, name, type, branch_id, creator_id, guide_category_id, modifier_id, team_id)
 VALUES 
   ('16018', '2023-03-17 14:04:20.272000', 'Y', 'N', 'Y', '2023-03-17 14:04:20.272000', 'ㅌㅌㅌ', 'single', '15986', '15998', '16015', '16002', '16395'), 
   ('16023', '2023-03-17 14:05:47.163000', 'Y', 'N', 'Y', '2023-03-17 14:05:47.163000', 'dd', 'single', '15986', '15998', '16015', '16002', '16395'), 

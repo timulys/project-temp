@@ -20,8 +20,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @수정일자	  / 수정자		 	/ 수정내용
- * 2023.05.31 / asher.shin / 상담분야 컬럼 추가
+ * @수정일자		/ 수정자		 	/ 수정내용
+ * 2023.05.31	/ asher.shin	/ 상담분야 컬럼 추가
+ * 2024.05.28	/ tim.c			/ 첫 인사말 사용 유무 추가
  */
 @Data
 @NoArgsConstructor
@@ -78,4 +79,5 @@ public class MemberDto {
 	 */
 	private Map<String , Object> setting;
 
+	private Boolean usedMessage;
 }

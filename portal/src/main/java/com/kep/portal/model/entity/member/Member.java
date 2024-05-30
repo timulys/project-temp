@@ -13,6 +13,7 @@ import com.kep.portal.model.entity.privilege.Role;
 import com.kep.portal.model.entity.team.Team;
 import com.kep.portal.model.entity.work.OfficeHours;
 import lombok.*;
+import org.checkerframework.checker.units.qual.N;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.DynamicInsert;
@@ -85,6 +86,13 @@ public class Member {
 
 	@Comment("프로파일")
 	private String profile;
+
+	@Column(length = 1)
+	@Comment("첫 인사말 사용 여부")
+	@ColumnDefault("'N'")
+	@Convert(converter = BooleanConverter.class)
+	@NotNull
+	private Boolean usedMessage;
 
 	@Column(length = 4000)
 	@Comment("웰컴 메세지")
@@ -178,6 +186,10 @@ public class Member {
 
 		if (this.password != null){
 			this.passwordChanged = true;
+		}
+
+		if (this.usedMessage == null) {
+			this.usedMessage = false;
 		}
 	}
 }

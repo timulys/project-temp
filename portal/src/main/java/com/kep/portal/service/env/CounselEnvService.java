@@ -101,16 +101,18 @@ public class CounselEnvService {
     public CounselInflowEnvDto store(@NotNull CounselInflowEnvDto dto) {
         CounselInflowEnv counselInflowEnv;
         if(dto.getId() == null){
-            // 중복 체크
-            Optional<CounselInflowEnv> existingInflowEnv = Optional.empty();
-            if(existingInflowEnv.isPresent()) {
-                throw new BizException("SB-SA-005-001", "이미 존재하는 유입경로입니다.");
-            }
+//            // 중복 체크
+//            Optional<CounselInflowEnv> existingInflowEnv = Optional.empty();
+//            if(existingInflowEnv.isPresent()) {
+//                throw new BizException("SB-SA-005-001", "이미 존재하는 유입경로입니다.");
+//            }
 
             counselInflowEnv = counselInflowEnvMapper.map(dto);
-
+            // FIXME : jhchoi - 기존 BZM 송수신 알고리즘으로 변경
+            String newPath = PortalProperty.kakaoCounselTalkBaseUrl + "/open/{{channel_name}}?extra=path_" + dto.getParams();
+            System.out.println("newPath = " + newPath);
             // 새로운 카카오 싱크 URL을 사용하여 유입경로 설정
-            String newPath = bnkKaKaoTalkUrl + "path_" + dto.getParams();
+//            String newPath = bnkKaKaoTalkUrl + "path_" + dto.getParams();
             counselInflowEnv.setValue(newPath);
             log.info("유입경로 복사 URL 카카오싱크 :{}", counselInflowEnv.getValue());
             counselInflowEnv.setEnabled(true);

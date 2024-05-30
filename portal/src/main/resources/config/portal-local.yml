@@ -40,7 +40,8 @@ application:
     api-base-path: /api/v${application.customer.api-version}
   platform:
     api-version: 1
-    api-base-path: /api/v1/portal
+    api-base-path: /api/v1/counsel-portal
+#    api-base-path: /api/v1/portal
     #    api-key-name: X-API-Key
     api-key-name: Authorization
     api-key-method: APIKey

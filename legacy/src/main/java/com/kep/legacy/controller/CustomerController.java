@@ -18,7 +18,8 @@ import java.util.Map;
  * 솔루션 고객 정보 (고객사에서 호출)
  */
 @RestController
-@RequestMapping("/api/v1/portal/customer")
+@RequestMapping("/api/v1/counsel-portal/customer")
+//@RequestMapping("/api/v1/portal/customer")
 @Slf4j
 public class CustomerController {
 

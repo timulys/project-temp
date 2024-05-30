@@ -198,8 +198,9 @@ public class MemberService {
 	}
 
 	/**
-	 * @수정일자	  / 수정자		 	/ 수정내용
-	 * 2023.05.31 / asher.shin / 상담원 생성/수정시 근무 외 상담가능 여부 추가
+	 * @수정일자		/ 수정자		 	/ 수정내용
+	 * 2023.05.31	/ asher.shin	/ 상담원 생성/수정시 근무 외 상담가능 여부 추가
+	 * 2024.05.27	/ tim.c			/ 첫 인사말 사용 유무 체크 기능 추가
 	 * @param id
 	 * @return
 	 */
@@ -264,8 +265,7 @@ public class MemberService {
 		// 회원 첫 인사말
 		// TODO: 첫 인사말 안넘어오는 경우, 삭제 필요 (GNB > 내 정보 수정)
 		// TODO: 그 외 첫 인사말이 화면에 아에 없는 경우 (계정 관리 등) 예외 필요 (URL 분리 필요)
-		member.setFirstMessage(dto.getFirstMessage());
-
+		member.setFirstMessage(dto.getUsedMessage() == true ? dto.getFirstMessage() : null);
 		member = memberRepository.save(member);
 
 		// Member Role 매칭 저장

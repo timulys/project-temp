@@ -94,7 +94,8 @@ public class SecurityConfig {
 				.mvcMatchers("/actuator/**")
 				.hasAnyRole("SYS")
 
-				.mvcMatchers("/api/v1/portal/**")
+//				.mvcMatchers("/api/v1/portal/**")
+				.mvcMatchers("/api/v1/counsel-portal/**")
 				.hasAnyRole("SYS")
 
 				.anyRequest()

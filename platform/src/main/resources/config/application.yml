@@ -164,7 +164,7 @@ application:
       user: codeclick
       passwd: 'beerholic123!@#'
   platform:
-    redis-mode: ${REDIS_MODE:cluster}
+    redis-mode: ${REDIS_MODE:Standalone} # Local Dev 환경에선 Standalone, 배포 환경에선 Cluster 환경으로 옵션 변경할 것
     api-version: 1
     api-base-path: /api/v${codeclick.platform.api-version}
     api-key-name: X-API-Key

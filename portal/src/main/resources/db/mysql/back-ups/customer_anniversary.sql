@@ -32,7 +32,7 @@ CREATE TABLE `customer_anniversary` (
 
 LOCK TABLES customer_anniversary WRITE;
 
-INSERT INTO 
+INSERT INTO
   customer_anniversary (id, anniversary_day, created, creator, modified, modifier, anniversary_code, customer_id) 
 VALUES 
   ('1', '2023-04-06', '2023-04-12 08:11:48', '4', '2023-04-12 08:11:48', '4', '4', '4'), 

@@ -43,7 +43,7 @@ CREATE TABLE `issue_support` (
 LOCK TABLES issue_support WRITE;
 
 INSERT INTO 
-  issue_support (id, answer, answer_modified, answerer, auto_id, branch_id, change_id, change_type, created, creator, question, question_modified, questioner, status, type, issue_id) 
+  issue_support (id, answer, answer_modified, answerer, auto_id, branch_id, change_id, change_type, created, creator, question, question_modified, questioner, status, type, issue_id)
 VALUES 
   ('15596', '코끼리', '2023-03-16 13:29:08.543000', '3', NULL, NULL, NULL, NULL, '2023-03-16 13:28:33.216000', '4', '검토 요청', '2023-03-16 13:28:33.216000', '4', 'end', 'question', '15568'), 
   ('15684', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2023-03-16 18:29:22.094000', '4', 'ㅁㅁ', '2023-03-16 18:29:22.094000', '4', 'request', 'question', '15678'), 
@@ -67,4 +67,3 @@ VALUES
   ('20496', NULL, '2023-04-14 14:49:17.129000', '3', NULL, NULL, '3', 'select', '2023-04-14 14:48:38.397000', '4', '관리자 니가 잘 얘기 안해줘서 나 상담 못해 나보다 더 잘하는 상담직원에게 넘겨줘', '2023-04-14 14:48:38.397000', '4', 'receive', 'change', '20460'), 
   ('20726', '안했어용', '2023-04-18 14:59:51.973000', '3', NULL, NULL, NULL, NULL, '2023-04-18 14:59:06.973000', '5', '욕했어용 ', '2023-04-18 14:59:06.973000', '5', 'reject', 'question', '20719');
 UNLOCK TABLES;
-
