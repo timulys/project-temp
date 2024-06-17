@@ -127,6 +127,8 @@ jasypt:
     bean: propertyEncryptor
 
 logging:
+  file:
+    path: ${LOGGING_PATH:/opt/storage/logs}/always/${spring.application.name}
   pattern:
     console: '%(%d{yyyy-MM-dd HH:mm:ss} %30.30logger:%-4line) %-5level > %msg\n'
   level:

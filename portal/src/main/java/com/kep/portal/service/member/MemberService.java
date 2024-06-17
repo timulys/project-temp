@@ -265,7 +265,13 @@ public class MemberService {
 		// 회원 첫 인사말
 		// TODO: 첫 인사말 안넘어오는 경우, 삭제 필요 (GNB > 내 정보 수정)
 		// TODO: 그 외 첫 인사말이 화면에 아에 없는 경우 (계정 관리 등) 예외 필요 (URL 분리 필요)
-		member.setFirstMessage(dto.getUsedMessage() == true ? dto.getFirstMessage() : null);
+		if (dto.getUsedMessage() != null && dto.getUsedMessage() == true) {
+			member.setUsedMessage(dto.getUsedMessage());
+			member.setFirstMessage(dto.getFirstMessage());
+		} else {
+			member.setUsedMessage(false);
+			member.setFirstMessage(null);
+		}
 		member = memberRepository.save(member);
 
 		// Member Role 매칭 저장
@@ -985,7 +991,7 @@ public class MemberService {
 			}).collect(Collectors.toList());
 
 			return new PageImpl<>(memberMapper.map(membersList), memberPage.getPageable(), membersList.size());
-		}else{
+		} else {
 			List<Member> memberList = members.stream()
 					.map(item -> {
 						List<Long> roleIds = memberRoles.stream()
@@ -998,13 +1004,15 @@ public class MemberService {
 						return item;
 					})
 					.filter(item -> {
+						if (!item.getEnabled())
+							return false;
 						List<Team> teams = teamMembers.stream()
 								.filter(q -> q.getMemberId().equals(item.getId()))
 								.map(TeamMember::getTeam)
 								.collect(Collectors.toList());
 
 						List<BranchTeam> branchTeams = branchTeamRepository.findByTeamId(item.getId());
-						if (branchTeams.isEmpty() && teams.isEmpty()) {
+						if (branchTeams.isEmpty()) {
 							return true;
 						}
 

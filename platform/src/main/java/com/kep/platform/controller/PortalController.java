@@ -36,8 +36,8 @@ import java.util.Map;
  * API from Portal
  */
 @RestController
-//@RequestMapping("/api/v1/counsel-portal")
-@RequestMapping("/api/v1/portal")
+@RequestMapping("/api/v1/counsel-portal")
+//@RequestMapping("/api/v1/portal")
 @Slf4j
 public class PortalController {
 

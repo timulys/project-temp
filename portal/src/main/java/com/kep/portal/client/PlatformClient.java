@@ -385,12 +385,12 @@ public class PlatformClient {
     public KakaoBizTalkSendResponse sendBizTalk(String jsonBody, PlatformType platformType) {
         WebClient webClient = webClientBuilder.baseUrl(coreProperty.getPlatformServiceUri() + platformProperty.getApiBasePath()).build();
         ApiResult<KakaoBizTalkSendResponse> response = null;
-        if (platformType.equals(PlatformType.kakao_alert_talk)) {
+        if (platformType.equals(PlatformType.kakao_alert_talk)) { // 알림톡
             response = webClient.post().uri("/alert-talk").headers(getHttpHeadersConsumer())
                     .bodyValue(jsonBody)
                     .retrieve().bodyToMono(new ParameterizedTypeReference<ApiResult<KakaoBizTalkSendResponse>>() {
                     }).block();
-        } else if (platformType.equals(platformType.kakao_friend_talk)) {
+        } else if (platformType.equals(platformType.kakao_friend_talk)) { // 친구톡
             response = webClient.post().uri("/friend-talk").headers(getHttpHeadersConsumer())
                     .bodyValue(jsonBody)
                     .retrieve().bodyToMono(new ParameterizedTypeReference<ApiResult<KakaoBizTalkSendResponse>>() {
