@@ -1,3 +1,4 @@
+
 # BNK 프로젝트
 👉 ip 정보 및 인프라 설치: https://www.notion.so/codeclick/BNK-e3899503b4974b75b4ce40b0d9f56db1 <br>
 👉 bnk 이슈 정리: https://www.notion.so/codeclick/BNK-b26b48b515f5471e93222168e3e0d5aa <br>
