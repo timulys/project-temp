@@ -145,18 +145,13 @@ public class EventByPlatformService {
 		}
 		
 		// 식별 고객 검색
-		Long customerId = null;
-		if (guest.getCustomer() != null) {
-			customerId = guest.getCustomer().getId();
-		} else {
-			if(!ObjectUtils.isEmpty(guest.getPlatformUserId())) {
-				List<CustomerAuthorized> customerAuthorizedList = customerAuthorizedRepository.findByPlatformUserIdOrderByIdDesc(guest.getPlatformUserId());
-				if(!customerAuthorizedList.isEmpty()) {
-					customerId = customerAuthorizedList.stream().findFirst().get().getCustomerId();
-					
-					guest.setCustomer(Customer.builder().id(customerId).build());
-					guest = guestService.save(guest);					
-				}
+		Long customerId = guest.getCustomer() != null ? guest.getCustomer().getId() : null;
+		if(!ObjectUtils.isEmpty(guest.getPlatformUserId())) {
+			List<CustomerAuthorized> customerAuthorizedList = customerAuthorizedRepository.findByPlatformUserIdOrderByIdDesc(guest.getPlatformUserId());
+			if(!customerAuthorizedList.isEmpty()) {
+				customerId = customerAuthorizedList.stream().findFirst().get().getCustomerId();
+				guest.setCustomer(Customer.builder().id(customerId).build());
+				guest = guestService.save(guest);
 			}
 		}
 		
