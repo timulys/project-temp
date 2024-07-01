@@ -157,14 +157,12 @@ public class EventByPlatformService {
 		
 		// 진행중 이슈 검색
 		// NOTE: 채널당 한 개 이슈만 진행 가능 (카카오 상담톡 기준)
-		// TODO: 검색시 type 필요? 채널이 다르니 필요없나?
 		Issue issue = issueService.findOngoingByPlatform(channel.getId(), guest.getId());
 		// 진행중 이슈가 있으면, 이벤트 무시
 		if (issue != null) {
 			log.warn("EVENT BY PLATFORM, OPEN, EXIST ONGOING ISSUE: {}, TRACK KEY: {}", issue.getId(), trackKey);
 			return issueMapper.map(issue);
 		}
-
 		// 브랜치 파라미터
 		Long branchId = getBranch(options);
 		// 분류 파라미터
