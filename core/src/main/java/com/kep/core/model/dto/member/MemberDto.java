@@ -13,6 +13,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.time.ZonedDateTime;
@@ -79,5 +80,11 @@ public class MemberDto {
 	 */
 	private Map<String , Object> setting;
 
-	private Boolean usedMessage;
+	/**
+	 * 첫 인사말 사용 여부 설정
+	 * 기본적으로는 사용 여부는 false
+	 */
+	@Builder.Default
+	@NotNull
+	private Boolean usedMessage = false;
 }

@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
@@ -306,8 +307,8 @@ public class MemberService {
 		// 등록시 근무시간 외 상담값 넣기
 		if (dto.getId() == null) {
 			boolean yn = false;
-			if(dto.getOfficeHours() !=null ){
-				yn = dto.getOfficeHours().getOffDutyCounselYn()!=null?dto.getOfficeHours().getOffDutyCounselYn():false;
+			if(dto.getOfficeHours() != null){
+				yn = dto.getOfficeHours().getOffDutyCounselYn() != null ? dto.getOfficeHours().getOffDutyCounselYn() : false;
 			}
 			dto.setOfficeHours(officeHoursService.branch(securityUtils.getBranchId()));
 			dto.getOfficeHours().setOffDutyCounselYn(yn);
