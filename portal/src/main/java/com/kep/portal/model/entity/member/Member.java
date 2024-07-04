@@ -13,7 +13,6 @@ import com.kep.portal.model.entity.privilege.Role;
 import com.kep.portal.model.entity.team.Team;
 import com.kep.portal.model.entity.work.OfficeHours;
 import lombok.*;
-import org.checkerframework.checker.units.qual.N;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.DynamicInsert;

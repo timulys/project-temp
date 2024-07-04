@@ -129,7 +129,6 @@ public class IssueController {
 			@SortDefault.SortDefaults({
 					@SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable) throws Exception {
 		log.info("ISSUE, GET OPENED, PARAM: {}", condition);
-
 		Page<IssueDto> page = issueService.searchOpen(condition, pageable);
 		return response(page, HttpStatus.OK);
 	}

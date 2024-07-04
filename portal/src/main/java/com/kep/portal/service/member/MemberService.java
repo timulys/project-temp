@@ -1,42 +1,15 @@
 package com.kep.portal.service.member;
 
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import javax.annotation.Resource;
-import javax.transaction.Transactional;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
-
-import com.kep.portal.config.property.CoreProperty;
-import com.kep.portal.config.property.SystemMessageProperty;
-import com.kep.portal.model.entity.branch.BranchTeam;
-import com.kep.portal.repository.privilege.RoleRepository;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
-import org.thymeleaf.util.StringUtils;
-
 import com.kep.core.model.dto.env.CounselInflowEnvDto;
 import com.kep.core.model.dto.member.MemberDto;
 import com.kep.core.model.dto.work.WorkType;
+import com.kep.portal.config.property.CoreProperty;
+import com.kep.portal.config.property.SystemMessageProperty;
 import com.kep.portal.model.dto.member.MemberAssignDto;
 import com.kep.portal.model.dto.member.MemberPassDto;
 import com.kep.portal.model.dto.member.MemberSearchCondition;
 import com.kep.portal.model.entity.branch.Branch;
+import com.kep.portal.model.entity.branch.BranchTeam;
 import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.model.entity.member.MemberMapper;
 import com.kep.portal.model.entity.member.MemberRole;
@@ -54,6 +27,7 @@ import com.kep.portal.repository.branch.BranchRepository;
 import com.kep.portal.repository.branch.BranchTeamRepository;
 import com.kep.portal.repository.member.MemberRepository;
 import com.kep.portal.repository.member.MemberRoleRepository;
+import com.kep.portal.repository.privilege.RoleRepository;
 import com.kep.portal.repository.team.TeamMemberRepository;
 import com.kep.portal.repository.team.TeamRepository;
 import com.kep.portal.repository.work.BranchOffDutyHoursRepository;
@@ -66,8 +40,28 @@ import com.kep.portal.service.team.TeamService;
 import com.kep.portal.service.work.OfficeHoursService;
 import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.SecurityUtils;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
+import org.thymeleaf.util.StringUtils;
+
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -266,12 +260,12 @@ public class MemberService {
 		// 회원 첫 인사말
 		// TODO: 첫 인사말 안넘어오는 경우, 삭제 필요 (GNB > 내 정보 수정)
 		// TODO: 그 외 첫 인사말이 화면에 아에 없는 경우 (계정 관리 등) 예외 필요 (URL 분리 필요)
-		if (dto.getUsedMessage() != null && dto.getUsedMessage() == true) {
-			member.setUsedMessage(dto.getUsedMessage());
-			member.setFirstMessage(dto.getFirstMessage());
-		} else {
+		if (dto.getUsedMessage() == null && dto.getUsedMessage() != true) {
 			member.setUsedMessage(false);
 			member.setFirstMessage(null);
+		} else {
+			member.setUsedMessage(dto.getUsedMessage());
+			member.setFirstMessage(dto.getFirstMessage());
 		}
 		member = memberRepository.save(member);
 

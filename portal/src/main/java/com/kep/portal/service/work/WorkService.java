@@ -214,17 +214,16 @@ public class WorkService {
      * @return
      */
     public boolean offDutyHours(Branch branch){
-
         boolean isBranchOffDutyHours = true;
-        if(branch.getOffDutyHours()){
+        if(branch.getOffDutyHours()) { // branch에 근무시간 예외가 설정되어 있을 경우 아래 로직을 실행
             LocalDate localDate = LocalDate.now();
             Map<String, ZonedDateTime> today = ZonedDateTimeUtil.getTodayDateTime(localDate);
             ZonedDateTime now = ZonedDateTime.now();
             List<OffDutyHours> branchOffDutyHours = branchOffDutyHoursRepository.findAllByBranchIdAndStartCreatedGreaterThanEqualAndEndCreatedLessThanEqual(
                     branch.getId() ,today.get("start"), today.get("end")
             );
-
             log.info("OFF DUTY HOURS , BRANCH OFF DUTY HOURS , START :{},END:{} , NOW:{}",today.get("start"),today.get("end"),now);
+
             //근무 함
             if(branchOffDutyHours.isEmpty()){
                 return false;
@@ -244,7 +243,9 @@ public class WorkService {
                     }
                 }
             }
-
+        } else { // 근무시간 예외 없이 풀 근무
+            // 24.07.02 근무시간 예외 체크가 되어있지 않다면 무조건 true를 리턴하는 문제 확인하여 상태값 다루는 방식 변경
+            isBranchOffDutyHours = false;
         }
         return isBranchOffDutyHours;
     }

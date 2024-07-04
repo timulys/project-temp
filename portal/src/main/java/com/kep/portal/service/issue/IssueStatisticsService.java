@@ -157,68 +157,49 @@ public class IssueStatisticsService {
                     .build()));
         }
 
-
-
-        List<IssueMemberStatisticsDto> issueMemberStatistics = issueStatisticsRepository.members(from , to , branchId , teamId);
+        List<IssueMemberStatisticsDto> issueMemberStatistics = issueStatisticsRepository.members(from, to, branchId, teamId);
         List<IssueMemberStatisticsDto> memberStatisticsDtos = new ArrayList<>();
 
         boolean isMemberAssign = branch.getAssign().equals(WorkType.Cases.member);
         boolean isWork = true;
 
         if(!isMemberAssign){
-
             //근무 시간 예외 처리
             isWork = !workService.offDutyHours(branch);
-
             //근무 (브랜치 근무시간 체크)
-            if(isWork){
-                BranchOfficeHours branchOfficeHours = branchOfficeHoursRepository
-                        .findByBranchId(branchId);
-
+            if(isWork) {
+                BranchOfficeHours branchOfficeHours = branchOfficeHoursRepository.findByBranchId(branchId);
                 if(branchOfficeHours.getBranchId() != null
                         && branch.getEnabled()
                         && branch.getStatus().equals(WorkType.OfficeHoursStatusType.on)){
                     isWork = officeHoursService.isOfficeHours(
-                            branchOfficeHours.getStartCounselTime()
-                            , branchOfficeHours.getEndCounselTime()
-                            , branchOfficeHours.getDayOfWeek());
-
+                            branchOfficeHours.getStartCounselTime(),
+                            branchOfficeHours.getEndCounselTime(),
+                            branchOfficeHours.getDayOfWeek());
                 }
-
                 //근무 가능 시간 , 근무 요일 체크
                 if(isWork){
                     isWork = OfficeHoursTimeUtils.isDayOfWeek(branchOfficeHours.getDayOfWeek());
                 }
             }
         }
-
-        List<Long> memberIds = members.stream()
-                .map(Member::getId).collect(Collectors.toList());
-
-        List<MemberOfficeHours> memberOfficeHours = memberOfficeHoursRepository
-                .findAllByMemberIdIn(memberIds);
+        List<Long> memberIds = members.stream().map(Member::getId).collect(Collectors.toList());
+        List<MemberOfficeHours> memberOfficeHours = memberOfficeHoursRepository.findAllByMemberIdIn(memberIds);
 
         for (Member member : members){
-
             boolean isOfficeHours = isWork;
-
             //근무시간이 회원별이면
             if(isOfficeHours && isMemberAssign && WorkType.OfficeHoursStatusType.on.equals(member.getStatus())){
-
                 MemberOfficeHours officeHours = memberOfficeHours.stream()
                         .filter(q->q.getMemberId().equals(member.getId()))
                         .findFirst().orElse(null);
-
                 if (officeHours != null) {
                     isOfficeHours = officeHoursService.isOfficeHours(
                             officeHours.getStartCounselTime()
                             , officeHours.getEndCounselTime()
                             , officeHours.getDayOfWeek());
-
                 }
-
             }
-
             WorkType.OfficeHoursStatusType status =
                     isOfficeHours ? WorkType.OfficeHoursStatusType.on : WorkType.OfficeHoursStatusType.off;
 
