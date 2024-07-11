@@ -72,7 +72,7 @@ public class BranchController {
     @Operation(summary = "브랜치 활성/비활성", description = "브랜치 활성/비활성 처리 API")
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<ApiResult<BranchDto>> activation(
-            @Parameter(in = ParameterIn.PATH, name = "id", description = "아이디")
+            @Parameter(in = ParameterIn.PATH, description = "아이디")
             @PathVariable("id") Long id,
             @RequestBody BranchDto dto) {
 
@@ -99,9 +99,10 @@ public class BranchController {
      * @return
      */
     @Tag(name = "브랜치[BranchController]", description = "브랜치 API")
-    @Operation()
+    @Operation(summary = "브랜치 아이디로 팀 목록 조회", description = "브랜치 아이디로 팀 목록 조회")
     @GetMapping(value = "/{id}/team")
     public ResponseEntity<ApiResult<List<BranchTeamDto>>> teams(
+            @Parameter(in = ParameterIn.PATH, description = "브랜치 아이디", required = true)
             @PathVariable(name = "id") @NotNull Long branchId,
             @SortDefault.SortDefaults({
                     @SortDefault(sort = {"id"}, direction = Sort.Direction.ASC)}) Pageable pageable) {
@@ -123,11 +124,15 @@ public class BranchController {
      * @return
      */
     @Tag(name = "브랜치[BranchController]", description = "브랜치 API")
+    @Operation(summary = "브랜치 팀 회원 목록 조회", description = "브랜치 팀 내 회원 목록 조회")
     @GetMapping(value = "/{id}/team/member")
     public ResponseEntity<ApiResult<List<TeamMembersDto>>> teamMemberList(
+            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable(name = "id") @NotNull Long branchId
-            , @RequestParam(name = "nickname", required = false , defaultValue = "") String nickName
-            , @RequestParam(name = "team_id", required = false , defaultValue = "0") Long teamId) {
+            , @Parameter(description = "닉네임", in = ParameterIn.QUERY)
+            @RequestParam(name = "nickname", required = false , defaultValue = "") String nickName
+            , @Parameter(description = "팀 아이디", in = ParameterIn.QUERY)
+            @RequestParam(name = "team_id", required = false , defaultValue = "0") Long teamId) {
 
         List<Team> teamList = branchService.branchHasManyTeam(branchId , teamId);
         List<TeamMembersDto> teamHasManyMembers = teamService.teamHasManyMembers(teamList , nickName);
@@ -140,7 +145,8 @@ public class BranchController {
         return new ResponseEntity<>(response , HttpStatus.OK);
     }
 
-@Tag(name = "브랜치[BranchController]", description = "브랜치 API")
+    @Tag(name = "브랜치[BranchController]", description = "브랜치 API")
+    @Operation(summary = "브랜치 목록 조회", description = "브랜치 목록 조회")
     @GetMapping
     public ResponseEntity<ApiResult<List<BranchDto>>> get(Pageable pageable) {
         Page<BranchDto> items = branchService.getAll(pageable);
@@ -156,9 +162,11 @@ public class BranchController {
 
     }
 
-@Tag(name = "브랜치[BranchController]", description = "브랜치 API")
+    @Tag(name = "브랜치[BranchController]", description = "브랜치 API")
+    @Operation(summary = "브랜치 단건 조회", description = "브랜치 단건 조회")
     @GetMapping(value = "/{id}")
     public ResponseEntity<ApiResult<BranchDto>> get(
+            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH)
             @PathVariable("id") Long id) {
 
         ApiResult<BranchDto> response = ApiResult.<BranchDto>builder()
@@ -174,8 +182,10 @@ public class BranchController {
      * 브랜치, 채널 매칭 목록
      */
     @Tag(name = "브랜치[BranchController]", description = "브랜치 API")
+    @Operation(summary = "브랜치, 채널 매칭 목록 조회", description = "브랜치, 채널 매칭 목록 조회")
     @GetMapping(value = "/with-owned-channel")
     public ResponseEntity<ApiResult<List<BranchChannelDto>>> getAllBranchChannel(
+            @Parameter(description = "사용여부", in = ParameterIn.QUERY)
             @RequestParam(value = "enabled", required = false, defaultValue = "true") Boolean enabled,
             @SortDefault(sort = {"name"}, direction = Sort.Direction.ASC) Sort sort) {
 
@@ -198,6 +208,7 @@ public class BranchController {
      */
     @PostMapping
     @Tag(name = "브랜치[BranchController]", description = "브랜치 API")
+    @Operation(summary = "브랜치 생성", description = "브랜치 생성")
     @PreAuthorize("hasAnyRole('ROLE_MASTER')")
     public ResponseEntity<ApiResult<BranchDto>> create(
             @RequestBody @Valid BranchDto branchDto) {
@@ -222,8 +233,10 @@ public class BranchController {
      */
     @PutMapping(value = "/{id}")
     @Tag(name = "브랜치[BranchController]", description = "브랜치 API")
+    @Operation(summary = "브랜치 수정", description = "브랜치 수정")
     @PreAuthorize("hasAnyRole('ROLE_MASTER')")
     public ResponseEntity<ApiResult<BranchDto>> update (
+            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH)
             @PathVariable(name = "id") Long branchId,
             @RequestBody @Valid BranchDto branchDto) {
         branchDto.setId(branchId);
@@ -243,6 +256,7 @@ public class BranchController {
      * @return
      */
     @Tag(name = "브랜치[BranchController]", description = "브랜치 API")
+    @Operation(summary = "브랜치 역할 추가 / 삭제", description = "브랜치 역할 추가 및 삭제")
     @PostMapping(value = "/role")
     public ResponseEntity<ApiResult<List<BranchDtoWithRole>>> role (
             @RequestBody @Valid List<BranchRoleDto> dtos) {
@@ -263,8 +277,10 @@ public class BranchController {
      * @return
      */
     @Tag(name = "브랜치[BranchController]", description = "브랜치 API")
+    @Operation(summary = "브랜치 근무조건 설정", description = "브랜치 근무 조건 설정")
     @PutMapping(value = "/{id}/office-housrs")
     public ResponseEntity<ApiResult<BranchDto>> officeHousrs(
+            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable(name = "id") @NotNull Long branchId
             , @RequestBody @Valid OfficeWorkDto officeWorkDto) {
 
@@ -312,8 +328,10 @@ public class BranchController {
      * @return
      */
     @Tag(name = "브랜치[BranchController]", description = "브랜치 API")
+    @Operation(summary = "브랜치 근무조건 설정", description = "브랜치 근무조건 설정")
     @GetMapping(value = "/{id}/office-housrs")
     public ResponseEntity<ApiResult<BranchDto>> officeHousrs(
+            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable(name = "id") @NotNull Long branchId) {
 
         BranchDto dto = branchService.getById(branchId);
@@ -339,8 +357,10 @@ public class BranchController {
      * @return
      */
     @Tag(name = "브랜치[BranchController]", description = "브랜치 API")
+    @Operation(summary = "상담 환경설정", description = "상담 환경설정")
     @PutMapping("/{id}/counsel")
     public ResponseEntity<ApiResult<CounselEnvDto>> counsel(
+            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable(name = "id") @NotNull Long branchId
             , @RequestBody @Valid CounselEnvDto dto) {
 
@@ -370,8 +390,10 @@ public class BranchController {
      * @return
      */
     @Tag(name = "브랜치[BranchController]", description = "브랜치 API")
+    @Operation(summary = "상담 환경설정 조회", description = "상담 환경설정 조회")
     @GetMapping("/{id}/counsel")
     public ResponseEntity<ApiResult<CounselEnvDto>> counselGet(
+            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "id") @NotNull Long branchId){
 
         CounselEnvDto counselEnvDto = counselEnvService.get(branchId);
@@ -392,8 +414,10 @@ public class BranchController {
      * @return
      */
     @Tag(name = "브랜치[BranchController]", description = "브랜치 API")
+    @Operation(summary = "상담 유입경로 생성", description = "상담 유입경로 생성")
     @PostMapping("/{id}/counsel/inflow")
     public ResponseEntity<ApiResult<CounselInflowEnvDto>> inflowCreate(
+            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable(name = "id") @NotNull Long branchId
             , @RequestBody @Valid CounselInflowEnvDto dto) {
 
@@ -436,8 +460,10 @@ public class BranchController {
      * @return
      */
     @Tag(name = "브랜치[BranchController]", description = "브랜치 API")
+    @Operation(summary = "상담 유입경로 수정", description = "상담 유입경로 수정")
     @PutMapping("/{id}/counsel/inflow")
     public ResponseEntity<ApiResult<CounselInflowEnvDto>> inflowUpdate(
+            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable(name = "id") @NotNull Long branchId
             , @RequestBody CounselInflowEnvDto dto) {
 
@@ -468,10 +494,13 @@ public class BranchController {
      * @return
      */
     @Tag(name = "브랜치[BranchController]", description = "브랜치 API")
+    @Operation(summary = "상담 유입경로 삭제", description = "상담 유입경로 삭제")
     @DeleteMapping("/{id}/counsel/inflow")
     public ResponseEntity<ApiResult<String>> inflowRemove(
+            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable(name = "id") @NotNull Long branchId
-            , @RequestParam(name = "id") @NotNull Long id) {
+            ,@Parameter(description = "상담 유입경로 아이디", in = ParameterIn.QUERY, required = true)
+            @RequestParam(name = "id") @NotNull Long id) {
 
         boolean result = counselEnvService.remove(branchId , id);
 
@@ -495,8 +524,10 @@ public class BranchController {
      * @return
      */
     @Tag(name = "브랜치[BranchController]", description = "브랜치 API")
+    @Operation(summary = "", description = "")
     @GetMapping("/{id}/counsel/inflow")
     public ResponseEntity<ApiResult<List<CounselInflowEnvDto>>> inflows(
+            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable(name = "id") @NotNull Long branchId
     ) {
         List<CounselInflowEnvDto> counselInflowEnvs = counselEnvService.findAllAndEnabled(branchId);

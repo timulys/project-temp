@@ -11,48 +11,60 @@ import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
-@Schema(name = "BranchDto", description = "BranchDto")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class BranchDto {
 
+	@Schema(description = "브랜치 아이디", requiredMode = Schema.RequiredMode.REQUIRED)
 	@Positive
 	private Long id;
 
 //	@NotEmpty
+	@Schema(description = "브랜치명")
 	private String name;
 
+	@Schema(description = "branch : 브랜치, member : 회원")
 	private WorkType.Cases assign;
 
+	@Schema(description = "사용여부")
 	private Boolean enabled;
 
 	//본점 유무
+	@Schema(description = "본점 유무")
 	private Boolean headQuarters;
 
+	@Schema(description = "팀 목록")
 	private List<TeamDto> teams;
 
 	//최대 상담 건수
 	@PositiveOrZero
+	@Schema(description = "최대 상담 건수", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Integer maxCounsel;
 
 	//최대상담건수 설정
+	@Schema(description = "최대 상담 건수 타입 (batch : 일괄, individual : 개별)")
 	private WorkType.MaxCounselType maxCounselType;
 
 	//근무 예외 사용
+	@Schema(description = "근무 예외 여부")
 	private Boolean offDutyHours;
 
+	@Schema(description = "근무 외 상담")
 	private OfficeHoursDto officeHours;
 
+	@Schema(description = "")
 	private OffDutyHoursDto officeDutyHours;
 
 	// 상담가이드 최대 분류 깊이
+	@Schema(description = "상담가이드 최대 분류 깊이")
 	private Integer maxGuideCategoryDepth;
 
 	/**
 	 * 역할
 	 */
+	@Schema(description = "역할목록")
 	private List<RoleDto> roles;
 
 }
