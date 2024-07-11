@@ -364,6 +364,21 @@
 		    <artifactId>hibernate-core</artifactId>
 		    <version>5.6.15.Final</version>
 		</dependency>-->
+
+
+<!--		Swagger *********************** -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>1.8.0</version>
+		</dependency>
+
+		<!--RestController -> ignore @AuthenticationPrincipal -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-security</artifactId>
+			<version>1.8.0</version>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>

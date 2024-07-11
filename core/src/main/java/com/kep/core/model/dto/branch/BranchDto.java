@@ -4,12 +4,14 @@ import com.kep.core.model.dto.team.TeamDto;
 import com.kep.core.model.dto.work.OffDutyHoursDto;
 import com.kep.core.model.dto.work.OfficeHoursDto;
 import com.kep.core.model.dto.work.WorkType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
+@Schema(name = "BranchDto", description = "BranchDto")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

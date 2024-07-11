@@ -3,6 +3,7 @@ package com.kep.portal.repository.member;
 import com.kep.portal.model.dto.member.MemberScheduleDto;
 import com.kep.portal.model.entity.customer.CustomerContact;
 import com.kep.portal.model.entity.member.*;
+import com.kep.portal.model.entity.member.QMemberSchedule;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.extern.slf4j.Slf4j;
