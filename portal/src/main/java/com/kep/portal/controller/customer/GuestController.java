@@ -7,6 +7,8 @@ import com.kep.portal.model.dto.customer.GuestMemoDto;
 import com.kep.portal.service.customer.GuestMemoService;
 import com.kep.portal.service.customer.GuestService;
 import com.mysema.commons.lang.Assert;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.util.List;
 
+@Tag(name = "고객(게스트) API", description = "/api/v1/guest")
 @RestController
 @RequestMapping("/api/v1/guest")
 @Slf4j
@@ -27,6 +30,8 @@ public class GuestController {
 	@Resource
 	private GuestMemoService guestMemoService;
 
+	@Tag(name = "고객(게스트) API")
+	@Operation(summary = "게스트 목록 조회")
 	@GetMapping
 	public ResponseEntity<ApiResult<List<GuestDto>>> get(Pageable pageable) {
 
@@ -38,6 +43,8 @@ public class GuestController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	@Tag(name = "고객(게스트) API")
+	@Operation(summary = "게스트 단건 조회")
 	@GetMapping(value = "/{id}")
 	public ResponseEntity<ApiResult<GuestDto>> get(@PathVariable("id") Long guestId) {
 
@@ -61,6 +68,8 @@ public class GuestController {
 	 * @param guestId
 	 * @return
 	 */
+	@Tag(name = "고객(게스트) API")
+	@Operation(summary = "게스트 메모 조회")
 	@GetMapping(value="/memo/{guestId}")
 	public ResponseEntity<ApiResult<GuestMemoDto>> getMemo(@PathVariable("guestId") Long guestId) {
 
@@ -72,6 +81,8 @@ public class GuestController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	@Tag(name = "고객(게스트) API")
+	@Operation(summary = "게스트 메모 저장")
 	@PostMapping(value="/memo")
 	public ResponseEntity<ApiResult<GuestMemoDto>> manage(@RequestBody GuestMemoDto dto) {
 

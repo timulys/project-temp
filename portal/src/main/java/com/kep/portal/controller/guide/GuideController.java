@@ -10,6 +10,9 @@ import com.kep.portal.model.dto.guide.GuideSearchDto;
 import com.kep.portal.model.dto.guide.GuideSearchResponseDto;
 import com.kep.portal.service.guide.GuideLogService;
 import com.kep.portal.service.guide.GuideService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.springframework.data.domain.Page;
@@ -29,6 +32,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "가이드 API", description = "/api/v1/guide")
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/guide")
@@ -50,7 +54,10 @@ public class GuideController {
      */
     @GetMapping
     @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
+    @Tag(name = "가이드 API")
+    @Operation(summary = "가이드 목록 조회", description = "가이드 목록 조회(SB-CP-T03)")
     public ResponseEntity<ApiResult<List<GuideDto>>> get(
+            @Parameter(description = "카테고리 아이디")
             @RequestParam(value = "category_id", required = false) Long categoryId,
             @SortDefault.SortDefaults({
                     @SortDefault(sort = {"name"}, direction = Sort.Direction.ASC)}) Pageable pageable) {
@@ -91,7 +98,10 @@ public class GuideController {
      */
     @GetMapping("/m")
     @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
+    @Tag(name = "가이드 API")
+    @Operation(summary = "가이드 검색", description = "가이드 검색(SB-FM-010)")
     public ResponseEntity<ApiResult<List<GuideDto>>> get(
+            @Parameter(description = "카테고리 아이디")
             @RequestParam(value = "category_id") Long categoryId
     ) {
         try {
@@ -126,8 +136,11 @@ public class GuideController {
      */
     @PostMapping
     @PreAuthorize("hasAnyAuthority('WRITE_GUIDE')")
+    @Tag(name = "가이드 API")
+    @Operation(summary = "상담가이드 생성, 수정", description = "상담가이드 생성, 수정(SB-CA-006)")
     public ResponseEntity<ApiResult<GuideDto>> create(
-            @Valid @RequestBody GuidePayload guidePayload,
+            @Valid @RequestBody GuidePayload guidePayload
+            , @Parameter(description = "사용여부")
             @RequestParam(value = "enabled", required = false, defaultValue = "true") Boolean enabled
     ) throws Exception {
 
@@ -160,6 +173,8 @@ public class GuideController {
      */
     @GetMapping("/search")
     @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
+    @Tag(name = "가이드 API")
+    @Operation(summary = "가이드 검색", description = "가이드 검색 (SB-CP-T07)")
     public ResponseEntity<ApiResult<GuideSearchResponseDto>> search(
             @QueryParam @Valid GuideSearchDto searchDto
     ) throws Exception {
@@ -192,6 +207,8 @@ public class GuideController {
      */
     @GetMapping("/manage-search")
     @PreAuthorize("hasAnyAuthority('WRITE_GUIDE')")
+    @Tag(name = "가이드 API")
+    @Operation(summary = "가이드 검색", description = "가이드 검색(SB-CA-006)")
     public ResponseEntity<ApiResult<List<GuideDto>>> manageSearch(
             @QueryParam @Valid GuideSearchDto searchDto,
             @SortDefault.SortDefaults({
@@ -222,6 +239,8 @@ public class GuideController {
 
     @GetMapping("/search/more")
     @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
+    @Tag(name = "가이드 API")
+    @Operation(summary = "가이드 목록 검색")
     public ResponseEntity<ApiResult<List<GuideDto>>> moreSearch(
             @QueryParam @Valid GuideSearchDto searchDto,
             @SortDefault.SortDefaults({
@@ -278,6 +297,8 @@ public class GuideController {
      * @return
      */
     @PostMapping("/log")
+    @Tag(name = "가이드 API")
+    @Operation(summary = "가이드 로그 저장")
     public ResponseEntity<ApiResult<GuideLogDto>> saveLog(
             @QueryParam GuideLogDto dto
     ) {
@@ -309,6 +330,8 @@ public class GuideController {
      * @return
      */
     @GetMapping("/check-require")
+    @Tag(name = "가이드 API")
+    @Operation(summary = "가이드 필수요소 체크", description = "가이드 필수블록 전송했는지 확인")
     public ResponseEntity<ApiResult> checkRequire(
             @QueryParam GuideLogDto guideLogDto
     ) {
@@ -335,6 +358,8 @@ public class GuideController {
 
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('WRITE_GUIDE')")
+    @Tag(name = "가이드 API")
+    @Operation(summary = "가이드 삭제")
     public ResponseEntity<ApiResult<Map<String, String>>> delete(
             @RequestParam List<Long> ids
     ) {
@@ -360,8 +385,12 @@ public class GuideController {
 
     @PatchMapping("/branch")
     @PreAuthorize("hasRole('ADMIN')")
+    @Tag(name = "가이드 API")
+    @Operation(summary = "가이드 브랜치 수정")
     public ResponseEntity<ApiResult> patchBranch(
+            @Parameter(description = "가이드 아이디")
             @RequestParam("guide_id") Long guideId,
+            @Parameter(description = "브랜치 아이디")
             @RequestParam("branch_id") Long branchId
     ) {
         try {
@@ -384,8 +413,12 @@ public class GuideController {
 
     @PatchMapping("/team")
     @PreAuthorize("hasRole('ADMIN')")
+    @Tag(name = "가이드 API")
+    @Operation(summary = "가이드 팀 수정")
     public ResponseEntity<ApiResult> patchTeam(
+            @Parameter(description = "가이드 아이디")
             @RequestParam("guide_id") Long guideId,
+            @Parameter(description = "팀 아이디")
             @RequestParam("team_id") Long teamId
     ) {
 
@@ -408,6 +441,8 @@ public class GuideController {
     }
 
     @PostMapping("/upload")
+    @Tag(name = "가이드 API")
+    @Operation(summary = "엑셀 업로드")
     public ResponseEntity<ApiResult<String>> excelUpload(
             @RequestParam("file") MultipartFile file
     ) throws IOException, InvalidFormatException {
@@ -421,6 +456,8 @@ public class GuideController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @Tag(name = "가이드 API")
+    @Operation(summary = "엑셀 다운로드")
     @GetMapping("/download")
     public void download(HttpServletResponse res){
         guideService.download(res);
