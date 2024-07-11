@@ -13,6 +13,10 @@ import com.kep.portal.model.entity.channel.Channel;
 import com.kep.portal.service.channel.ChannelEnvService;
 import com.kep.portal.service.channel.ChannelService;
 import com.kep.portal.service.sm.SystemMessageService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +31,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
+@Tag(name = "채널 API", description = "/api/v1/channel")
 @RestController
 @RequestMapping("/api/v1/channel")
 @Slf4j
@@ -37,6 +42,8 @@ public class ChannelController {
 	@Resource
 	private ChannelEnvService channelEnvService;
 
+	@Tag(name = "채널 API")
+	@Operation(summary = "채널 목록 조회", description = "채널 목록 조회")
 	@GetMapping
 	public ResponseEntity<ApiResult<List<ChannelDto>>> get(
 			Pageable pageable) {
@@ -54,9 +61,12 @@ public class ChannelController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	@Tag(name = "채널 API")
+	@Operation(summary = "플랫폼 별 채널 목록 조회", description = "플랫폼 별 채널 목록 조회")
 	@GetMapping("/by-platform")
 	@PreAuthorize("hasAnyAuthority('WRITE_KAKAO_ALERT_TALK','WRITE_KAKAO_FRIEND_TALK','WRITE_PLATFORM_TEMPLATE')")
 	public ResponseEntity<ApiResult<List<ChannelDto>>> getPlatform(
+			@Parameter(description = "플랫폼 유형", in = ParameterIn.QUERY)
 			@RequestParam(name = "platform") PlatformType platform,
 			Pageable pageable) {
 
@@ -75,8 +85,13 @@ public class ChannelController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	@Tag(name = "채널 API")
+	@Operation(summary = "채널 정보 조회", description = "채널 정보 조회")
 	@GetMapping(value = "/{id}")
-	public ResponseEntity<ApiResult<ChannelDto>> get(@PathVariable("id") Long id) throws Exception {
+	public ResponseEntity<ApiResult<ChannelDto>> get(
+			@Parameter(description = "채널아이디", in = ParameterIn.PATH)
+			@PathVariable("id") Long id
+	) throws Exception {
 
 		log.info("CHANNEL, GET, ID: {}", id);
 
@@ -96,6 +111,8 @@ public class ChannelController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	@Tag(name = "채널 API")
+	@Operation(summary = "채널 생성", description = "채널 생성")
 	@PostMapping
 	@PreAuthorize("hasAnyRole('ROLE_MASTER')")
 	public ResponseEntity<ApiResult<ChannelDto>> post(@RequestBody ChannelDto dto) {
@@ -111,9 +128,12 @@ public class ChannelController {
 		return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}
 
+	@Tag(name = "채널 API")
+	@Operation(summary = "채널 수정", description = "채널 수정")
 	@PutMapping(value = "/{id}")
 	@PreAuthorize("hasAnyRole('ROLE_MASTER')")
 	public ResponseEntity<ApiResult<ChannelDto>> put(
+			@Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
 			@PathVariable("id") Long id,
 			@RequestBody ChannelDto dto) {
 
@@ -131,9 +151,12 @@ public class ChannelController {
 	/**
 	 * 시스템 설정 > 상담 배분 설정 > 기본 정보, SB-SA-006, SA009
 	 */
+	@Tag(name = "채널 API")
+	@Operation(summary = "채널 상담 배분 설정 조회", description = "채널 상담 배분 설정 조회(시스템 설정 > 상담 배분 설정 > 기본 정보, SB-SA-006, SA009)")
 	@GetMapping(value = "/{id}/assign")
 	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN')")
 	public ResponseEntity<ApiResult<ChannelAssignDto>> getAssign(
+			@Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
 			@PathVariable(name = "id") @NotNull Long channelId) {
 
 		log.info("CHANNEL, ASSIGN, GET, ID: {}", channelId);
@@ -155,9 +178,12 @@ public class ChannelController {
 	/**
 	 * 시스템 설정 > 상담 배분 설정 > 기본 정보, SB-SA-006, SA009
 	 */
+	@Tag(name = "채널 API")
+	@Operation(summary = "채널 상담 배분 설정 수정", description = "채널 상담 배분 설정 수정(시스템 설정 > 상담 배분 설정 > 기본 정보, SB-SA-006, SA009)")
 	@PutMapping(value = "/{id}/assign")
 	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN')")
 	public ResponseEntity<ApiResult<ChannelAssignDto>> putAssign(
+			@Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
 			@PathVariable(name = "id") @NotNull Long channelId,
 			@RequestBody @Valid ChannelAssignDto channelAssignDto) {
 
@@ -176,6 +202,8 @@ public class ChannelController {
 	 * @param dtos
 	 * @return
 	 */
+	@Tag(name = "채널 API")
+	@Operation(summary = "추가 브랜치 설정", description = "추가 브랜치 설정")
 	@PostMapping(value = "/branch")
 	@PreAuthorize("hasAnyRole('ROLE_MASTER')")
 	public ResponseEntity<ApiResult<List<BranchChannelDto>>> branch(
@@ -192,6 +220,8 @@ public class ChannelController {
 	/**
 	 * 브랜치-채널 매칭
 	 */
+	@Tag(name = "채널 API")
+	@Operation(summary = "브랜치-채널 매칭 채널 관리 목록 조회")
 	@GetMapping(value = "/branch")
 	public ResponseEntity<ApiResult<List<BranchChannelDto>>> branch() {
 		ApiResult<List<BranchChannelDto>> response = ApiResult.<List<BranchChannelDto>>builder()
@@ -201,6 +231,8 @@ public class ChannelController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	@Tag(name = "채널 API")
+	@Operation(summary = "채널 관리 목록 전체 조회")
 	@GetMapping(value = "/branch/all")
 	public ResponseEntity<ApiResult<List<BranchChannelDto>>> allChannel() {
 		ApiResult<List<BranchChannelDto>> response = ApiResult.<List<BranchChannelDto>>builder()
@@ -213,9 +245,12 @@ public class ChannelController {
 	/**
 	 * 자동메시지 생성 IssuePayload 방식
 	 */
+	@Tag(name = "채널 API")
+	@Operation(summary = "자동 메시지 생성", description = "IssuePayload 방식")
 	@PutMapping(value = "/{id}/message")
 	@PreAuthorize("hasAnyAuthority('WRITE_AUTO_MESSAGE')")
 	public ResponseEntity<ApiResult<ChannelEnvDto>> message(
+			@Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
 			@PathVariable(name = "id") @NotNull Long channelId ,
 			@RequestBody @Valid ChannelEnvDto dto) {
 
@@ -250,9 +285,12 @@ public class ChannelController {
 	 * @param channelId
 	 * @return
 	 */
+	@Tag(name = "채널 API")
+	@Operation(summary = "자동 메시지 조회")
 	@GetMapping(value = "/{id}/message")
 	@PreAuthorize("hasAnyAuthority('WRITE_AUTO_MESSAGE') or hasAnyRole('ROLE_MASTER')")
 	public ResponseEntity<ApiResult<ChannelEnvDto>> messageGet(
+			@Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
 			@PathVariable(name = "id") @NotNull Long channelId) {
 
 		Channel channel = channelService.findById(channelId);
@@ -276,9 +314,12 @@ public class ChannelController {
 	 * @param dto
 	 * @return
 	 */
+	@Tag(name = "채널 API")
+	@Operation(summary = "상담배분 분류 최대단계 설정")
 	@PatchMapping(value = "/{id}/category/depth")
 	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN')")
 	public ResponseEntity<ApiResult<Integer>> categoryDepth(
+			@Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
 			@PathVariable(name = "id") @NotNull Long channelId,
 			@RequestBody ChannelEnvDto dto
 			) {
@@ -303,9 +344,12 @@ public class ChannelController {
 	 * @param channelId
 	 * @return
 	 */
+	@Tag(name = "채널 API")
+	@Operation(summary = "상담배분 분류 최대단계 조회")
 	@GetMapping(value = "/{id}/category/depth")
 //	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN','READ_ISSUE')")
 	public ResponseEntity<ApiResult<Integer>> getCategoryDepth(
+			@Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
 			@PathVariable(name = "id") @NotNull Long channelId
 	) {
 
@@ -331,8 +375,11 @@ public class ChannelController {
 	 * @param branchId
 	 * @return
 	 */
+	@Tag(name = "채널 API")
+	@Operation(summary = "상담배분 채널 목록", description = "상담배분 채널 목록")
 	@GetMapping(value = "/branch/{id}")
 	public ResponseEntity<ApiResult<List<BranchChannelDto>>> items(
+			@Parameter(description = "브랜치 아이디", in = ParameterIn.PATH, required = true)
 			@PathVariable(name = "id") @NotNull Long branchId) {
 		ApiResult<List<BranchChannelDto>> response = ApiResult.<List<BranchChannelDto>>builder()
 				.code(ApiResultCode.succeed)
