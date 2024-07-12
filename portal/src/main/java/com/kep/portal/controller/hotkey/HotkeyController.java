@@ -9,6 +9,10 @@ package com.kep.portal.controller.hotkey;
 import java.util.List;
 
 import com.mysema.commons.lang.Assert;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +32,7 @@ import com.kep.portal.service.hotkey.HotkeyService;
 
 import lombok.extern.slf4j.Slf4j;
 
+@Tag(name = "핫키 (자주 사용하는 문구) API", description = "/api/v1/hotkey")
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/hotkey")
@@ -41,8 +46,13 @@ public class HotkeyController {
      * @param member
      * @return
      */
+    @Tag(name = "HotKey API")
+    @Operation(summary = "자주 사용하는 문구 목록 조회")
     @GetMapping("/list/{id}")
-    public ResponseEntity<ApiResult<List<HotkeyDto>>> get(@PathVariable Long id){
+    public ResponseEntity<ApiResult<List<HotkeyDto>>> get(
+            @Parameter(description = "사용자 아이디", in = ParameterIn.PATH, required = true)
+            @PathVariable Long id
+    ){
             
     	log.info("MEMBER, GET, MEMBER: {}",id);
     	List<HotkeyDto> items = hotkeyservice.getListHotkeyByMember(id);
@@ -51,11 +61,6 @@ public class HotkeyController {
                 .code(ApiResultCode.succeed)
                 .payload(items)
                 .build(), HttpStatus.OK);
-
-
-        
-
-        
     }
     
     /**
@@ -63,8 +68,14 @@ public class HotkeyController {
      * @param hotkeyDto
      * @return
      */
+    @Tag(name = "HotKey API")
+    @Operation(summary = "자주 사용하는 문구 저장/수정")
     @PostMapping("/manage/{memberId}")
-    public ResponseEntity<ApiResult<List<HotkeyDto>>> add(@PathVariable Long memberId ,@RequestBody HotkeyDto hotkeyDto){
+    public ResponseEntity<ApiResult<List<HotkeyDto>>> add(
+            @Parameter(description = "사용자 아이디", in = ParameterIn.PATH, required = true)
+            @PathVariable Long memberId
+            ,@RequestBody HotkeyDto hotkeyDto
+    ){
         log.info("MEMBER, POST, MEMBER : {}",memberId);
 
         Assert.notNull(hotkeyDto,"Dto is null");

@@ -9,6 +9,8 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
@@ -59,6 +61,7 @@ import lombok.extern.slf4j.Slf4j;
  * <li>카카오 상담톡, 채널 (SenderKey), 유저 (UserKey)
  * <li>솔루션 웹, 채널, 유저 (쿠키)
  */
+@Tag(name = "플랫폼 전달 고객 이벤트 API", description = "/api/v1/event-by-platform")
 @RestController
 @RequestMapping("/api/v1/event-by-platform")
 @Slf4j
@@ -96,6 +99,8 @@ public class EventByPlatformController {
     /**
      * 상담 요청 이벤트
      */
+    @Tag(name = "플랫폼 전달 고객 이벤트 API")
+    @Operation(summary = "상담 요청 이벤트")
     @PostMapping(value = "/open")
     public ResponseEntity<ApiResult<IssueDto>> open(
             @RequestHeader(value = "X-Platform-Type") PlatformType platformType
@@ -127,6 +132,8 @@ public class EventByPlatformController {
     /**
      * 메세지 이벤트
      */
+    @Tag(name = "플랫폼 전달 고객 이벤트 API")
+    @Operation(summary = "메시지")
     @PostMapping(value = "/message")
     public ResponseEntity<ApiResult<IssueDto>> message(
             @RequestHeader(value = "X-Platform-Type") PlatformType platformType,
@@ -162,6 +169,8 @@ public class EventByPlatformController {
     /**
      * 메세지 콜백 이벤트
      */
+    @Tag(name = "플랫폼 전달 고객 이벤트 API")
+    @Operation(summary = "메시지 콜백")
     @PutMapping(value = "/message/callback")
     public ResponseEntity<ApiResult<String>> messageCallback(
             @RequestHeader(value = "X-Event-Key") Long issueLogId,
@@ -180,6 +189,8 @@ public class EventByPlatformController {
     /**
      * 상담 종료 이벤트
      */
+    @Tag(name = "플랫폼 전달 고객 이벤트 API")
+    @Operation(summary = "상담 종료")
     @PostMapping(value = "/close")
     public ResponseEntity<ApiResult<IssueDto>> close(
             @RequestHeader(value = "X-Platform-Type") PlatformType platformType,
@@ -200,6 +211,9 @@ public class EventByPlatformController {
     }
 
     /**
+     *
+     * FIXME :: bnk 고객 번호 20240712 volka
+     *
      * 고객 인증 완료
      * @param authorizeType 인증 타입 정보
      * @param trackKey 트래킹 키
@@ -207,6 +221,8 @@ public class EventByPlatformController {
      * @return ResponseEntity 인증 완료 응답
      * @throws Exception 예외 발생 시 처리
      */
+    @Tag(name = "플랫폼 전달 고객 이벤트 API")
+    @Operation(summary = "고객 인증 완료")
     @PostMapping(value = "/authorized")
     public ResponseEntity<ApiResult<CustomerDto>> authorized(
             @RequestHeader(value = "X-Authorize-Type") AuthorizeType authorizeType,

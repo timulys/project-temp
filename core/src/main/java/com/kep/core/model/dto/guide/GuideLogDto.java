@@ -28,7 +28,7 @@ public class GuideLogDto {
     private Long guideId;
 
     @NotNull
-    @Schema(description = "메시지 아이디")
+    @Schema(description = "이슈 아이디")
     private Long issueId;
 
     @NotNull

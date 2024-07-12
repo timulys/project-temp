@@ -37,6 +37,9 @@ import java.util.Map;
 
 /**
  * events by manager
+ *
+ * FIXME :: Map 으로 options를 받으나 컨트롤러 레이어에서 로그 찍는 용도 외엔 사용되지 않음. 추가 요건이 있는건지 확인 필요 20240712 volka
+ *
  */
 @Service
 @Transactional

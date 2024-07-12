@@ -6,6 +6,10 @@ import com.kep.core.model.dto.issue.IssueCloseType;
 import com.kep.core.model.dto.issue.IssueDto;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
 import com.kep.portal.service.issue.event.EventByOperatorService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +31,7 @@ import java.util.Map;
  * <li>파일 업로드
  * </ul>
  */
+@Tag(name = "이벤트 API [오퍼레이터]", description = "/api/v1/issue/event-by-operator")
 @RestController
 @RequestMapping(("/api/v1/issue/{issueId}/event-by-operator"))
 @Slf4j
@@ -38,9 +43,12 @@ public class EventByOperatorController {
     /**
      * 메세지
      */
+    @Tag(name = "이벤트 API [오퍼레이터]")
+    @Operation(summary = "메시지")
     @PostMapping(value = "/message")
     @PreAuthorize("hasAnyAuthority('WRITE_ISSUE')")
     public ResponseEntity<ApiResult<IssueDto>> message(
+            @Parameter(description = "이슈 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable("issueId") Long issueId,
             @RequestBody IssuePayload issuePayload) throws Exception {
 
@@ -56,6 +64,8 @@ public class EventByOperatorController {
     /**
      * 상담 종료
      */
+    @Tag(name = "이벤트 API [오퍼레이터]")
+    @Operation(summary = "상담 종료")
     @PostMapping(value = "/close")
     @PreAuthorize("hasAnyAuthority('WRITE_ISSUE')")
     public ResponseEntity<ApiResult<IssueDto>> close(
@@ -77,6 +87,8 @@ public class EventByOperatorController {
      * 파일 업로드 (파일 업로드 후 URL 리턴)
      * TODO: 플랫폼 업로드, 솔루션 업로드 분리
      */
+    @Tag(name = "이벤트 API [오퍼레이터]")
+    @Operation(summary = "파일 업로드 후 URL 리턴")
     @PostMapping(value = "/upload")
     @PreAuthorize("hasAnyAuthority('WRITE_ISSUE')")
     public ResponseEntity<ApiResult<String>> upload(
@@ -107,6 +119,8 @@ public class EventByOperatorController {
      *  @생성일자      / 만든사람		 	/ 수정내용
      * 	 2023.05.09 / philip.lee   / 
      */
+    @Tag(name = "이벤트 API [오퍼레이터]")
+    @Operation(summary = "상담 강제종료")
     @PostMapping(value = "/force/close")
     //@PreAuthorize("hasAnyAuthority('WRITE_ISSUE')")
     public ResponseEntity<ApiResult<IssueDto>> forcedClose(

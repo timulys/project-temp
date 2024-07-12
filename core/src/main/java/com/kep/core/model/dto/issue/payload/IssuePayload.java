@@ -2,6 +2,7 @@ package com.kep.core.model.dto.issue.payload;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import org.springframework.util.ObjectUtils;
 
@@ -28,12 +29,16 @@ public class IssuePayload {
 	@NotEmpty
 	@Size(max = 10)
 	@Builder.Default
+	@Schema(description = "버전")
 	private String version = CURRENT_VERSION;
 
+
 	@NotEmpty
+	@Schema(description = "")
 	private List<Chapter> chapters;
 
 	// 플랫폼 고유 데이터
+	@Schema(description = "")
 	private Map<String, Object> meta;
 
 	public enum SectionType {
@@ -85,6 +90,7 @@ public class IssuePayload {
 	/**
 	 * 말풍선 안에서 실제 컨텐츠를 감싸는 컨테이너
 	 */
+	@Schema(description = "말풍선 내 실제 컨텐츠 컨테이너")
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
@@ -92,26 +98,35 @@ public class IssuePayload {
 	public static class Section {
 
 		@NotNull
+		@Schema(description = "섹션 타입 [title, text, file, action, command, platform_answer]", requiredMode = Schema.RequiredMode.REQUIRED)
 		private SectionType type;
+		@Schema(description = "")
 		private String data;
+		@Schema(description = "")
 		private String display;
+		@Schema(description = "")
 		private String extra;
+		@Schema(description = "")
 		private Map<String, Object> params;
+		@Schema(description = "액션 목록")
 		private List<Action> actions;
 
 		/**
 		 * 이름 (파일 이름 등)
 		 */
+		@Schema(description = "이름 (파일명 등)")
 		private String name;
 		/**
 		 * 크기 (파일 크키 등)
 		 */
+		@Schema(description = "크기 (파일 크기 등)")
 		private Long size;
 	}
 
 	/**
 	 * 버튼 (이벤트가 가능한 엘리먼트)
 	 */
+	@Schema(description = "버튼 (이벤트가 가능한 엘리먼트)")
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
@@ -119,14 +134,21 @@ public class IssuePayload {
 	public static class Action {
 
 		@NotNull
+		@Schema(description = "액션 타입[message, link, hotkey, submit]", requiredMode = Schema.RequiredMode.REQUIRED)
 		private ActionType type;
 		@NotEmpty
+		@Schema(description = "버튼명", requiredMode = Schema.RequiredMode.REQUIRED)
 		private String name;
 		@NotEmpty
+		@Schema(description = "", requiredMode = Schema.RequiredMode.REQUIRED)
 		private String data;
+		@Schema(description = "기기 유형 [all, web, pc, mobile, app, android, ios]")
 		private DeviceType deviceType;
+		@Schema(description = "")
 		private String extra;
+		@Schema(description = "")
 		private Map<String, Object> params;
+		@Schema(description = "")
 		private String triggerData;
 	}
 
