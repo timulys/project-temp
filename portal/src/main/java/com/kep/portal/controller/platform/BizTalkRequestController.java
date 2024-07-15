@@ -10,6 +10,8 @@ import com.kep.portal.model.dto.platform.BizTalkRequestCondition;
 import com.kep.portal.service.platform.BizTalkRequestService;
 import com.kep.portal.util.SecurityUtils;
 import com.mchange.rmi.NotAuthorizedException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +26,7 @@ import javax.annotation.Resource;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+@Tag(name = "비즈톡 요청 API", description = "/api/v1/platform/biztalk-request")
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/platform/biztalk-request")
@@ -34,6 +37,8 @@ public class BizTalkRequestController {
     /**
      * 상담관리에서 매니저가 요청목록 조회
      */
+    @Tag(name = "비즈톡 요청 API")
+    @Operation(summary = "상담관리 > 매니저 요청 목록 조회")
     @GetMapping
     @PreAuthorize("hasAnyAuthority('WRITE_TALK')")
     public ResponseEntity<ApiResult<List<BizTalkRequestDto>>> get(
@@ -57,6 +62,8 @@ public class BizTalkRequestController {
     /**
      * 포탈에서 상담원이 알림톡 전송
      */
+    @Tag(name = "비즈톡 요청 API")
+    @Operation(summary = "포탈에서 상담원이 알림톡 전송")
     @PostMapping("/alert")
     @PreAuthorize("hasAnyAuthority('WRITE_KAKAO_ALERT_TALK')")
     public ResponseEntity<ApiResult<String>> postAlert(
@@ -81,6 +88,8 @@ public class BizTalkRequestController {
     /**
      * 포탈에서 상담원이 친구톡 전송
      */
+    @Tag(name = "비즈톡 요청 API")
+    @Operation(summary = "포탈에서 상담원이 친구톡 전송")
     @PostMapping("friend")
     @PreAuthorize("hasAnyAuthority('WRITE_KAKAO_FRIEND_TALK')")
     public ResponseEntity<ApiResult<String>> postFriend(
@@ -105,6 +114,8 @@ public class BizTalkRequestController {
     /**
      * 상담관리에서 톡 요청 승인
      */
+    @Tag(name = "비즈톡 요청 API")
+    @Operation(summary = "상담관리에서 톡 요청 승인")
     @PutMapping
     @PreAuthorize("hasAnyAuthority('WRITE_TALK')")
     public ResponseEntity<ApiResult<KakaoBizTalkSendResponse>> put(

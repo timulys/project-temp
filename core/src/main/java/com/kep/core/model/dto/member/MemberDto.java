@@ -48,7 +48,10 @@ public class MemberDto {
 	private String nickname;
 	
 	//BNK 상담직원번호 추가
-	@Schema(description = "")
+	/**
+	 * FIXME :: BNK 연동 20240715 volka
+	 */
+	@Schema(description = "BNK 상담 직원 번호")
 	private String vndrCustNo;
 
 //	@JsonIgnore
@@ -93,20 +96,20 @@ public class MemberDto {
 	private OfficeHoursDto officeHours;
 
 
-	@Schema(description = "")
+	@Schema(description = "팀 아이디 목록")
 	private List<Long> teamIds;
 
 	@PositiveOrZero
-	@Schema(description = "")
+	@Schema(description = "최대 상담 개수")
 	private Integer maxCounsel;
 
-	@Schema(description = "")
+	@Schema(description = "근무 상태 (on :근무, off : 오프, rest : 휴식, meal : 식사시간)")
 	private WorkType.OfficeHoursStatusType status;
 
-	@Schema(description = "")
+	@Schema(description = "브랜치 정보")
 	private BranchDto branch;
 
-	@Schema(description = "")
+	@Schema(description = "역할 목록")
 	private List<RoleDto> roles;
 
 	@Schema(description = "")
@@ -114,7 +117,7 @@ public class MemberDto {
 
 
 	//상담분야
-	@Schema(description = "")
+	@Schema(description = "상담 카테고리")
 	private String counselCategory;
 
 
@@ -122,7 +125,7 @@ public class MemberDto {
 	/**
 	 * 상담원 개별 설정
 	 */
-	@Schema(description = "")
+	@Schema(description = "상담원 개별 설정")
 	private Map<String , Object> setting;
 
 
@@ -131,7 +134,7 @@ public class MemberDto {
 	 * 기본적으로는 사용 여부는 false
 	 */
 	@Builder.Default
-	@Schema(description = "")
+	@Schema(description = "첫 인사말 사용 여부 (default : false)")
 	private Boolean usedMessage = false;
 
 }

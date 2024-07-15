@@ -11,6 +11,5 @@ public enum BizTalkRequestStatus {
     ready,
     approve,
     reject,
-    
     auto
 }

@@ -5,5 +5,5 @@ public enum PlatformTemplateStatus {
 	approve, // 승인
 	reject, // 반려
 	temp, // 임시저장
-	delete // 삭제t
+	delete // 삭제
 }
