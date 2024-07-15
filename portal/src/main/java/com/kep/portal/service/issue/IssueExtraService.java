@@ -190,6 +190,10 @@ public class IssueExtraService {
 
 			simpMessagingTemplate.convertAndSend(socketProperty.getIssuePath(), issueMapper.map(issue));
 		}
+
+		/**
+		 * FIXME :: bnk 비즈니스 로직. 제거 필요 20240715 volka
+		 */
 		// BNK API 전송 로직 (에러 발생해도 요약 정보 저장에 영향을 주지 않음!!)
 			try {
 				if (!ObjectUtils.isEmpty(issueExtraDto.getSummary()) || !ObjectUtils.isEmpty(issueExtraDto.getBnkSummary())) {

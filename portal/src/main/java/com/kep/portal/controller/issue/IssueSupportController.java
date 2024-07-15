@@ -11,6 +11,10 @@ import com.kep.portal.model.dto.issue.IssueSupportHistoryResponseDto;
 import com.kep.portal.model.dto.issue.IssueSupportSearchDetailDto;
 import com.kep.portal.model.dto.issue.IssueSupportSearchDto;
 import com.kep.portal.service.issue.IssueSupportService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +34,7 @@ import java.util.List;
 /**
  * 이슈 지원 정보
  */
+@Tag(name = "이슈 지원 정보 API", description = "/api/v1/issue/support")
 @RestController
 @RequestMapping("/api/v1/issue/support")
 @Slf4j
@@ -47,9 +52,13 @@ public class IssueSupportController {
 	 * @return
 	 * @throws Exception
 	 */
+	@Tag(name = "이슈 지원 정보 API")
+	@Operation(summary = "상담 검토/직원전환 요청", description = "SB-CP-P02, SP035, 상담검토요청\n" +
+			"SB-CP-P01, SP036, 상담직원전환")
 	@PostMapping("/{issueId}")
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE', 'WRITE_SUPPORT')")
 	public ResponseEntity<ApiResult<IssueSupportDto>> post(
+			@Parameter(description = "이슈 아이디", in = ParameterIn.PATH, required = true)
 			@PathVariable("issueId") Long issueId,
 			@RequestBody IssueSupportDto issueSupportDto) throws Exception {
 
@@ -85,13 +94,27 @@ public class IssueSupportController {
 	 * @return
 	 * @throws Exception
 	 */
+	@Tag(name = "이슈 지원 정보 API")
+	@Operation(summary = "상담 지원 요청 목록 조회", description = "상담관리 > 상담 지원 요청 목록\n" +
+			"SB-CA-005, WA004/WA005, 상담 지원 요청")
 	@GetMapping("/manager")
 	@PreAuthorize("hasAnyAuthority('WRITE_SUPPORT')")
 	public ResponseEntity<ApiResult<List<IssueSupportDetailDto>>> get(
+			@Parameter(description = "조회 시작일")
 			@RequestParam(name = "search_start_date", required = false) String searchStartDate,
+			@Parameter(description = "조회 종료일")
 			@RequestParam(name = "search_end_date", required = false) String searchEndDate,
+			@Parameter(description = "상담 지원 타입 :: change : 상담 직원 전환 요청, question : 상담 검토 요청")
 			@RequestParam(name = "type", required = false) List<IssueSupportType> type,
+			@Parameter(description = "사용자 아이디")
 			@RequestParam(name = "member_id", required = false) Long memberId,
+			@Parameter(description = "상담 지원 상태 request : 상담검토/상담직원전환 요청\n" +
+					"reject : 반려\n" +
+					"finish : 완료\n" +
+					"change : 상담직원변경\n" +
+					"receive : 상담이어받기\n" +
+					"auto : 전환자동승인\n" +
+					"end : 상담종료")
 			@RequestParam(name = "status", required = false) List<IssueSupportStatus> status
 			, @SortDefault.SortDefaults({
 				@SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable) throws Exception {
@@ -127,9 +150,12 @@ public class IssueSupportController {
 	 * @return
 	 * @throws Exception
 	 */
+	@Tag(name = "이슈 지원 정보 API")
+	@Operation(summary = "상담 지원 요청 상세 조회", description = "SB-CA-005, WA004/WA005, 상담 지원 요청")
 	@GetMapping("/manager/{id}")
 	@PreAuthorize("hasAnyAuthority('WRITE_SUPPORT')")
 	public ResponseEntity<ApiResult<IssueSupportSearchDetailDto>> getDetail(
+			@Parameter(description = "이슈 서포트 아이디")
 			@PathVariable("id") Long id
 			, @SortDefault.SortDefaults({
 			@SortDefault(sort = {"created"}, direction = Sort.Direction.ASC)}) Pageable pageable) throws Exception {
@@ -155,9 +181,12 @@ public class IssueSupportController {
 	 * @return
 	 * @throws Exception
 	 */
+	@Tag(name = "이슈 지원 정보 API")
+	@Operation(summary = "상담 검토/직원전환 요청 완료처리", description = "SB-CA-005, WA004/WA005, 상담 지원 요청")
 	@PostMapping("/manager/{id}")
 	@PreAuthorize("hasAnyAuthority('WRITE_SUPPORT')")
 	public ResponseEntity<ApiResult<IssueSupportDto>> managerPost(
+			@Parameter(description = "이슈 서포트 아이디")
 			@PathVariable("id") Long id,
 			@RequestBody IssueSupportDto issueSupportDto) throws Exception {
 
@@ -190,9 +219,12 @@ public class IssueSupportController {
 	 * @param issueId
 	 * @return
 	 */
+	@Tag(name = "이슈 지원 정보 API")
+	@Operation(summary = "지원 요청 이력(공통팝업)", description = "SB-CP-P07, SP037, 작업이력")
 	@GetMapping("/history/{issueId}")
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE', 'WRITE_SUPPORT', 'WRITE_ISSUE_HISTORY')")
 	public ResponseEntity<ApiResult<IssueSupportHistoryResponseDto>> get(
+			@Parameter(description = "이슈 아이디", in = ParameterIn.PATH, required = true)
 			@PathVariable("issueId") Long issueId) throws Exception{
 
 		log.info("ISSUE SUPPORT, GET, ISSUE_ID: {}", issueId);

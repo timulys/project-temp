@@ -156,7 +156,7 @@ public class IssueController {
 	 * <li>상담 관리 > 상담 이력, SB-CA-003
 	 */
 	@Tag(name = "이슈(상담, 채팅 등) API")
-	@Operation(summary = "")
+	@Operation(summary = "상담 이력 조회")
 	@GetMapping(value = "/search/history")
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE_HISTORY')")
 	public ResponseEntity<ApiResult<List<IssueDto>>> searchHistory(
@@ -176,7 +176,7 @@ public class IssueController {
 	 * <li>상담 포탈 > 상담 지원 도구 > 상담 이력, SB-CP-T02
 	 */
 	@Tag(name = "이슈(상담, 채팅 등) API")
-	@Operation(summary = "")
+	@Operation(summary = "상담 이력 조회 (by Guest)")
 	@GetMapping(value = "/search/history/{guestId}")
 	//@PreAuthorize(("hasAnyAuthority('WRITE_ISSUE')")
 	public ResponseEntity<ApiResult<List<IssueDto>>> searchHistoryByGuest(
@@ -200,7 +200,7 @@ public class IssueController {
 	 * 상담 배정
 	 */
 	@Tag(name = "이슈(상담, 채팅 등) API")
-	@Operation(summary = "")
+	@Operation(summary = "상담배정 (테스트 용도 / deprecated)")
 	@Deprecated
 	@PutMapping(value = "/{id}/assign")
 	public ResponseEntity<ApiResult<String>> assign(

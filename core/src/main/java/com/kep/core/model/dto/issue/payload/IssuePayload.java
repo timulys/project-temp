@@ -38,7 +38,7 @@ public class IssuePayload {
 	private List<Chapter> chapters;
 
 	// 플랫폼 고유 데이터
-	@Schema(description = "")
+	@Schema(description = "플랫폼 고유 데이터")
 	private Map<String, Object> meta;
 
 	public enum SectionType {

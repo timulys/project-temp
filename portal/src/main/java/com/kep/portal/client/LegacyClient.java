@@ -289,7 +289,7 @@ public class LegacyClient {
         }
         requestBody.put("deal_start_time", issue.getCreated().format(formatterMinuteSecondGroup));                                // 상담연결시간
         requestBody.put("deal_end_time", issue.getClosed().format(formatterMinuteSecondGroup));                                // 상담종료시간
-        requestBody.put("fld_cd", issueExtraDto.getFldCd());                                                                    // 현업분류카테고리(협업선택)
+        requestBody.put("fld_cd", issueExtraDto.getFldCd());                                                                     // 현업분류카테고리(협업선택)
         requestBody.put("wrk_seq", issueExtraDto.getWrkSeq());                                                                    // 현업분류카테고리(현업이관부서)
         requestBody.put("fld_dept_cd", issueExtraDto.getFldDeptCd());                                                            // 현업분류카테고리(현업이관부서)
         requestBody.put("cntrt_num", issueExtraDto.getCntrtNum());                                                                // 계약실행번호

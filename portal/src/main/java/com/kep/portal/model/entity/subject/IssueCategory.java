@@ -93,7 +93,10 @@ public class IssueCategory {
 	@Comment("수정 일시")
 	@NotNull
 	private ZonedDateTime modified;
-	
+
+	/**
+	 * FIXME :: BNK 코드. 엔티티에서 제거 필요 20240715 volka
+	 */
 	//BNK 분류 코드값 추가
 	@Comment("상담유형 BNK 코드")
 	private String bnkCode;
