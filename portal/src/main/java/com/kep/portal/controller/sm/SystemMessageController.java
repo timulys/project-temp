@@ -7,6 +7,10 @@ import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.model.entity.channel.Channel;
 import com.kep.portal.service.channel.ChannelService;
 import com.kep.portal.service.sm.SystemMessageService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +24,7 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "시스템 메시지 API", description = "/api/v1/sm")
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/sm")
@@ -41,9 +46,13 @@ public class SystemMessageController {
      * @param messageType
      * @return
      */
+    @Tag(name = "시스템 메시지 API")
+    @Operation(summary = "메세지 타입에 맞는 시스템 메시지 조회", description = "SB-SA-007")
     @GetMapping("{channelId}/{messageType}")
     public ResponseEntity<ApiResult<Map>> get(
+            @Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "channelId") Long channelId,
+            @Parameter(description = "메시지 타입", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "messageType") String messageType
     ) {
         try {
@@ -73,8 +82,11 @@ public class SystemMessageController {
      * @param channelId
      * @return
      */
+    @Tag(name = "시스템 메시지 API")
+    @Operation(summary = "메시지 타입 전체 조회", description = "SB-SA-007")
     @GetMapping(value = "/{id}")
     public ResponseEntity<ApiResult<List<IssuePayload>>> get(
+            @Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "id") Long channelId) {
 
         Channel channel = channelService.findById(channelId);

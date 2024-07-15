@@ -46,7 +46,7 @@ public class HotkeyController {
      * @param member
      * @return
      */
-    @Tag(name = "HotKey API")
+    @Tag(name = "핫키 (자주 사용하는 문구) API")
     @Operation(summary = "자주 사용하는 문구 목록 조회")
     @GetMapping("/list/{id}")
     public ResponseEntity<ApiResult<List<HotkeyDto>>> get(
@@ -68,7 +68,7 @@ public class HotkeyController {
      * @param hotkeyDto
      * @return
      */
-    @Tag(name = "HotKey API")
+    @Tag(name = "핫키 (자주 사용하는 문구) API")
     @Operation(summary = "자주 사용하는 문구 저장/수정")
     @PostMapping("/manage/{memberId}")
     public ResponseEntity<ApiResult<List<HotkeyDto>>> add(

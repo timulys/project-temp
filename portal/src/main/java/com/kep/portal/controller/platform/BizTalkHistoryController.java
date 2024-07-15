@@ -84,6 +84,11 @@ public class BizTalkHistoryController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
+    /**
+     * FIXME :: 반환 void? 파일 반환 필요 20240715 volka
+     * @param res
+     * @param condition
+     */
     @Tag(name = "플랫폼 비즈톡 히스토리 API")
     @Operation(summary = "포탈 비즈톡 히스토리 다운로드")
     @GetMapping("/portal/download")
@@ -91,6 +96,12 @@ public class BizTalkHistoryController {
                          @QueryParam BizTalkHistoryCondition condition){
         bizTalkHistoryService.portalHistoryDownload(res, condition);
     }
+
+    /**
+     * FIXME :: 반환 void? 파일 반환 필요 20240715 volka
+     * @param res
+     * @param condition
+     */
     @Tag(name = "플랫폼 비즈톡 히스토리 API")
     @Operation(summary = "관리 비즈톡 히스토리 다운로드")
     @GetMapping("/management/download")
