@@ -18,6 +18,10 @@ import com.kep.platform.service.kakao.counsel.KakaoCounselCenterService;
 import com.kep.platform.service.kakao.counsel.KakaoCounselService;
 import com.kep.platform.service.SendToPlatformProducer;
 import com.kep.platform.service.kakao.friend.KakaoFriendTalkService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.http.HttpStatus;
@@ -35,6 +39,7 @@ import java.util.Map;
 /**
  * API from Portal
  */
+@Tag(name = "포탈 수신 API", description = "/api/v1/counsel-portal")
 @RestController
 @RequestMapping("/api/v1/counsel-portal")
 //@RequestMapping("/api/v1/portal")
@@ -59,12 +64,19 @@ public class PortalController {
     /**
      * 메세지 송신 요청
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "메시지 송신 요청")
     @PostMapping("/message")
     public ResponseEntity<ApiResult<String>> message(
+            @Parameter(description = "플랫폼 타입(solution_web, kakao_counsel_talk, kakao_alert_talk, kakao_friend_talk, kakao_template, legacy_web, legacy_app , kakao_counsel_center)", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Platform-Type") @NotNull PlatformType platformType,
+            @Parameter(description = "서비스 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Service-Key") @NotEmpty String serviceKey,
+            @Parameter(description = "유저키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-User-Key") @NotEmpty String userKey,
+            @Parameter(description = "이벤트 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Event-Key") @NotEmpty String eventKey,
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
             @RequestBody String requestBody) {
 
@@ -94,12 +106,19 @@ public class PortalController {
     /**
      * 종료 요청
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "종료 요청")
     @PostMapping("/close")
     public ResponseEntity<ApiResult<String>> close(
+            @Parameter(description = "플랫폼 타입(solution_web, kakao_counsel_talk, kakao_alert_talk, kakao_friend_talk, kakao_template, legacy_web, legacy_app , kakao_counsel_center)", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Platform-Type") @NotNull PlatformType platformType,
+            @Parameter(description = "서비스 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Service-Key") @NotEmpty String serviceKey,
+            @Parameter(description = "유저키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-User-Key") @NotEmpty String userKey,
+            @Parameter(description = "이벤트 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Event-Key", required = false) String eventKey,
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
             @RequestBody(required = false) String requestBody) {
 
@@ -129,11 +148,17 @@ public class PortalController {
     /**
      * 봇 대화 이력 요청
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "봇 대화 이력 요청")
     @GetMapping("/relay")
     public ResponseEntity<ApiResult<List<IssuePayload>>> relay(
+            @Parameter(description = "플랫폼 타입(solution_web, kakao_counsel_talk, kakao_alert_talk, kakao_friend_talk, kakao_template, legacy_web, legacy_app , kakao_counsel_center)", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Platform-Type") @NotNull PlatformType platformType,
+            @Parameter(description = "서비스 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Service-Key") @NotEmpty String serviceKey,
+            @Parameter(description = "유저키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-User-Key") @NotEmpty String userKey,
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
             @RequestBody(required = false) String requestBody) {
 
@@ -162,10 +187,15 @@ public class PortalController {
     /**
      * 이미지 업로드
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "이미지 업로드")
     @PostMapping("/upload/image")
     public ResponseEntity<ApiResult<String>> uploadImage(
+            @Parameter(description = "플랫폼 타입(solution_web, kakao_counsel_talk, kakao_alert_talk, kakao_friend_talk, kakao_template, legacy_web, legacy_app , kakao_counsel_center)", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Platform-Type") @NotNull PlatformType platformType,
+            @Parameter(description = "서비스 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Service-Key") @NotEmpty String serviceKey,
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
             @RequestBody UploadPlatformRequestDto uploadPlatformRequestDto) {
 
@@ -190,10 +220,15 @@ public class PortalController {
     /**
      * 파일 업로드
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "파일 업로드")
     @PostMapping("/upload/file")
     public ResponseEntity<ApiResult<String>> uploadFile(
+            @Parameter(description = "플랫폼 타입(solution_web, kakao_counsel_talk, kakao_alert_talk, kakao_friend_talk, kakao_template, legacy_web, legacy_app , kakao_counsel_center)", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Platform-Type") @NotNull PlatformType platformType,
+            @Parameter(description = "서비스 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Service-Key") @NotEmpty String serviceKey,
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
             @RequestBody UploadPlatformRequestDto uploadPlatformRequestDto) {
 
@@ -215,9 +250,13 @@ public class PortalController {
         }
     }
 
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "메시지 타입에 해당하는 시스템 메시지 조회 ")
     @GetMapping("/sm/{messageType}")
     public ResponseEntity<ApiResult<String>> getSystemMessage(
+            @Parameter(description = "서비스 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Service-Key") @NotEmpty String serviceKey,
+            @Parameter(description = "메시지 타입", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "messageType") String messageType
     ) throws Exception {
         try {
@@ -237,8 +276,11 @@ public class PortalController {
         }
     }
 
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "시스템 메시지 조회")
     @GetMapping("/sm")
     public ResponseEntity<ApiResult<List<IssuePayload>>> getSystemMessage(
+            @Parameter(description = "서비스 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Service-Key") @NotEmpty String serviceKey) {
 
         List<IssuePayload> payloads = kakaoCounselCenterService.systemMessage(serviceKey);
@@ -252,6 +294,8 @@ public class PortalController {
     /**
      * 클라이언트 ID
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "클라이언트 ID 조회")
     @GetMapping("selectKakaoTemplateClientId")
     public ResponseEntity<ApiResult<String>> selectKakaoTemplateClientId(
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey){
@@ -269,6 +313,7 @@ public class PortalController {
      * 알림톡 API
      */
 
+//    @Tag(name = "포탈 수신 API")
 //    @PostMapping("/alert-talk")
 //    public ResponseEntity<ApiResult<KakaoBizTalkSendResponse>> sendAlertTalk(
 //            @RequestBody KakaoAlertSendEvent dto,
@@ -283,6 +328,8 @@ public class PortalController {
 //        return new ResponseEntity<>(result, HttpStatus.CREATED);
 //    }
 
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "알림톡 발송")
     @PostMapping("/alert-talk")
     public ResponseEntity<ApiResult<KakaoBizTalkSendResponse>> sendAlertTalk(
             @RequestBody String alertEventBody
@@ -303,8 +350,11 @@ public class PortalController {
     }
 
 
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "알림톡 결과 조회")
     @GetMapping("/alert-talk")
     public ResponseEntity<ApiResult<KakaoBizTalkSendResponse>> getAlertTalkResults(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey
     ) {
         KakaoBizTalkSendResponse result = kakaoAlertTalkService.result(trackKey);
@@ -315,9 +365,13 @@ public class PortalController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "알림톡 리포트 그룹별 완료 처리")
     @GetMapping("/alert-talk/complete/{reportGroupNo}")
     public ResponseEntity<ApiResult<KakaoBizTalkSendResponse>> getAlertTalkComplete(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
+            @Parameter(description = "리포트 그룹 번호", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "reportGroupNo") String reportGroupNo
     ) {
         KakaoBizTalkSendResponse complete = kakaoAlertTalkService.complete(trackKey, reportGroupNo);
@@ -328,8 +382,11 @@ public class PortalController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "알림톡 검색")
     @GetMapping("/alert-talk/search")
     public ResponseEntity<ApiResult<KakaoBizSearchResponse>> getAlertTalkSearch(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
             @QueryParam KakaoBizSearchSendEvent dto
     ) {
@@ -341,9 +398,13 @@ public class PortalController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "알림톡 상세 검색")
     @GetMapping("/alert-talk/search/detail/{uid}")
     public ResponseEntity<ApiResult<KakaoBizDetailResponse>> getAlertTalkDetail(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
+            @Parameter(description = "", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "uid") String uid
 
     ) {
@@ -359,6 +420,7 @@ public class PortalController {
      * 친구톡 API
      */
 
+//    @Tag(name = "포탈 수신 API")
 //    @PostMapping("/friend-talk")
 //    public ResponseEntity<ApiResult<KakaoBizTalkSendResponse>> sendFriendTalk(
 //            @Valid @RequestBody KakaoFriendSendEvent dto,
@@ -373,6 +435,8 @@ public class PortalController {
 //        return new ResponseEntity<>(result, HttpStatus.OK);
 //    }
 
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "친구톡 발송")
     @PostMapping("/friend-talk")
     public ResponseEntity<ApiResult<KakaoBizTalkSendResponse>> sendFriendTalkQueue(
             @RequestBody String friendEventBody
@@ -392,8 +456,11 @@ public class PortalController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "친구톡 검색")
     @GetMapping("/friend-talk/search")
     public ResponseEntity<ApiResult<KakaoBizSearchResponse>> get(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
             @QueryParam KakaoBizSearchSendEvent dto
     ) {
@@ -406,8 +473,11 @@ public class PortalController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "친구톡 상세 검색")
     @GetMapping("/friend-talk/search/detail/{uid}")
     public ResponseEntity<ApiResult<KakaoBizDetailResponse>> getFriendTalkDetail(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
             @PathVariable(value = "uid") String uid
     ) {
@@ -423,8 +493,11 @@ public class PortalController {
     /**
      * 친구톡 이미지 업로드
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "친구톡 이미지 업로드")
     @PostMapping("/friend-talk/upload/image")
     public ResponseEntity<ApiResult<KakaoBizTalkSendResponse>> postUploadImage(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
             UploadPlatformRequestDto dto
     ) {
@@ -447,8 +520,11 @@ public class PortalController {
      * @param trackKey
      * @return
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "템플릿 카테고리 리스트 조회")
     @GetMapping("/template/category/all")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse<List<KakaoBizTemplateResponse.TemplateCategory>>>> getCategory(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey
     ) {
         KakaoBizTemplateResponse<List<KakaoBizTemplateResponse.TemplateCategory>> category = kakaoBizTalkTemplateService.category(trackKey);
@@ -463,9 +539,13 @@ public class PortalController {
     /**
      * 템플릿 카테고리 조회
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "템플릿 카테고리 조회")
     @GetMapping("/template/category/{categoryCode}")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse<KakaoBizTemplateResponse.TemplateCategory>>> getCategoryCode(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
+            @Parameter(description = "카테고리 코드", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "categoryCode") String categoryCode
     ) {
         KakaoBizTemplateResponse<KakaoBizTemplateResponse.TemplateCategory> category = kakaoBizTalkTemplateService.getCategoryCode(trackKey, categoryCode);
@@ -480,10 +560,14 @@ public class PortalController {
     /**
      * 템플릿 등록
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "템플릿 등록")
     @PostMapping("/template/{profileKey}")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>>> postTemplate(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
             @RequestBody KakaoBizMessageTemplatePayload dto,
+            @Parameter(description = "프로필 키", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "profileKey") String profileKey
     ) {
         KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload> kakaoTemplateCategoryResponse = kakaoBizTalkTemplateService.create(trackKey, dto, profileKey);
@@ -498,8 +582,11 @@ public class PortalController {
     /**
      * 템플릿 이미지 업로드
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "템플릿 이미지 업로드")
     @PostMapping("/template/upload/image")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse>> postTemplate(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
             UploadPlatformRequestDto dto
     ) {
@@ -515,8 +602,11 @@ public class PortalController {
     /**
      * 템플릿 하이라이트 이미지 업로드
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "템플릿 하이라이트 이미지 업로드")
     @PostMapping("/template/upload/image/item-highlight")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse>> postHighlightTemplate(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
             UploadPlatformRequestDto dto
     ) {
@@ -532,9 +622,13 @@ public class PortalController {
     /**
      * 템플릿 수정
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "템플릿 수정")
     @PutMapping("/template/{profileKey}")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>>> putTemplate(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
+            @Parameter(description = "프로필 키", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "profileKey") String profileKey,
             @RequestBody KakaoBizMessageTemplatePayload dto
     ) {
@@ -550,10 +644,15 @@ public class PortalController {
     /**
      * 템플릿 삭제
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "템플릿 삭제")
     @DeleteMapping("/template/{profileKey}/{templateCode}")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>>> deleteTemplate(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
+            @Parameter(description = "프로필 키", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "profileKey") String profileKey,
+            @Parameter(description = "템플릿 코드", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "templateCode") String templateCode
     ) {
         KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload> kakaoTemplateCategoryResponse = kakaoBizTalkTemplateService.remove(trackKey, profileKey, templateCode);
@@ -568,10 +667,15 @@ public class PortalController {
     /**
      * 템플릿 조회
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "템플릿 조회")
     @GetMapping("/template/{profileKey}/{templateCode}")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>>> selectTemplate(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
+            @Parameter(description = "프로필 키", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "profileKey") String profileKey,
+            @Parameter(description = "템플릿 코드", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "templateCode") String templateCode
     ) {
         KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload> kakaoTemplateCategoryResponse = kakaoBizTalkTemplateService.select(trackKey, profileKey, templateCode);
@@ -586,10 +690,14 @@ public class PortalController {
     /**
      * 템플릿 리스트 조회
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "템플릿 리스트 조회")
     @GetMapping("/template/all/{profileKey}")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse<List<KakaoBizMessageTemplatePayload>>>> getSelectAllTemplate(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
             @QueryParam KakaoBizSearchSendEvent dto,
+            @Parameter(description = "프로필 키", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "profileKey") String profileKey
     ) {
         KakaoBizTemplateResponse<List<KakaoBizMessageTemplatePayload>> templateResponse = kakaoBizTalkTemplateService.selectAll(trackKey, profileKey, dto);
@@ -604,9 +712,13 @@ public class PortalController {
     /**
      * 변경된 템플릿 조회
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "변경된 템플릿 조회")
     @GetMapping("/template/last-modify/{profileKey}")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse<List<KakaoBizMessageTemplatePayload>>>> lastModifyTemplate(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
+            @Parameter(description = "프로필 키", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "profileKey") String profileKey
     ) {
         KakaoBizTemplateResponse<List<KakaoBizMessageTemplatePayload>> kakaoTemplateCategoryResponse = kakaoBizTalkTemplateService.lastModified(trackKey, profileKey);
@@ -621,10 +733,15 @@ public class PortalController {
     /**
      * 템플릿 검수요청 취소
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "템플릿 검수요청 취소")
     @PutMapping("/template/cancel/request/{profileKey}/{templateCode}")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse>> cancelRequest(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
+            @Parameter(description = "프로필 키", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "profileKey") String profileKey,
+            @Parameter(description = "템플릿 코드", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "templateCode") String templateCode
     ) {
         KakaoBizTemplateResponse kakaoBizTemplateResponse = kakaoBizTalkTemplateService.cancelRequest(trackKey, profileKey, templateCode);
@@ -639,10 +756,15 @@ public class PortalController {
     /**
      * 템플릿 승인 취소
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "템플릿 승인 취소")
     @PutMapping("/template/cancel/approval/{profileKey}/{templateCode}")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse>> cancelApproval(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
+            @Parameter(description = "프로필 키", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "profileKey") String profileKey,
+            @Parameter(description = "템플릿 코드", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "templateCode") String templateCode
     ) {
         KakaoBizTemplateResponse kakaoBizTemplateResponse = kakaoBizTalkTemplateService.cancelApproval(trackKey, profileKey, templateCode);
@@ -657,10 +779,15 @@ public class PortalController {
     /**
      * 템플릿 휴면 해제
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "템플릿 휴면 해제")
     @PutMapping("/template/dormant/release/{profileKey}/{templateCode}")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse>> dormantRelease(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
+            @Parameter(description = "프로필 키", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "profileKey") String profileKey,
+            @Parameter(description = "템플릿 코드", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "templateCode") String templateCode
     ) {
         KakaoBizTemplateResponse kakaoBizTemplateResponse = kakaoBizTalkTemplateService.dormantRelease(trackKey, profileKey, templateCode);
@@ -675,8 +802,11 @@ public class PortalController {
     /**
      * 발신프로필 관리 API
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "발신프로필 관리 API")
     @GetMapping("/send-profile/select/all")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse<List<KakaoSendProfileResponse>>>> getAllSendProfile(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
             @QueryParam KakaoBizSearchSendEvent dto
     ) {
@@ -692,9 +822,13 @@ public class PortalController {
     /**
      * 발신프로필 조회
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "발신프로필 조회")
     @GetMapping("/send-profile/select/{profileKey}")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse<KakaoSendProfileResponse>>> getSendProfile(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
+            @Parameter(description = "프로필 키", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "profileKey") String profileKey
     ) {
         KakaoBizTemplateResponse<KakaoSendProfileResponse> kakaoBizTemplateResponse = kakaoBizTalkTemplateService.getProfileKey(trackKey, profileKey);
@@ -709,8 +843,11 @@ public class PortalController {
     /**
      * 발신프로필 카테고리 리스트 조회
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "발신프로필 카테고리 리스트 조회")
     @GetMapping("/send-profile/category/select/all")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse<List<KakaoBizTemplateResponse.ProfileCategory>>>> getAllProfileCategory(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey
     ) {
         KakaoBizTemplateResponse<List<KakaoBizTemplateResponse.ProfileCategory>> kakaoBizTemplateResponse = kakaoBizTalkTemplateService.getAllProfileCategory(trackKey);
@@ -725,9 +862,13 @@ public class PortalController {
     /**
      * 발신프로필 카테고리 조회
      */
+    @Tag(name = "포탈 수신 API")
+    @Operation(summary = "발신프로필 카테고리 조회")
     @GetMapping("/send-profile/category/select/{categoryCode}")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse<KakaoBizTemplateResponse.ProfileCategory>>> getProfileCategory(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
+            @Parameter(description = "카테고리 코드", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "categoryCode") String categoryCode
     ) {
         KakaoBizTemplateResponse<KakaoBizTemplateResponse.ProfileCategory> kakaoBizTemplateResponse = kakaoBizTalkTemplateService.getProfileCategory(trackKey, categoryCode);

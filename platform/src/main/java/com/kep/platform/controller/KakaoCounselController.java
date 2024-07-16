@@ -9,6 +9,8 @@ import com.kep.core.model.dto.event.PlatformEventType;
 import com.kep.core.model.dto.platform.PlatformType;
 import com.kep.platform.model.dto.KakaoCounselReceiveEvent;
 import com.kep.platform.service.SendToPortalProducer;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -25,6 +27,7 @@ import java.util.Map;
  *
  * 메세지 -> 파싱 -> 큐
  */
+@Tag(name = "카카오 상담톡 API", description = "/api/v1/kakao-counsel-talk")
 @RestController
 @RequestMapping("/api/v1/kakao-counsel-talk")
 @Slf4j
@@ -38,6 +41,8 @@ public class KakaoCounselController {
 	/**
 	 * 메세지
 	 */
+	@Tag(name = "카카오 상담톡 API")
+	@Operation(summary = "메시지 발송")
 	@PostMapping(value = "/message", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResult<Map<String, Object>>> message(
 			@RequestHeader HttpHeaders httpHeaders,
@@ -64,6 +69,8 @@ public class KakaoCounselController {
 	/**
 	 * 상담 요청
 	 */
+	@Tag(name = "카카오 상담톡 API")
+	@Operation(summary = "상담 요청")
 	@PostMapping(value = "/reference", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResult<Map<String, Object>>> open(
 			@RequestHeader HttpHeaders httpHeaders,
@@ -90,6 +97,8 @@ public class KakaoCounselController {
 	/**
 	 * 상담 종료
 	 */
+	@Tag(name = "카카오 상담톡 API")
+	@Operation(summary = "상담 종료")
 	@PostMapping(value = "/expired_session")
 	public ResponseEntity<ApiResult<Map<String, Object>>> close(
 			@RequestHeader HttpHeaders httpHeaders,
@@ -113,6 +122,8 @@ public class KakaoCounselController {
 		return new ResponseEntity<>(new ApiResult<>(ApiResultCode.succeed), HttpStatus.CREATED);
 	}
 
+	@Tag(name = "카카오 상담톡 API")
+	@Operation(summary = "핑")
 	@RequestMapping
 	public ResponseEntity<ApiResult<Map<String, Object>>> ping(
 			@RequestHeader HttpHeaders httpHeaders,

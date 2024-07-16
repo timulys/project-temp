@@ -3,6 +3,8 @@ package com.kep.platform.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpHeaders;
@@ -17,6 +19,7 @@ import java.util.Map;
 /**
  * 카카오 API (현재 미사용)
  */
+@Tag(name = "카카오 API", description = "/api/v1/kakao")
 @RestController
 @RequestMapping("/api/v1/kakao")
 @Slf4j
@@ -25,6 +28,8 @@ public class KakaoController {
 	@Resource
 	private ObjectMapper objectMapper;
 
+	@Tag(name = "카카오 API")
+	@Operation(summary = "oauth")
 	@PostMapping(value = "/oauth", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<ApiResult<Map<String, Object>>> oauth(
 			@RequestHeader HttpHeaders httpHeaders,

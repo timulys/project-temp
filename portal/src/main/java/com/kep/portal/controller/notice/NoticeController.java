@@ -160,7 +160,7 @@ public class NoticeController {
 	 */
 	@Tag(name = "공지사항 API")
 	@Operation(summary = "공지사항 저장")
-	@PostMapping(value = "/manager/save")
+	@PostMapping(value = "/manager/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasAnyAuthority('WRITE_NOTICE')")
 	public ResponseEntity<ApiResult<NoticeDto>> post(
 			@RequestBody NoticeDto noticeDto

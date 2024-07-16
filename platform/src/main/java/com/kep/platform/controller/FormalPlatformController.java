@@ -6,6 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.platform.PlatformType;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
@@ -33,6 +37,7 @@ import java.util.stream.Collectors;
  *
  * 메세지 -> 큐
  */
+@Tag(name = "채널 API", description = "/api/v1/{platform}")
 @RestController
 @RequestMapping("/api/v1/{platform}")
 @Slf4j
@@ -43,9 +48,13 @@ public class FormalPlatformController {
 	@Resource
 	private RabbitTemplate rabbitTemplate;
 
+	@Tag(name = "채널 API")
+	@Operation(summary = "메시지 큐 전송")
 	@PostMapping(value = "/message")
 	public ResponseEntity<ApiResult<Map<String, Object>>> message(
+			@Parameter(description = "플랫폼 타입(solution_web, kakao_counsel_talk, kakao_alert_talk, kakao_friend_talk, kakao_template, legacy_web, legacy_app , kakao_counsel_center)", in = ParameterIn.PATH, required = true)
 			@PathVariable(value = "platform") @NotEmpty String platform,
+			@Parameter(description = "헤더", in = ParameterIn.HEADER)
 			@RequestHeader HttpHeaders httpHeaders,
 			@RequestParam Map<String, String> requestParams,
 			@RequestBody String requestBody) throws Exception {
@@ -86,9 +95,13 @@ public class FormalPlatformController {
 		}
 	}
 
+	@Tag(name = "채널 API")
+	@Operation(summary = "채널 오픈")
 	@GetMapping(value = "/open")
 	public ResponseEntity<ApiResult<Map<String, Object>>> open(
+			@Parameter(description = "플랫폼 타입(solution_web, kakao_counsel_talk, kakao_alert_talk, kakao_friend_talk, kakao_template, legacy_web, legacy_app , kakao_counsel_center)", in = ParameterIn.PATH, required = true)
 			@PathVariable(value = "platform") @NotEmpty String platform,
+			@Parameter(description = "헤더", in = ParameterIn.HEADER)
 			@RequestHeader HttpHeaders httpHeaders,
 			@RequestParam(required = false) Map<String, String> requestParams,
 			Authentication authentication,
