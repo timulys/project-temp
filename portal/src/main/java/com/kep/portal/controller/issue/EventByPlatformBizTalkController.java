@@ -5,6 +5,8 @@ import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.platform.kakao.KakaoBizTalkSendResponse;
 import com.kep.portal.service.platform.BizTalkHistoryService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +35,7 @@ public class EventByPlatformBizTalkController {
     @Operation(summary = "콜백")
     @PutMapping(value = "/callback")
     public ResponseEntity<ApiResult<String>> biztalkCallback(
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") Long trackKey,
             @RequestBody KakaoBizTalkSendResponse dto) throws Exception {
 

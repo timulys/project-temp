@@ -32,7 +32,7 @@ public class GuideSearchDto {
     @Schema(description = "팀 아이디")
     private Long teamId;
 
-    @Schema(description = "카테고리 아이디")
+    @Schema(description = "가이드 카테고리 아이디")
     private Long categoryId;
 
     @Schema(description = "검색 타입 (message, name, file)")
