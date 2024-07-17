@@ -46,7 +46,7 @@ public class FileController {
     }
 
     @Tag(name = "파일 업로드 API")
-    @Operation(summary = "파일 업로드 정보 저장")
+    @Operation(summary = "파일 업로드")
     @PostMapping
     public ResponseEntity<ApiResult<UploadDto>> upload(@NotNull UploadDto dto) throws Exception {
 

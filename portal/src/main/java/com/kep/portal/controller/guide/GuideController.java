@@ -126,6 +126,8 @@ public class GuideController {
     }
 
     /**
+     * TODO :: 최대 자리수 요건 정의 필요 20240717 volka
+     *
      * 상담가이드 생성, 수정
      * SB-CA-006
      *
@@ -137,10 +139,10 @@ public class GuideController {
     @PostMapping
     @PreAuthorize("hasAnyAuthority('WRITE_GUIDE')")
     @Tag(name = "가이드 API")
-    @Operation(summary = "상담가이드 생성, 수정", description = "상담가이드 생성, 수정(SB-CA-006)")
+    @Operation(summary = "상담가이드 저장", description = "상담가이드 저장(SB-CA-006)")
     public ResponseEntity<ApiResult<GuideDto>> create(
             @Valid @RequestBody GuidePayload guidePayload
-            , @Parameter(description = "사용여부")
+            , @Parameter(description = "저장 여부 (임시저장 시 false)")
             @RequestParam(value = "enabled", required = false, defaultValue = "true") Boolean enabled
     ) throws Exception {
 

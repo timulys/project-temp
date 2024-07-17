@@ -19,14 +19,19 @@ application:
     service-url: https://front.codeclick.co.kr # 프론트엔드 서비스 URL로 변경
     service-domain: front.codeclick.co.kr # 프론트엔드 서비스 도메인으로 변경
     # upload
-    storage-path: ${STORAGE_PATH:/opt/storage}
+    storage-path: ${STORAGE_PATH:/Users/yoonjoonho/dev/storage}
     upload-path: ${application.portal.storage-path}/upload
     upload-url: ${application.portal.service-url}/upload
+    #TODO :: 파일 허용 확장자 요건 정해지면 추가 20240717 volka
+    allcate-extension:
+      - ".xlsx"
+      - ".jpg"
+      - ".jpeg"
     system-member-id: 9000000001
     kakao-bot-member-id: 9000000002
     break-time-start: "12:00"
     break-time-end: "13:00"
-    #BNK  유입경로
+    #BNK  유입경로 FIXME :: bnk 설정
     bnk-kakao-talk-url: https://yocodeclick.loca.lt/platform/auth/kakao-sync/getSync?state=
     dashboad:
       search-interval-minutes: 60

@@ -7,6 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
+import java.util.Set;
 
 @ConfigurationProperties(prefix = "application.portal")
 @Validated
@@ -28,6 +29,8 @@ public class PortalProperty {
 	private String uploadPath;
 	@NotEmpty
 	private String uploadUrl;
+
+	private Set<String> allocateExtension;
 
 	//기존 로직
 	public static final String kakaoCounselTalkBaseUrl = "https://bizmessage.kakao.com/chat";
