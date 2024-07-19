@@ -6,6 +6,8 @@ import com.kep.core.model.dto.upload.UploadHistoryDto;
 import com.kep.core.model.type.QueryParam;
 import com.kep.portal.model.dto.upload.UploadHistorySearchCondition;
 import com.kep.portal.service.upload.UploadHistoryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +23,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
+@Tag(name = "파일 업로드 이력 API", description = "/api/v1/upload-history")
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/upload-history")
@@ -29,6 +32,8 @@ public class FileHistoryController {
     @Resource
     private UploadHistoryService uploadHistoryService;
 
+    @Tag(name = "파일 업로드 이력 API")
+    @Operation(summary = "파일 업로드 이력 조회")
     @GetMapping
     @PreAuthorize("hasAnyAuthority('READ_FILE_HISTORY') and hasAnyRole('MANAGER','ADMIN')")
     public ResponseEntity<ApiResult<List<UploadHistoryDto>>> get(

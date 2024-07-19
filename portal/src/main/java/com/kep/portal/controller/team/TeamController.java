@@ -8,6 +8,10 @@ import com.kep.core.model.dto.member.MemberDto;
 import com.kep.core.model.dto.team.TeamDto;
 import com.kep.core.model.exception.BizException;
 import com.kep.portal.service.team.TeamService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -25,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "팀 관리 API", description = "/api/v1/team")
 @RestController
 @RequestMapping("/api/v1/team")
 @Slf4j
@@ -34,10 +39,16 @@ public class TeamController {
     private TeamService teamService;
 
     /**
+     * FIXME :: Pageable 사용 안됨. 확인 필요 20240715 volka
+     *
      * 상담 관리 > 상담 이력 > 검색, SB-CA-003
      * 상담 관리 > 상담 진행 목록 > 검색, SB-CA-002
      * 계정 관리 > 상담 그룹 관리 > 목록, SB-SA-P01
      */
+    @Tag(name = "팀 관리 API")
+    @Operation(summary = "브랜치별 팀 목록 조회", description = "상담 관리 > 상담 이력 > 검색, SB-CA-003\n" +
+            "상담 관리 > 상담 진행 목록 > 검색, SB-CA-002\n" +
+            "계정 관리 > 상담 그룹 관리 > 목록, SB-SA-P01")
     @GetMapping
     public ResponseEntity<ApiResult<List<BranchTeamDto>>> get(
             @SortDefault.SortDefaults({
@@ -71,6 +82,8 @@ public class TeamController {
      * ※ 현재는 상담지원요청 목록을 매니저가 조회 시 해당 부분을 사용함
      * @return
      */
+    @Tag(name = "팀 관리 API")
+    @Operation(summary = "매니저가 그룹장인 상담그룹의 계정목록 조회", description = "※ 현재는 상담지원요청 목록을 매니저가 조회 시 해당 부분을 사용함")
     @GetMapping("/group/members")
     public ResponseEntity<ApiResult<List<BranchTeamDto>>> groupMembers() {
         log.info("TEAM GROUP MEMBERS, GET");
@@ -81,6 +94,8 @@ public class TeamController {
         return new ResponseEntity<>(response , HttpStatus.OK);
     }
 
+    @Tag(name = "팀 관리 API")
+    @Operation(summary = "팀 내 사용자 함께 조회")
     @GetMapping(value = "/with-members")
     public ResponseEntity<ApiResult<List<TeamDto>>> getWithMembers(
             @SortDefault.SortDefaults({
@@ -93,12 +108,16 @@ public class TeamController {
     }
 
     /**
+     * FIXME :: 기능 구현 안되어 있음(삭제 요건 정의되어 있지 않은듯) 20240715 volka
+     *
      * 팀 회원 삭제
      * @param id
      * @param teamDto
      * @return
      * @throws Exception
      */
+    @Tag(name = "팀 관리 API")
+    @Operation(summary = "팀 사용자 삭제(미구현::요건 미정의)")
     @DeleteMapping(value = "/{id}/member")
     public ResponseEntity<ApiResult<TeamDto>> memberRemove(
             @PathVariable("id") Long id
@@ -119,6 +138,8 @@ public class TeamController {
      * @return
      * @throws Exception
      */
+    @Tag(name = "팀 관리 API")
+    @Operation(summary = "팀 추가")
     @PostMapping(value = {"", "/create"})
     public ResponseEntity<ApiResult<BranchTeamDto>> create(
             @RequestBody @NotNull TeamDto dto) throws Exception {
@@ -152,8 +173,11 @@ public class TeamController {
      * @return
      * @throws Exception
      */
+    @Tag(name = "팀 관리 API")
+    @Operation(summary = "팀 수정")
     @PutMapping(value = {"/{id}", "/modify/{id}"})
     public ResponseEntity<ApiResult<BranchTeamDto>> modify(
+            @Parameter(description = "팀 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable(name = "id") @NotNull Long teamId ,
             @RequestBody @NotNull TeamDto dto) throws Exception {
 
@@ -172,8 +196,11 @@ public class TeamController {
      * @param id
      * @return
      */
+    @Tag(name = "팀 관리 API")
+    @Operation(summary = "팀 조회")
     @GetMapping(value = "/{id}")
     public ResponseEntity<ApiResult<BranchTeamDto>> get(
+            @Parameter(description = "팀 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable("id") Long id) {
 
         ApiResult<BranchTeamDto> response = ApiResult.<BranchTeamDto>builder()
@@ -185,8 +212,18 @@ public class TeamController {
 
     }
 
+    /**
+     *
+     * @param ids
+     * @return
+     */
+    @Tag(name = "팀 관리 API")
+    @Operation(summary = "팀 삭제")
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ApiResult<List<BranchTeamDto>>> deleteTeam(@PathVariable("id") Long[] ids) {
+    public ResponseEntity<ApiResult<List<BranchTeamDto>>> deleteTeam(
+            @Parameter(description = "팀 아이디 목록", in = ParameterIn.PATH, required = true)
+            @PathVariable("id") Long[] ids
+    ) {
         Boolean delete = teamService.delete(ids);
         if(delete){
             log.info("TEAM, DELETED");

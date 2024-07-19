@@ -6,6 +6,10 @@ import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
 
 import com.kep.portal.model.entity.privilege.Role;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
  * <li>시스템 설정 > 계정 관리 > 관한 관리 > 역할 관리, SB-SA-P03, SA002
  * <li>시스템 설정 > 계정 관리 > 계정 관리, SB-SA-P02, SA008 (마스터 역할은 관리 제외)
  */
+@Tag(name = "역할 관리 API", description = "/api/v1/role")
 @RestController
 @RequestMapping(value = "/api/v1/role")
 @Slf4j
@@ -39,9 +44,14 @@ public class RoleController {
 	 * @param id
 	 * @return
 	 */
+	@Tag(name = "역할 관리 API")
+	@Operation(summary = "역할 삭제")
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasAnyRole('ROLE_MASTER')")
-	public ResponseEntity<ApiResult<String>> destroy(@PathVariable(name = "id") @NotNull Long id){
+	public ResponseEntity<ApiResult<String>> destroy(
+			@Parameter(description = "역할 아이디", in = ParameterIn.PATH, required = true)
+			@PathVariable(name = "id") @NotNull Long id
+	){
 		boolean result = roleService.destroy(id);
 		if(result){
 			ApiResult<String> response = ApiResult.<String>builder()
@@ -62,6 +72,8 @@ public class RoleController {
 	/**
 	 * 목록 조회
 	 */
+	@Tag(name = "역할 관리 API")
+	@Operation(summary = "역할 목록 조회")
 	@GetMapping
 	public ResponseEntity<ApiResult<List<RoleDto>>> getAll() {
 
@@ -79,6 +91,8 @@ public class RoleController {
 	/**
 	 * 목록 조회 (레벨 정보 포함)
 	 */
+	@Tag(name = "역할 관리 API")
+	@Operation(summary = "역할 목록 조회 (레벨 정보 포함)")
 	@GetMapping(value = "/with-level")
 	public ResponseEntity<ApiResult<List<RoleWithLevelDto>>> getAllWithLevel() {
 
@@ -96,6 +110,8 @@ public class RoleController {
 	/**
 	 * 역할 생성
 	 */
+	@Tag(name = "역할 관리 API")
+	@Operation(summary = "역할 생성")
 	@PostMapping
 	public ResponseEntity<ApiResult<RoleDto>> post(
 			@RequestBody RoleDto role) {
@@ -126,8 +142,11 @@ public class RoleController {
 	 * 역할 수정
 	 */
 	@Deprecated
+	@Tag(name = "역할 관리 API")
+	@Operation(summary = "역할 수정")
 	@PutMapping(value = "/{id}")
 	public ResponseEntity<ApiResult<RoleDto>> put(
+			@Parameter(description = "역할 아이디", in = ParameterIn.PATH, required = true)
 			@PathVariable("id") Long id,
 			@RequestBody RoleDto role) {
 

@@ -6,6 +6,10 @@ import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.work.MemberMaxCounselDto;
 import com.kep.portal.service.branch.BranchService;
 import com.kep.portal.service.work.WorkService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -20,6 +24,7 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+@Tag(name = "최대상담건수 설정 API", description = "/api/v1/work")
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/work")
@@ -38,8 +43,11 @@ public class WorkController {
      * @return
      * @throws Exception
      */
+    @Tag(name = "최대상담건수 설정 API")
+    @Operation(description = "최대상담건수 개별 설정 수정")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResult<MemberMaxCounselDto>> put(
+            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable(name = "id") @NotNull Long branchId
             , @RequestBody @Validated MemberMaxCounselDto dto) {
 
@@ -70,8 +78,11 @@ public class WorkController {
      * @return
      * @throws Exception
      */
+    @Tag(name = "최대상담건수 설정 API")
+    @Operation(description = "최대상담건수 개별설정 조회")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResult<MemberMaxCounselDto>> get(
+            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable(name = "id") @NotNull Long branchId,
             @SortDefault.SortDefaults({
                     @SortDefault(sort = {"id"}, direction = Sort.Direction.ASC)}) Pageable pageable) {

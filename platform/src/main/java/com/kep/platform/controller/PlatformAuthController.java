@@ -6,6 +6,8 @@ import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.platform.config.property.KaKaoSyncProperties;
 import com.kep.platform.service.kakao.sync.KakaoSyncService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -31,6 +33,7 @@ import java.util.stream.Collectors;
 /**
  * 플랫폼 인증
  */
+@Tag(name = "플랫폼 인증 API", description = "/auth")
 @Controller
 @RequestMapping("/auth")
 @Slf4j
@@ -49,6 +52,8 @@ public class PlatformAuthController {
 	@Resource
 	private KakaoSyncService kakaoSyncService;
 
+	@Tag(name = "플랫폼 인증 API")
+	@Operation(summary = "홈")
 	@GetMapping(value = "/kakao-sync/code")
 	public String get(
 			@RequestHeader HttpHeaders httpHeaders,
@@ -59,6 +64,8 @@ public class PlatformAuthController {
 		return "home";
 	}
 
+	@Tag(name = "플랫폼 인증 API")
+	@Operation(summary = "카카오 인증 후 리다이렉트 URL 조회")
 	@GetMapping(value = "/kakao-sync/authorized")
 	@ResponseBody
 	public ResponseEntity<?> get(
@@ -93,7 +100,9 @@ public class PlatformAuthController {
 				.build();
 		return new ResponseEntity<>(apiResult, HttpStatus.OK);
 	}
-	
+
+	@Tag(name = "플랫폼 인증 API")
+	@Operation(summary = "카카오 OAuth 인증 페이지 리다이렉트")
 	@GetMapping(value = "/kakao-sync/getSync")
 	public String customSyncRequest(@RequestHeader HttpHeaders httpHeaders,@RequestParam String state){
 		log.info("▶▶▶::카카오 커스텀 싱크 요청 URL: {}", state);
@@ -151,6 +160,8 @@ public class PlatformAuthController {
 	    }
 	}
 
+	@Tag(name = "플랫폼 인증 API")
+	@Operation(summary = "로그인")
 	@PostMapping(value = "/login")
 	public ResponseEntity<ApiResult<Map<String, Object>>> post(
 			@RequestParam(required = false) Map<String, String> requestParams,

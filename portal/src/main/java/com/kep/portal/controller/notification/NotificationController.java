@@ -8,6 +8,9 @@ import com.kep.portal.config.property.SocketProperty;
 import com.kep.portal.model.dto.notification.NotificationPayload;
 import com.kep.portal.model.entity.notification.Notification;
 import com.kep.portal.service.notification.NotificationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.util.List;
 
+@Tag(name = "알림(노티) API", description = "/api/v1/notification")
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/notification")
@@ -31,10 +35,14 @@ public class NotificationController {
     @Resource
     private NotificationService notificationService;
 
-
+    @Tag(name = "알림(노티) API")
+    @Operation(summary = "알림 등록")
     @PostMapping("/{memberId}")
-    public ResponseEntity<ApiResult> sendNotification(@PathVariable(value = "memberId") Long id,
-                                                      @RequestBody NotificationPayload payload) {
+    public ResponseEntity<ApiResult> sendNotification(
+            @Parameter(description = "사용자 아이디")
+            @PathVariable(value = "memberId") Long id,
+            @RequestBody NotificationPayload payload
+    ) {
 
         NotificationDto notificationDto = NotificationDto.builder()
                 .type(payload.getNotification().getType())
@@ -62,6 +70,8 @@ public class NotificationController {
      * @param pageable
      * @return
      */
+    @Tag(name = "알림(노티) API")
+    @Operation(summary = "")
     @GetMapping
 //    @PreAuthorize("hasAnyAuthority('READ_PORTAL', 'READ_MANAGE', 'READ_SYSTEM')")
     public ResponseEntity<ApiResult<List<NotificationDto>>> getMainNotification(
@@ -96,6 +106,8 @@ public class NotificationController {
      * @param notificationId
      * @return
      */
+    @Tag(name = "알림(노티) API")
+    @Operation(summary = "")
     @PatchMapping("/read/{id}")
     @PreAuthorize("hasAnyAuthority('READ_PORTAL', 'READ_MANAGE', 'READ_SYSTEM')")
     public ResponseEntity<ApiResult> putRead(@PathVariable(value = "id") Long notificationId) {
@@ -115,6 +127,8 @@ public class NotificationController {
     }
 
 
+    @Tag(name = "알림(노티) API")
+    @Operation(summary = "")
     @GetMapping("/details/{memberId}")
     @PreAuthorize("hasAnyAuthority('READ_PORTAL', 'READ_MANAGE', 'READ_SYSTEM')")
     public ResponseEntity<ApiResult<Slice<NotificationDto>>> get(Pageable pageable) {
@@ -135,6 +149,8 @@ public class NotificationController {
      *
      * @return
      */
+    @Tag(name = "알림(노티) API")
+    @Operation(summary = "")
     @PatchMapping("/read")
     @PreAuthorize("hasAnyAuthority('READ_PORTAL', 'READ_MANAGE', 'READ_SYSTEM')")
     public ResponseEntity<ApiResult> allRead() {

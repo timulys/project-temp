@@ -8,6 +8,10 @@ import com.kep.core.model.type.QueryParam;
 import com.kep.portal.model.dto.issue.IssueLogSearchCondition;
 import com.kep.portal.model.dto.issue.IssueSearchCondition;
 import com.kep.portal.service.issue.IssueLogService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -28,6 +32,7 @@ import java.util.Map;
 /**
  * 이슈 로그 (상담 메세지, 챗봇 이력, 알림톡 메세지, 음성봇 이력 등)
  */
+@Tag(name = "이슈 로그 API", description = "/api/v1/issue/log")
 @RestController
 @RequestMapping("/api/v1/issue/log")
 @Slf4j
@@ -45,9 +50,17 @@ public class IssueLogController {
 	 * <li>상담 관리 > 상담 진행 목록 > 상담창, SB-CA-002
 	 * <li>상담 관리 > 상담 이력 > 상담창, SB-CA-P01
 	 */
+	@Tag(name = "이슈 로그 API")
+	@Operation(summary = "이슈 로그 목록 조회"
+			, description = "상담 포탈 > 상담창 (스크롤시 이전 이슈 미포함)\n" +
+			"상담 포탈 > 상담 지원 도구 > 상담 이력, SB-CP-T02\n" +
+			"상담 관리 > 상담 지원 요청 > 상담창, SB-CA-005\n" +
+			"상담 관리 > 상담 진행 목록 > 상담창, SB-CA-002\n" +
+			"상담 관리 > 상담 이력 > 상담창, SB-CA-P01")
 	@GetMapping
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE', 'WRITE_SUPPORT', 'WRITE_ISSUE_OPEN', 'WRITE_ISSUE_HISTORY')")
 	public ResponseEntity<ApiResult<List<IssueLogDto>>> getAll(
+			@Parameter(description = "이슈 아이디", required = true)
 			@RequestParam(value = "issue_id") Long issueId,
 			@RequestParam Map<String, String> params,
 			@SortDefault.SortDefaults({
@@ -74,6 +87,8 @@ public class IssueLogController {
 	 *
 	 * <li>상담 포탈 > 상담창 (스크롤시 이전 이슈 포함)
 	 */
+	@Tag(name = "이슈 로그 API")
+	@Operation(summary = "이슈 로그 목록 조회 (검색조건)")
 	@GetMapping(value = "/search")
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE')")
 	public ResponseEntity<ApiResult<List<IssueLogDto>>> search(
@@ -99,9 +114,12 @@ public class IssueLogController {
 	/**
 	 * 수정
 	 */
+	@Tag(name = "이슈 로그 API")
+	@Operation(summary = "이슈 로그 수정")
 	@PutMapping(value = "/{id}")
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE')")
 	public ResponseEntity<ApiResult<IssueLogDto>> put(
+			@Parameter(description = "이슈 로그 아이디", in = ParameterIn.PATH, required = true)
 			@PathVariable("id") Long id,
 			@RequestBody IssuePayload issuePayload) throws Exception {
 

@@ -11,6 +11,9 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,6 +31,7 @@ import com.kep.portal.service.issue.IssueMemoService;
 
 import lombok.extern.slf4j.Slf4j;
 
+@Tag(name = "이슈 메모 API", description = "/api/v1/issue/memo")
 @RestController
 @RequestMapping("/api/v1/issue/memo")
 @Slf4j
@@ -46,9 +50,12 @@ public class IssueMemoController {
 	 * @수정일자	  / 수정자		 	/ 수정내용
 	 * 2023.04.04 / philip.lee7 / 조회함수 신규
 	 */
+	@Tag(name = "이슈 메모 API")
+	@Operation(summary = "메모 목록 조회")
 	@GetMapping("/list")
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE', 'WRITE_SUPPORT', 'WRITE_ISSUE_OPEN', 'WRITE_ISSUE_HISTORY')")
 	public ResponseEntity<ApiResult<List<IssueMemoDto>>> getAll(
+			@Parameter(description = "이슈 아이디")
 			@RequestParam(value = "issue_id") Long issueId) {
 
 		log.info("ISSUE LOG, GET ALL, issueId: {}", issueId);
@@ -71,6 +78,8 @@ public class IssueMemoController {
 	 * @수정일자	  / 수정자		 	/ 수정내용
 	 * 2023.04.04 / philip.lee7 / 저장함수 신규
 	 */
+	@Tag(name = "이슈 메모 API")
+	@Operation(summary = "메모 저장")
 	@PostMapping("/save")
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE', 'WRITE_SUPPORT', 'WRITE_ISSUE_OPEN', 'WRITE_ISSUE_HISTORY')")
 	public ResponseEntity<ApiResult<List<IssueMemoDto>>> saveMemo(
@@ -96,6 +105,8 @@ public class IssueMemoController {
 	 * @수정일자	  / 수정자		 	/ 수정내용
 	 * 2023.04.04 / philip.lee7 / 삭제함수 신규
 	 */	
+	@Tag(name = "이슈 메모 API")
+	@Operation(summary = "메모 삭제")
 	@PostMapping("/delete")
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE', 'WRITE_SUPPORT', 'WRITE_ISSUE_OPEN', 'WRITE_ISSUE_HISTORY')")
 	public ResponseEntity<ApiResult<List<IssueMemoDto>>> delete(

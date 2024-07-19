@@ -3,6 +3,8 @@ package com.kep.portal.controller.platform.kakao;
 import com.kep.core.model.dto.platform.PlatformSubscribeDto;
 import com.kep.core.model.dto.platform.kakao.KakaoChannelDto;
 import com.kep.portal.service.platform.PlatformSubscribeService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +18,7 @@ import java.time.ZonedDateTime;
 /**
  * 카카오 채널 이벤트
  */
+@Tag(name = "카카오 채널 이벤트 API", description = "/api/v1/kakao")
 @RestController
 @RequestMapping("/api/v1/kakao")
 @Slf4j
@@ -30,6 +33,8 @@ public class KakaoChannelController {
      * dto.event=added 추가
      * dto.event=blocked 차단
      */
+    @Tag(name = "카카오 채널 이벤트 API")
+    @Operation(description = "채널 추가 / 차단")
     @PostMapping("/subscribe")
     public void channel(@RequestBody KakaoChannelDto dto) {
         log.info("KAKAO , CHANNEL DTO:{}",dto);

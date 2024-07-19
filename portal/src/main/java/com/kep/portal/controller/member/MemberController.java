@@ -8,6 +8,10 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -44,6 +48,7 @@ import lombok.extern.slf4j.Slf4j;
  * 유저
  * <li>시스템 설정 > 계정 관리 > 계정 목록, SB-SA-002</li>
  */
+@Tag(name = "사용자(계정) 관리 API", description = "/api/v1/member")
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/member")
@@ -55,8 +60,13 @@ public class MemberController {
     /**
      * 브랜치별 목록 조회
      */
+    @Tag(name = "사용자(계정) 관리 API")
+    @Operation(summary = "브랜치별 목록 조회")
     @GetMapping(value = "/branch/{id}")
-    public ResponseEntity<ApiResult<List<MemberDto>>> getAllByBranch(@NotNull @PathVariable("id") Long branchId) {
+    public ResponseEntity<ApiResult<List<MemberDto>>> getAllByBranch(
+            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH, required = true)
+            @NotNull @PathVariable("id") Long branchId
+    ) {
 
         log.info("MEMBER, GET ALL BY BRANCH, BRANCH: {}", branchId);
 
@@ -69,9 +79,12 @@ public class MemberController {
 
 
     /**
+     * FIXME :: 위 getAllByBranch와 동일 코드. 앞단 연동 확인 후 제거 20240715 volka
      * TODO: 용도?
      * {@link #getAllByBranch} 과 같음
      */
+    @Tag(name = "사용자(계정) 관리 API")
+    @Operation(summary = "브랜치별 목록 조회와 동일함. 앞단 연동 확인 후 제거예정")
     @GetMapping(value = "/branch/{id}/team")
     public ResponseEntity<ApiResult<List<MemberDto>>> teams(@NotNull @PathVariable("id") Long branchId) {
 
@@ -87,6 +100,8 @@ public class MemberController {
     /**
      * 계정 관리 > 계정 목록
      */
+    @Tag(name = "사용자(계정) 관리 API")
+    @Operation(summary = "계정 목록 조회", description = "계정 관리 > 계정 목록")
     @GetMapping
     public ResponseEntity<ApiResult<List<MemberDto>>> getAll(
             @QueryParam @Valid MemberSearchCondition condition,
@@ -116,8 +131,11 @@ public class MemberController {
     /**
      * 조회
      */
+    @Tag(name = "사용자(계정) 관리 API")
+    @Operation(summary = "사용자 계정 상세 조회")
     @GetMapping(value = "/{id}")
     public ResponseEntity<ApiResult<MemberDto>> get(
+            @Parameter(description = "사용자(계정) 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable("id") Long id) {
 
         log.info("MEMBER, GET, MEMBER: {}", id);
@@ -139,6 +157,8 @@ public class MemberController {
      * 검색
      */
     @GetMapping(value = "/search")
+//  @Tag(name = "사용자(계정) 관리 API")
+    @Operation(summary = "사용자 계정 목록 조회")
 //    @PreAuthorize("hasAnyAuthority('READ_MEMBER')")
     public ResponseEntity<ApiResult<List<MemberDto>>> search(
             @QueryParam @Valid MemberSearchCondition condition,
@@ -157,6 +177,9 @@ public class MemberController {
      * <li>상담 관리 > 상담 직원 전환, SB-CA-005
      */
     @GetMapping(value = "/search/assignable")
+//  @Tag(name = "사용자(계정) 관리 API")
+    @Operation(summary = "배정 가능 상담원 목록 조회", description = "상담 포탈 > 상담 직원 전환, SB-CP-P01\n" +
+            "상담 관리 > 상담 직원 전환, SB-CA-005")
 //    @PreAuthorize("hasAnyAuthority('READ_MEMBER')")
     public ResponseEntity<ApiResult<List<MemberAssignDto>>> searchAssignable(
             @QueryParam @Valid MemberSearchCondition condition,
@@ -180,6 +203,8 @@ public class MemberController {
      * 생성
      */
     @PostMapping
+    @Tag(name = "사용자(계정) 관리 API")
+    @Operation(summary = "사용자 계정 생성")
     @PreAuthorize("hasAnyAuthority('WRITE_ACCOUNT') or hasAnyRole('ROLE_MASTER')")
     public ResponseEntity<ApiResult<MemberDto>> post(
             @RequestBody @Valid MemberDto dto)  {
@@ -203,6 +228,8 @@ public class MemberController {
     /**
      * BNK 계정등록 멤버 제한 
      */
+    @Tag(name = "사용자(계정) 관리 API")
+    @Operation(summary = "전체 계정 개수 조회")
     @GetMapping(value = "/totalAccount")
     public ResponseEntity<ApiResult<Long>> getMemberCount() {
         long memberCount = memberService.getTotalmembers();
@@ -217,8 +244,11 @@ public class MemberController {
     /**
      * 수정
      */
+    @Tag(name = "사용자(계정) 관리 API")
+    @Operation(summary = "사용자 계정 수정")
     @PutMapping(value = "/{id}")
     public ResponseEntity<ApiResult<MemberDto>> put(
+            @Parameter(description = "사용자 계정 아이디")
             @PathVariable("id") Long memberId,
             @RequestBody MemberDto dto) {
 
@@ -242,8 +272,11 @@ public class MemberController {
     /**
      * 비밀번호 초기화
      */
+    @Tag(name = "사용자(계정) 관리 API")
+    @Operation(summary = "사용자 계정 비밀번호 초기화")
     @PutMapping(value = "/{id}/password")
     public ResponseEntity<ApiResult<String>> put(
+            @Parameter(description = "사용자 계정 아이디")
             @PathVariable("id") Long memberId) {
 
         if(memberId == null){
@@ -268,8 +301,11 @@ public class MemberController {
     /**
      * 계정 username 중복검사
      */
+    @Tag(name = "사용자(계정) 관리 API")
+    @Operation(summary = "사용자 계정 username 중복 체크")
     @GetMapping(value = "/check")
     public ResponseEntity<ApiResult<String>> duplication(
+            @Parameter(description = "사용자명", required = true)
             @RequestParam("username") @NotEmpty String username) {
 
         log.info("MEMBER, CHECK DUPLICATION, USERNAME: {}", username);
@@ -292,9 +328,13 @@ public class MemberController {
     }
     /**
      * 계정 vndrCustNo[상담직원번호] 중복검사
+     * FIXME :: BNK 로직 20240715 volka
      */
+    @Tag(name = "사용자(계정) 관리 API")
+    @Operation(summary = "계정 상담직원번호 중복검사 (BNK :: 제거 예정)")
     @GetMapping(value = "/checkVndrCustNo")
     public ResponseEntity<ApiResult<String>> duplicationVndrCustNo(
+            @Parameter(description = "BNK 상담 직원 번호")
             @RequestParam("vndrCustNo") @NotEmpty String vndrCustNo) {
 
         log.info("MEMBER, CHECK DUPLICATION, vndrCustNo: {}", vndrCustNo);
@@ -319,8 +359,11 @@ public class MemberController {
     /**
      * 상담가능 상태 ({@link Member}.status) 수정
      */
+    @Tag(name = "사용자(계정) 관리 API")
+    @Operation(summary = "상담가능 상태 수정")
     @PutMapping("/{id}/status")
     public ResponseEntity<ApiResult<String>> status(
+            @Parameter(description = "사용자(계정) 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable("id") Long memberId,
             @RequestBody ProfileDto dto){
 
@@ -342,6 +385,8 @@ public class MemberController {
      * @param setting
      * @return
      */
+    @Tag(name = "사용자(계정) 관리 API")
+    @Operation(summary = "상담직원 환경설정")
     @PutMapping("/setting")
     public ResponseEntity<ApiResult<Map<String , Object>>> setting(
             @RequestBody Map<String , Object> setting){
@@ -365,9 +410,13 @@ public class MemberController {
      * @수정일자	  / 수정자		 	/ 수정내용
      * 2023.04.04 / philip.lee7 / 함수추가
      */
+    @Tag(name = "사용자(계정) 관리 API")
+    @Operation(summary = "비밀번호 변경")
     @PutMapping(value = "/{id}/change")
     public ResponseEntity<ApiResult<Map<String,Object>>> change(
-            @PathVariable("id") Long memberId ,@RequestBody MemberPassDto dto){
+            @Parameter(description = "사용자 아이디", in = ParameterIn.PATH, required = true)
+            @PathVariable("id") Long memberId
+            ,@RequestBody MemberPassDto dto){
 
         if(memberId == null){
             ApiResult<Map<String,Object>> response = ApiResult.<Map<String,Object>>builder()
@@ -398,8 +447,11 @@ public class MemberController {
      * @수정일자	  / 수정자		 	/ 수정내용
      * 2023.05.31 / asher.shin / 함수추가
      */
+    @Tag(name = "사용자(계정) 관리 API")
+    @Operation(summary = "근무시간 일정 수정")
     @PutMapping(value = "/{id}/duty/change")
     public ResponseEntity<ApiResult<MemberDto>> changeDuty(
+            @Parameter(description = "사용자 아이디", in = ParameterIn.PATH, required = true)
            @PathVariable(value = "id") Long id ){
 
         if(id == null){
@@ -431,8 +483,11 @@ public class MemberController {
      * @수정일자	  / 수정자		 	/ 수정내용
      * 2023.05.31 / asher.shin / 함수추가
      */
+    @Tag(name = "사용자(계정) 관리 API")
+    @Operation(summary = "상담 카테고리 변경")
     @PutMapping(value = "/{id}/counsel/change")
     public ResponseEntity<ApiResult<MemberDto>> changeCounselCategory(
+            @Parameter(description = "사용자 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "id") Long id ,@RequestBody MemberDto dto){
 
         if(id == null){
@@ -457,6 +512,8 @@ public class MemberController {
     /**
      * 계정 관리 > 계정 목록 > 관리 > > 그룹 추가 > 그룹장 선택
      */
+    @Tag(name = "사용자(계정) 관리 API")
+    @Operation(summary = "그룹장 선택 조회", description = "계정 관리 > 계정 목록 > 관리 > > 그룹 추가 > 그룹장 선택")
     @GetMapping("/not-in")
     public ResponseEntity<ApiResult<List<MemberDto>>> getNotLeaders(
             @QueryParam @Valid MemberSearchCondition condition,

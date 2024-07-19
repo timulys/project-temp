@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.kep.core.model.dto.upload.UploadDto;
 import com.kep.portal.model.entity.upload.Upload;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,10 +28,13 @@ import lombok.NoArgsConstructor;
 public class NoticeUploadDto {
 
 	
+	@Schema(description = "공지사항 업로드 아이디")
 	private Long id;
 	
+	@Schema(description = "공지사항 아이디")
 	private Long noticeId;
 	
 	@JsonIncludeProperties({"id","original_name","name","path","url","size"})
+	@Schema(description = "업로드 정보")
 	private UploadDto upload;
 }

@@ -151,6 +151,14 @@ public class GuideService {
         }
     }
 
+    /**
+     * TODO 유효성 검사 (최대 자리수 요건 정의 필요, 임시 저장 시 검증 적용 필요) 20240717 volka
+     *
+     * @param guidePayload
+     * @param enabled
+     * @return
+     * @throws Exception
+     */
     public GuideDto store(GuidePayload guidePayload, boolean enabled) throws Exception {
 
 

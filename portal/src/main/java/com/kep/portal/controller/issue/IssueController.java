@@ -12,6 +12,10 @@ import com.kep.portal.model.dto.issue.IssueSearchCondition;
 import com.kep.portal.model.entity.issue.IssueAssign;
 import com.kep.portal.service.assign.AssignProducer;
 import com.kep.portal.service.issue.IssueService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +37,7 @@ import java.util.List;
 /**
  * 이슈 (상담, 채팅 등)
  */
+@Tag(name = "이슈(상담, 채팅 등) API", description = "/api/v1/issue")
 @RestController
 @RequestMapping("/api/v1/issue")
 @Slf4j
@@ -52,9 +57,14 @@ public class IssueController {
 	 * <li>상담 관리 > 상담 진행 목록 > 상담창, SB-CA-002
 	 * <li>상담 관리 > 상담 이력 > 상담창, SB-CA-P01
 	 */
+	@Tag(name = "이슈(상담, 채팅 등) API")
+	@Operation(summary = "이슈 단건 조회", description = "SB-CP-T02, SB-CA-005, SB-CA-002, SB-CA-P01")
 	@GetMapping(value = "/{id}")
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE', 'WRITE_SUPPORT', 'WRITE_ISSUE_OPEN', 'WRITE_ISSUE_HISTORY')")
-	public ResponseEntity<ApiResult<IssueDto>> get(@PathVariable("id") Long id) {
+	public ResponseEntity<ApiResult<IssueDto>> get(
+			@Parameter(description = "이슈 아이디", in = ParameterIn.PATH, required = true)
+			@PathVariable("id") Long id
+	) {
 		log.info("ISSUE, GET, ISSUE: {}", id);
 		
 		IssueDto issueDto = issueService.getById(id);
@@ -79,13 +89,18 @@ public class IssueController {
 	 *
 	 * <li>상담 포탈 > 대화 목록, SB-CP-002
 	 */
+	@Tag(name = "이슈(상담, 채팅 등) API")
+	@Operation(summary = "이슈 목록 조회", description = "상담 포탈 > 대화 목록, SB-CP-002")
 	@GetMapping
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE')")
 	public ResponseEntity<ApiResult<List<IssueDto>>> getAll(
+			@Parameter(description = "이슈 상태 목록 [open : 상담 요청 , assign : 배정 완료, close : 상담 종료(완료),  ask : 고객 질의,  reply : 상담원 답변, urgent : 고객 질의 중 미답변 시간 초과]")
 			@RequestParam(name = "status") List<IssueStatus> statuses
-			, @RequestParam(name = "customer_subject", required = false) String customerSubject
-			, @RequestParam(name = "customer_query", required = false) String customerQuery
-			, @RequestParam(name = "type", required = false) IssueType type
+			, @RequestParam(name = "customer_subject", required = false) String customerSubject //TODO :: 의미 파악 필요 (정의서상 '고정' 의미)
+			, @Parameter(description = "검색 고객명")
+			@RequestParam(name = "customer_query", required = false) String customerQuery
+			,@Parameter(description = "이슈 타입 [chat, call, info]")
+			@RequestParam(name = "type", required = false) IssueType type
 			, @SortDefault.SortDefaults({
 					@SortDefault(sort = {"modified"}, direction = Sort.Direction.DESC)}) Pageable pageable) throws Exception {
 
@@ -122,6 +137,8 @@ public class IssueController {
 	 *
 	 * <li>상담 관리 > 상담 진행 목록, SB-CA-002
 	 */
+	@Tag(name = "이슈(상담, 채팅 등) API")
+	@Operation(summary = "상담 진행 목록 조회", description = "SB-CA-002")
 	@GetMapping(value = "/search/open")
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE_OPEN')")
 	public ResponseEntity<ApiResult<List<IssueDto>>> searchOpen(
@@ -138,6 +155,8 @@ public class IssueController {
 	 *
 	 * <li>상담 관리 > 상담 이력, SB-CA-003
 	 */
+	@Tag(name = "이슈(상담, 채팅 등) API")
+	@Operation(summary = "상담 이력 조회")
 	@GetMapping(value = "/search/history")
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE_HISTORY')")
 	public ResponseEntity<ApiResult<List<IssueDto>>> searchHistory(
@@ -156,6 +175,8 @@ public class IssueController {
 	 *
 	 * <li>상담 포탈 > 상담 지원 도구 > 상담 이력, SB-CP-T02
 	 */
+	@Tag(name = "이슈(상담, 채팅 등) API")
+	@Operation(summary = "상담 이력 조회 (by Guest)")
 	@GetMapping(value = "/search/history/{guestId}")
 	//@PreAuthorize(("hasAnyAuthority('WRITE_ISSUE')")
 	public ResponseEntity<ApiResult<List<IssueDto>>> searchHistoryByGuest(
@@ -178,6 +199,8 @@ public class IssueController {
 	 * TODO: DELETEME, 테스트 용도
 	 * 상담 배정
 	 */
+	@Tag(name = "이슈(상담, 채팅 등) API")
+	@Operation(summary = "상담배정 (테스트 용도 / deprecated)")
 	@Deprecated
 	@PutMapping(value = "/{id}/assign")
 	public ResponseEntity<ApiResult<String>> assign(

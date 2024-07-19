@@ -1,6 +1,7 @@
 package com.kep.portal.util;
 
 import com.kep.portal.config.property.PortalProperty;
+import com.mysema.commons.lang.Assert;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.lang.Nullable;
@@ -9,6 +10,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +37,14 @@ public class UploadUtils {
         return mimeType.startsWith("image/");
     }
 
+    public String getExt(@NotBlank String originalFilename) {
+        return originalFilename.substring(originalFilename.lastIndexOf("."));
+    }
+
+    public boolean validateExt(String originalFilename) {
+        return portalProperty.getAllocateExtension().contains(getExt(originalFilename).toLowerCase());
+    }
+
     /**
      * 파일 저장
      */
@@ -50,6 +60,9 @@ public class UploadUtils {
         log.info("기본 패스 :::::::;; {} ",basePath);
         String fileName = getFileName(multipartFile);
         log.info("파일이름 :::::::;; {} ",fileName);
+
+        //FIXME :: 확장자 검증 로직 추가 (확장자 정해지면 적용 20240717 volka)
+//        Assert.isTrue(validateExt(multipartFile.getOriginalFilename()), "not allowed file extension");
 
         try {
             File targetDirectory = new File(portalProperty.getStoragePath()

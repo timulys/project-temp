@@ -1,5 +1,6 @@
 package com.kep.core.model.dto.upload;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,20 +18,24 @@ public class UploadPlatformRequestDto {
 	 * 파일 소스, URL
 	 */
 	@URL
+	@Schema(description = "파일 소스, URL")
 	private String sourceUrl;
 
 	/**
 	 * 파일 소스, 로컬 스토리지에서 접근 가능시
 	 */
+	@Schema(description = "파일 소스, 로컬 스토리지에서 접근 가능시")
 	private String sourcePath;
 
 	/**
 	 * 파일 소스, 폼 데이터
 	 */
+	@Schema(description = "파일 소스, 폼 데이터")
 	private MultipartFile sourceFile;
 
 	/**
 	 * 카카오 상담톡, 이미지 타입
 	 */
+	@Schema(description = "카카오 상담톡, 이미지 타입")
 	private String imageType;
 }

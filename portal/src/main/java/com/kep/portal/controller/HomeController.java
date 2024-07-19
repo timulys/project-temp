@@ -13,6 +13,7 @@ import java.util.Random;
 /**
  * TODO: DELETEME, 프론트 시작시 삭제
  */
+@Deprecated
 @Controller
 @Slf4j
 public class HomeController {

@@ -6,6 +6,7 @@
  */
 package com.kep.portal.model.dto.member;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,15 +20,18 @@ import lombok.NoArgsConstructor;
 public class MemberAutoMessageTemplateDto {
 
 
+    @Schema(description = "템플릿 아이디")
     private Long id;
 
     //템플릿 구분값 1: 즉시발송 2:당일 10분전 발송
+    @Schema(description = "템플릿 구분값 1: 즉시발송 2:당일 10분전 발송")
     private int category;
 
     //템플릿명
-
+    @Schema(description = "템플릿명")
     private String title;
 
     //템플릿 내용
+    @Schema(description = "템플릿 내용")
     private String payload;
 }

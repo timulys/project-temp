@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.kep.core.model.dto.member.MemberDto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,25 +27,35 @@ import lombok.NoArgsConstructor;
 @Builder
 public class IssueMemoDto {
 	
+	@Schema(description = "이슈 메모 아이디")
 	private Long id;
 	
+	@Schema(description = "이슈 아이디")
 	private Long issueId;
 	
+	@Schema(description = "내용")
 	private String content;
 	
+	@Schema(description = "사용자 아이디")
 	private Long memberId;
 	
+	@Schema(description = "게스트 아이디")
 	private Long guestId;
 	
+	@Schema(description = "생성일시")
 	private ZonedDateTime created;
 	
+	@Schema(description = "수정일시")
 	private ZonedDateTime modified;
 	
+	@Schema(description = "삭제여부")
 	private boolean deleted ;
 	
 	@JsonIncludeProperties({"id","username","nickname"})
+	@Schema(description = "사용자 정보")
 	private MemberDto member;
 
+	@Schema(description = "메모 아이디 목록")
 	private List<Long> ids;
 
 

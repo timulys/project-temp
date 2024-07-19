@@ -19,6 +19,11 @@ application:
     storage-path: ${STORAGE_PATH:/opt/storage}
     upload-path: ${application.portal.storage-path}/upload
     upload-url: ${application.portal.service-url}/upload
+    #TODO :: 파일 허용 확장자 요건 정해지면 추가 20240717 volka
+    allcate-extension:
+      - ".xlsx"
+      - ".jpg"
+      - ".jpeg"
     system-member-id: 9000000001
     kakao-bot-member-id: 9000000002
     dashboad:

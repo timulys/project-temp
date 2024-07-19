@@ -6,6 +6,8 @@ import com.kep.core.model.dto.platform.BizTalkHistoryDto;
 import com.kep.core.model.type.QueryParam;
 import com.kep.portal.model.dto.platform.BizTalkHistoryCondition;
 import com.kep.portal.service.platform.BizTalkHistoryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +24,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
+@Tag(name = "플랫폼 비즈톡 히스토리 API", description = "/api/v1/platform/biztalk-history")
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/platform/biztalk-history")
@@ -33,6 +36,8 @@ public class BizTalkHistoryController {
     /**
      * 상담관리에서 톡 이력 조회
      */
+    @Tag(name = "플랫폼 비즈톡 히스토리 API")
+    @Operation(summary = "상담관리 톡 이력 조회")
     @GetMapping
     @PreAuthorize("hasAnyAuthority('READ_TALK_HISTORY')")
     public ResponseEntity<ApiResult<List<BizTalkHistoryDto>>> search(
@@ -57,6 +62,8 @@ public class BizTalkHistoryController {
     /**
      * 상담원이 톡 전송 이력 조회
      */
+    @Tag(name = "플랫폼 비즈톡 히스토리 API")
+    @Operation(summary = "상담원 톡 전송 이력 조회", description = "상담원이 톡 전송 이력 조회")
     @GetMapping("/search")
     public ResponseEntity<ApiResult<List<BizTalkHistoryDto>>> memberSearch(
             @QueryParam BizTalkHistoryCondition condition,
@@ -77,11 +84,26 @@ public class BizTalkHistoryController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
+    /**
+     * FIXME :: 반환 void? 파일 반환 필요 20240715 volka
+     * @param res
+     * @param condition
+     */
+    @Tag(name = "플랫폼 비즈톡 히스토리 API")
+    @Operation(summary = "포탈 비즈톡 히스토리 다운로드")
     @GetMapping("/portal/download")
     public void portalDownload(HttpServletResponse res,
                          @QueryParam BizTalkHistoryCondition condition){
         bizTalkHistoryService.portalHistoryDownload(res, condition);
     }
+
+    /**
+     * FIXME :: 반환 void? 파일 반환 필요 20240715 volka
+     * @param res
+     * @param condition
+     */
+    @Tag(name = "플랫폼 비즈톡 히스토리 API")
+    @Operation(summary = "관리 비즈톡 히스토리 다운로드")
     @GetMapping("/management/download")
     public void managementDownload(HttpServletResponse res,
                          @QueryParam BizTalkHistoryCondition condition){

@@ -4,6 +4,9 @@ import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.issue.IssueDto;
 import com.kep.portal.service.issue.event.EventByManagerService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +24,7 @@ import java.util.Map;
  * <li>배정 변경
  * <li>상담 종료
  */
+@Tag(name = "이벤트 API [매니저]", description = "/api/v1/issue/event-by-manager")
 @RestController
 @RequestMapping(("/api/v1/issue/event-by-manager"))
 @Slf4j
@@ -33,12 +37,18 @@ public class EventByManagerController {
 	 * 상담 관리 > 상담 진행 목록 > 상담 직원 배정
 	 * TODO: 강제 배정 필요한가?
 	 */
+	@Tag(name = "이벤트 API [매니저]")
+	@Operation(summary = "상담 직원 배정", description = "상담 관리 > 상담 진행 목록 > 상담 직원 배정")
 	@PostMapping(value = "/assign")
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE_OPEN')")
 	public ResponseEntity<ApiResult<IssueDto>> assign(
+			@Parameter(description = "이슈 아이디 목록", required = true)
 			@RequestParam(value = "issue_id") List<Long> issueIds,
+			@Parameter(description = "사용자 아이디")
 			@RequestParam(value = "member_id", required = false) Long memberId,
+			@Parameter(description = "브랜치 아이디")
 			@RequestParam(value = "branch_id", required = false) Long branchId,
+			@Parameter(description = "이슈 카테고리 아이디")
 			@RequestParam(value = "issue_category_id", required = false) Long issueCategoryId,
 			@RequestBody(required = false) Map<String, Object> options) {
 
@@ -62,9 +72,12 @@ public class EventByManagerController {
 	/**
 	 * 상담 관리 > 상담 진행 목록 > 상담 종료
 	 */
+	@Tag(name = "이벤트 API [매니저]")
+	@Operation(summary = "상담 종료", description = "상담 관리 > 상담 진행 목록 > 상담 종료")
 	@PostMapping(value = "/close")
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE_OPEN')")
 	public ResponseEntity<ApiResult<IssueDto>> close(
+			@Parameter(description = "이슈 아이디 목록", required = true)
 			@RequestParam("issue_id") List<Long> issueIds,
 			@RequestBody(required = false) Map<String, Object> options) throws Exception {
 

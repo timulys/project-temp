@@ -11,6 +11,10 @@ import com.kep.portal.service.customer.CustomerServiceImpl;
 import com.kep.portal.service.customer.GuestMemoService;
 import com.kep.portal.util.SecurityUtils;
 import com.mysema.commons.lang.Assert;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -23,6 +27,7 @@ import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.List;
 
+@Tag(name = "고객 API", description = "/api/v1/customer")
 @RestController
 @RequestMapping("/api/v1/customer")
 @Slf4j
@@ -42,6 +47,8 @@ public class CustomerController {
      * @param pageable
      * @return
      */
+    @Tag(name = "고객 API")
+    @Operation(summary = "전체 고객 목록 조회", description = "접근 권한 룰 :: 업체 별")
     @GetMapping
     public ResponseEntity<ApiResult<List<CustomerDto>>> index(Pageable pageable) {
         List<CustomerDto> entities = customerService.getAll(pageable,null , false);
@@ -57,6 +64,8 @@ public class CustomerController {
      * @param pageable
      * @return
      */
+    @Tag(name = "고객 API")
+    @Operation(summary = "회원(상담원) 고객 목록 조회", description = "회원(상담원) 고객 목록 조회")
     @GetMapping(value = "/member")
     public ResponseEntity<ApiResult<List<CustomerDto>>> member(Pageable pageable) {
 
@@ -73,6 +82,8 @@ public class CustomerController {
      * 회원(상담원) 기념일 고객 목록
      * @return
      */
+    @Tag(name = "고객 API")
+    @Operation(summary = "회원(상담원) 기념일 고객 목록 조회", description = "회원(상담원) 기념일 고객 목록 조회")
     @GetMapping(value = "/anniversarie")
     public ResponseEntity<ApiResult<List<CustomerDto>>> anniversaries() {
 //        Long memberId = securityUtils.getMemberId();
@@ -89,6 +100,7 @@ public class CustomerController {
      * @param id
      * @return
      */
+//    @Tag(name = "고객 API")
 //    @GetMapping(value = "/{id}")
 //    public ResponseEntity<ApiResult<CustomerDto>> show(@PathVariable("id") String idString) {
 //        log.info("CUSTOMER, SEARCH ID :{}", idString);
@@ -117,9 +129,14 @@ public class CustomerController {
      * @param id
      * @return
      */
+    @Tag(name = "고객 API")
+    @Operation(summary = "고객 정보 단건 조회", description = "고객 정보 단건 조회")
     @GetMapping(value = "/{id}")
-    public ResponseEntity<ApiResult<CustomerDto>> show(@PathVariable("id") Long id
-            , @RequestParam(required = false) Long issueId) {
+    public ResponseEntity<ApiResult<CustomerDto>> show(
+            @Parameter(description = "고객 아이디", in = ParameterIn.PATH, required = true)
+            @PathVariable("id") Long id
+            ,@Parameter(description = "이슈 아이디", in = ParameterIn.QUERY)
+            @RequestParam(required = false) Long issueId) {
 
         CustomerDto entity = customerService.show(id,issueId);
         log.info("[customerId]:{}",entity);
@@ -137,8 +154,13 @@ public class CustomerController {
      * @param cntrtNum
      * @return
      */
+    @Tag(name = "고객 API")
+    @Operation(summary = "고객 계약 정보 조회", description = "선택된 고객의 계약 정보 조회")
     @GetMapping(value="/contract/{cntrtNum}")
-    public ResponseEntity<ApiResult<LegacyCustomerDto.CresData>> getContractInfo(@PathVariable("cntrtNum") String cntrtNum) {
+    public ResponseEntity<ApiResult<LegacyCustomerDto.CresData>> getContractInfo(
+            @Parameter(description = "계약 아이디", in = ParameterIn.PATH, required = true)
+            @PathVariable("cntrtNum") String cntrtNum
+    ) {
         log.info("cntrtNum[계약실행번호] :{}",cntrtNum);
         try {
             LegacyCustomerDto.CresData contractData = customerService.getContractByCntrtNum(cntrtNum);
@@ -164,6 +186,8 @@ public class CustomerController {
      * 최근대화 고객 목록
      * @return
      */
+    @Tag(name = "고객 API")
+    @Operation(summary = "최근대화 고객 목록")
     @GetMapping(value = "/issue/latest")
     public ResponseEntity<ApiResult<List<CustomerDto>>> latest () {
         List<CustomerDto> entities = customerService.issueLatest();
@@ -179,6 +203,8 @@ public class CustomerController {
      * 즐겨찾기 고객 목록
      * @return
      */
+    @Tag(name = "고객 API")
+    @Operation(summary = "즐겨찾기 고객 목록")
     @GetMapping(value = "/favorite")
     public ResponseEntity<ApiResult<List<CustomerDto>>> favorites () {
         List<CustomerDto> entities = customerService.favorites();
@@ -194,6 +220,8 @@ public class CustomerController {
      * @param dto
      * @return
      */
+    @Tag(name = "고객 API")
+    @Operation(summary = "상담원 고객 즐겨찾기")
     @PostMapping(value = "/favorite")
     public ResponseEntity<ApiResult<CustomerMemberDto>> favoriteStore (
             @RequestBody @NotNull CustomerMemberDto dto) {
@@ -214,6 +242,8 @@ public class CustomerController {
      * @param dto
      * @return
      */
+    @Tag(name = "고객 API")
+    @Operation(summary = "상담원 고객 즐겨찾기 삭제")
     @DeleteMapping(value = "/favorite")
     public ResponseEntity<ApiResult<CustomerMemberDto>> favoriteDelete (
             @RequestBody @NotNull CustomerMemberDto dto) {
@@ -232,6 +262,8 @@ public class CustomerController {
     /**
      * TODO: DELETEME, 고객 정보 저장 (시연용)
      */
+    @Tag(name = "고객 API")
+    @Operation(summary = "(시연용) 고객 정보 저장")
     @PostMapping
     public ResponseEntity<ApiResult<CustomerDto>> post(
             @RequestBody CustomerDto customer) {
@@ -247,8 +279,13 @@ public class CustomerController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    @Tag(name = "고객 API")
+    @Operation(summary = "고객 메모 조회")
     @GetMapping("/memo/{id}")
-    public ResponseEntity<ApiResult<GuestMemoDto>> getCustomerMemo(@PathVariable Long id){
+    public ResponseEntity<ApiResult<GuestMemoDto>> getCustomerMemo(
+            @Parameter(description = "고객 아이디", in = ParameterIn.PATH, required = true)
+            @PathVariable Long id
+    ){
 
 
         GuestMemoDto customerMemoDto = guestMemoService.findCustomerMemo(id);
@@ -260,6 +297,8 @@ public class CustomerController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @Tag(name = "고객 API")
+    @Operation(summary = "고객 메모 저장")
     @PostMapping(value="/memo/save")
     public ResponseEntity<ApiResult<GuestMemoDto>> manageCustomerMemo(@RequestBody GuestMemoDto dto) {
 

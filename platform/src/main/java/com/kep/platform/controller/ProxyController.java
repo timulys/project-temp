@@ -1,5 +1,7 @@
 package com.kep.platform.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -20,6 +22,7 @@ import java.io.OutputStream;
 /**
  * 외부망이 차단된 환경일 경우, 프록시로 사용 가능
  */
+@Tag(name = "프록시 API", description = "외부망 차단된 환경에서 사용")
 @Slf4j
 public class ProxyController {
 
@@ -29,6 +32,8 @@ public class ProxyController {
 	/**
 	 * 카카오 상담톡, 파일 프록시
 	 */
+	@Tag(name = "프록시 API")
+	@Operation(summary = "카카오 상담톡, 파일 프록시")
 	@GetMapping("/proxy/kakao")
 	@ResponseBody
 	public StreamingResponseBody getKakaoFile(@RequestParam("url") String url) {

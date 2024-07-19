@@ -4,6 +4,9 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,6 +20,7 @@ import com.kep.portal.service.guide.GuideCategoryService;
 
 import lombok.extern.slf4j.Slf4j;
 
+@Tag(name = "가이드 카테고리 API", description = "/api/v1/guide/category")
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/guide/category")
@@ -30,6 +34,8 @@ public class GuideCategoryController {
 	 * 
 	 * @return
 	 */
+	@Tag(name = "가이드 카테고리 API")
+	@Operation(summary = "카테고리 전체 조회", description = "(SB-CP-T03, SB-CA-006, SB-CA-P02)")
 	@GetMapping
 	public ResponseEntity<ApiResult<List<GuideCategoryDto>>> get() {
 		List<GuideCategoryDto> item = categoryService.getAll(null);
@@ -38,6 +44,8 @@ public class GuideCategoryController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	@Tag(name = "가이드 카테고리 API")
+	@Operation(summary = "내 브랜치 전체 조회(?)")
 	@GetMapping("/manager")
 	public ResponseEntity<ApiResult<List<GuideCategoryDto>>> getMyBranch() {
 		List<GuideCategoryDto> item = categoryService.getMyBranchAll();
@@ -52,6 +60,8 @@ public class GuideCategoryController {
 	 * @param guideCategorySettings
 	 * @return
 	 */
+	@Tag(name = "가이드 카테고리 API")
+	@Operation(summary = "카테고리 수정", description = "(SB-CA-P02)")
 	@PostMapping
 	@PreAuthorize("hasAnyAuthority('WRITE_GUIDE_CATEGORY')")
 	public ResponseEntity<ApiResult<String>> save(@RequestBody GuideCategorySetting guideCategorySettings) {
@@ -68,9 +78,12 @@ public class GuideCategoryController {
 		}
 	}
 
+	@Tag(name = "가이드 카테고리 API")
+	@Operation(summary = "카테고리 단계 설정")
 	@PostMapping("/depth")
 	@PreAuthorize("hasAnyAuthority('WRITE_GUIDE_CATEGORY')")
 	public ResponseEntity<ApiResult<Integer>> setCategoryDepth(
+			@Parameter(description = "가이드 카테고리 단계")
 			@RequestParam Integer depth
 	){
 		int maxDepth = categoryService.setCategoryMaxDepth(depth);
@@ -83,6 +96,8 @@ public class GuideCategoryController {
 		return new ResponseEntity<>(result, HttpStatus.OK);
 	}
 
+	@Tag(name = "가이드 카테고리 API")
+	@Operation(summary = "카테고리 단계 조회")
 	@GetMapping("/depth")
 	public ResponseEntity<ApiResult<Integer>> getCategoryDepth(){
 		int maxDepth = categoryService.getCategoryMaxDepth();

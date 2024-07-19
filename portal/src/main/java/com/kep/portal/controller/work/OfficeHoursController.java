@@ -11,6 +11,10 @@ import com.kep.portal.model.entity.branch.BranchMapper;
 import com.kep.portal.repository.branch.BranchRepository;
 import com.kep.portal.service.branch.BranchService;
 import com.kep.portal.service.work.OfficeHoursService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +27,7 @@ import javax.validation.constraints.NotNull;
 /**
  * 근무 시간 설정
  */
+@Tag(name = "근무시간 설정 API", description = "/api/v1/work")
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/work")
@@ -46,8 +51,11 @@ public class OfficeHoursController {
      * @param officeWorkDto
      * @return
      */
+    @Tag(name = "근무시간 설정 API")
+    @Operation(summary = "브랜치 근무시간 설정")
     @PostMapping(value = "/branch/{id}")
     public ResponseEntity<ApiResult<OfficeWorkDto>> branch(
+            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable(name = "id") @NotNull Long branchId
             , @RequestBody @Valid OfficeWorkDto officeWorkDto) {
     	log.info("근무 시간 설정 요청: Branch ID - {}, OfficeWorkDto - {}", branchId, officeWorkDto);
@@ -97,8 +105,11 @@ public class OfficeHoursController {
      * @param branchId
      * @return
      */
+    @Tag(name = "근무시간 설정 API")
+    @Operation(summary = "브랜치 근무설정 조회")
     @GetMapping(value = "/branch/{id}")
     public ResponseEntity<ApiResult<OfficeWorkDto>> get(
+            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable(name = "id") @NotNull Long branchId) {
 
         log.info("BRANCH ID :{}" , branchId);

@@ -1,33 +1,9 @@
 package com.kep.portal.controller.issue;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Resource;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.ObjectUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
-import com.kep.core.model.dto.customer.AnniversaryType;
-import com.kep.core.model.dto.customer.CustomerAnniversaryDto;
-import com.kep.core.model.dto.customer.CustomerAuthorizedDto;
-import com.kep.core.model.dto.customer.CustomerContactDto;
-import com.kep.core.model.dto.customer.CustomerContactType;
-import com.kep.core.model.dto.customer.CustomerDto;
+import com.kep.core.model.dto.customer.*;
 import com.kep.core.model.dto.issue.IssueDto;
 import com.kep.core.model.dto.issue.IssueLogStatus;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
@@ -47,8 +23,23 @@ import com.kep.portal.service.customer.CustomerServiceImpl;
 import com.kep.portal.service.issue.IssueService;
 import com.kep.portal.service.issue.event.EventByPlatformService;
 import com.kep.portal.service.platform.BizTalkHistoryService;
-
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 플랫폼에서 전달된 고객 이벤트
@@ -59,6 +50,7 @@ import lombok.extern.slf4j.Slf4j;
  * <li>카카오 상담톡, 채널 (SenderKey), 유저 (UserKey)
  * <li>솔루션 웹, 채널, 유저 (쿠키)
  */
+@Tag(name = "플랫폼 전달 고객 이벤트 API", description = "/api/v1/event-by-platform")
 @RestController
 @RequestMapping("/api/v1/event-by-platform")
 @Slf4j
@@ -96,12 +88,18 @@ public class EventByPlatformController {
     /**
      * 상담 요청 이벤트
      */
+    @Tag(name = "플랫폼 전달 고객 이벤트 API")
+    @Operation(summary = "상담 요청 이벤트")
     @PostMapping(value = "/open")
     public ResponseEntity<ApiResult<IssueDto>> open(
+            @Parameter(description = "플랫폼 타입(solution_web, kakao_counsel_talk, kakao_alert_talk, kakao_friend_talk, kakao_template, legacy_web, legacy_app , kakao_counsel_center)", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Platform-Type") PlatformType platformType
-            , @RequestHeader(value = "X-Service-Key") String serviceKey
-            , @RequestHeader(value = "X-User-Key") String userKey
-            , @RequestHeader(value = "X-Track-Key") Long trackKey
+            ,@Parameter(description = "서비스 키", in = ParameterIn.HEADER, required = true)
+            @RequestHeader(value = "X-Service-Key") String serviceKey
+            ,@Parameter(description = "유저 키", in = ParameterIn.HEADER, required = true)
+            @RequestHeader(value = "X-User-Key") String userKey
+            ,@Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
+            @RequestHeader(value = "X-Track-Key") Long trackKey
             , @RequestBody(required = false) Map<String, Object> options) {
 
         log.info("EVENT BY PLATFORM, OPEN, TRACK KEY: {}, PLATFORM: {}, SERVICE: {}, USER: {}, OPTIONS: {}",
@@ -127,11 +125,17 @@ public class EventByPlatformController {
     /**
      * 메세지 이벤트
      */
+    @Tag(name = "플랫폼 전달 고객 이벤트 API")
+    @Operation(summary = "메시지")
     @PostMapping(value = "/message")
     public ResponseEntity<ApiResult<IssueDto>> message(
+            @Parameter(description = "플랫폼 타입(solution_web, kakao_counsel_talk, kakao_alert_talk, kakao_friend_talk, kakao_template, legacy_web, legacy_app , kakao_counsel_center)", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Platform-Type") PlatformType platformType,
+            @Parameter(description = "서비스 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Service-Key") String serviceKey,
+            @Parameter(description = "유저 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-User-Key") String userKey,
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") Long trackKey,
             @RequestBody IssuePayload issuePayload) throws Exception {
 
@@ -162,8 +166,11 @@ public class EventByPlatformController {
     /**
      * 메세지 콜백 이벤트
      */
+    @Tag(name = "플랫폼 전달 고객 이벤트 API")
+    @Operation(summary = "메시지 콜백")
     @PutMapping(value = "/message/callback")
     public ResponseEntity<ApiResult<String>> messageCallback(
+            @Parameter(description = "이벤트 키(이슈 로그 아이디)", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Event-Key") Long issueLogId,
             @RequestBody boolean result) throws Exception {
 
@@ -180,11 +187,17 @@ public class EventByPlatformController {
     /**
      * 상담 종료 이벤트
      */
+    @Tag(name = "플랫폼 전달 고객 이벤트 API")
+    @Operation(summary = "상담 종료")
     @PostMapping(value = "/close")
     public ResponseEntity<ApiResult<IssueDto>> close(
+            @Parameter(description = "플랫폼 타입(solution_web, kakao_counsel_talk, kakao_alert_talk, kakao_friend_talk, kakao_template, legacy_web, legacy_app , kakao_counsel_center)", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Platform-Type") PlatformType platformType,
+            @Parameter(description = "서비스 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Service-Key") String serviceKey,
+            @Parameter(description = "유저 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-User-Key") String userKey,
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") Long trackKey,
             @RequestBody(required = false) Map<String, Object> options) {
 
@@ -200,6 +213,9 @@ public class EventByPlatformController {
     }
 
     /**
+     *
+     * FIXME :: bnk 고객 번호 20240712 volka
+     *
      * 고객 인증 완료
      * @param authorizeType 인증 타입 정보
      * @param trackKey 트래킹 키
@@ -207,9 +223,13 @@ public class EventByPlatformController {
      * @return ResponseEntity 인증 완료 응답
      * @throws Exception 예외 발생 시 처리
      */
+    @Tag(name = "플랫폼 전달 고객 이벤트 API")
+    @Operation(summary = "고객 인증 완료")
     @PostMapping(value = "/authorized")
     public ResponseEntity<ApiResult<CustomerDto>> authorized(
+            @Parameter(description = "인증 타입 (kakao_sync)", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Authorize-Type") AuthorizeType authorizeType,
+            @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") Long trackKey,
             @RequestBody(required = false) Map<String, Object> authorizedInfo) throws Exception {
 

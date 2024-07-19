@@ -6,12 +6,17 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.Assert;
@@ -40,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 공지사항
  */
+@Tag(name = "공지사항 API", description = "/api/v1/notice")
 @RestController
 @RequestMapping("/api/v1/notice")
 @Slf4j
@@ -58,10 +64,14 @@ public class NoticeController {
 	 * @수정일자	  / 수정자		 	/ 수정내용
 	 * 2023.04.04 / philip.lee7 / sort 파라미터 추가
 	 */
+	@Tag(name = "공지사항 API")
+	@Operation(summary = "공지사항 목록 조회", description = "상담관리 > 공지사항 목록")
 	@GetMapping("/manager/search")
 	@PreAuthorize("hasAnyAuthority('WRITE_NOTICE')")
 	public ResponseEntity<ApiResult<List<NoticeResponseDto>>> get(
+			@Parameter(description = "키워드")
 			@RequestParam(name = "keyword", required = false) String keyword,
+			@Parameter(description = "타입")
 			@RequestParam(name = "type", required = false) String type,
 			@SortDefault.SortDefaults({
 					@SortDefault(sort = {"notice.fixation"}, direction = Sort.Direction.DESC),
@@ -86,6 +96,8 @@ public class NoticeController {
 	 * @param noticeDto
 	 * @return
 	 */
+	@Tag(name = "공지사항 API")
+	@Operation(summary = "공지사항 상단 고정/해제")
 	@PutMapping("/manager/fixation")
 	@PreAuthorize("hasAnyAuthority('WRITE_NOTICE')")
 	public ResponseEntity<ApiResult<String>> fixation(
@@ -119,9 +131,12 @@ public class NoticeController {
 	 * @param id
 	 * @return ResponseEntity
 	 */
+	@Tag(name = "공지사항 API")
+	@Operation(summary = "공지사항 상세 조회")
 	@GetMapping({"/{id}", "/manager/{id}"})
 	@PreAuthorize("hasAnyAuthority('READ_PORTAL', 'READ_MANAGE', 'READ_SYSTEM', 'WRITE_NOTICE')")
 	public ResponseEntity<ApiResult<NoticeResponseDto>> get(
+			@Parameter(description = "공지사항 아이디", in = ParameterIn.PATH, required = true)
 			@PathVariable("id") Long id) {
 
 		log.info("NOTICE MANAGER get, GET ID : {}", id);
@@ -143,10 +158,14 @@ public class NoticeController {
 	 * @수정일자	  / 수정자			 	/ 수정내용
 	 * 2023.03.28 / philip.lee7    	/ RequestPart 추가
 	 */
-	@PostMapping("/manager/save")
+	@Tag(name = "공지사항 API")
+	@Operation(summary = "공지사항 저장")
+	@PostMapping(value = "/manager/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasAnyAuthority('WRITE_NOTICE')")
-	public ResponseEntity<ApiResult<NoticeDto>> post(@RequestBody NoticeDto noticeDto
-			, @RequestPart(required = false) List<MultipartFile> files) {
+	public ResponseEntity<ApiResult<NoticeDto>> post(
+			@RequestBody NoticeDto noticeDto
+			,@RequestPart(required = false) List<MultipartFile> files
+	) {
 
 		log.info("NOTICE MANAGER SAVE, POST, BODY : {}", noticeDto);
 
@@ -168,6 +187,8 @@ public class NoticeController {
 	 * @수정일자	  / 수정자			 	/ 수정내용
 	 * 2023.03.28 / philip.lee7    	/ MultipartFile 추가
 	 */
+	@Tag(name = "공지사항 API")
+	@Operation(summary = "공지사항 수정")
 	@PutMapping("/manager/{id}")
 	@PreAuthorize("hasAnyAuthority('WRITE_NOTICE')")
 	public ResponseEntity<ApiResult<NoticeDto>> put(
@@ -194,6 +215,8 @@ public class NoticeController {
  	 * @수정일자	  / 수정자			 	/ 수정내용
 	 * 2023.03.28 / philip.lee7    	/ RequestHeader 로 수정
 	 */
+	@Tag(name = "공지사항 API")
+	@Operation(summary = "공지사항 삭제")
 	@DeleteMapping("/manager/delete")
 	@PreAuthorize("hasAnyAuthority('WRITE_NOTICE')")
 	public ResponseEntity<ApiResult<String>> put(
@@ -218,10 +241,14 @@ public class NoticeController {
 	 * @param pageable
 	 * @return
 	 */
+	@Tag(name = "공지사항 API")
+	@Operation(summary = "공지사항 검색")
 	@GetMapping("/search")
 	@PreAuthorize("hasAnyAuthority('READ_PORTAL', 'READ_MANAGE', 'READ_SYSTEM', 'WRITE_NOTICE')")
 	public ResponseEntity<ApiResult<List<NoticeResponseDto>>> search(
+			@Parameter(description = "키워드")
 			@RequestParam(name = "keyword", required = false) String keyword,
+			@Parameter(description = "조회 타입")
 			@RequestParam(name = "type", required = false) String type,
 			@SortDefault.SortDefaults({
 					@SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable) {
@@ -250,6 +277,9 @@ public class NoticeController {
 	 * @수정일자	  / 수정자			 	/ 수정내용
 	 * 2023.03.28 / philip.lee7    	/ 신규
 	 */
+
+	@Tag(name = "공지사항 API")
+	@Operation(summary = "공지사항 파일 삭제")
 	@PostMapping("/delete/file")
 	@PreAuthorize("hasAnyAuthority('WRITE_NOTICE')")
 	public ResponseEntity<ApiResult<Boolean>> delete(
@@ -268,12 +298,16 @@ public class NoticeController {
 
 
 	/**
+	 * FIXME :: 확인 필요 20240715 volka
+	 *
 	 * FIXME : 정확한 기능 확인 필요고정 공지사항 목록
 	 * @param keyword
 	 * @param type
 	 * @param pageable
 	 * @return
 	 */
+	@Tag(name = "공지사항 API")
+	@Operation(summary = "공지사항 목록 조회 :: 확인필요")
 	@GetMapping("/fixation")
 	public ResponseEntity<ApiResult<List<NoticeResponseDto>>> fixation(
 			@RequestParam(name = "keyword", required = false) String keyword,

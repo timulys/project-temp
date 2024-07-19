@@ -11,6 +11,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
+ * FIXME :: BNK 연동 정보, 수정 필요 20240715 volka
+ *
  * BNK 기간계, 고객 정보
  * 응답 클래스 
  */
