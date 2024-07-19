@@ -27,13 +27,16 @@ spring:
               - uri: http://localhost:8080/legacy
               - uri: http://localhost:8080/legacy
 
+#mq, redis -> lookup dev third party server
   rabbitmq:
-    host: localhost
+#    host: localhost
+    host: 10.206.16.58
     port: 5672
 
   redis:
 #    host: 10.182.100.199
-    host: localhost
+#    host: localhost
+    host: 10.206.16.58
     port: 6379
 
 logging:
