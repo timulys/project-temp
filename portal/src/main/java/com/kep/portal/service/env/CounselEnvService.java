@@ -50,8 +50,9 @@ public class CounselEnvService {
     @Resource
     private PortalProperty portalProperty;
 
-    @Value("${application.portal.bnk-kakao-talk-url}")
-    private String bnkKaKaoTalkUrl;
+    //TODO : BNK url. yml 설정 상 없음. 제거 필요 20240719 volka
+//    @Value("${application.portal.bnk-kakao-talk-url}")
+//    private String bnkKaKaoTalkUrl;
 
     public CounselEnvDto get(@NotNull Long branchId) {
         CounselEnv counselEnv = counselEnvRepository.findByBranchId(branchId);
