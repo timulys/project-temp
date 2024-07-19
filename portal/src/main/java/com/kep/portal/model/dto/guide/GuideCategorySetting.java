@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
+@Schema(description = "가이드 카테고리 세팅 정보")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,10 +23,10 @@ public class GuideCategorySetting {
     private Long branchId;
 
 
-    @Schema(description = "")
+    @Schema(description = "업데이트 가이드 카테고리 목록")
     List<GuideCategoryDto> update;
-    @Schema(description = "")
+    @Schema(description = "추가 가이드 카테고리 목록")
     List<GuideCategoryDto> create;
-    @Schema(description = "")
+    @Schema(description = "삭제 가이드 카테고리 아이디 목록")
     List<Long> delete;
 }

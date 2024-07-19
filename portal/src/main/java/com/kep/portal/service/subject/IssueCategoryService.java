@@ -1,23 +1,27 @@
 package com.kep.portal.service.subject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kep.core.model.dto.customer.CustomerDto;
+import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.legacy.LegacyBnkCategoryDto;
 import com.kep.core.model.dto.subject.IssueCategoryBasicDto;
+import com.kep.portal.model.dto.subject.*;
+import com.kep.core.model.exception.BizException;
 import com.kep.portal.client.LegacyClient;
-import com.kep.portal.model.dto.subject.IssueCategoryChildrenDto;
-import com.kep.portal.model.dto.subject.IssueCategoryStoreDto;
-import com.kep.portal.model.dto.subject.IssueCategoryWithChannelDto;
 import com.kep.portal.model.entity.branch.BranchChannel;
 import com.kep.portal.model.entity.channel.Channel;
+import com.kep.portal.model.entity.channel.ChannelEnv;
 import com.kep.portal.model.entity.subject.IssueCategory;
 import com.kep.portal.model.entity.subject.IssueCategoryMapper;
+import com.kep.portal.repository.channel.ChannelEnvRepository;
+import com.kep.portal.repository.channel.ChannelRepository;
 import com.kep.portal.repository.subject.IssueCategoryRepository;
 import com.kep.portal.service.branch.BranchChannelService;
+import com.kep.portal.service.branch.BranchService;
 import com.kep.portal.service.channel.ChannelEnvService;
 import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -59,6 +63,12 @@ public class IssueCategoryService {
 
     // TODO: 채널 설정 완료시, 설정에서 가져옴
     private static final Integer MAX_DEPTH = 3;
+    @Autowired
+    private BranchService branchService;
+    @Autowired
+    private ChannelEnvRepository channelEnvRepository;
+    @Autowired
+    private ChannelRepository channelRepository;
 
     private Integer getCategoryMaxDepth(Long channelId){
         return channelEnvService.getByChannelId(channelId).getMaxIssueCategoryDepth();
@@ -67,8 +77,10 @@ public class IssueCategoryService {
     @Nullable
     public List<IssueCategoryChildrenDto> search(@NotNull @Positive Long channelId, String name) throws Exception {
 
+        List<IssueCategory> searchedCategories = null;
+
         if (!ObjectUtils.isEmpty(name)) {
-            List<IssueCategory> searchedCategories = issueCategoryRepository.search(channelId,
+            searchedCategories = issueCategoryRepository.search(channelId,
 //					securityUtils.getBranchId(),
                     true,
                     true,
@@ -81,9 +93,10 @@ public class IssueCategoryService {
             log.debug(objectMapper.writeValueAsString(lastDepthCategories));
             return issueCategoryMapper.mapChildren(flatAncestor(lastDepthCategories));
         } else {
-            List<IssueCategory> searchedCategories = issueCategoryRepository.search(channelId,
+            searchedCategories = issueCategoryRepository.search(channelId,
 //					securityUtils.getBranchId(),
                     true, true, getCategoryMaxDepth(channelId));
+
             return issueCategoryMapper.mapChildren(flatAncestor(searchedCategories));
         }
     }
@@ -315,5 +328,115 @@ public class IssueCategoryService {
         
         return legacyClient.getBnkCategoryInfo(dto);
     }
-    
+
+    /**
+     * 이슈(상담) 카테고리 뎁스 설정 (신규) 20240718 volka
+     * @param channelId
+     * @param maxDepth
+     * @return
+     */
+    public Integer setCategoryMaxDepth(Long channelId, Integer maxDepth) {
+        ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId)
+                .orElseThrow(() -> new BizException("not exists channel"));
+        Assert.isTrue(channelEnv.getMaxIssueCategoryDepth() == 0, "already setup issue category depth");
+
+        channelEnv.setMaxIssueCategoryDepth(maxDepth);
+        return maxDepth;
+    }
+
+
+
+//    private void delete(List<Long> deleteIds, List<IssueCategory> entities, Map<Long, IssueCategory> entityMap) {
+//
+//
+//        IssueCategory entity = null;
+//        Long parentId = null;
+//        Map<Long, List<IssueCategory>> parentCategoryTree = new HashMap<>();
+//
+//        for (IssueCategory issueCategory : entities) {
+//            if (issueCategory.getParent() != null) {
+//                parentId = issueCategory.getParent().getId();
+//
+//                if (parentCategoryTree.containsKey(parentId)) {
+//                    parentCategoryTree.get(parentId).add(issueCategory);
+//                } else {
+//                    List<IssueCategory> list = new ArrayList<>();
+//                    list.add(issueCategory);
+//                    parentCategoryTree.put(parentId, list);
+//                }
+//            }
+//        }
+//
+//
+//        for (Long categoryId : deleteIds) {
+//            entity = issueCategoryMap.get(categoryId);
+//            if (entity == null) throw new BizException("not exists category");
+//
+////                parentId = entity.getParent();
+////                if (parentId != null) havingParentCategory.add(parentId);
+//        }
+//
+//        havingParentCategory.forEach(id -> {
+//            //하위 카테고리 있으면 삭제 못함
+//            if (issueCategoryMap.containsKey(id)) throw new BizException("can not delete category");
+//            issueCategoryMap.remove(id);
+//        });
+//
+//        issueCategoryRepository.deleteAllByIdInBatch(deleteIds);
+//    }
+
+
+    /**
+     * 상담 카테고리 저장 (신규) 20240718 volka
+     * TODO :: 공통팝업 협의 후 소스 정리
+     *
+     * @param issueCategorySetting
+     * @return
+     */
+    public String saveIssueCategorys(IssueCategorySetting issueCategorySetting) {
+
+        Long channelId = issueCategorySetting.getChannelId();
+        if (!channelRepository.existsById(channelId)) throw new BizException("not exist channel");
+
+        List<IssueCategorySaveDto> stores = issueCategorySetting.getIssueCategories();
+//        List<Long> deleteIds = issueCategorySetting.getDeleteIds();
+
+        List<IssueCategory> entities = issueCategoryRepository.findAllByChannelId(issueCategorySetting.getChannelId());
+
+        Map<Integer, List<IssueCategory>> depthMap =  entities.stream().collect(Collectors.groupingBy(IssueCategory::getDepth));
+
+        Map<Long, IssueCategory> issueCategoryMap = entities.stream()
+                .collect(Collectors.toMap(IssueCategory::getId, item -> item));
+
+
+        if (stores != null && !stores.isEmpty()) {
+
+            IssueCategory entity = null;
+
+            for (IssueCategorySaveDto store : stores) {
+                entity = issueCategoryMap.get(store.getCategoryId());
+
+                if (entity == null) { //save
+                    IssueCategory newEntity = new IssueCategory();
+                    newEntity.setName(store.getName());
+                    newEntity.setEnabled(store.getEnabled());
+                    newEntity.setDepth(store.getDepth());
+                    newEntity.setChannelId(channelId);
+                    newEntity.setParent(store.getParentId() == null ? null : issueCategoryMap.get(store.getParentId()));
+                    newEntity.setModifier(securityUtils.getMemberId());
+                    newEntity.setModified(ZonedDateTime.now());
+                } else { //update
+                    entity.setName(store.getName());
+                    entity.setEnabled(store.getEnabled());
+                    entity.setExposed(store.getExposed());
+                    entity.setSort(store.getSort());
+                    entity.setModifier(securityUtils.getMemberId());
+                    entity.setModified(ZonedDateTime.now());
+                }
+            }
+        }
+
+        return ApiResultCode.succeed.name();
+    }
+
 }

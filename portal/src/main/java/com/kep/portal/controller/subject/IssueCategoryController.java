@@ -4,11 +4,10 @@ import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.legacy.LegacyBnkCategoryDto;
 import com.kep.core.model.dto.subject.IssueCategoryBasicDto;
-import com.kep.core.model.dto.subject.IssueCategoryDto;
+import com.kep.portal.model.dto.subject.IssueCategorySetting;
 import com.kep.portal.model.dto.subject.IssueCategoryChildrenDto;
 import com.kep.portal.model.dto.subject.IssueCategoryStoreDto;
 import com.kep.portal.model.dto.subject.IssueCategoryWithChannelDto;
-import com.kep.portal.model.entity.subject.IssueCategory;
 import com.kep.portal.service.subject.IssueCategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -21,6 +20,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 /**
@@ -71,16 +72,16 @@ public class IssueCategoryController {
 	/**
 	 * 상담직원 배정, 분류 목록
 	 */
-	@GetMapping("/parent")
 	@Tag(name = "이슈 카테고리 API")
 	@Operation(summary = "상담직원 배정 이슈 카테고리 목록")
+	@GetMapping("/parent")
 	//@PreAuthorize(("hasAnyAuthority('WRITE_ASSIGN')")
 	public ResponseEntity<ApiResult<List<IssueCategoryChildrenDto> >> getCategoryParentWith(
 			@Parameter(description = "이슈 카테고리 아이디", required = true)
 			@RequestParam(value = "category_id") Long categoryId,
 			@Parameter(description = "채널 아이디")
 			@RequestParam Long channelId
-			) throws Exception {
+	) throws Exception {
 
 		log.info("ISSUE CATEGORY, GET TREE, CATEGORY_ID: {}", categoryId);
 
@@ -118,13 +119,15 @@ public class IssueCategoryController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+
+
 	/**
 	 * 분류 관리, 생성
 	 */
-	@PostMapping
 	@Tag(name = "이슈 카테고리 API")
 	@Operation(summary = "이슈 카테고리 생성")
 	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN')")
+	@PostMapping
 	public ResponseEntity<ApiResult<IssueCategoryBasicDto>> post(
 			@Parameter(description = "채널 아이디", required = true)
 			@RequestParam(value = "channel_id") Long channelId,
@@ -141,13 +144,15 @@ public class IssueCategoryController {
 		return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}
 
+
+
 	/**
 	 * 분류 관리, 수정
 	 */
-	@PutMapping("/{id}")
 	@Tag(name = "이슈 카테고리 API")
 	@Operation(summary = "이슈 카테고리 수정")
 	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN')")
+	@PutMapping("/{id}")
 	public ResponseEntity<ApiResult<IssueCategoryBasicDto>> put(
 			@Parameter(description = "이슈 카테고리 아이디", in = ParameterIn.PATH, required = true)
 			@PathVariable(value = "id") Long id,
@@ -264,5 +269,44 @@ public class IssueCategoryController {
 	    return new ResponseEntity<>(result, HttpStatus.OK);
 	}
 
+
+	/**
+	 * 추가 20240718 volka
+	 * @param channelId
+	 * @param maxDepth
+	 * @return
+	 */
+	@Tag(name = "이슈 카테고리 API")
+	@Operation(summary = "이슈 카테고리 단계(뎁스) 설정")
+	@PostMapping("/depth/{channel_id}/{max_depth}")
+	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN')") //FIXME :: 권한 코드 맞는지 체크 필요 20240717 volka
+	public ResponseEntity<ApiResult<Integer>> setCategoryDepth(
+			@Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
+			@PositiveOrZero @PathVariable("channel_id") Long channelId
+			, @Parameter(description = "뎁스", in = ParameterIn.PATH, required = true)
+			@PositiveOrZero @PathVariable("max_depth") Integer maxDepth
+	) {
+		ApiResult<Integer> result = ApiResult.<Integer>builder()
+				.code(ApiResultCode.succeed)
+				.payload(issueCategoryService.setCategoryMaxDepth(channelId, maxDepth))
+				.build();
+
+		return new ResponseEntity<>(result, HttpStatus.OK);
+	}
+
+	@Tag(name = "이슈 카테고리 API")
+	@Operation(summary = "이슈 카테고리 저장(신규)")
+	@PostMapping("/list")
+	public ResponseEntity<ApiResult<String>> saveIssueCategorys(@Valid @RequestBody IssueCategorySetting issueCategorySetting) {
+
+		String result = issueCategoryService.saveIssueCategorys(issueCategorySetting);
+
+		ApiResult<String> response = ApiResult.<String>builder()
+				.code(ApiResultCode.succeed)
+				.payload(result)
+				.build();
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
 
 }

@@ -83,7 +83,7 @@ public class GuideCategoryController {
 	@PostMapping("/depth")
 	@PreAuthorize("hasAnyAuthority('WRITE_GUIDE_CATEGORY')")
 	public ResponseEntity<ApiResult<Integer>> setCategoryDepth(
-			@Parameter(description = "단계")
+			@Parameter(description = "가이드 카테고리 단계")
 			@RequestParam Integer depth
 	){
 		int maxDepth = categoryService.setCategoryMaxDepth(depth);

@@ -68,4 +68,7 @@ public interface IssueCategoryRepository extends JpaRepository<IssueCategory, Lo
 	List<IssueCategory> findAllByParentAndEnabledIsTrue(IssueCategory category);
 
 	List<IssueCategory> findByParentIdIn(List<Long> parentIds);
+
+//	@Query("select ic from IssueCategory ic join fetch where ic.channelId = :channelId")
+	List<IssueCategory> findAllByChannelId(Long channelId);
 }
