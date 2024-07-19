@@ -26,9 +26,16 @@ application:
       - ".jpeg"
     system-member-id: 9000000001
     kakao-bot-member-id: 9000000002
+    #FIXME :: breakTime 고정인지? 설정 가능할텐데 20240719 volka
+    break-time-start: "12:00"
+    break-time-end: "13:00"
+    #BNK  유입경로 FIXME :: bnk 설정
+    bnk-kakao-talk-url: https://yocodeclick.loca.lt/platform/auth/kakao-sync/getSync?state=
     dashboad:
       search-interval-minutes: 60
       batch-cron: 5 0/10 * * * *
+      #FIXME : local 동일하게 추가 20240719 volka
+      data-interval-minutes: 10
     # redis mode
     redis-mode: ${REDIS_MODE:standalone}
   customer:
@@ -36,7 +43,9 @@ application:
     api-base-path: /api/v${application.customer.api-version}
   platform:
     api-version: 1
-    api-base-path: /api/v1/portal
+    #FIXME :: api-base-path :: platform에서 리스닝 컨트롤러 path 20240719 volka
+    api-base-path: /api/v1/counsel-portal
+#    api-base-path: /api/v1/portal
 #    api-key-name: X-API-Key
     api-key-name: Authorization
     api-key-method: APIKey
