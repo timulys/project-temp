@@ -63,7 +63,7 @@ application:
     manager-admin-path: /topic/manager-admin
     issue-path: /topic/issue
     message-broker:
-      host: localhost
+      host: 10.206.16.58
       port: 61613
       virtual-host: /${spring.application.name}
       username: ${spring.application.name}
