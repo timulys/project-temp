@@ -17,14 +17,30 @@ spring:
   thymeleaf:
     cache: false
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    virtual-host: /${spring.application.name}
+    username: ${spring.application.name}
+    # TODO: encrypt
+    password: portal!#%135
+    connection-timeout: 3600000
+
   redis:
+    host: localhost
+    port: 6379
     password: ${REDIS_PASSWORD:}
-    lettuce:
-      pool:
-        max-active: 8
     cluster:
       nodes:
-        127.0.0.1:7001,127.0.0.1:7002,127.0.0.1:7003,127.0.0.1:7004,127.0.0.1:7005,127.0.0.1:7006
+
+#  redis:
+#    password: ${REDIS_PASSWORD:}
+#    lettuce:
+#      pool:
+#        max-active: 8
+#    cluster:
+#      nodes:
+#        127.0.0.1:7001,127.0.0.1:7002,127.0.0.1:7003,127.0.0.1:7004,127.0.0.1:7005,127.0.0.1:7006
 
 
 logging:
