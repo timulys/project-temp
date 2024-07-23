@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -92,8 +93,8 @@ public class IssueLogController {
 	@GetMapping(value = "/search")
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE')")
 	public ResponseEntity<ApiResult<List<IssueLogDto>>> search(
-			@QueryParam @Valid IssueLogSearchCondition condition,
-			@PageableDefault(size = 100) Pageable pageable) throws Exception {
+			@ParameterObject @QueryParam @Valid IssueLogSearchCondition condition,
+			@ParameterObject @PageableDefault(size = 100) Pageable pageable) throws Exception {
 
 		log.info("ISSUE LOG, SEARCH, PARAM: {}", condition);
 

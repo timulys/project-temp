@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -41,8 +42,8 @@ public class BizTalkTaskController {
     @GetMapping
     @PreAuthorize("hasAnyAuthority('WRITE_TALK_TASK')")
     public ResponseEntity<ApiResult<List<BizTalkTaskDto>>> search(
-            @QueryParam BizTalkTaskCondition condition,
-            @SortDefault.SortDefaults({
+            @ParameterObject @QueryParam BizTalkTaskCondition condition,
+            @ParameterObject @SortDefault.SortDefaults({
                     @SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable
     ) {
 
@@ -68,8 +69,8 @@ public class BizTalkTaskController {
     @Operation(summary = "포털에서 상담원이 예약 목록 조회")
     @GetMapping("/search")
     public ResponseEntity<ApiResult<List<BizTalkTaskDto>>> memberSearch(
-            @QueryParam BizTalkTaskCondition condition,
-            @SortDefault.SortDefaults({
+            @ParameterObject @QueryParam BizTalkTaskCondition condition,
+            @ParameterObject @SortDefault.SortDefaults({
                     @SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable
     ) {
 

@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -142,7 +143,7 @@ public class IssueController {
 	@GetMapping(value = "/search/open")
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE_OPEN')")
 	public ResponseEntity<ApiResult<List<IssueDto>>> searchOpen(
-			@QueryParam @Valid IssueSearchCondition condition,
+			@ParameterObject @QueryParam @Valid IssueSearchCondition condition,
 			@SortDefault.SortDefaults({
 					@SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable) throws Exception {
 		log.info("ISSUE, GET OPENED, PARAM: {}", condition);
@@ -160,7 +161,7 @@ public class IssueController {
 	@GetMapping(value = "/search/history")
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE_HISTORY')")
 	public ResponseEntity<ApiResult<List<IssueDto>>> searchHistory(
-			@QueryParam @Valid IssueSearchCondition condition,
+			@ParameterObject @QueryParam @Valid IssueSearchCondition condition,
 			@SortDefault.SortDefaults({
 					@SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable) throws Exception {
 

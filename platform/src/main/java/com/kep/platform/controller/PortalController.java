@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -388,7 +389,7 @@ public class PortalController {
     public ResponseEntity<ApiResult<KakaoBizSearchResponse>> getAlertTalkSearch(
             @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
-            @QueryParam KakaoBizSearchSendEvent dto
+            @ParameterObject @QueryParam KakaoBizSearchSendEvent dto
     ) {
         KakaoBizSearchResponse search = kakaoAlertTalkService.search(trackKey, dto);
         ApiResult<KakaoBizSearchResponse> response = ApiResult.<KakaoBizSearchResponse>builder()
@@ -462,7 +463,7 @@ public class PortalController {
     public ResponseEntity<ApiResult<KakaoBizSearchResponse>> get(
             @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
-            @QueryParam KakaoBizSearchSendEvent dto
+            @ParameterObject @QueryParam KakaoBizSearchSendEvent dto
     ) {
         KakaoBizSearchResponse result = kakaoFriendTalkService.search(trackKey, dto);
         ApiResult<KakaoBizSearchResponse> response = ApiResult.<KakaoBizSearchResponse>builder()
@@ -696,7 +697,7 @@ public class PortalController {
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse<List<KakaoBizMessageTemplatePayload>>>> getSelectAllTemplate(
             @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
-            @QueryParam KakaoBizSearchSendEvent dto,
+            @ParameterObject @QueryParam KakaoBizSearchSendEvent dto,
             @Parameter(description = "프로필 키", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "profileKey") String profileKey
     ) {
@@ -808,7 +809,7 @@ public class PortalController {
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse<List<KakaoSendProfileResponse>>>> getAllSendProfile(
             @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
-            @QueryParam KakaoBizSearchSendEvent dto
+            @ParameterObject @QueryParam KakaoBizSearchSendEvent dto
     ) {
         KakaoBizTemplateResponse<List<KakaoSendProfileResponse>> kakaoBizTemplateResponse = kakaoBizTalkTemplateService.getAllSendProfile(trackKey, dto);
         ApiResult<KakaoBizTemplateResponse<List<KakaoSendProfileResponse>>> response = ApiResult.<KakaoBizTemplateResponse<List<KakaoSendProfileResponse>>>builder()
