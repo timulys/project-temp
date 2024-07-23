@@ -3,7 +3,7 @@ spring:
   application:
     name: platform
   profiles:
-    active: local
+    active: dev
 
   mvc:
     throwExceptionIfNoHandlerFound: true
@@ -29,8 +29,8 @@ spring:
         simple:
           instances:
             portal-service:
-              - uri: http://localhost:8090/portal
-              - uri: http://127.0.0.1:8090/portal
+              - uri: http://localhost:8080/portal
+              - uri: http://127.0.0.1:8080/portal
     loadbalancer:
       health-check:
         path:
@@ -45,22 +45,9 @@ spring:
           enabled: true
           jitter: 0.5
 
-  rabbitmq:
-    #    host: localhost
-    #    port: 5672
-    virtual-host: /${spring.application.name}
-    username: ${spring.application.name}
-    # TODO: encrypt
-    password: platform!#%135
-    addresses: ${QUEUE_ADDRESSES:127.0.0.1:5672,localhost:5672}
-    address-shuffle-mode: random
 
-  redis:
-    host: localhost
-    port: 6379
-    password: ${REDIS_PASSWORD:}
-    cluster:
-      nodes:
+
+
   #    sentinel:
   #      master: ${spring.application.name}
   #      nodes:
@@ -103,8 +90,8 @@ spring:
             client-id: 15a497d976ccf083f21572d0b1ff8111
             #            bnk개발
             client-secret: 15a497d976ccf083f21572d0b1ff8111
-#            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://connect-always-fe-cl.codeclick.co.kr/auth/kakao-sync/authorized}
-#            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://dev.bnkcapital.co.kr/platform/auth/kakao-sync/authorized}
+            #            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://connect-always-fe-cl.codeclick.co.kr/auth/kakao-sync/authorized}
+            #            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://dev.bnkcapital.co.kr/platform/auth/kakao-sync/authorized}
             redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://bnk.codeclick.co.kr/platform/auth/kakao-sync/authorized}
             scope:
               - read
@@ -172,7 +159,7 @@ application:
     api-key-name: X-API-Key
     api-key-method:
     allow-receive-image: true
-    allow-receive-file: false
+    allow-receive-file: true
     replace-message-for-prevent: '허용되지 않은 파일이 전송되었습니다.'
     platforms:
       solution_web:
@@ -181,11 +168,11 @@ application:
       kakao_counsel_talk:
         api-base-url: https://bzc-api.kakao.com
         api-key: ${KAKAO_COUNSEL_API_KEY:75255f38d08ff785b5695b43e4d2fdc6819c77de}
-#        api-key: ${KAKAO_COUNSEL_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
+      #        api-key: ${KAKAO_COUNSEL_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
       kakao_counsel_center:
         api-base-url: https://bzm-center.kakao.com/api
         api-key: ${KAKAO_COUNSEL_API_KEY:75255f38d08ff785b5695b43e4d2fdc6819c77de}
-#        api-key: ${KAKAO_COUNSEL_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
+      #        api-key: ${KAKAO_COUNSEL_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
       kakao_alert_talk:
         api-base-url: https://bizmsg-web.kakaoenterprise.com
         api-key: ${KAKAO_BIZ_API_KEY:1234}
@@ -227,6 +214,14 @@ application:
       - 127.0.0.1
       - ::1
       - 0:0:0:0:0:0:0:1
+      - 113.29.189.174
+      - 113.29.189.176
+      - 10.100.0.193
+      - 61.109.236.74
+      - 10.182.100.179
+      - 203.133.162.185
+      - 203.133.162.195
+      - 203.133.162.196
   portal:
     api-base-path: /api/v1/event-by-platform
     open-path: /open
