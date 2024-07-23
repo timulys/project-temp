@@ -1,8 +1,8 @@
 spring:
   config:
     import:
-      - optional:./portal-crane-dev.yml
-      - optional:./mysql-crane-dev.yml
+      - optional:./portal-crane.yml
+      - optional:./mysql-crane.yml
 
   security:
     debug: true
