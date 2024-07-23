@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -178,7 +179,7 @@ public class GuideController {
     @Tag(name = "가이드 API")
     @Operation(summary = "가이드 검색", description = "가이드 검색 (SB-CP-T07)")
     public ResponseEntity<ApiResult<GuideSearchResponseDto>> search(
-            @QueryParam @Valid GuideSearchDto searchDto
+            @ParameterObject @QueryParam @Valid GuideSearchDto searchDto
     ) throws Exception {
         try {
             GuideSearchResponseDto searchResult = guideService.getSearchDto(searchDto);
@@ -212,8 +213,8 @@ public class GuideController {
     @Tag(name = "가이드 API")
     @Operation(summary = "가이드 검색", description = "가이드 검색(SB-CA-006)")
     public ResponseEntity<ApiResult<List<GuideDto>>> manageSearch(
-            @QueryParam @Valid GuideSearchDto searchDto,
-            @SortDefault.SortDefaults({
+            @ParameterObject @QueryParam @Valid GuideSearchDto searchDto,
+            @ParameterObject @SortDefault.SortDefaults({
                     @SortDefault(sort = {"name"}, direction = Sort.Direction.ASC)}) Pageable pageable
     ) {
         try {
@@ -244,8 +245,8 @@ public class GuideController {
     @Tag(name = "가이드 API")
     @Operation(summary = "가이드 목록 검색")
     public ResponseEntity<ApiResult<List<GuideDto>>> moreSearch(
-            @QueryParam @Valid GuideSearchDto searchDto,
-            @SortDefault.SortDefaults({
+            @ParameterObject @QueryParam @Valid GuideSearchDto searchDto,
+            @ParameterObject @SortDefault.SortDefaults({
                     @SortDefault(sort = {"name"}, direction = Sort.Direction.ASC)}) Pageable pageable
     ) {
         try {
@@ -302,7 +303,7 @@ public class GuideController {
     @Tag(name = "가이드 API")
     @Operation(summary = "가이드 로그 저장")
     public ResponseEntity<ApiResult<GuideLogDto>> saveLog(
-            @QueryParam GuideLogDto dto
+            @ParameterObject @QueryParam GuideLogDto dto
     ) {
         try {
             GuideLogDto log = guideLogService.store(dto);
@@ -335,7 +336,7 @@ public class GuideController {
     @Tag(name = "가이드 API")
     @Operation(summary = "가이드 필수요소 체크", description = "가이드 필수블록 전송했는지 확인")
     public ResponseEntity<ApiResult> checkRequire(
-            @QueryParam GuideLogDto guideLogDto
+            @ParameterObject @QueryParam GuideLogDto guideLogDto
     ) {
 
         try {

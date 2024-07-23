@@ -13,6 +13,7 @@ import com.mchange.rmi.NotAuthorizedException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -42,7 +43,8 @@ public class BizTalkRequestController {
     @GetMapping
     @PreAuthorize("hasAnyAuthority('WRITE_TALK')")
     public ResponseEntity<ApiResult<List<BizTalkRequestDto>>> get(
-            @QueryParam BizTalkRequestCondition condition, @SortDefault.SortDefaults({
+            @ParameterObject @QueryParam BizTalkRequestCondition condition
+            ,@ParameterObject @SortDefault.SortDefaults({
             @SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable
     ) {
         log.info("condition = {}", condition);

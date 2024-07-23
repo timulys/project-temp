@@ -16,6 +16,7 @@ import com.kep.portal.service.team.TeamService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -234,7 +235,7 @@ public class StatiscticsController {
 	@Tag(name = "통계 API")
 	@Operation(summary = "최근 2시간 10분 간격의 대기 시간 전체 데이터 조회")
 	@GetMapping("/wait_time_in_2hours")
-	public ResponseEntity<ApiResult<List<GuestWaitingTimeDto>>> getWatingTimes(@QueryParam @Valid StatisticsSearchDto searchDto) throws Exception {
+	public ResponseEntity<ApiResult<List<GuestWaitingTimeDto>>> getWatingTimes(@ParameterObject @QueryParam @Valid StatisticsSearchDto searchDto) throws Exception {
 		String startTime = searchDto.getStartTime();
 		String endTime = searchDto.getEndTime();
 
