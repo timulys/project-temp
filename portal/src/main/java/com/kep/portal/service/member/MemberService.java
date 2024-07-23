@@ -196,7 +196,7 @@ public class MemberService {
 	 * @수정일자		/ 수정자		 	/ 수정내용
 	 * 2023.05.31	/ asher.shin	/ 상담원 생성/수정시 근무 외 상담가능 여부 추가
 	 * 2024.05.27	/ tim.c			/ 첫 인사말 사용 유무 체크 기능 추가
-	 * @param id
+	 * @param dto
 	 * @return
 	 */
 	public MemberDto store(@NotNull MemberDto dto) {
@@ -241,7 +241,7 @@ public class MemberService {
 
 			int maxCounsel = branch.getMaxCounsel() != null ? branch.getMaxCounsel() : 0;
 
-			if(branch.getMaxCounselType().equals(WorkType.MaxCounselType.individual)){
+			if(WorkType.MaxCounselType.individual.equals(branch.getMaxCounselType())) {
 				maxCounsel = branch.getMaxMemberCounsel() != null ? branch.getMaxMemberCounsel() : 0;
 			}
 
@@ -783,7 +783,7 @@ public class MemberService {
 	/**
 	 * 비밀번호 변경
 	 *
-	 * @param MemberPassDto
+	 * @param dto
 	 * @return boolean
 	 * @throws
 	 *

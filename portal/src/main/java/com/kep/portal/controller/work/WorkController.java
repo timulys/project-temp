@@ -49,14 +49,15 @@ public class WorkController {
     public ResponseEntity<ApiResult<MemberMaxCounselDto>> put(
             @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable(name = "id") @NotNull Long branchId
-            , @RequestBody @Validated MemberMaxCounselDto dto) {
+            , @RequestBody @Validated MemberMaxCounselDto dto, @SortDefault.SortDefaults({
+            @SortDefault(sort = {"id"}, direction = Sort.Direction.ASC)}) Pageable pageable) {
 
         branchService.maxMemberCounsel(branchId , dto.getMaxMemberCounsel());
         log.info("MEMBER MAX COUNSEL:{}",dto.getMemberCounsels());
 
 
         dto.setBranchId(branchId);
-        dto = workService.memberCounsel(dto);
+        dto = workService.memberCounsel(dto , pageable);
         ApiResultCode code = ApiResultCode.failed;
         if(!ObjectUtils.isEmpty(dto)){
             code = ApiResultCode.succeed;

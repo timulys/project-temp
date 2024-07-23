@@ -272,7 +272,7 @@ public class WorkService {
      * @param dto
      * @return
      */
-    public MemberMaxCounselDto memberCounsel(MemberMaxCounselDto dto){
+    public MemberMaxCounselDto memberCounsel(MemberMaxCounselDto dto, Pageable pageable){
         List<Member> memberList = new ArrayList<>();
         List<MemberMaxCounselDto.MemberCounsel> memberCounsels = new ArrayList<>();
         for (MemberMaxCounselDto.MemberCounsel memberCounsel : dto.getMemberCounsels()){
@@ -302,7 +302,6 @@ public class WorkService {
             dto.setMemberCounsels(memberCounsels);
         }
 
-        Pageable pageable = null;
         Page<TeamDto> teamDtos = teamService.getAllWithMembers(pageable , dto.getBranchId());
         List<TeamDto> teams = this.teamsHasManyMaxCounsel(teamDtos);
         return MemberMaxCounselDto.builder()
