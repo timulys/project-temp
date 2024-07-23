@@ -405,6 +405,9 @@ public class MemberService {
 			OfficeHours officeHours = officeHoursService.member(entity.getId());
 			entity.setOfficeHours(officeHours);
 
+			/**
+			 * TODO :: 유입경로 sync-client-id 사용
+			 */
 			// 상담 유입경로
 			List<CounselInflowEnvDto> inflowEnvs = counselEnvService.findAllAndEnabled(entity.getBranchId());
 			inflowEnvs.stream().forEach(item -> item.setValue(StringUtils.replace(item.getValue(), "{{sync_key}}", coreProperty.getSyncClientId())));
