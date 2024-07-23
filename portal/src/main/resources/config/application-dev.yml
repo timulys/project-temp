@@ -79,6 +79,11 @@ logging:
     jdbc.resultsettable: debug
     com.kep.portal.config.debug.DebugFilter: info
 
+application:
+  core:
+    #    sync-client-id: 15a497d976ccf083f21572d0b1ff8111
+    #로컬
+    sync-client-id: 5c3a2963a9a33c85427b040b76d55c5b
 
 #Swagger
 springdoc:

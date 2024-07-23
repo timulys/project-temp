@@ -406,9 +406,9 @@ public class MemberService {
 			entity.setOfficeHours(officeHours);
 
 			// 상담 유입경로
-//			List<CounselInflowEnvDto> inflowEnvs = counselEnvService.findAllAndEnabled(entity.getBranchId());
-//			inflowEnvs.stream().forEach(item -> item.setValue(StringUtils.replace(item.getValue(), "{{sync_key}}", coreProperty.getSyncClientId())));
-//			entity.setInflowEnvs(inflowEnvs);
+			List<CounselInflowEnvDto> inflowEnvs = counselEnvService.findAllAndEnabled(entity.getBranchId());
+			inflowEnvs.stream().forEach(item -> item.setValue(StringUtils.replace(item.getValue(), "{{sync_key}}", coreProperty.getSyncClientId())));
+			entity.setInflowEnvs(inflowEnvs);
 			
 			// 역할
 			List<Long> roleIds = memberRoleRepository.findAllByMemberId(entity.getId()).stream().map(MemberRole::getRoleId).collect(Collectors.toList());
