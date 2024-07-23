@@ -1,0 +1,53 @@
+spring:
+  #lookup third party server
+  rabbitmq:
+    host: 10.202.25.216
+    port: 5672
+    virtual-host: /${spring.application.name}
+    username: ${spring.application.name}
+    # TODO: encrypt
+    password: platform!#%135
+    addresses: ${QUEUE_ADDRESSES:10.202.25.216:5672}
+    address-shuffle-mode: random
+
+  redis:
+    host: 10.202.25.216
+    port: 6379
+    password: ${REDIS_PASSWORD:}
+    cluster:
+      nodes:
+
+application:
+  platform:
+    platforms:
+      kakao_alert_talk:
+        api-base-url: https://bizmsg-web.kakaoenterprise.com
+        api-key: ${KAKAO_BIZ_API_KEY:1234}
+      kakao_friend_talk:
+        api-base-url: https://bizmsg-web.kakaoenterprise.com
+        api-key: ${KAKAO_BIZ_API_KEY:1234}
+      kakao_template:
+        api-base-url: https://bizmsg-web.kakaoenterprise.com
+        api-key: ${KAKAO_BIZ_API_KEY:1234}
+serviceIdKey:
+  bnk: /open/@mtk27zwymtu3oou?extra=
+
+#Swagger
+springdoc:
+  swagger-ui:
+    groups-order: DESC
+    tags-sorter: alpha
+    operations-sorter: method
+    disable-swagger-default-url: true
+    display-request-duration: true
+    defaultModelsExpandDepth: 2
+    defaultModelExpandDepth: 2
+  api-docs:
+    path: /api-docs
+  show-actuator: true
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  writer-with-default-pretty-printer: true
+  model-and-view-allowed: true
+  paths-to-match:
+    - /api/v1/**
