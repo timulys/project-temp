@@ -13,8 +13,8 @@ application:
   portal:
     api-version: 1
     api-base-path: /api/v${application.portal.api-version}
-    service-url: https://always-talk.kakaoiconnect.ai
-    service-domain: always-talk.kakaoiconnect.ai
+    service-url: always-backend-docker-test.ay1.krane.9rum.cc:8000
+    service-domain: always-backend-docker-test.ay1.krane.9rum.cc
     # upload
     storage-path: ${STORAGE_PATH:/opt/storage}
     upload-path: ${application.portal.storage-path}/upload
@@ -63,7 +63,7 @@ application:
     manager-admin-path: /topic/manager-admin
     issue-path: /topic/issue
     message-broker:
-      host: 10.206.16.58
+      host: 10.202.25.216
       port: 61613
       virtual-host: /${spring.application.name}
       username: ${spring.application.name}
