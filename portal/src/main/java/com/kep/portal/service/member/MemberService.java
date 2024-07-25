@@ -241,9 +241,7 @@ public class MemberService {
 
 			int maxCounsel = branch.getMaxCounsel() != null ? branch.getMaxCounsel() : 0;
 
-			// 20240725 eddie.j watcher 테스트를 위해서 임시 변경
-			// if(WorkType.MaxCounselType.individual.equals(branch.getMaxCounselType())) {
-			if(branch.getMaxCounselType().equals(WorkType.MaxCounselType.individual)){
+			 if(WorkType.MaxCounselType.individual.equals(branch.getMaxCounselType())) {
 				maxCounsel = branch.getMaxMemberCounsel() != null ? branch.getMaxMemberCounsel() : 0;
 			}
 
