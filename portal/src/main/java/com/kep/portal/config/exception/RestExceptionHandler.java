@@ -4,6 +4,7 @@ import com.kep.core.model.dto.ApiError;
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.exception.BizException;
+import com.kep.portal.service.watcher.WatcherService;
 import io.micrometer.core.instrument.util.IOUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -23,6 +24,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import javax.annotation.Resource;
 import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -41,6 +43,10 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     /**
      * 권한 없는 요청시 예외 처리
      */
+
+    @Resource
+    private WatcherService watcherService;
+
     @ExceptionHandler({
             AccessDeniedException.class,
             AuthenticationException.class,
@@ -105,7 +111,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     })
     @Nullable
     protected ResponseEntity<Object> handleDefault(BizException ex, WebRequest request) {
-
+        watcherService.exceptionWatcherSendMsgGroupKakaowork(ex,request);
         log.error("Biz Exception Handler: {}", ex.getLocalizedMessage());
         return handleExceptionInternal(ex, ex.getCause(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
@@ -118,8 +124,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     })
     @Nullable
     protected ResponseEntity<Object> handleDefault(Exception ex, WebRequest request) {
-
-        log.error("Default Exception Handler: {}", ex.getLocalizedMessage());
+        watcherService.exceptionWatcherSendMsgGroupKakaowork(ex,request);
         return handleExceptionInternal(ex, ex.getCause(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 

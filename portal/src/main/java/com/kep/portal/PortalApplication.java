@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableConfigurationProperties({CoreProperty.class, SocketProperty.class, PortalProperty.class,
-		PlatformProperty.class, CodeProperty.class, SystemMessageProperty.class, ModeProperty.class})
+		PlatformProperty.class, CodeProperty.class, SystemMessageProperty.class, ModeProperty.class , WatcherProperty.class})
 @EnableScheduling
 public class PortalApplication {
 
