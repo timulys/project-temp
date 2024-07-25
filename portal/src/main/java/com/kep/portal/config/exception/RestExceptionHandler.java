@@ -40,13 +40,14 @@ import java.util.Map;
 @Slf4j
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
+
+    // timeout 이슈로 인하여 주석처리
+    // @Resource
+    // private WatcherService watcherService;
+
     /**
      * 권한 없는 요청시 예외 처리
      */
-
-    @Resource
-    private WatcherService watcherService;
-
     @ExceptionHandler({
             AccessDeniedException.class,
             AuthenticationException.class,
@@ -111,7 +112,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     })
     @Nullable
     protected ResponseEntity<Object> handleDefault(BizException ex, WebRequest request) {
-        watcherService.exceptionWatcherSendMsgGroupKakaowork(ex,request);
+        //watcherService.exceptionWatcherSendMsgGroupKakaowork(ex,request);
         log.error("Biz Exception Handler: {}", ex.getLocalizedMessage());
         return handleExceptionInternal(ex, ex.getCause(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
@@ -124,7 +125,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     })
     @Nullable
     protected ResponseEntity<Object> handleDefault(Exception ex, WebRequest request) {
-        watcherService.exceptionWatcherSendMsgGroupKakaowork(ex,request);
+        //watcherService.exceptionWatcherSendMsgGroupKakaowork(ex,request);
         return handleExceptionInternal(ex, ex.getCause(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 
