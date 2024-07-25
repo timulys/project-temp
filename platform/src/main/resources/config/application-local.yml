@@ -18,17 +18,17 @@ logging:
 spring:
   #lookup third party server
   rabbitmq:
-    host: 10.206.16.58
+    host: localhost
     port: 5672
     virtual-host: /${spring.application.name}
     username: ${spring.application.name}
     # TODO: encrypt
     password: platform!#%135
-    addresses: ${QUEUE_ADDRESSES:10.206.16.58:5672,10.206.16.58:5672}
+    addresses: ${QUEUE_ADDRESSES:127.0.0.1:5672,localhost:5672}
     address-shuffle-mode: random
 
   redis:
-    host: 10.206.16.58
+    host: localhost
     port: 6379
     password: ${REDIS_PASSWORD:}
     cluster:
