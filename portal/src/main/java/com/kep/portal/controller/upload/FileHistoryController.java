@@ -9,6 +9,7 @@ import com.kep.portal.service.upload.UploadHistoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -37,8 +38,8 @@ public class FileHistoryController {
     @GetMapping
     @PreAuthorize("hasAnyAuthority('READ_FILE_HISTORY') and hasAnyRole('MANAGER','ADMIN')")
     public ResponseEntity<ApiResult<List<UploadHistoryDto>>> get(
-            @QueryParam @Valid UploadHistorySearchCondition condition,
-            @SortDefault.SortDefaults({
+            @ParameterObject @QueryParam @Valid UploadHistorySearchCondition condition,
+            @ParameterObject @SortDefault.SortDefaults({
                     @SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable
             ){
 

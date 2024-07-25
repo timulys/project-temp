@@ -9,6 +9,7 @@ import com.kep.portal.service.platform.BizTalkHistoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -41,8 +42,8 @@ public class BizTalkHistoryController {
     @GetMapping
     @PreAuthorize("hasAnyAuthority('READ_TALK_HISTORY')")
     public ResponseEntity<ApiResult<List<BizTalkHistoryDto>>> search(
-            @QueryParam BizTalkHistoryCondition condition,
-            @SortDefault.SortDefaults({
+            @ParameterObject @QueryParam BizTalkHistoryCondition condition,
+            @ParameterObject @SortDefault.SortDefaults({
                     @SortDefault(sort = {"sendDate"}, direction = Sort.Direction.DESC)}) Pageable pageable
     ) {
 
@@ -66,8 +67,8 @@ public class BizTalkHistoryController {
     @Operation(summary = "상담원 톡 전송 이력 조회", description = "상담원이 톡 전송 이력 조회")
     @GetMapping("/search")
     public ResponseEntity<ApiResult<List<BizTalkHistoryDto>>> memberSearch(
-            @QueryParam BizTalkHistoryCondition condition,
-            @SortDefault.SortDefaults({
+            @ParameterObject @QueryParam BizTalkHistoryCondition condition,
+            @ParameterObject @SortDefault.SortDefaults({
                     @SortDefault(sort = {"sendDate"}, direction = Sort.Direction.DESC)}) Pageable pageable
     ) {
 
@@ -93,7 +94,7 @@ public class BizTalkHistoryController {
     @Operation(summary = "포탈 비즈톡 히스토리 다운로드")
     @GetMapping("/portal/download")
     public void portalDownload(HttpServletResponse res,
-                         @QueryParam BizTalkHistoryCondition condition){
+                               @ParameterObject @QueryParam BizTalkHistoryCondition condition){
         bizTalkHistoryService.portalHistoryDownload(res, condition);
     }
 
@@ -106,7 +107,7 @@ public class BizTalkHistoryController {
     @Operation(summary = "관리 비즈톡 히스토리 다운로드")
     @GetMapping("/management/download")
     public void managementDownload(HttpServletResponse res,
-                         @QueryParam BizTalkHistoryCondition condition){
+                                   @ParameterObject @QueryParam BizTalkHistoryCondition condition){
         bizTalkHistoryService.managementHistoryDownload(res, condition);
     }
 

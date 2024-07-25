@@ -15,6 +15,25 @@ logging:
     org.springframework.web.client.RestTemplate: DEBUG
     reactor.netty.http.client: DEBUG
 
+spring:
+  #lookup third party server
+  rabbitmq:
+    host: 10.206.16.58
+    port: 5672
+    virtual-host: /${spring.application.name}
+    username: ${spring.application.name}
+    # TODO: encrypt
+    password: platform!#%135
+    addresses: ${QUEUE_ADDRESSES:10.206.16.58:5672,10.206.16.58:5672}
+    address-shuffle-mode: random
+
+  redis:
+    host: 10.206.16.58
+    port: 6379
+    password: ${REDIS_PASSWORD:}
+    cluster:
+      nodes:
+
 application:
   platform:
     platforms:

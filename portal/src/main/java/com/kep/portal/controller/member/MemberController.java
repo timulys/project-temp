@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -104,8 +105,8 @@ public class MemberController {
     @Operation(summary = "계정 목록 조회", description = "계정 관리 > 계정 목록")
     @GetMapping
     public ResponseEntity<ApiResult<List<MemberDto>>> getAll(
-            @QueryParam @Valid MemberSearchCondition condition,
-            @SortDefault.SortDefaults({
+            @ParameterObject @QueryParam @Valid MemberSearchCondition condition,
+            @ParameterObject @SortDefault.SortDefaults({
                     @SortDefault(sort = {"id"}, direction = Sort.Direction.DESC)}) Pageable pageable) {
 
         log.info("MEMBER, GET ALL, PARAM: {}", condition);
@@ -161,8 +162,8 @@ public class MemberController {
     @Operation(summary = "사용자 계정 목록 조회")
 //    @PreAuthorize("hasAnyAuthority('READ_MEMBER')")
     public ResponseEntity<ApiResult<List<MemberDto>>> search(
-            @QueryParam @Valid MemberSearchCondition condition,
-            @PageableDefault(size = 1000, sort = {"nickname"}, direction = Sort.Direction.ASC) Pageable pageable) {
+            @ParameterObject @QueryParam @Valid MemberSearchCondition condition,
+            @ParameterObject @PageableDefault(size = 1000, sort = {"nickname"}, direction = Sort.Direction.ASC) Pageable pageable) {
 
         log.info("MEMBER, SEARCH, PARAM: {}", condition);
 
@@ -182,8 +183,8 @@ public class MemberController {
             "상담 관리 > 상담 직원 전환, SB-CA-005")
 //    @PreAuthorize("hasAnyAuthority('READ_MEMBER')")
     public ResponseEntity<ApiResult<List<MemberAssignDto>>> searchAssignable(
-            @QueryParam @Valid MemberSearchCondition condition,
-            @PageableDefault(size = 1000, sort = {"nickname"}, direction = Sort.Direction.ASC) Pageable pageable) {
+            @ParameterObject @QueryParam @Valid MemberSearchCondition condition,
+            @ParameterObject @PageableDefault(size = 1000, sort = {"nickname"}, direction = Sort.Direction.ASC) Pageable pageable) {
 
         log.info("MEMBER, SEARCH ASSIGNABLE, PARAM: {}", condition);
 
@@ -516,8 +517,8 @@ public class MemberController {
     @Operation(summary = "그룹장 선택 조회", description = "계정 관리 > 계정 목록 > 관리 > > 그룹 추가 > 그룹장 선택")
     @GetMapping("/not-in")
     public ResponseEntity<ApiResult<List<MemberDto>>> getNotLeaders(
-            @QueryParam @Valid MemberSearchCondition condition,
-            @SortDefault.SortDefaults({
+            @ParameterObject @QueryParam @Valid MemberSearchCondition condition,
+            @ParameterObject @SortDefault.SortDefaults({
                     @SortDefault(sort = {"id"}, direction = Sort.Direction.DESC)}) Pageable pageable) {
 
         log.info("MEMBER, GET ALL, PARAM: {}", condition);
