@@ -21,9 +21,11 @@ public abstract class UploadMapper {
     public abstract UploadDto map(Upload entity);
     public abstract List<UploadDto> map(List<Upload> entities);
 
+    // eddie.j url 작성 시 upload url 바라보지 않도록 하기 위해서 주석처리
+    /*
     @AfterMapping
     protected void setUrl(@MappingTarget UploadDto.UploadDtoBuilder dto, Upload upload) {
-
         dto.url(portalProperty.getUploadUrl() + upload.getUrl());
     }
+    */
 }
