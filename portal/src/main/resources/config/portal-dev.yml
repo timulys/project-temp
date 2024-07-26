@@ -19,6 +19,9 @@ application:
     storage-path: ${STORAGE_PATH:/opt/storage}
     upload-path: ${application.portal.storage-path}/upload
     upload-url: ${application.portal.service-url}/upload
+    # eddie.j download api url 추가
+    # download
+    download-api-url : /portal/api/v1/download
     #TODO :: 파일 허용 확장자 요건 정해지면 추가 20240717 volka
     allcate-extension:
       - ".xlsx"

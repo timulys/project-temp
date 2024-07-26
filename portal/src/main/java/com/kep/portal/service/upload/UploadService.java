@@ -54,12 +54,16 @@ public class UploadService {
 
         Assert.notNull(upload, "upload is null");
 
+        // eddie.j download 방식 변경으로 인하여 url 경로 수정
+        String url =  portalProperty.getDownloadApiUrl() + "?filePath=" + portalProperty.getStoragePath() + "&fileName=" + file.getName();
+
         String path = file.getAbsolutePath().replace(portalProperty.getStoragePath(), "");
         path = path.replace(File.separator + file.getName(), "");
         upload.setPath(path);
         upload.setName(file.getName());
         upload.setSize(file.length());
-        upload.setUrl(path + "/" + file.getName());
+        //upload.setUrl(path + "/" + file.getName());
+        upload.setUrl(url);
         upload.setCreator(securityUtils.getMemberId());
         upload.setCreated(ZonedDateTime.now());
         log.info("upload: {}", upload);

@@ -1,6 +1,6 @@
 package com.kep.portal.controller.download;
 
-import com.kep.core.model.dto.download.DownloadDto;
+import com.kep.portal.model.dto.download.DownloadDto;
 import com.kep.portal.service.download.DownloadService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

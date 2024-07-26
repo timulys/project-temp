@@ -1,6 +1,6 @@
 package com.kep.portal.service.download;
 
-import com.kep.core.model.dto.download.DownloadDto;
+import com.kep.portal.model.dto.download.DownloadDto;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package com.kep.core.model.dto.download;
+package com.kep.portal.model.dto.download;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

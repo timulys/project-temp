@@ -16,12 +16,15 @@ application:
     #    service-url: https://localhost:9080
     #    service-domain: localhost:9080
     api-base-path: /api/v${application.portal.api-version}
-    service-url: https://front.codeclick.co.kr # 프론트엔드 서비스 URL로 변경
-    service-domain: front.codeclick.co.kr # 프론트엔드 서비스 도메인으로 변경
+    service-url: localhost:8080 # 프론트엔드 서비스 URL로 변경
+    service-domain: localhost # 프론트엔드 서비스 도메인으로 변경
     # upload
-    storage-path: ${STORAGE_PATH:/Users/yoonjoonho/dev/storage}
+    storage-path: ${STORAGE_PATH:/opt/storage}
     upload-path: ${application.portal.storage-path}/upload
     upload-url: ${application.portal.service-url}/upload
+    # eddie.j download api url 추가
+    # download
+    download-api-url : /portal/api/v1/download
     #TODO :: 파일 허용 확장자 요건 정해지면 추가 20240717 volka
     allcate-extension:
       - ".xlsx"
