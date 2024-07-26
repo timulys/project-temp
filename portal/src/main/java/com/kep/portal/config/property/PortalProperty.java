@@ -30,6 +30,9 @@ public class PortalProperty {
 	@NotEmpty
 	private String uploadUrl;
 
+	@NotEmpty
+	private String downloadApiUrl;
+
 	private Set<String> allocateExtension;
 
 	//기존 로직
