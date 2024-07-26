@@ -54,11 +54,18 @@ public class UploadService {
 
         Assert.notNull(upload, "upload is null");
 
-        // eddie.j download 방식 변경으로 인하여 url 경로 수정
-        String url =  portalProperty.getDownloadApiUrl() + "?filePath=" + portalProperty.getStoragePath() + "&fileName=" + file.getName();
-
         String path = file.getAbsolutePath().replace(portalProperty.getStoragePath(), "");
         path = path.replace(File.separator + file.getName(), "");
+
+        // eddie.j download 방식 변경으로 인하여 url 경로 수정
+        StringBuilder urlStringBuilder = new StringBuilder();
+        String url =  urlStringBuilder.append(portalProperty.getDownloadApiUrl())
+                     .append("?filePath=")
+                     .append(portalProperty.getStoragePath())
+                     .append(path)
+                     .append("&fileName=")
+                     .append(file.getName()).toString();
+
         upload.setPath(path);
         upload.setName(file.getName());
         upload.setSize(file.length());
@@ -74,7 +81,7 @@ public class UploadService {
     /**
      * 파일삭제
      * 2023.03.28 / philip.lee7		/ 신규 
-     * @param UploadDto
+     * @param dto
      * @return boolean
      */
     public boolean delete(@NotNull UploadDto dto) {

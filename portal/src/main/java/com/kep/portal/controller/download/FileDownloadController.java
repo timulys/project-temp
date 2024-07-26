@@ -6,14 +6,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.constraints.NotNull;
 import java.io.File;
 
 @Tag(name = "파일 다운로드 API", description = "/api/v1/download")
@@ -28,7 +28,7 @@ public class FileDownloadController {
     @Tag(name = "파일 다운로드 API")
     @Operation(summary = "파일 다운로드")
     @GetMapping
-    public ResponseEntity<Resource> download(@NotNull DownloadDto downloadDto) {
+    ResponseEntity<Resource> download(@ParameterObject DownloadDto downloadDto) {
 
         File file = downloadService.getFile(downloadDto);
         if (!file.exists()) {
@@ -37,9 +37,6 @@ public class FileDownloadController {
 
         Resource resource = downloadService.getFileSystemResource(file);
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getName() + "\"")
-                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(file.length()))
-                .body(resource);
+        return new ResponseEntity<>(resource, HttpStatus.OK);
     }
 }
