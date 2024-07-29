@@ -98,6 +98,7 @@ public class SecurityConfig {
 				.mvcMatchers("/api/v1/counsel-portal/**")
 				.hasAnyRole("SYS")
 
+				.mvcMatchers("/api-docs/**" , "/swagger-ui/**").permitAll()
 				.anyRequest()
 				.authenticated()
 		;
