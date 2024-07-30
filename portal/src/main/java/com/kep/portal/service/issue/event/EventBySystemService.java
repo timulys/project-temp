@@ -121,20 +121,17 @@ public class EventBySystemService {
 	/**
 	 * 자동메세지, 상담대기 (배정완료, Issue.status == assign) 안내, Called by
 	 * {@link AssignConsumer}
-	 * modify : eddie.j 할당 시 welcome 메세지로 변경 ( replace 하드코딩 나중에 제거 필요 )
+
 	 */
 	public void sendAssigned(@NotNull Issue issue) {
 		log.info("SEND ASSIGNED, ISSUE: {}", issue.getId());
 		ChannelEnvDto channelEnv = channelEnvService.getByChannel(issue.getChannel());
 		try {
-			log.info("SEND ASSIGNED, CONFIG: {}", channelEnv.getStart().getWelcom());
-			boolean enabled = channelEnv.getStart().getWelcom().getEnabled();
+			log.info("SEND ASSIGNED, CONFIG: {}", channelEnv.getStart().getWaiting());
+			boolean enabled = channelEnv.getStart().getWaiting().getEnabled();
 			if (enabled) {
-				IssuePayload issuePayload = channelEnv.getStart().getWelcom().getMessage();
+				IssuePayload issuePayload = channelEnv.getStart().getWaiting().getMessage();
 				String payload = objectMapper.writeValueAsString(issuePayload);
-				if (Objects.nonNull(issue.getMember()) && !ObjectUtils.isEmpty(issue.getMember().getNickname())) {
-					payload = payload.replace("{{상담직원명}}", issue.getMember().getNickname());
-				}
 				IssueLog issueLog = saveSystemMessage(issue, payload);
 				sendToPlatformAndSocket(issue, issueLog);
 			}
