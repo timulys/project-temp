@@ -153,18 +153,6 @@
 <!--		</dependency>-->
 
 		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>1.18.30</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok-mapstruct-binding</artifactId>
-			<version>0.2.0</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
 			<groupId>org.mapstruct</groupId>
 			<artifactId>mapstruct</artifactId>
 			<version>1.5.3.Final</version>
@@ -174,6 +162,20 @@
 			<artifactId>mapstruct-processor</artifactId>
 			<version>1.5.3.Final</version>
 		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok-mapstruct-binding</artifactId>
+			<version>0.2.0</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.30</version>
+			<optional>true</optional>
+		</dependency>
+
+
 		<dependency>
 			<groupId>com.github.ulisesbocchio</groupId>
 			<artifactId>jasypt-spring-boot-starter</artifactId>
@@ -475,13 +477,13 @@
 						<groupId>org.apache.tomcat.maven</groupId>
 						<artifactId>tomcat7-maven-plugin</artifactId>
 						<version>2.2</version>
-						<configuration>
-							<url>http://connect-branch-web.kep.k9d.in:8000/deploy-manager/text</url>
-							<path>/${project.build.finalName}</path>
-							<username>codeclick</username>
-							<password>codeclick!#%135</password>
-							<update>true</update>
-						</configuration>
+<!--						<configuration>-->
+<!--							<url>http://connect-branch-web.kep.k9d.in:8000/deploy-manager/text</url>-->
+<!--							<path>/${project.build.finalName}</path>-->
+<!--							<username>codeclick</username>-->
+<!--							<password>codeclick!#%135</password>-->
+<!--							<update>true</update>-->
+<!--						</configuration>-->
 					</plugin>
 				</plugins>
 			</build>
