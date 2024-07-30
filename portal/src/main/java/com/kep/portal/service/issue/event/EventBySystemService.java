@@ -118,7 +118,9 @@ public class EventBySystemService {
 			log.info("SEND REPLY WHEN OPENED AND ASSIGNED, CONFIG: {}", channelEnv.getStart().getAbsence());
 			boolean enabled = channelEnv.getStart().getAbsence().getEnabled();
 			if (enabled) {
-				IssuePayload issuePayload = channelEnv.getStart().getAbsence().getMessage();
+				// eddie.j 테스트 상담원 처음 발송 메시지 수정 테스트
+				//IssuePayload issuePayload = channelEnv.getStart().getAbsence().getMessage();
+				IssuePayload issuePayload = channelEnv.getStart().getWelcom().getMessage();
 				String payload = objectMapper.writeValueAsString(issuePayload);
 				IssueLog issueLog = saveSystemMessage(issue, payload);
 				sendToPlatformAndSocket(issue, issueLog);

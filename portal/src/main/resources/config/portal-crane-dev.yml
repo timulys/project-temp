@@ -27,8 +27,8 @@ application:
     system-member-id: 9000000001
     kakao-bot-member-id: 9000000002
     #FIXME :: breakTime 고정인지? 설정 가능할텐데 20240719 volka
-    break-time-start: "12:00"
-    break-time-end: "13:00"
+    break-time-start: "21:00"
+    break-time-end: "22:00"
     #BNK  유입경로 FIXME :: bnk 설정
     bnk-kakao-talk-url: https://yocodeclick.loca.lt/platform/auth/kakao-sync/getSync?state=
     dashboad:
