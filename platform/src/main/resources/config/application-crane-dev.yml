@@ -1,3 +1,14 @@
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.hibernate.SQL: INFO
+    io.codeclick.platform.config.debug.DebugFilter: INFO
+    org.springframework.web.filter.GenericFilterBean: INFO
+    org.springframework.web.client.RestTemplate: INFO
+    reactor.netty.http.client: INFO
+
 spring:
   #lookup third party server
   rabbitmq:
@@ -19,6 +30,9 @@ spring:
 
 application:
   platform:
+    whitelist:
+      - 203.133.162.196
+      - 127.0.0.1
     platforms:
       kakao_alert_talk:
         api-base-url: https://bizmsg-web.kakaoenterprise.com
