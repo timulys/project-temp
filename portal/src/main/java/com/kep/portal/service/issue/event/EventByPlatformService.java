@@ -303,8 +303,14 @@ public class EventByPlatformService {
 		simpMessagingTemplate.convertAndSend(socketProperty.getIssuePath() + "." + issue.getId() + "." + "message", issueLogDto);
 
 		// 자동메세지 (배정대기/상담대기 중 고객메세지 자동응답)
+		/*
 		if (IssueStatus.open.equals(issue.getStatus()) || IssueStatus.assign.equals(issue.getStatus())) {
 			eventBySystemService.sendReplyWhenOpenedAndAssigned(issue);
+		}
+		*/
+
+		if (IssueStatus.open.equals(issue.getStatus()) ) {
+			eventBySystemService.sendReplyWhenOpened(issue);
 		}
 
 		// 상담원 근무 시간이 아닌 경우

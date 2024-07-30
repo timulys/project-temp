@@ -1,38 +1,14 @@
 package com.kep.portal.service.issue.event;
 
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import javax.annotation.Nullable;
-import javax.annotation.Resource;
-import javax.transaction.Transactional;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-import com.kep.portal.util.SecurityUtils;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.channel.ChannelEnvDto;
-import com.kep.core.model.dto.issue.IssueCloseType;
-import com.kep.core.model.dto.issue.IssueDto;
-import com.kep.core.model.dto.issue.IssueLogDto;
-import com.kep.core.model.dto.issue.IssueLogStatus;
-import com.kep.core.model.dto.issue.IssueStatus;
+import com.kep.core.model.dto.issue.*;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
 import com.kep.core.model.dto.system.SystemEnvEnum;
 import com.kep.portal.client.PlatformClient;
 import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.config.property.SocketProperty;
-import com.kep.portal.model.entity.issue.Issue;
-import com.kep.portal.model.entity.issue.IssueLog;
-import com.kep.portal.model.entity.issue.IssueLogMapper;
-import com.kep.portal.model.entity.issue.IssueMapper;
-import com.kep.portal.model.entity.issue.IssueStorage;
+import com.kep.portal.model.entity.issue.*;
 import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.model.type.IssueStorageType;
 import com.kep.portal.scheduler.SendDelayFirstReplyJob;
@@ -41,8 +17,22 @@ import com.kep.portal.service.channel.ChannelEnvService;
 import com.kep.portal.service.issue.IssueLogService;
 import com.kep.portal.service.issue.IssueService;
 import com.kep.portal.service.issue.IssueStorageService;
-
+import com.kep.portal.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+
+import javax.annotation.Nullable;
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * 시스템 이벤트, 로직 도중 호출되므로 Exception 던지지 말 것
@@ -118,9 +108,7 @@ public class EventBySystemService {
 			log.info("SEND REPLY WHEN OPENED AND ASSIGNED, CONFIG: {}", channelEnv.getStart().getAbsence());
 			boolean enabled = channelEnv.getStart().getAbsence().getEnabled();
 			if (enabled) {
-				// eddie.j 테스트 상담원 처음 발송 메시지 수정 테스트
-				//IssuePayload issuePayload = channelEnv.getStart().getAbsence().getMessage();
-				IssuePayload issuePayload = channelEnv.getStart().getWelcom().getMessage();
+				IssuePayload issuePayload = channelEnv.getStart().getAbsence().getMessage();
 				String payload = objectMapper.writeValueAsString(issuePayload);
 				IssueLog issueLog = saveSystemMessage(issue, payload);
 				sendToPlatformAndSocket(issue, issueLog);
@@ -133,18 +121,20 @@ public class EventBySystemService {
 	/**
 	 * 자동메세지, 상담대기 (배정완료, Issue.status == assign) 안내, Called by
 	 * {@link AssignConsumer}
+	 * modify : eddie.j 할당 시 welcome 메세지로 변경 ( replace 하드코딩 나중에 제거 필요 )
 	 */
 	public void sendAssigned(@NotNull Issue issue) {
-
 		log.info("SEND ASSIGNED, ISSUE: {}", issue.getId());
-
 		ChannelEnvDto channelEnv = channelEnvService.getByChannel(issue.getChannel());
 		try {
-			log.info("SEND ASSIGNED, CONFIG: {}", channelEnv.getStart().getWaiting());
-			boolean enabled = channelEnv.getStart().getWaiting().getEnabled();
+			log.info("SEND ASSIGNED, CONFIG: {}", channelEnv.getStart().getWelcom());
+			boolean enabled = channelEnv.getStart().getWelcom().getEnabled();
 			if (enabled) {
-				IssuePayload issuePayload = channelEnv.getStart().getWaiting().getMessage();
+				IssuePayload issuePayload = channelEnv.getStart().getWelcom().getMessage();
 				String payload = objectMapper.writeValueAsString(issuePayload);
+				if (Objects.nonNull(issue.getMember()) && !ObjectUtils.isEmpty(issue.getMember().getNickname())) {
+					payload = payload.replace("{{상담직원명}}", issue.getMember().getNickname());
+				}
 				IssueLog issueLog = saveSystemMessage(issue, payload);
 				sendToPlatformAndSocket(issue, issueLog);
 			}
@@ -581,4 +571,31 @@ public class EventBySystemService {
 		log.warn("CLOSE ISSUE BY SYSTEM, ID: {}", issue.getId());
 		// TODO: close, 통계 등 필요한 데이터 생성
 	}
+
+	/**
+	 * eddie.j 추가 open 시 응답 메세지 메서드 추가
+	 * Todo 현재는 테스트로 소스 정리 X
+	 * 기능 테스트 후 소스 정리 필요
+	 * @param issue
+	 */
+	public void sendReplyWhenOpened(@NotNull Issue issue) {
+		log.info("SEND REPLY WHEN OPENED ISSUE: {}", issue.getId());
+		ChannelEnvDto channelEnv = channelEnvService.getByChannel(issue.getChannel());
+		try {
+			log.info("SEND REPLY WHEN OPENED CONFIG: {}", channelEnv.getStart().getSt());
+			boolean enabled = channelEnv.getStart().getSt().getEnabled();
+			if (enabled) {
+				IssuePayload issuePayload = channelEnv.getStart().getSt().getMessage();
+				String payload = objectMapper.writeValueAsString(issuePayload);
+				if (Objects.nonNull(issue.getMember())) {
+					payload = payload.replace("{위탁사명}", "Always_Dev");
+				}
+				IssueLog issueLog = saveSystemMessage(issue, payload);
+				sendToPlatformAndSocket(issue, issueLog);
+			}
+		} catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+		}
+	}
+
 }
