@@ -543,11 +543,8 @@ public class MemberService {
 
 			log.info("MEMBER ID:{} , ASSIGNABLE STATUS:{} ", member.getId(), member.getStatus());
 
-			member.setAssignable(true);
-			if (WorkType.OfficeHoursStatusType.off.equals(member.getStatus())) {
-				member.setAssignable(false);
-			}
 
+			// 브랜치 구하기
 			Optional<Branch> branchOptional = branches.stream().filter(item -> item.getId().equals(member.getBranchId())).findFirst();
 
 			// 근무시간 체크
@@ -567,16 +564,24 @@ public class MemberService {
 				log.info("ASSIGN TYPE:{} , ID:{} , OFFICE_HOURS:{}", branch.getAssign(), branch.getId(), officeHoursMapper.map(officeHours));
 			}
 
-			if (officeHours != null) {
-				member.setAssignable(officeHoursService.isOfficeHours(officeHours));
-			}
-
 			// 소속명 구하기
 			Optional<Team> teamOptional = teamMembers.stream().filter(q -> q.getMemberId().equals(member.getId())).map(TeamMember::getTeam).findFirst();
 
 			if (teamOptional.isPresent()) {
 				Team team = teamOptional.get();
 				member.setTeamName((team.getName() != null) ? team.getName() : null);
+			}
+
+			// eddie.j Assignable 컬럼 세팅 위치 변경 ( 같은 컬럼 데이터 덮어씌우는 문제로 인하여 버그 발생 )
+			// Todo 로직 파악 후 리팩토링 필요하다고 판단 되는 소스...
+			member.setAssignable(true);
+			if (WorkType.OfficeHoursStatusType.off.equals(member.getStatus())) {
+				member.setAssignable(false);
+				continue;
+			}
+
+			if (officeHours != null) {
+				member.setAssignable(officeHoursService.isOfficeHours(officeHours));
 			}
 		}
 
