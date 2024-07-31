@@ -153,9 +153,10 @@ public class EventBySystemService {
 			log.info("SEND WELCOME, CONFIG: {}", channelEnv.getStart().getWelcom());
 			boolean enabled = channelEnv.getStart().getWelcom().getEnabled();
 			IssuePayload issuePayload = null;
+			// TODO: 현재 시스템 인사말 설정이 비활성화 된 경우 user가 활성화 한 인사말이 작동되도록 되어있음 우선 순위 확인 필요해보임
 			if (enabled) {
 				issuePayload = channelEnv.getStart().getWelcom().getMessage();
-			} else if (issue.getMember() != null) {
+			} else if (Objects.nonNull(issue.getMember()) && issue.getMember().getUsedMessage()) {
 				Member member = issue.getMember();
 				issuePayload = member.getFirstMessage();
 			}
