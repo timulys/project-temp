@@ -45,6 +45,7 @@ application:
       - 203.133.162.185
       - 203.133.162.195
       - 203.133.162.196
+      - 10.100.0.193
     platforms:
       kakao_alert_talk:
         api-base-url: https://bizmsg-web.kakaoenterprise.com
