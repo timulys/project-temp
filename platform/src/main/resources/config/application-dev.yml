@@ -68,6 +68,7 @@ springdoc:
     display-request-duration: true
     defaultModelsExpandDepth: 2
     defaultModelExpandDepth: 2
+    url: "https://always-talk.kakaoiconnect.ai/platform"
   api-docs:
     path: /api-docs
   show-actuator: true
