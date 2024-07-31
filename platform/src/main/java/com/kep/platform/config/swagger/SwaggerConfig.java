@@ -18,11 +18,28 @@ import org.springframework.context.annotation.Profile;
 @Configuration
 public class SwaggerConfig {
 
-
     @Bean
     public OpenAPI customOpenAPI() {
-        return new OpenAPI().addServersItem(new Server().url("https://always-talk.kakaoiconnect.ai/platform"))
-                .components(new Components().addSecuritySchemes("basic", new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("basic")))
+        return new OpenAPI().addServersItem(createSwaggerServer())
+                .components(createSwaggerComponents())
                 .info(new Info().title("Platform API").version("1"));
+    }
+
+    private Server createSwaggerServer() {
+        return new Server()
+                .url("https://always-talk.kakaoiconnect.ai/platform");
+    }
+
+    private Components createSwaggerComponents() {
+        return new Components()
+                .addSecuritySchemes(
+                        "basicAuth",
+                        new SecurityScheme()
+                                .type(SecurityScheme.Type.APIKEY)
+                                .in(SecurityScheme.In.COOKIE)
+                                .name("JSESSIONID")
+                                .scheme("basic")
+                )
+                ;
     }
 }
