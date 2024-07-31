@@ -1,6 +1,7 @@
 spring:
   datasource:
-    url: jdbc:mysql://always-test.mydev.onkakao.net:3306/always
+    #url: jdbc:mysql://always-test.mydev.onkakao.net:3306/always
+    url: jdbc:mysql://always-test-dev.mydev.onkakao.net:3306/always
     username: always
     password: Always23!
     driver-class-name: com.mysql.cj.jdbc.Driver

@@ -74,7 +74,8 @@ public class SystemMessageService {
         WebClient webClient = webClientBuilder.build();
         ApiResult<List<IssuePayload>> payloads = webClient
                 .get()
-                .uri("http://platform-service/platform/api/v1/portal/sm")
+                // eddie.j 메세지 수신 URL 변경 된 사항으로 수정
+                .uri("http://platform-service/platform/api/v1/counsel-portal/sm")
                 .accept(MediaType.APPLICATION_JSON)
                 .header("X-Service-Key",serviceKey)
                 .httpRequest(httpRequest -> {
