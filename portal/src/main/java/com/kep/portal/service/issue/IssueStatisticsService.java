@@ -9,12 +9,14 @@ import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.model.entity.statistics.IssueStatistics;
 import com.kep.portal.model.entity.work.BranchOfficeHours;
 import com.kep.portal.model.entity.work.MemberOfficeHours;
+import com.kep.portal.model.entity.work.OffDutyHours;
 import com.kep.portal.repository.assign.BranchOfficeHoursRepository;
 import com.kep.portal.repository.assign.MemberOfficeHoursRepository;
 import com.kep.portal.repository.statisctics.IssueStatisticsRepository;
 import com.kep.portal.service.branch.BranchService;
 import com.kep.portal.service.member.MemberService;
 import com.kep.portal.service.team.TeamMemberService;
+import com.kep.portal.service.work.OffDutyHoursService;
 import com.kep.portal.service.work.OfficeHoursService;
 import com.kep.portal.service.work.WorkService;
 import com.kep.portal.util.OfficeHoursTimeUtils;
@@ -60,6 +62,9 @@ public class IssueStatisticsService {
 
     @Resource
     private TeamMemberService teamMemberService;
+
+    @Resource
+    private OffDutyHoursService offDutyHoursService;
 
     /**
      * date group list
@@ -163,6 +168,8 @@ public class IssueStatisticsService {
         boolean isMemberAssign = branch.getAssign().equals(WorkType.Cases.member);
         boolean isWork = true;
 
+        List<OffDutyHours> branchOffDutyHoursList = offDutyHoursService.getOffDutyHours(branch.getId());
+
         if(!isMemberAssign){
             //근무 시간 예외 처리
             isWork = !workService.offDutyHours(branch);
@@ -205,6 +212,12 @@ public class IssueStatisticsService {
 
             //상담원 상태가 on 아니면 무조건 off
             if(!member.getStatus().equals(WorkType.OfficeHoursStatusType.on)){
+                status = WorkType.OfficeHoursStatusType.off;
+            }
+
+            // 휴무일의 경우 상담 불가능 로직 추가
+            // Todo 전반적인 리팩토링 필요해보임..
+            if(branchOffDutyHoursList.size() > 0 ){
                 status = WorkType.OfficeHoursStatusType.off;
             }
 
