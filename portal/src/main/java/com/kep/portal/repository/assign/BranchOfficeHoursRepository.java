@@ -16,5 +16,5 @@ public interface BranchOfficeHoursRepository extends JpaRepository<BranchOfficeH
 
     List<OfficeHours> findAllByBranchId(Long branchId);
 
-    List<OfficeHours> findAllByBranchIdIn(Collection<Long> branchIds);
+    List<BranchOfficeHours> findAllByBranchIdIn(Collection<Long> branchIds);
 }
