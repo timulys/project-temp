@@ -44,14 +44,4 @@ public class FileDownloadController {
         return new ResponseEntity<>(resource, HttpStatus.OK);
     }
 
-    /**
-     * test
-     * @param downloadDto
-     * @return
-     */
-    @GetMapping("/new")
-    public ResponseEntity<Resource> downloadFile(@ParameterObject DownloadDto downloadDto) throws IOException {
-        InputStreamResource resource = new InputStreamResource(Files.newInputStream(downloadService.getFile(downloadDto).toPath()));
-        return new ResponseEntity<>(resource, HttpStatus.OK);
-    }
 }
