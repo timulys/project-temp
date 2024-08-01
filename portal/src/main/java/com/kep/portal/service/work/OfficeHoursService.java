@@ -92,11 +92,10 @@ public class OfficeHoursService {
 	}
 
 	public boolean isOfficeHours(@NotNull OfficeHours officeHours) {
-
 		return isOfficeHours(officeHours.getStartCounselTime(), officeHours.getEndCounselTime(), officeHours.getDayOfWeek());
 	}
 
-	public List<OfficeHours> branchs(@NotNull Set<Long> branchIds) {
+	public List<BranchOfficeHours> getBranchOfficeHours(@NotNull Set<Long> branchIds) {
 		return branchOfficeHoursRepository.findAllByBranchIdIn(branchIds);
 	}
 

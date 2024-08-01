@@ -17,10 +17,7 @@ import com.kep.portal.model.entity.privilege.Level;
 import com.kep.portal.model.entity.privilege.Role;
 import com.kep.portal.model.entity.team.Team;
 import com.kep.portal.model.entity.team.TeamMember;
-import com.kep.portal.model.entity.work.MemberOfficeHours;
-import com.kep.portal.model.entity.work.OffDutyHours;
-import com.kep.portal.model.entity.work.OfficeHours;
-import com.kep.portal.model.entity.work.OfficeHoursMapper;
+import com.kep.portal.model.entity.work.*;
 import com.kep.portal.repository.assign.BranchOfficeHoursRepository;
 import com.kep.portal.repository.assign.MemberOfficeHoursRepository;
 import com.kep.portal.repository.branch.BranchRepository;
@@ -37,6 +34,7 @@ import com.kep.portal.service.issue.IssueService;
 import com.kep.portal.service.privilege.RoleService;
 import com.kep.portal.service.team.TeamMemberService;
 import com.kep.portal.service.team.TeamService;
+import com.kep.portal.service.work.OffDutyHoursService;
 import com.kep.portal.service.work.OfficeHoursService;
 import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.SecurityUtils;
@@ -119,19 +117,19 @@ public class MemberService {
 
 	@Resource
 	private SystemMessageProperty systemMessageProperty;
+
+	@Resource
+	private OffDutyHoursService offDutyHoursService;
 	
 	public Member findById(@NotNull @Positive Long id) {
-
 		return memberRepository.findById(id).orElse(null);
 	}
 
 	public List<Member> findAll(@NotNull Example<Member> example) {
-
 		return memberRepository.findAll(example);
 	}
 
 	public long count(@NotNull Example<Member> example) {
-
 		return memberRepository.count(example);
 	}
 	
@@ -525,9 +523,9 @@ public class MemberService {
 
 		// 브랜치 이름
 		Set<Long> branchIds = members.stream().map(Member::getBranchId).collect(Collectors.toSet());
-		List<OfficeHours> branchOfficeHours = officeHoursService.branchs(branchIds);
+		List<BranchOfficeHours> branchOfficeHours = officeHoursService.getBranchOfficeHours(branchIds);
 		List<Branch> branches = branchService.findAllById(branchIds).stream().peek(item -> {
-			OfficeHours officeHours = branchOfficeHours.stream().filter(q -> item.getId().equals(q.getCasesId())).findFirst().orElse(null);
+			OfficeHours officeHours = branchOfficeHours.stream().filter(q -> item.getId().equals(q.getBranchId())).findFirst().orElse(null);
 			item.setOfficeHours(officeHours);
 		}).collect(Collectors.toList());
 
@@ -543,44 +541,38 @@ public class MemberService {
 
 			log.info("MEMBER ID:{} , ASSIGNABLE STATUS:{} ", member.getId(), member.getStatus());
 
-
 			// 브랜치 구하기
-			Optional<Branch> branchOptional = branches.stream().filter(item -> item.getId().equals(member.getBranchId())).findFirst();
+			Branch branch = branches.stream().filter(item -> item.getId().equals(member.getBranchId())).findFirst().orElse(null);
+			member.setBranchName(branch.getName());
 
-			// 근무시간 체크
-			OfficeHours officeHours = null;
-			if (branchOptional.isPresent()) {
-				Branch branch = branchOptional.get();
-				member.setBranchName(branch.getName());
-				if (branch.getAssign().equals(WorkType.Cases.branch)) {
-					officeHours = branch.getOfficeHours();
-				}
-				if (branch.getAssign().equals(WorkType.Cases.member)) {
-					Optional<MemberOfficeHours> memberOfficeHoursOptional = memberOfficeHoursList.stream().filter(item -> item.getMemberId().equals(member.getId())).findFirst();
-					if (memberOfficeHoursOptional.isPresent()) {
-						officeHours = memberOfficeHoursOptional.get();
-					}
-				}
-				log.info("ASSIGN TYPE:{} , ID:{} , OFFICE_HOURS:{}", branch.getAssign(), branch.getId(), officeHoursMapper.map(officeHours));
-			}
+			// 시스템 근무시간 / 개인 근무시간인지 여부 체크
+			OfficeHours officeHours = this.getOfficeHoursUseWorkType(member, branch, memberOfficeHoursList);
 
 			// 소속명 구하기
-			Optional<Team> teamOptional = teamMembers.stream().filter(q -> q.getMemberId().equals(member.getId())).map(TeamMember::getTeam).findFirst();
-
-			if (teamOptional.isPresent()) {
-				Team team = teamOptional.get();
-				member.setTeamName((team.getName() != null) ? team.getName() : null);
+			Team team = teamMembers.stream().filter(q -> q.getMemberId().equals(member.getId())).map(TeamMember::getTeam).findFirst().orElse(null);
+			if(Objects.nonNull(team)){
+				member.setTeamName(team.getName());
 			}
 
-			// eddie.j Assignable 컬럼 세팅 위치 변경 ( 같은 컬럼 데이터 덮어씌우는 문제로 인하여 버그 발생 )
-			// Todo 로직 파악 후 리팩토링 필요하다고 판단 되는 소스...
+			// Todo 다른 branch의 멤버 보이는지 확인 후 for문 위쪽으로 변경 필요
+			// 오늘 휴무 인지 여부 체크 추가
+			List<OffDutyHours> branchOffDutyHoursList = offDutyHoursService.getOffDutyHours(member.getBranchId());
+			if(branchOffDutyHoursList.size() > 0 ){
+				member.setAssignable(false);
+				continue;
+			}
+
+			// Todo 대시보드 쪽에서 보이는 로직이랑 맞춰야 할 필요성 있어보임..
+			// eddie.j Assignable 컬럼 세팅 위치 변경 ( 같은 컬럼 데이터 덮어 씌우는 문제로 인하여 버그 발생 )
+			// 1. 온라인 / 오프라인 체크
 			member.setAssignable(true);
 			if (WorkType.OfficeHoursStatusType.off.equals(member.getStatus())) {
 				member.setAssignable(false);
 				continue;
 			}
 
-			if (officeHours != null) {
+			// 2. 근무시간 체크
+			if (Objects.nonNull(officeHours)) {
 				member.setAssignable(officeHoursService.isOfficeHours(officeHours));
 			}
 		}
@@ -1033,5 +1025,29 @@ public class MemberService {
 	//총 멤버수 
 	public long getTotalmembers() {
 		return memberRepository.countByUsernameNot("master1");
+	}
+
+
+	/**
+	 * 시스템 설정 > 근무 조건 설정에서 > 근무 시간 기준이 시스템 or 상담직원 기준인지 여부에 따른 OfficeHours GET
+	 * @param member
+	 * @param branch
+	 * @param memberOfficeHoursList
+	 * @return
+	 */
+	private OfficeHours getOfficeHoursUseWorkType(MemberAssignDto member, Branch branch, List<MemberOfficeHours> memberOfficeHoursList) {
+		if(Objects.isNull(branch)){
+			return null;
+		}
+		OfficeHours officeHours = null;
+
+		if (branch.getAssign().equals(WorkType.Cases.branch)) {
+			officeHours = branch.getOfficeHours();
+		}
+		if (branch.getAssign().equals(WorkType.Cases.member)) {
+			officeHours = memberOfficeHoursList.stream().filter(item -> item.getMemberId().equals(member.getId())).findFirst().orElse(null);
+		}
+		log.info("ASSIGN TYPE:{} , ID:{} , OFFICE_HOURS:{}", branch.getAssign(), branch.getId(), officeHoursMapper.map(officeHours));
+		return officeHours;
 	}
 }
