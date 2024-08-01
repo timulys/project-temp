@@ -41,7 +41,7 @@ application:
     redis-mode: ${REDIS_MODE:standalone}
     # eddie.j download api url 추가
     # download
-    download-api-url : /portal/api/v1/download
+    download-api-url : https://always-talk.kakaoiconnect.ai/portal/api/v1/download
   customer:
     api-version: 1
     api-base-path: /api/v${application.customer.api-version}
