@@ -81,15 +81,10 @@ public class OffDutyHoursService {
 
 		if (branchOffDutyHours == null) {
 
-			LocalDate localDate = LocalDate.now();
-
-			Map<String,ZonedDateTime> today = ZonedDateTimeUtil.getTodayDateTime(localDate);
 
 			Long branchId = securityUtils.getBranchId();;
 
-			List<OffDutyHours> branchOffDutyHoursList = branchOffDutyHoursRepository.findAllByBranchIdAndStartCreatedGreaterThanEqualAndEndCreatedLessThanEqual(
-					branchId,today.get("start"), today.get("end")
-			);
+			List<OffDutyHours> branchOffDutyHoursList = this.getOffDutyHours(branchId);
 
 			if(!branchOffDutyHoursList.isEmpty()){
 				return null;
@@ -210,6 +205,11 @@ public class OffDutyHoursService {
 			result = this.memberDelete(dto.getId());
 		}
 		return result;
+	}
+
+	public List<OffDutyHours> getOffDutyHours(Long branchId) {
+		Map<String,ZonedDateTime> today = ZonedDateTimeUtil.getTodayDateTime(LocalDate.now());
+		return branchOffDutyHoursRepository.findAllByBranchIdAndStartCreatedGreaterThanEqualAndEndCreatedLessThanEqual( branchId , today.get("start") , today.get("end") );
 	}
 
 }

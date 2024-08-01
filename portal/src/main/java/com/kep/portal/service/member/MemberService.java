@@ -34,6 +34,7 @@ import com.kep.portal.service.issue.IssueService;
 import com.kep.portal.service.privilege.RoleService;
 import com.kep.portal.service.team.TeamMemberService;
 import com.kep.portal.service.team.TeamService;
+import com.kep.portal.service.work.OffDutyHoursService;
 import com.kep.portal.service.work.OfficeHoursService;
 import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.SecurityUtils;
@@ -116,19 +117,19 @@ public class MemberService {
 
 	@Resource
 	private SystemMessageProperty systemMessageProperty;
+
+	@Resource
+	private OffDutyHoursService offDutyHoursService;
 	
 	public Member findById(@NotNull @Positive Long id) {
-
 		return memberRepository.findById(id).orElse(null);
 	}
 
 	public List<Member> findAll(@NotNull Example<Member> example) {
-
 		return memberRepository.findAll(example);
 	}
 
 	public long count(@NotNull Example<Member> example) {
-
 		return memberRepository.count(example);
 	}
 	
@@ -551,6 +552,14 @@ public class MemberService {
 			Team team = teamMembers.stream().filter(q -> q.getMemberId().equals(member.getId())).map(TeamMember::getTeam).findFirst().orElse(null);
 			if(Objects.nonNull(team)){
 				member.setTeamName(team.getName());
+			}
+
+			// Todo 다른 branch의 멤버 보이는지 확인 후 for문 위쪽으로 변경 필요
+			// 오늘 휴무 인지 여부 체크 추가
+			List<OffDutyHours> branchOffDutyHoursList = offDutyHoursService.getOffDutyHours(member.getBranchId());
+			if(branchOffDutyHoursList.size() > 0 ){
+				member.setAssignable(false);
+				continue;
 			}
 
 			// Todo 대시보드 쪽에서 보이는 로직이랑 맞춰야 할 필요성 있어보임..
