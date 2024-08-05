@@ -61,8 +61,8 @@ INSERT INTO channel_env (id, assign_standby_enabled, assign_standby_message, ass
   "version" : "0.1",
   "chapters" : [ {
     "sections" : [ {
-      "type" : "platform_answer",
-      "data" : "no_answer"
+      "type" : "text",
+      "data" : "현재는 상담직원 응대가 어렵습니다. 근무시간(평일 오전9:00 ~ 오후6:00)에 다시 문의해주세요.(훌쩍)"
     } ]
   } ]
 }', '0', 'category', 'Y', '2023-04-05 20:58:44.531000', '2', 'N', '1', '1', '1');
