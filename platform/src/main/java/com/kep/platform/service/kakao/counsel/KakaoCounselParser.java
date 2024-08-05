@@ -68,6 +68,9 @@ public class KakaoCounselParser {
 					String key = param.substring(0, underscoreIndex);
 					String value = param.substring(underscoreIndex + 1);
 
+					/**
+					 * FIXME :: BNK 비즈니스
+					 */
 					// bnk_상담원_username값 처리 vndr_cust_no
 					if ("vndr_cust_no".equals(key)) {
 						params.put("vndrCustNo", value);
