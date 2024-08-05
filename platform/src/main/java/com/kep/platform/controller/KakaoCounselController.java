@@ -123,7 +123,7 @@ public class KakaoCounselController {
 	}
 
 	@Tag(name = "카카오 상담톡 API")
-	@Operation(summary = "핑")
+	@Operation(summary = "핑 (입력테스트)", description = "입력 테스트용")
 	@RequestMapping
 	public ResponseEntity<ApiResult<Map<String, Object>>> ping(
 			@RequestHeader HttpHeaders httpHeaders,
