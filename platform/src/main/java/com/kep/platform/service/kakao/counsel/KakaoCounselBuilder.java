@@ -78,7 +78,7 @@ public class KakaoCounselBuilder {
 							else {
 								uploadUrl = kakaoCounselService.uploadImage(UploadPlatformRequestDto.builder()
 										.sourceUrl(section.getData())
-										.imageType(KakaoCounselSendEvent.IMAGE_TYPE_LINK)
+										//.imageType(KakaoCounselSendEvent.IMAGE_TYPE_LINK)
 										.build(), serviceKey);
 							}
 
