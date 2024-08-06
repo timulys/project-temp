@@ -18,6 +18,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -69,13 +71,30 @@ public class KakaoCounselBuilder {
 							// 이미지 타입 메세지
 							if (KakaoCounselSendEvent.MESSAGE_TYPE_IMAGE.equals(event.getMessageType())) {
 								uploadUrl = kakaoCounselService.uploadImage(UploadPlatformRequestDto.builder()
-										.sourceUrl(section.getData())
+										.sourcePath(section.getData())
 										.build(), serviceKey);
 							}
 							// (이미지가 포함된) 링크 타입 메세지
 							else {
+								// eddie.j 지울 소스 테스트를 위한 소스
+								Matcher filePathResult = Pattern.compile("\\\\?filePath=([^&]+)").matcher(section.getData());
+								String filepath = null;
+								if (filePathResult.find()) {
+									filepath = filePathResult.group(1);
+								}
+
+								String fileName = null;
+								Matcher fileNameResult = Pattern.compile("\\\\?fileName=([^&]+)").matcher(section.getData());
+								if (fileNameResult.find()) {
+									fileName = fileNameResult.group(1);
+								}
+								// /opt/storage/image/2024/08/c8dae95b-c39f-4e6b-9ae3-f0590b4c5b65.png
+								String sourcePath = filepath+"/"+fileName;
+								log.info("@@eddie.j sourcePath = {} " , sourcePath);
+
 								uploadUrl = kakaoCounselService.uploadImage(UploadPlatformRequestDto.builder()
 										.sourceUrl(section.getData())
+										.sourcePath(sourcePath)
 										.imageType(KakaoCounselSendEvent.IMAGE_TYPE_LINK)
 										.build(), serviceKey);
 							}
