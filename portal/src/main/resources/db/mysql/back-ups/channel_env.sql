@@ -48,7 +48,12 @@ LOCK TABLES channel_env WRITE;
 
 INSERT INTO channel_env (id, assign_standby_enabled, assign_standby_message, assign_standby_number, created, creator, customer_connection, evaluation_enabled, evaluation_message, impossible_message, max_issue_category_depth, member_assign, member_direct_enabled, modified, modifier, request_block_enabled, channel_id, channel_end_auto_id, channel_start_auto_id) VALUES ('1', 'Y', '{
   "version" : "0.1",
-  "chapters" : [ { } ]
+  "chapters" : [ {
+    "sections" : [ {
+      "type" : "platform_answer",
+      "data" : "off"
+    } ]
+  } ]
 }', NULL, '2023-03-16 13:19:08', '1', 'custom', 'N', '{
   "version" : "0.1",
   "chapters" : [ {
