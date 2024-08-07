@@ -6,16 +6,15 @@ import com.kep.portal.model.entity.branch.Branch;
 import com.kep.portal.model.entity.issue.Issue;
 import com.kep.portal.model.entity.issue.IssueAssign;
 import com.kep.portal.model.entity.member.Member;
-import com.kep.portal.model.entity.member.MemberMapper;
 import com.kep.portal.service.branch.BranchService;
 import com.kep.portal.service.channel.ChannelEnvService;
 import com.kep.portal.service.issue.event.EventBySystemService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-
-import javax.annotation.Resource;
 import java.util.*;
+import java.util.Map.Entry;
+import javax.annotation.Resource;
 import java.util.stream.Collectors;
 
 /**
@@ -44,6 +43,7 @@ public class AssignByMemberRandom implements Assignable {
 
 	@Override
 	public List<Member> apply(IssueAssign issueAssign, Issue issue, List<Member> members) {
+		List<Member> memberList = new ArrayList<>();
 
 		log.info("ASSIGN BY MEMBER RANDOM, ISSUE: {}, MEMBERS: {}", issue.getId(),
 				members.stream().map(Member::getId).collect(Collectors.toList()));
@@ -59,92 +59,76 @@ public class AssignByMemberRandom implements Assignable {
 			throw new UnsupportedOperationException("AssignByMemberRandom, ALL MEMBERS ARE STATUS OFF");
 		}
 
+		// 최대 상담건수가 개별기준인지 branch 기준인지 체크 하기 위해서 쿼리
+		Branch branch = branchService.findById(issue.getBranchId());
+
 		Map<Long , Long> memberIssueGrouop = assignManager.memberIssueGrouop(issue.getBranchId() , members);
 
 		log.info("MEMBER RANDOM MEMBER ISSUE GROUOP:{} , ISSUE ID:{}" , memberIssueGrouop , issue.getId());
 
-		List<Member> memberList = new ArrayList<>();
-		Set<Long> memberIssueGroup = memberIssueGrouop.keySet();
-		log.info("MEMBER RANDOM ISSUE GROUP MEMBER IDS :{} , ISSUE ID:{}" , memberIssueGroup , issue.getId());
-
-		if(memberIssueGroup.size() == 0){ //진행중인 값이 없으면
-			Collections.shuffle(members);
-			memberList.add(members.get(0));
-		} else { // 진행중인 ISSUE 에서 제일 적게 배정된 MEMBER 에서 RANDOM
-
-			Map<Long, List<Long>> issueGroupMemberList = memberIssueGrouop.entrySet().stream()
-					.collect(Collectors.groupingBy(Map.Entry::getValue
-							, Collectors.mapping(Map.Entry::getKey, Collectors.toList())));
-
-			log.info("MEMBER RANDOM ISSUE GROUP MEMBER LIST:{}" , issueGroupMemberList);
-
-			Optional<Map.Entry<Long, List<Long>>> memberIdList = issueGroupMemberList
-					.entrySet().stream().findFirst();
-
-			if(!memberIdList.isPresent()){
-				return memberList;
-			}
-
-			//현재 제일 적은 이슈 활성화 갯수
-			Long activStatusCount = memberIdList.get().getKey();
-
-			//최대 상담건수가 개별이면
-			Branch branch = branchService.findById(issue.getBranchId());
-			boolean isMemberAssign = WorkType.MaxCounselType.individual.equals(branch.getMaxCounselType());
-			List<Long> memberIds = memberIdList.get().getValue();
-			log.info("BRANCH MAX COUNSEL TYPE :{} , ACTIV STATUS COUNT:{}",branch.getMaxCounselType() , activStatusCount);
-			if(isMemberAssign){
-				List<Member> assignMember = new ArrayList<>();
-				for (Member member : members){
-					log.info("MEMBER , ID : {} , MAX COUNSEL : {}",member.getId(), member.getMaxCounsel());
-					if(memberIds.contains(member.getId())){
-						Long maxCounsel = Long.valueOf((member.getMaxCounsel() == null) ? branch.getMaxMemberCounsel() : member.getMaxCounsel());
-						if(maxCounsel > activStatusCount){
-							assignMember.add(member);
-						}
-					}
+		// todo 소스 리팩토링 필요, 가능한 상담원이 없는 경우 계속 시도하는게 맞는가..? ( 상담이 끝나면 다시 할당 가능하긴함.. )
+		if (WorkType.MaxCounselType.individual.equals(branch.getMaxCounselType()) ) {
+			this.setMemberIssueGrouop(members , memberIssueGrouop , branch.getMaxMemberCounsel() );
+			if (memberIssueGrouop.size() == 0) {
+				if(issue.getAssignCount() < 2){ // 첫번째 시도에만 메세지 전송하기 위한 if문
+					ChannelEnvDto channelEnv = channelEnvService.getByChannel(issue.getChannel());
+					eventBySystemService.sendOverAssignedAndClose(issue, channelEnv);
 				}
-				if(!assignMember.isEmpty()){
-					members = assignMember;
-				} else {
-					if (issue.getAssignCount() < 2) {
-						ChannelEnvDto channelEnv = channelEnvService.getByChannel(issue.getChannel());
-						eventBySystemService.sendOverAssignedAndClose(issue,channelEnv);
-					}
-					throw new UnsupportedOperationException("AssignByMemberRandom, MAX COUNSEL TYPE(member) , MAX COUNSEL OVER");
-				}
-			}
-
-			if(ObjectUtils.isEmpty(members)){
-				return memberList;
-			}
-
-			//현재 근무할수 있는 상담원만 구해온다
-			Random rand = new Random();
-			Long memberId = memberIds.get(rand.nextInt(memberIds.size()));
-			Optional<Member> memberOptional = members.stream().filter(item->item.getId().equals(memberId))
-					.findFirst();
-
-			if(memberOptional.isPresent()){
-				Member getMember = memberOptional.get();
-				memberList.add(getMember);
+				throw new UnsupportedOperationException("AssignByMemberRandom, MAX COUNSEL TYPE(member) , MAX COUNSEL OVER");
 			}
 		}
+
+		// todo 기획자에게 물어볼 부분 굳이 다시 섞을 필요가 있는가 여부? ( 순차로 매핑 가능 )
+		List<Entry<Long, Long>> entries= this.getEntriesShuffleMap(memberIssueGrouop);
+
+		Entry<Long, Long> addMemberEntry = this.findMinEntry(entries);
+
+		Member addMember = members.stream().filter(item->item.getId().equals(addMemberEntry.getKey())).findFirst().orElse(null);
+		if(Objects.nonNull(addMember)){
+			memberList.add(addMember);
+		}
+
 		return memberList;
-
 	}
 
-	private List<Long> extractMemberIdsFromIssue(Issue issue) {
-		return new ArrayList<>();
+
+	/**
+	 * 최소 할당 된 상담원 구하기 위해서 추가
+	 * @param entries
+	 * @return
+	 */
+	private Entry<Long, Long> findMinEntry(List<Entry<Long, Long>> entries) {
+		return entries.stream().min(Map.Entry.comparingByValue()).orElse(null);
 	}
 
-	public List<Member> assignMembers(List<Member> members, List<Long> extractedMemberIds) {
-		if (extractedMemberIds != null && !extractedMemberIds.isEmpty()) {
-			return members.stream()
-					.filter(member -> extractedMemberIds.contains(member.getId()))
-					.collect(Collectors.toList());
+	/**
+	 * 최대 상담갯수 초과한 상담원 제외하기 위해서 추가
+	 * @param members
+	 * @param memberIssueGrouop
+	 * @param maxMemberCounsel
+	 */
+	private void setMemberIssueGrouop(List<Member> members, Map<Long, Long> memberIssueGrouop , Integer maxMemberCounsel ) {
+		Integer maxCounsel = null;
+		for (Member member : members) {
+			maxCounsel = Objects.isNull(member.getMaxCounsel()) ? maxMemberCounsel : member.getMaxCounsel();
+			if (memberIssueGrouop.get(member.getId()).longValue() >= maxCounsel) {
+				memberIssueGrouop.remove(member.getId());
+			}
 		}
-		return members;
+	}
+
+	/**
+	 * 맵의 순서를 랜덤하게 섞는 메소드
+	 * @param map
+	 */
+	public List<Entry<Long, Long>> getEntriesShuffleMap(Map<Long, Long> map) {
+		// 엔트리셋을 리스트로 변환
+		List<Entry<Long, Long>> entries = new ArrayList<>(map.entrySet());
+
+		// 리스트를 랜덤하게 섞기
+		Collections.shuffle(entries);
+
+		return entries;
 	}
 
 }

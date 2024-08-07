@@ -48,7 +48,12 @@ LOCK TABLES channel_env WRITE;
 
 INSERT INTO channel_env (id, assign_standby_enabled, assign_standby_message, assign_standby_number, created, creator, customer_connection, evaluation_enabled, evaluation_message, impossible_message, max_issue_category_depth, member_assign, member_direct_enabled, modified, modifier, request_block_enabled, channel_id, channel_end_auto_id, channel_start_auto_id) VALUES ('1', 'Y', '{
   "version" : "0.1",
-  "chapters" : [ { } ]
+  "chapters" : [ {
+    "sections" : [ {
+      "type" : "platform_answer",
+      "data" : "off"
+    } ]
+  } ]
 }', NULL, '2023-03-16 13:19:08', '1', 'custom', 'N', '{
   "version" : "0.1",
   "chapters" : [ {
@@ -61,10 +66,10 @@ INSERT INTO channel_env (id, assign_standby_enabled, assign_standby_message, ass
   "version" : "0.1",
   "chapters" : [ {
     "sections" : [ {
-      "type" : "text",
-      "data" : "현재는 상담직원 응대가 어렵습니다. 근무시간(평일 오전9:00 ~ 오후6:00)에 다시 문의해주세요.(훌쩍)"
+      "type" : "platform_answer",
+      "data" : "off"
     } ]
   } ]
-}', '0', 'category', 'Y', '2023-04-05 20:58:44.531000', '2', 'N', '1', '1', '1');
+}', '3', 'category', 'Y', '2023-04-05 20:58:44.531000', '2', 'N', '1', '1', '1');
 UNLOCK TABLES;
 
