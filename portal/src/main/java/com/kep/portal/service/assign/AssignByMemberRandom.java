@@ -59,16 +59,16 @@ public class AssignByMemberRandom implements Assignable {
 			throw new UnsupportedOperationException("AssignByMemberRandom, ALL MEMBERS ARE STATUS OFF");
 		}
 
-		//최대 상담건수가 개별인지 체크 하기 위해서 쿼리
+		// 최대 상담건수가 개별기준인지 branch 기준인지 체크 하기 위해서 쿼리
 		Branch branch = branchService.findById(issue.getBranchId());
 
 		Map<Long , Long> memberIssueGrouop = assignManager.memberIssueGrouop(issue.getBranchId() , members);
 
 		log.info("MEMBER RANDOM MEMBER ISSUE GROUOP:{} , ISSUE ID:{}" , memberIssueGrouop , issue.getId());
 
-		// todo 소스 리팩토링 필요 개별일 경우 최대 상담 건수 체크 로직 수정
+		// todo 소스 리팩토링 필요, 가능한 상담원이 없는 경우 계속 시도하는게 맞는가..? ( 상담이 끝나면 다시 할당 가능하긴함.. )
 		if (WorkType.MaxCounselType.individual.equals(branch.getMaxCounselType()) ) {
-			this.setMemberIssueGrouop(members , memberIssueGrouop);
+			this.setMemberIssueGrouop(members , memberIssueGrouop , branch.getMaxMemberCounsel() );
 			if (memberIssueGrouop.size() == 0) {
 				if(issue.getAssignCount() < 2){ // 첫번째 시도에만 메세지 전송하기 위한 if문
 					ChannelEnvDto channelEnv = channelEnvService.getByChannel(issue.getChannel());
@@ -78,6 +78,7 @@ public class AssignByMemberRandom implements Assignable {
 			}
 		}
 
+		// todo 기획자에게 물어볼 부분 굳이 다시 섞을 필요가 있는가 여부? ( 순차로 매핑 가능 )
 		List<Entry<Long, Long>> entries= this.getEntriesShuffleMap(memberIssueGrouop);
 
 		Entry<Long, Long> addMemberEntry = this.findMinEntry(entries);
@@ -91,15 +92,26 @@ public class AssignByMemberRandom implements Assignable {
 	}
 
 
-
+	/**
+	 * 최소 할당 된 상담원 구하기 위해서 추가
+	 * @param entries
+	 * @return
+	 */
 	private Entry<Long, Long> findMinEntry(List<Entry<Long, Long>> entries) {
 		return entries.stream().min(Map.Entry.comparingByValue()).orElse(null);
 	}
 
-	private void setMemberIssueGrouop(List<Member> members, Map<Long, Long> memberIssueGrouop) {
-		// todo 협의 필요 member의 maxCounsel이 null일 경우 어떻게 할지? 기존에 branch에 max값을 가져왔는데 오히려 꼬일 수 있을 것 같아서 지움 ( 협의 필요 )
+	/**
+	 * 최대 상담갯수 초과한 상담원 제외하기 위해서 추가
+	 * @param members
+	 * @param memberIssueGrouop
+	 * @param maxMemberCounsel
+	 */
+	private void setMemberIssueGrouop(List<Member> members, Map<Long, Long> memberIssueGrouop , Integer maxMemberCounsel ) {
+		Integer maxCounsel = null;
 		for (Member member : members) {
-			if (Objects.isNull(member.getMaxCounsel()) || memberIssueGrouop.get(member.getId()).longValue() >= member.getMaxCounsel()) {
+			maxCounsel = Objects.isNull(member.getMaxCounsel()) ? maxMemberCounsel : member.getMaxCounsel();
+			if (memberIssueGrouop.get(member.getId()).longValue() >= maxCounsel) {
 				memberIssueGrouop.remove(member.getId());
 			}
 		}
