@@ -221,6 +221,9 @@ public class MemberService {
 		}
 
 		if (dto.getId() == null) {
+			/**
+			 * FIXME :: vndrCustNo BNK 로직 volka
+			 */
 			//신규 멤버 등록 시 vndrCustNo 중복체크
 			Optional<Member> checkVndrCustNo = memberRepository.findByVndrCustNo(dto.getVndrCustNo());
 			log.info("#####상담직원번호: {}", checkVndrCustNo);

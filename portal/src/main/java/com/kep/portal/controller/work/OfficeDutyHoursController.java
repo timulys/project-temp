@@ -76,7 +76,7 @@ public class OfficeDutyHoursController {
     public ResponseEntity<ApiResult<OffDutyHoursDto>> create(
             @Parameter(description = "근무시간 유형(branch, member)")
             @PathVariable(name = "cases") @NotNull WorkType.Cases cases
-            ,@Parameter(description = "브랜치 아이디")
+            ,@Parameter(description = "(근무시간 유형에 따라 - branchId or memberId)")
             @PathVariable(name = "id") @NotNull Long casesId
             , @RequestBody @Valid OffDutyHoursDto dto) throws Exception{
     	log.info("근무 예외 추가 요청: Cases - {}, Cases ID - {}, DTO - {}", cases, casesId, dto);
