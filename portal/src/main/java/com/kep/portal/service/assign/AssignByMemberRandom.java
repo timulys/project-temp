@@ -12,9 +12,9 @@ import com.kep.portal.service.issue.event.EventBySystemService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-
-import javax.annotation.Resource;
 import java.util.*;
+import java.util.Map.Entry;
+import javax.annotation.Resource;
 import java.util.stream.Collectors;
 
 /**
@@ -78,41 +78,22 @@ public class AssignByMemberRandom implements Assignable {
 			}
 		}
 
-		Set<Long> memberIssueGroup = memberIssueGrouop.keySet();
-		log.info("MEMBER RANDOM ISSUE GROUP MEMBER IDS :{} , ISSUE ID:{}" , memberIssueGroup , issue.getId());
+		List<Entry<Long, Long>> entries= this.getEntriesShuffleMap(memberIssueGrouop);
 
-		// 진행중인 ISSUE 에서 제일 적게 배정된 MEMBER 에서 RANDOM
-		Map<Long, List<Long>> issueGroupMemberList = memberIssueGrouop.entrySet().stream()
-				.collect(Collectors.groupingBy(Map.Entry::getValue
-						, Collectors.mapping(Map.Entry::getKey, Collectors.toList())));
+		Entry<Long, Long> addMemberEntry = this.findMinEntry(entries);
 
-		log.info("MEMBER RANDOM ISSUE GROUP MEMBER LIST:{}" , issueGroupMemberList);
-
-		Optional<Map.Entry<Long, List<Long>>> memberIdList = issueGroupMemberList.entrySet().stream().findFirst();
-
-		if(!memberIdList.isPresent()){
-			return memberList;
-		}
-
-		List<Long> memberIds = memberIdList.get().getValue();
-		log.info("BRANCH MAX COUNSEL TYPE :{} ",branch.getMaxCounselType());
-
-
-		if(ObjectUtils.isEmpty(members)){
-			return memberList;
-		}
-
-		//현재 근무할수 있는 상담원만 구해온다
-		Random rand = new Random();
-		Long memberId = memberIds.get(rand.nextInt(memberIds.size()));
-		Optional<Member> memberOptional = members.stream().filter(item->item.getId().equals(memberId)).findFirst();
-
-		if(memberOptional.isPresent()){
-			Member getMember = memberOptional.get();
-			memberList.add(getMember);
+		Member addMember = members.stream().filter(item->item.getId().equals(addMemberEntry.getKey())).findFirst().orElse(null);
+		if(Objects.nonNull(addMember)){
+			memberList.add(addMember);
 		}
 
 		return memberList;
+	}
+
+
+
+	private Entry<Long, Long> findMinEntry(List<Entry<Long, Long>> entries) {
+		return entries.stream().min(Map.Entry.comparingByValue()).orElse(null);
 	}
 
 	private void setMemberIssueGrouop(List<Member> members, Map<Long, Long> memberIssueGrouop) {
@@ -122,6 +103,20 @@ public class AssignByMemberRandom implements Assignable {
 				memberIssueGrouop.remove(member.getId());
 			}
 		}
+	}
+
+	/**
+	 * 맵의 순서를 랜덤하게 섞는 메소드
+	 * @param map
+	 */
+	public List<Entry<Long, Long>> getEntriesShuffleMap(Map<Long, Long> map) {
+		// 엔트리셋을 리스트로 변환
+		List<Entry<Long, Long>> entries = new ArrayList<>(map.entrySet());
+
+		// 리스트를 랜덤하게 섞기
+		Collections.shuffle(entries);
+
+		return entries;
 	}
 
 }
