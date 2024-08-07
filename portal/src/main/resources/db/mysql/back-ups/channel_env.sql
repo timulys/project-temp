@@ -70,6 +70,6 @@ INSERT INTO channel_env (id, assign_standby_enabled, assign_standby_message, ass
       "data" : "off"
     } ]
   } ]
-}', '0', 'category', 'Y', '2023-04-05 20:58:44.531000', '2', 'N', '1', '1', '1');
+}', '3', 'category', 'Y', '2023-04-05 20:58:44.531000', '2', 'N', '1', '1', '1');
 UNLOCK TABLES;
 
