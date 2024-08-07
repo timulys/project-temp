@@ -301,6 +301,7 @@ public class GuideSearchRepositoryImpl implements GuideSearchRepository {
         return Optional.ofNullable(queryFactory.select(qGuide)
                 .from(qGuide)
                 .where(
+                        qGuide.id.eq(guideId),
                         ExpressionUtils.or(
                                 qGuide.branch.id.eq(branchId),
                                 qGuide.isBranchOpen.isTrue()
