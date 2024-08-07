@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface GuideSearchRepository {
 
@@ -38,4 +39,6 @@ public interface GuideSearchRepository {
     Page<Guide> findByFileSearch(GuideSearchDto searchDto, List<Long> childrenIds, Pageable pageable);
 
     Page<Guide> findByMessageSearch(GuideSearchDto searchDto, List<Long> childrenIds, Pageable pageable);
+
+    Optional<Guide> findByIdForManager(Long guideId, Long branchId, Long teamId);
 }

@@ -4,6 +4,7 @@ package com.kep.portal.repository.guide;
 import static com.kep.portal.model.entity.guide.QGuide.guide;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.querydsl.core.types.*;
 import org.springframework.data.domain.Page;
@@ -120,6 +121,7 @@ public class GuideSearchRepositoryImpl implements GuideSearchRepository {
 
         return new PageImpl<>(guides, pageable, totalElement);
     }
+
 
     @Override
     public Page<Guide> findByNameSearch(GuideSearchDto searchDto, List<Long> childrenIds, Pageable pageable) {
@@ -291,6 +293,26 @@ public class GuideSearchRepositoryImpl implements GuideSearchRepository {
         return new PageImpl<>(guides, pageable, totalElement);
     }
 
+
+    @Override
+    public Optional<Guide> findByIdForManager(Long guideId, Long branchId, Long teamId) {
+        QGuide qGuide = new QGuide("guide");
+
+        return Optional.ofNullable(queryFactory.select(qGuide)
+                .from(qGuide)
+                .where(
+                        ExpressionUtils.or(
+                                qGuide.branch.id.eq(branchId),
+                                qGuide.isBranchOpen.isTrue()
+                        ),
+                        ExpressionUtils.or(
+                                qGuide.teamId.eq(teamId),
+                                qGuide.isTeamOpen.isTrue()
+                        )
+                )
+                .fetchOne());
+
+    }
 
     @Override
     public Page<Guide> findByGuideSearchForManager(List<Long> childrenIds, GuideSearchDto searchDto, Pageable pageable) {
