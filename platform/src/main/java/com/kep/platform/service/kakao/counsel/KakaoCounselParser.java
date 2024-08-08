@@ -38,7 +38,6 @@ public class KakaoCounselParser {
 
 		if( reference != null && StringUtils.isNoneBlank(reference.getExtra())) {
 
-<<<<<<< platform/src/main/java/com/kep/platform/service/kakao/counsel/KakaoCounselParser.java
 			String extra = reference.getExtra();
 			log.info("KAKAO COUNSEL PARSER, REFERENCE, EXTRA: {}", extra);
 
