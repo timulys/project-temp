@@ -9,14 +9,15 @@ import com.kep.portal.model.entity.issue.IssueExtra;
 import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.repository.member.MemberRepository;
 import com.kep.portal.service.channel.ChannelEnvService;
+import com.kep.portal.service.member.MemberService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -36,6 +37,9 @@ public class AssignByGetMember implements Assignable {
 
     @Resource
     private ChannelEnvService channelEnvService;
+
+    @Resource
+    private MemberService memberService;
 
 
     public AssignByGetMember(AssignProvider assignProvider) {
@@ -62,6 +66,7 @@ public class AssignByGetMember implements Assignable {
                 log.info("GET MEMBER ISSUE EXTRA PARAMETER :{} ", issueExtra.getParameter());
                 Map<String, Object> parameter = objectMapper.readValue(issueExtra.getParameter(), new TypeReference<Map<String, Object>>() {});
 
+                //  FIXME :: eddie.j BNK 로직 삭제 예정
                 // vndrCustNo를 사용하여 상담원을 찾는 로직
                 if (!ObjectUtils.isEmpty(parameter.get("vndrCustNo"))) {
                     String vndrCustNo = (String) parameter.get("vndrCustNo");
@@ -70,23 +75,17 @@ public class AssignByGetMember implements Assignable {
                         members.add(member);
                         log.info("Member found by vndrCustNo (username): {}", member);
                     }
-                } else if (!ObjectUtils.isEmpty(parameter.get("mid"))) {
-                    // 상담원 다이렉트 체크 해지시 다이렉트 배정을 사용하지 않는다.
-                    ChannelEnvDto channelEnvDto = channelEnvService.getByChannel(issue.getChannel());
-                    boolean isMemberDirect = false;
-                    if (!ObjectUtils.isEmpty(channelEnvDto)) {
-                        isMemberDirect = channelEnvDto.getMemberDirectEnabled();
-                    }
-                    if (isMemberDirect) {
-                        Long memberId = Long.valueOf((String) parameter.get("mid"));
-                        Member member = memberRepository.findById(memberId).orElse(null);
-                        if (member != null) {
-                            members.add(member);
-                            log.info("Member found by mid: {}", member);
-                        }
-                    }
                 }
 
+                // eddie.j 소스코드 리팩토링
+                Object mid = parameter.get("mid");
+                if (!ObjectUtils.isEmpty(mid)) {
+                    ChannelEnvDto channelEnvDto = this.getChannelEnvDto(issue);
+                    // 상담원 직접 연결 허용했는지 여부 체크
+                    if(Objects.nonNull(channelEnvDto) && channelEnvDto.getMemberDirectEnabled()){
+                        members.add( this.getAssignMember(mid) ) ;
+                    }
+                }
             }
 
         } catch (Exception e){
@@ -94,6 +93,25 @@ public class AssignByGetMember implements Assignable {
         }
 
         return members;
+    }
+
+    /**
+     * @param mid
+     * @return
+     * id 값으로 member find ( 상담원 지정해서 할당해주기 위해서 )
+     */
+    private Member getAssignMember(Object mid) {
+        Long memberId = Long.valueOf( String.valueOf(mid) );
+        return memberService.findById(memberId);
+    }
+
+    /**
+     * @param issue
+     * @return
+     * 상담설정 > 상담 배분 설정 > 상담원 직접연결 허용 여부 체크를 위해서 추가
+     */
+    private ChannelEnvDto getChannelEnvDto(Issue issue) {
+        return channelEnvService.getByChannel(issue.getChannel());
     }
 
 }
