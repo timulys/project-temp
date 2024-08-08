@@ -203,9 +203,9 @@ public class MemberController {
     /**
      * 생성
      */
-    @PostMapping
     @Tag(name = "사용자(계정) 관리 API")
     @Operation(summary = "사용자 계정 생성")
+    @PostMapping
     @PreAuthorize("hasAnyAuthority('WRITE_ACCOUNT') or hasAnyRole('ROLE_MASTER')")
     public ResponseEntity<ApiResult<MemberDto>> post(
             @RequestBody @Valid MemberDto dto)  {

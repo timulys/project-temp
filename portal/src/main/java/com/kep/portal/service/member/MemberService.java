@@ -221,6 +221,9 @@ public class MemberService {
 		}
 
 		if (dto.getId() == null) {
+			/**
+			 * FIXME :: vndrCustNo BNK 로직 volka
+			 */
 			//신규 멤버 등록 시 vndrCustNo 중복체크
 			Optional<Member> checkVndrCustNo = memberRepository.findByVndrCustNo(dto.getVndrCustNo());
 			log.info("#####상담직원번호: {}", checkVndrCustNo);
@@ -258,7 +261,7 @@ public class MemberService {
 		// 회원 첫 인사말
 		// TODO: 첫 인사말 안넘어오는 경우, 삭제 필요 (GNB > 내 정보 수정)
 		// TODO: 그 외 첫 인사말이 화면에 아에 없는 경우 (계정 관리 등) 예외 필요 (URL 분리 필요)
-		if (dto.getUsedMessage() == null && dto.getUsedMessage() != true) {
+		if (dto.getUsedMessage() == null || dto.getUsedMessage() == false) {
 			member.setUsedMessage(false);
 			member.setFirstMessage(null);
 		} else {

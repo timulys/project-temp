@@ -8,6 +8,7 @@ import com.kep.core.model.dto.guide.GuideDto;
 import com.kep.core.model.dto.guide.GuidePayload;
 import com.kep.core.model.dto.guide.GuideType;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
+import com.kep.core.model.exception.BizException;
 import com.kep.portal.model.dto.guide.GuideSearchDto;
 import com.kep.portal.model.dto.guide.GuideSearchResponseDto;
 import com.kep.portal.model.entity.branch.Branch;
@@ -119,32 +120,61 @@ public class GuideService {
         return page;
     }
 
+
+    private GuideDto convertGuideToDto(Guide guide) throws Exception {
+
+        GuideDto guideDto = guideMapper.map(guide);
+        List<Long> blockIds = objectMapper.readValue(guide.getBlockIds().toString(), new TypeReference<List<Long>>() {
+        });
+
+        List<GuideBlock> guideBlockList = guideBlockRepository.findAllByIdIn(blockIds);
+        List<GuideBlockDto> guideBlockDtos = guideBlockMapper.map(guideBlockList);
+
+        guideDto.setBlocks(guideBlockDtos);
+
+        if (guide.getTeamId() != null) {
+            Team team = teamRepository.findById(guide.getTeamId()).orElse(null);
+            guideDto.setTeam(teamMapper.map(team));
+        }
+        if (guide.getCreatorId() != null) {
+            Member creator = memberRepository.findById(guide.getCreatorId()).orElse(null);
+            guideDto.setCreator(memberMapper.map(creator));
+        }
+        if (guide.getModifierId() != null) {
+            Member modifier = memberRepository.findById(guide.getModifierId()).orElse(null);
+            guideDto.setModifier(memberMapper.map(modifier));
+        }
+
+        return guideDto;
+
+    }
+
     private void settingGuideBlock(List<Guide> guides, List<GuideDto> guideDtos) {
         try {
             for (Guide guide : guides) {
-                GuideDto guideDto = guideMapper.map(guide);
-                List<Long> blockIds = objectMapper.readValue(guide.getBlockIds().toString(), new TypeReference<List<Long>>() {
-                });
+//                GuideDto guideDto = guideMapper.map(guide);
+//                List<Long> blockIds = objectMapper.readValue(guide.getBlockIds().toString(), new TypeReference<List<Long>>() {
+//                });
+//
+//                List<GuideBlock> guideBlockList = guideBlockRepository.findAllByIdIn(blockIds);
+//                List<GuideBlockDto> guideBlockDtos = guideBlockMapper.map(guideBlockList);
+//
+//                guideDto.setBlocks(guideBlockDtos);
+//
+//                if (guide.getTeamId() != null) {
+//                    Team team = teamRepository.findById(guide.getTeamId()).orElse(null);
+//                    guideDto.setTeam(teamMapper.map(team));
+//                }
+//                if (guide.getCreatorId() != null) {
+//                    Member creator = memberRepository.findById(guide.getCreatorId()).orElse(null);
+//                    guideDto.setCreator(memberMapper.map(creator));
+//                }
+//                if (guide.getModifierId() != null) {
+//                    Member modifier = memberRepository.findById(guide.getModifierId()).orElse(null);
+//                    guideDto.setModifier(memberMapper.map(modifier));
+//                }
 
-                List<GuideBlock> guideBlockList = guideBlockRepository.findAllByIdIn(blockIds);
-                List<GuideBlockDto> guideBlockDtos = guideBlockMapper.map(guideBlockList);
-
-                guideDto.setBlocks(guideBlockDtos);
-
-                if (guide.getTeamId() != null) {
-                    Team team = teamRepository.findById(guide.getTeamId()).orElse(null);
-                    guideDto.setTeam(teamMapper.map(team));
-                }
-                if (guide.getCreatorId() != null) {
-                    Member creator = memberRepository.findById(guide.getCreatorId()).orElse(null);
-                    guideDto.setCreator(memberMapper.map(creator));
-                }
-                if (guide.getModifierId() != null) {
-                    Member modifier = memberRepository.findById(guide.getModifierId()).orElse(null);
-                    guideDto.setModifier(memberMapper.map(modifier));
-                }
-
-                guideDtos.add(guideDto);
+                guideDtos.add(convertGuideToDto(guide));
             }
         } catch (Exception e) {
             log.error(e.getLocalizedMessage());
@@ -404,6 +434,26 @@ public class GuideService {
                 .fileSearch(orderGuideBlock(fileSearchDtos))
                 .fileCount(fileSearchCount)
                 .build();
+    }
+
+
+    /**
+     * 가이드 단건 상세 조회
+     * @param guideId
+     * @return
+     * @throws Exception
+     */
+    public GuideDto getGuide(Long guideId) throws Exception {
+        Guide guide = null;
+
+        if (securityUtils.hasRole(Level.ROLE_ADMIN)) {
+            guide = guideRepository.findById(guideId).orElseThrow(() -> new BizException("Guide Not Found"));
+        } else {
+            guide = guideRepository.findByIdForManager(guideId, securityUtils.getBranchId(), securityUtils.getTeamId())
+                    .orElseThrow(() -> new BizException("Guide Not Found"));
+        }
+
+        return convertGuideToDto(guide);
     }
 
     // 가이드 검색(SB-CA-006)

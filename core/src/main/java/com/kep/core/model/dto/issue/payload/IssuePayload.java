@@ -34,7 +34,7 @@ public class IssuePayload {
 
 
 	@NotEmpty
-	@Schema(description = "")
+	@Schema(description = "메시지 목록")
 	private List<Chapter> chapters;
 
 	// 플랫폼 고유 데이터
@@ -104,7 +104,7 @@ public class IssuePayload {
 		@NotNull
 		@Schema(description = "섹션 타입 [title, text, file, action, command, platform_answer]", requiredMode = Schema.RequiredMode.REQUIRED)
 		private SectionType type;
-		@Schema(description = "")
+		@Schema(description = "메시지 컨텐트")
 		private String data;
 		@Schema(description = "")
 		private String display;
@@ -144,7 +144,7 @@ public class IssuePayload {
 		@Schema(description = "버튼명", requiredMode = Schema.RequiredMode.REQUIRED)
 		private String name;
 		@NotEmpty
-		@Schema(description = "", requiredMode = Schema.RequiredMode.REQUIRED)
+		@Schema(description = "메시지 내용", requiredMode = Schema.RequiredMode.REQUIRED)
 		private String data;
 		@Schema(description = "기기 유형 [all, web, pc, mobile, app, android, ios]")
 		private DeviceType deviceType;

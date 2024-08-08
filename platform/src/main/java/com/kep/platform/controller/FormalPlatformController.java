@@ -52,7 +52,7 @@ public class FormalPlatformController {
 	@Operation(summary = "메시지 큐 전송")
 	@PostMapping(value = "/message")
 	public ResponseEntity<ApiResult<Map<String, Object>>> message(
-			@Parameter(description = "플랫폼 타입(solution_web, kakao_counsel_talk, kakao_alert_talk, kakao_friend_talk, kakao_template, legacy_web, legacy_app , kakao_counsel_center)", in = ParameterIn.PATH, required = true)
+			@Parameter(description = "플랫폼 타입(입력 기준 : solution-web, kakao-counsel-talk, kakao-alert-talk, kakao-friend-talk, kakao-template, legacy-web, legacy-app , kakao-counsel-center)", in = ParameterIn.PATH, required = true)
 			@PathVariable(value = "platform") @NotEmpty String platform,
 			@Parameter(description = "헤더", in = ParameterIn.HEADER)
 			@RequestHeader HttpHeaders httpHeaders,

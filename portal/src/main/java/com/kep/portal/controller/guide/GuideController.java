@@ -12,6 +12,7 @@ import com.kep.portal.service.guide.GuideLogService;
 import com.kep.portal.service.guide.GuideService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -232,6 +233,36 @@ public class GuideController {
         } catch (Exception e) {
             log.info("MANAGER SEARCH ERROR: {}", e.getLocalizedMessage(),e);
             ApiResult<List<GuideDto>> response = ApiResult.<List<GuideDto>>builder()
+                    .code(ApiResultCode.failed)
+                    .message(e.getLocalizedMessage())
+                    .build();
+            response.setError("<<SB-CA-006>>");
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+    @Tag(name = "가이드 API")
+    @Operation(summary = "가이드 검색", description = "가이드 검색(SB-CA-006)")
+    @GetMapping("/manage-search-dtl/{guideId}")
+    @PreAuthorize("hasAnyAuthority('WRITE_GUIDE')")
+    public ResponseEntity<ApiResult<GuideDto>> manageSearchDetail(
+            @Parameter(description = "가이드 아이디", in = ParameterIn.PATH, required = true)
+            @PathVariable("guideId") Long guideId
+    ) {
+        try {
+            GuideDto guideDto = guideService.getGuide(guideId);
+
+            ApiResult<GuideDto> response = ApiResult.<GuideDto>builder()
+                    .code(ApiResultCode.succeed)
+                    .payload(guideDto)
+                    .build();
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            log.info("MANAGER SEARCH ERROR: {}", e.getLocalizedMessage(),e);
+            ApiResult<GuideDto> response = ApiResult.<GuideDto>builder()
                     .code(ApiResultCode.failed)
                     .message(e.getLocalizedMessage())
                     .build();
