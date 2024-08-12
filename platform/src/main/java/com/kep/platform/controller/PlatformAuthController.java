@@ -53,7 +53,7 @@ public class PlatformAuthController {
 	private KakaoSyncService kakaoSyncService;
 
 	@Tag(name = "플랫폼 인증 API")
-	@Operation(summary = "홈")
+	@Operation(summary = "홈(카카오 싱크)")
 	@GetMapping(value = "/kakao-sync/code")
 	public String get(
 			@RequestHeader HttpHeaders httpHeaders,
