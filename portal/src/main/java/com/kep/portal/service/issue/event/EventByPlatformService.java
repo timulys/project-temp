@@ -16,6 +16,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
+import com.kep.portal.model.entity.issue.*;
 import com.kep.portal.service.forbidden.ForbiddenService;
 import com.kep.portal.service.statistics.StatisticsService;
 import org.springframework.data.domain.Example;
@@ -46,11 +47,6 @@ import com.kep.portal.model.entity.customer.Customer;
 import com.kep.portal.model.entity.customer.CustomerAuthorized;
 import com.kep.portal.model.entity.customer.Guest;
 import com.kep.portal.model.entity.env.CounselInflowEnv;
-import com.kep.portal.model.entity.issue.Issue;
-import com.kep.portal.model.entity.issue.IssueExtra;
-import com.kep.portal.model.entity.issue.IssueLog;
-import com.kep.portal.model.entity.issue.IssueLogMapper;
-import com.kep.portal.model.entity.issue.IssueMapper;
 import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.model.entity.subject.IssueCategory;
 import com.kep.portal.repository.customer.CustomerAuthorizedRepository;
@@ -120,6 +116,9 @@ public class EventByPlatformService {
 
 	@Resource
 	private ForbiddenService forbiddenService;
+
+	@Resource
+	private AssignProducer assignProducer;
 
 	/**
 	 * 상담 요청 이벤트
@@ -216,7 +215,16 @@ public class EventByPlatformService {
 //		assignProducer.sendMessage(IssueAssign.builder()
 //				.id(issueDto.getId())
 //				.build());
-		tryAssignOpenedIssueJob.run();
+
+		// 배정 스케줄러 다이렉트 호출 안하도록 수정 (로직 자체는 유지)
+		// 채팅 요청 이후 스케줄러가 돌아서 상담원 매칭 전에 고객이 채팅 입력 하는 경우 방지를 위해서
+		if(IssueStatus.open.equals(issue.getStatus())) {
+			assignProducer.sendMessage(IssueAssign.builder().id(issue.getId()).build());
+			issue.setAssignCount(1);
+			issueService.save(issue);
+		}
+
+//		tryAssignOpenedIssueJob.run();
 
 		return issueDto;
 	}
