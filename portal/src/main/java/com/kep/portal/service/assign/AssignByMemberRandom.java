@@ -68,7 +68,8 @@ public class AssignByMemberRandom implements Assignable {
 
 		// todo 소스 리팩토링 필요, 가능한 상담원이 없는 경우 계속 시도하는게 맞는가..? ( 상담이 끝나면 다시 할당 가능하긴함.. )
 		if (WorkType.MaxCounselType.individual.equals(branch.getMaxCounselType()) ) {
-			this.setMemberIssueGrouop(members , memberIssueGrouop , branch.getMaxMemberCounsel() );
+			Integer MemberCounsel = branch.getMaxMemberCounsel() == null ? 0 : branch.getMaxMemberCounsel() ;
+			this.setMemberIssueGrouop(members , memberIssueGrouop , MemberCounsel );
 			if (memberIssueGrouop.size() == 0) {
 				if(issue.getAssignCount() < 2){ // 첫번째 시도에만 메세지 전송하기 위한 if문
 					ChannelEnvDto channelEnv = channelEnvService.getByChannel(issue.getChannel());
@@ -108,10 +109,10 @@ public class AssignByMemberRandom implements Assignable {
 	 * @param maxMemberCounsel
 	 */
 	private void setMemberIssueGrouop(List<Member> members, Map<Long, Long> memberIssueGrouop , Integer maxMemberCounsel ) {
-		Integer maxCounsel = null;
 		for (Member member : members) {
-			maxCounsel = Objects.isNull(member.getMaxCounsel()) ? maxMemberCounsel : member.getMaxCounsel();
-			if (memberIssueGrouop.get(member.getId()).longValue() >= maxCounsel) {
+			Integer maxCounsel = Objects.isNull(member.getMaxCounsel()) ? maxMemberCounsel : member.getMaxCounsel();
+			// 최대 상담건수가 0으로 설정 된 경우 무제한 상담 (예외처리)
+			if (maxCounsel != 0  && memberIssueGrouop.get(member.getId()).longValue() >= maxCounsel) {
 				memberIssueGrouop.remove(member.getId());
 			}
 		}
