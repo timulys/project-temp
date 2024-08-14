@@ -172,7 +172,7 @@ public class IssueStatisticsService {
 
         if(!isMemberAssign){
             //근무 시간 예외 처리
-            isWork = !workService.offDutyHours(branch);
+            isWork = workService.offDutyHours(branch);
             //근무 (브랜치 근무시간 체크)
             if(isWork) {
                 BranchOfficeHours branchOfficeHours = branchOfficeHoursRepository.findByBranchId(branchId);
