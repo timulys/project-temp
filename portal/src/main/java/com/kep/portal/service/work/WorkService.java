@@ -109,6 +109,9 @@ public class WorkService {
 
         boolean isWork = true;
 
+        //근무 시간 예외 처리
+        isWork = this.offDutyHours(branch);
+
         //브랜치 근무시간이면
         if(branch.getAssign().equals(WorkType.Cases.branch)){
 
