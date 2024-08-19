@@ -240,7 +240,7 @@ VALUES (1, 'Y', '{
 -- ////////////////////////////////////////////////////////////////////////////
 -- 채널 상담 설정 (Static)
 -- ////////////////////////////////////////////////////////////////////////////
-INSERT INTO channel_env (ID, ASSIGN_STANDBY_ENABLED, ASSIGN_STANDBY_MESSAGE, ASSIGN_STANDBY_NUMBER, CREATED, CREATOR, CUSTOMER_CONNECTION, EVALUATION_ENABLED, EVALUATION_MESSAGE, IMPOSSIBLE_MESSAGE, MAX_ISSUE_CATEGORY_DEPTH, MEMBER_ASSIGN, MEMBER_DIRECT_ENABLED, MODIFIED, MODIFIER, REQUEST_BLOCK_ENABLED, CHANNEL_ID, CHANNEL_END_AUTO_ID, CHANNEL_START_AUTO_ID ,MAX_ISSUE_CATEGORY_DEPTH)
+INSERT INTO channel_env (ID, ASSIGN_STANDBY_ENABLED, ASSIGN_STANDBY_MESSAGE, ASSIGN_STANDBY_NUMBER, CREATED, CREATOR, CUSTOMER_CONNECTION, EVALUATION_ENABLED, EVALUATION_MESSAGE, IMPOSSIBLE_MESSAGE, MEMBER_ASSIGN, MEMBER_DIRECT_ENABLED, MODIFIED, MODIFIER, REQUEST_BLOCK_ENABLED, CHANNEL_ID, CHANNEL_END_AUTO_ID, CHANNEL_START_AUTO_ID ,MAX_ISSUE_CATEGORY_DEPTH)
 VALUES (1, 'Y', '{
   "version" : "0.1",
   "chapters" : [ {
@@ -265,7 +265,7 @@ VALUES (1, 'Y', '{
       "data" : "죄송합니다. 현재 원활한 상담이 어렵습니다. 추후에 다시 이용 부탁드립니다."
     } ]
   } ]
-}', 3, 'category', 'Y', now(), 1, 'N', 1, 1, 1 , 3);
+}', 'category', 'Y', now(), 1, 'N', 1, 1, 1 , 3);
 
 -- ////////////////////////////////////////////////////////////////////////////
 -- 분류 (Static)
