@@ -1,24 +1,17 @@
 package com.kep.portal.repository.statisctics;
 
-import com.kep.core.model.dto.issue.IssueLogStatus;
 import com.kep.core.model.dto.issue.IssueStatus;
 import com.kep.core.model.dto.issue.IssueType;
-import com.kep.portal.model.dto.statistics.GuestWaitingTimeAverageDto;
 import com.kep.portal.model.dto.statistics.ReplyStatusDto;
 import com.kep.portal.model.dto.statistics.TodaySummaryDto;
 import com.kep.portal.model.entity.issue.QIssue;
 import com.kep.portal.model.entity.issue.QIssueLog;
 import com.kep.portal.model.entity.statistics.QGuestWaitingTime;
-
-import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
-import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.IterableUtils;
 import org.springframework.util.ObjectUtils;
 
 import java.time.ZonedDateTime;
@@ -150,8 +143,14 @@ public class ReplyStatusSearchRepositoryImpl implements ReplyStatusSearchReposit
             dto.setDelayCount((dto.getDelayCount() == null) ? 0L : dto.getDelayCount());
         }
 
+        // todo 논의 필요 missing에 대한 로직 주석처리 ( 일단 주석처리 해놓긴했지만 논의 필요 )
+        // 사유 : 상담원의 채팅이전에 고객이 종료한 경우에도 close되기 때문에 종료에 대한 count가 됨 ( missing으로 count하게되면 중복 카운트 되는 것으로 보임 )
+        // 만약에 상담이 안된 건에 대해서 따로 count가 필요하다면 유의미한 로직으로 보임
+        dto.setMissingCount(0L);
+
         //놓침
-        TodaySummaryDto missing = queryFactory.select(
+        /*
+        List<TodaySummaryDto> missingList = queryFactory.select(
                 Projections.fields(
                         TodaySummaryDto.class
                         ,qIssue.count().as("missingCount"))
@@ -159,15 +158,21 @@ public class ReplyStatusSearchRepositoryImpl implements ReplyStatusSearchReposit
                 .leftJoin(qIssueLog).on(qIssue.id.eq(qIssueLog.issueId))
                 .where(qIssue.created.between(start , end)
                         .and(qIssueLog.status.eq(IssueLogStatus.send))
-                        .and(qIssueLog.creator.lt(9000000000L))
+                        .and(qIssueLog.creator.gt(9000000000L))
                         ,branchIdEq(branchId),teamIdEq(teamId),memberIdEq(memberId)
                 )
-                .fetchOne();
+                .groupBy(qIssue.id)
+                .fetch();
 
 
-        if(!ObjectUtils.isEmpty(dto)){
-            dto.setMissingCount(ObjectUtils.isEmpty(missing) ? 0L : missing.getMissingCount());
+
+        // missing Count 로직 수정 ( 자동응답 외에 상담원을 통한 응답이 있는지 여부 체크 )
+        for(TodaySummaryDto missing : missingList){
+            if ( 1L == missing.getMissingCount()){
+                dto.setMissingCount( dto.getMissingCount() + missing.getMissingCount() );
+            }
         }
+        */
 
         //종료
         TodaySummaryDto closed = queryFactory.select(
