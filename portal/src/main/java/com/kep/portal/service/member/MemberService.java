@@ -559,7 +559,7 @@ public class MemberService {
 
 			// Todo 다른 branch의 멤버 보이는지 확인 후 for문 위쪽으로 변경 필요
 			// 오늘 휴무 인지 여부 체크 추가
-			List<OffDutyHours> branchOffDutyHoursList = offDutyHoursService.getOffDutyHours(member.getBranchId());
+			List<OffDutyHours> branchOffDutyHoursList = offDutyHoursService.getOffDutyHoursUseEnabled(member.getBranchId());
 			if(branchOffDutyHoursList.size() > 0 ){
 				member.setAssignable(false);
 				continue;

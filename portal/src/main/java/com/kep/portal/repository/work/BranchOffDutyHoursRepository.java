@@ -18,4 +18,5 @@ public interface BranchOffDutyHoursRepository extends JpaRepository<BranchOffDut
     List<OffDutyHours> findAllByBranchId(Long branchId);
 
     List<OffDutyHours> findAllByBranchIdAndStartCreatedGreaterThanEqualAndEndCreatedLessThanEqual(@Positive @NotNull Long branchId, @NotNull ZonedDateTime startCreated, @NotNull ZonedDateTime endCreated);
+    List<OffDutyHours> findAllByBranchIdAndEnabledAndStartCreatedGreaterThanEqualAndEndCreatedLessThanEqual(@Positive @NotNull Long branchId,  @NotNull Boolean enabled , @NotNull ZonedDateTime startCreated, @NotNull ZonedDateTime endCreated);
 }
