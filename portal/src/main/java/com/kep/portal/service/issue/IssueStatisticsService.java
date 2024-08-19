@@ -170,9 +170,10 @@ public class IssueStatisticsService {
 
         List<OffDutyHours> branchOffDutyHoursList = offDutyHoursService.getOffDutyHours(branch.getId());
 
+        //근무 시간 예외 처리
+        isWork = workService.offDutyHours(branch);
+
         if(!isMemberAssign){
-            //근무 시간 예외 처리
-            isWork = workService.offDutyHours(branch);
             //근무 (브랜치 근무시간 체크)
             if(isWork) {
                 BranchOfficeHours branchOfficeHours = branchOfficeHoursRepository.findByBranchId(branchId);
@@ -212,12 +213,6 @@ public class IssueStatisticsService {
 
             //상담원 상태가 on 아니면 무조건 off
             if(!member.getStatus().equals(WorkType.OfficeHoursStatusType.on)){
-                status = WorkType.OfficeHoursStatusType.off;
-            }
-
-            // 휴무일의 경우 상담 불가능 로직 추가
-            // Todo 전반적인 리팩토링 필요해보임..
-            if(branchOffDutyHoursList.size() > 0 ){
                 status = WorkType.OfficeHoursStatusType.off;
             }
 

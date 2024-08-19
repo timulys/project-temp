@@ -112,9 +112,6 @@ public class WorkService {
         //브랜치 근무시간이면
         if(branch.getAssign().equals(WorkType.Cases.branch)){
 
-            //근무 시간 예외 처리
-            isWork = this.offDutyHours(branch);
-
             //근무 (브랜치 근무시간 체크)
             if(isWork){
                 BranchOfficeHours branchOfficeHours = branchOfficeHoursRepository
@@ -244,7 +241,7 @@ public class WorkService {
                 }
             }
         } else { // 근무시간 예외 없이 풀 근무
-            // 24.07.02 근무시간 예외 체크가 되어있지 않다면 무조건 true를 리턴하는 문제 확인하여 상태값 다루는 방식 변경
+            // 24.07.02 근무시간 예외 체크가 되어있지 않다면 무조건 false를 리턴하는 문제 확인하여 상태값 다루는 방식 변경
             isBranchOffDutyHours = true;
         }
         return isBranchOffDutyHours;
