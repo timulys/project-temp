@@ -212,14 +212,4 @@ public class OffDutyHoursService {
 		return branchOffDutyHoursRepository.findAllByBranchIdAndStartCreatedGreaterThanEqualAndEndCreatedLessThanEqual( branchId , today.get("start") , today.get("end") );
 	}
 
-	/**
-	 * 근무여부에 대해 체크 하는 로직 가진 함수 추가
-	 * @param branchId
-	 * @return
-	 */
-	public List<OffDutyHours> getOffDutyHoursUseEnabled(Long branchId) {
-		Map<String,ZonedDateTime> today = ZonedDateTimeUtil.getTodayDateTime(LocalDate.now());
-		return branchOffDutyHoursRepository.findAllByBranchIdAndEnabledAndStartCreatedGreaterThanEqualAndEndCreatedLessThanEqual( branchId , false , today.get("start") , today.get("end") );
-	}
-
 }
