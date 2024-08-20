@@ -168,8 +168,6 @@ public class IssueStatisticsService {
         boolean isMemberAssign = branch.getAssign().equals(WorkType.Cases.member);
         boolean isWork = true;
 
-        List<OffDutyHours> branchOffDutyHoursList = offDutyHoursService.getOffDutyHours(branch.getId());
-
         //근무 시간 예외 처리
         isWork = workService.offDutyHours(branch);
 

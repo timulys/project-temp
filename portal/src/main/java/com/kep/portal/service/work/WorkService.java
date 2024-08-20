@@ -68,9 +68,6 @@ public class WorkService {
     private TeamMemberService teamMemberService;
 
     @Resource
-    private MemberService memberService;
-
-    @Resource
     private BranchOfficeHoursRepository branchOfficeHoursRepository;
 
     @Resource
@@ -101,7 +98,7 @@ public class WorkService {
         if(teamId != null){
             members = teamMemberService.teamMembers(teamId);
         } else {
-            members = memberService.findAll(Example.of(Member.builder()
+            members = memberRepository.findAll(Example.of(Member.builder()
                     .branchId(branchId)
                     .enabled(true)
                     .build()));
@@ -293,7 +290,7 @@ public class WorkService {
 
         if(!ObjectUtils.isEmpty(memberList)){
             memberRepository.saveAll(memberList);
-            Member member = memberService.findById(securityUtils.getMemberId());
+            Member member = memberRepository.findById(securityUtils.getMemberId()).orElse(null);
 
             //시비스 이용내역
             systemEventService.store(member, securityUtils.getMemberId(), SystemEventHistoryActionType.system_counsel_member_max , "Member" , null , null , null , null , "UPDATE",securityUtils.getTeamId());
