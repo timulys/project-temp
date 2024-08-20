@@ -348,7 +348,8 @@ public class ChannelEnvService {
 		}
 
 		// Todo 현재 서버에서 메세지를 제대로 받아오지 못해서 임시 주석처리 ( 일단 내부 DB에 있는 데이터 사용 )
-		/*List<IssuePayload> issuePayloads = systemMessageService.getSystemMessage(channel.getServiceKey());
+		// 테스트를 위해서 임지 주석해제
+		List<IssuePayload> issuePayloads = systemMessageService.getSystemMessage(channel.getServiceKey());
 		if(!ObjectUtils.isEmpty(issuePayloads)){
 			Map<String , IssuePayload> chapter = systemMessageService.setSystemMessage(issuePayloads);
 			entity.getStart().getSt().setMessage(chapter.get("ST"));
@@ -356,7 +357,7 @@ public class ChannelEnvService {
 			entity.getStart().getAbsence().setMessage(chapter.get("S2"));
 			entity.getStart().getWaiting().setMessage(chapter.get("S4"));
 			entity.setImpossibleMessage(chapter.get("S3"));
-		}*/
+		}
 
 		return channelEnvMapper.map(entity);
 	}
