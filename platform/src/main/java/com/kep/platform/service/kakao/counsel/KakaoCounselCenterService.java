@@ -92,13 +92,24 @@ public class KakaoCounselCenterService {
 			// WebClient에 시스템 proxy 설정(자동 인식하지 않음
 			ReactorClientHttpConnector reactorClientHttpConnector = new ReactorClientHttpConnector(HttpClient.create().proxyWithSystemProperties());
 
-			String url = getBaseUrl() + SYSTEM_MESSAGE_PATH.replace("{API_KEY}" , getApiKey()) + "?senderKey=75255f38d08ff785b5695b43e4d2fdc6819c77de";
+			String url = getBaseUrl() + SYSTEM_MESSAGE_PATH.replace("{API_KEY}" , getApiKey()) + "?senderKey=75255f38d08ff785b5695b43e4d2fdc6819c77de&id=6734";
 			KakaoSystemMessage systemMessage = externalRestTemplate.getForObject(url , KakaoSystemMessage.class);
 
 			log.info("@@eddie.j getApiKey() = {} " , getApiKey());
 			log.info("@@eddie.j getBaseUrl() = {} " , getBaseUrl());
 			log.info("@@eddie.j serviceKey = {} " , serviceKey);
 			log.info("@@eddie.j url = {} " , url);
+
+			// /api/v3/{partner_key}/sender
+
+
+			// 잠시 테스트를 위해서 '발신프로필 정보를 조회' API 테스트
+			String test_url = getBaseUrl() + "/api/v3/" + serviceKey + "/sender";
+			String result = externalRestTemplate.getForObject(test_url , String.class);
+
+			log.info("@@eddie.j test_url = {}" , test_url);
+			log.info("@@eddie.j result = {}" , result);
+
 
 
 			/*
