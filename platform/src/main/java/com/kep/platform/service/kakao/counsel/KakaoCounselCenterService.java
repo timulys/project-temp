@@ -100,6 +100,17 @@ public class KakaoCounselCenterService {
 			log.info("@@eddie.j serviceKey = {} " , serviceKey);
 			log.info("@@eddie.j url = {} " , url);
 
+			// /api/v3/{partner_key}/sender
+
+
+			// 잠시 테스트를 위해서 '발신프로필 정보를 조회' API 테스트
+			String test_url = getBaseUrl() + "/api/v3/" + serviceKey + "/sender";
+			String result = externalRestTemplate.getForObject(test_url , String.class);
+
+			log.info("@@eddie.j test_url = {}" , test_url);
+			log.info("@@eddie.j result = {}" , result);
+
+
 
 			/*
 			KakaoSystemMessage systemMessage = WebClient.builder().clientConnector(reactorClientHttpConnector).baseUrl(getBaseUrl()).build().get()
