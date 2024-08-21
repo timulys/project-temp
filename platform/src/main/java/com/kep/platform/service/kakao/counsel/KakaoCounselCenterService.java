@@ -95,6 +95,8 @@ public class KakaoCounselCenterService {
 			String url = getBaseUrl() + SYSTEM_MESSAGE_PATH.replace("{API_KEY}" , getApiKey()) + "?senderKey=" + serviceKey;
 			KakaoSystemMessage systemMessage = externalRestTemplate.getForObject(url , KakaoSystemMessage.class);
 
+			log.info("@@eddie.j getApiKey() = {} " , getApiKey());
+			log.info("@@eddie.j getBaseUrl() = {} " , getBaseUrl());
 			log.info("@@eddie.j url = {} " , url);
 
 
