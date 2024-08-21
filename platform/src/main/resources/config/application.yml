@@ -171,7 +171,7 @@ application:
       #        api-key: ${KAKAO_COUNSEL_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
       kakao_counsel_center:
         api-base-url: https://bzm-center.kakao.com/api
-        api-key: ${KAKAO_COUNSEL_API_KEY:024889d992713ec7990d57b0d359a7076eb29d60}
+        api-key: ${KAKAO_COUNSEL_API_KEY:75255f38d08ff785b5695b43e4d2fdc6819c77de}
       #        api-key: ${KAKAO_COUNSEL_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
       kakao_alert_talk:
         api-base-url: https://bizmsg-web.kakaoenterprise.com
