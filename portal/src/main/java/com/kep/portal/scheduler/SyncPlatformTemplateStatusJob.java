@@ -41,11 +41,13 @@ public class SyncPlatformTemplateStatusJob {
 	@Resource
 	private PortalProperty property;
 
-
+	// NOTE : biz톡 관련 사항으로 스케줄러 임시 주석처리
+	/*
 	@Scheduled(initialDelay = 1000 * 60, fixedDelay = 1000 * 60 * 60)
 	@SchedulerLock(name = "SYNC_PLATFORM_TEMPLATE_STATUS"
 			, lockAtLeastFor = "PT5S"
 			, lockAtMostFor = "PT20S")
+	 */
 	public void run() {
 		final String jobName = "SYNC PLATFORM TEMPLATE STATUS";
 		log.info(">>> SCHEDULER: {}, START", jobName);
