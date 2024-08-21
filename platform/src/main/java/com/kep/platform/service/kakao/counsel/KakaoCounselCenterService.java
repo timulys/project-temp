@@ -92,7 +92,7 @@ public class KakaoCounselCenterService {
 			// WebClient에 시스템 proxy 설정(자동 인식하지 않음
 			ReactorClientHttpConnector reactorClientHttpConnector = new ReactorClientHttpConnector(HttpClient.create().proxyWithSystemProperties());
 
-			String url = getBaseUrl() + SYSTEM_MESSAGE_PATH.replace("{API_KEY}" , getApiKey()) + "?senderKey=75255f38d08ff785b5695b43e4d2fdc6819c77de";
+			String url = getBaseUrl() + SYSTEM_MESSAGE_PATH.replace("{API_KEY}" , getApiKey()) + "?senderKey=75255f38d08ff785b5695b43e4d2fdc6819c77de&id=6734";
 			KakaoSystemMessage systemMessage = externalRestTemplate.getForObject(url , KakaoSystemMessage.class);
 
 			log.info("@@eddie.j getApiKey() = {} " , getApiKey());
