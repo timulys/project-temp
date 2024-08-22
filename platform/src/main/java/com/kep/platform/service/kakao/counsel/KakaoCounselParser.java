@@ -1,7 +1,5 @@
 package com.kep.platform.service.kakao.counsel;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
 import com.kep.core.model.dto.issue.payload.IssuerType;
 import com.kep.core.util.TimeUtils;
@@ -9,26 +7,19 @@ import com.kep.platform.config.property.PlatformProperty;
 import com.kep.platform.model.dto.KakaoCounselReceiveEvent;
 import com.kep.platform.model.dto.KakaoCounselReceiveRelayBotEvent;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
-import javax.validation.*;
-import javax.validation.constraints.AssertTrue;
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.lang.reflect.Type;
-import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
 public class KakaoCounselParser {
-
-	@Resource
-	private ObjectMapper objectMapper;
 
 	@Resource
 	private PlatformProperty platformProperty;
@@ -40,46 +31,50 @@ public class KakaoCounselParser {
 
 		// 인입 파라미터 파싱 (reference 필드)
 		KakaoCounselReceiveEvent.Reference reference = event.getReference();
-		if (reference == null || ObjectUtils.isEmpty(reference.getExtra())) {
-			return Collections.emptyMap();
-		}
-
-		String extra = reference.getExtra();
-		log.info("KAKAO COUNSEL PARSER, REFERENCE, EXTRA: {}", extra);
+		KakaoCounselReceiveEvent.Reference lastReference = event.getLastReference();
 
 		Map<String, Object> params = new HashMap<>();
 
-		params.put("appUserId", event.getAppUserId());
 
-//		String[] extraParams = extra.split("__");
-//		for (String param : extraParams){
-//			if(!param.isEmpty()){
-//				List<String> setParams = Arrays.asList(param.split("_"));
-//				if(!setParams.isEmpty()){
-//					params.put(setParams.get(0) , setParams.get(1));
-//				}
-//			}
-//		}
-		String[] extraParams = extra.split("__");
-		for (String param : extraParams) {
-			if (!param.isEmpty()) {
-				int underscoreIndex = param.indexOf("_");
-				if (underscoreIndex != -1) {
-					String key = param.substring(0, underscoreIndex);
-					String value = param.substring(underscoreIndex + 1);
+		if( reference != null && StringUtils.isNoneBlank(reference.getExtra())) {
 
-					/**
-					 * FIXME :: BNK 비즈니스
-					 */
-					// bnk_상담원_username값 처리 vndr_cust_no
-					if ("vndr_cust_no".equals(key)) {
-						params.put("vndrCustNo", value);
-					} else {
-						params.put(key, value);
+			String extra = reference.getExtra();
+			log.info("KAKAO COUNSEL PARSER, REFERENCE, EXTRA: {}", extra);
+
+			params.put("appUserId", event.getAppUserId());
+
+			String[] extraParams = extra.split("__");
+			for (String param : extraParams) {
+				if (!param.isEmpty()) {
+					int underscoreIndex = param.indexOf("_");
+					if (underscoreIndex != -1) {
+						String key = param.substring(0, underscoreIndex);
+						String value = param.substring(underscoreIndex + 1);
+
+						// bnk_상담원_username값 처리 vndr_cust_no
+						// FIXME :: eddie.j BNK 로직 삭제 예정
+						if ("vndr_cust_no".equals(key)) {
+							params.put("vndrCustNo", value);
+						} else {
+							params.put(key, value);
+						}
 					}
 				}
 			}
 		}
+
+		// 채팅방 종료 후 URL 매핑이 아닌 채팅을 입력 해서 신규 채팅 시 상담원 지정을 위해서 추가
+		if( lastReference != null && StringUtils.isNoneBlank(lastReference.getExtra())){
+			String lastReferenceExtra  = lastReference.getExtra();
+			String[] lastReferenceExtraArray  = lastReferenceExtra.split("__");
+			for (String lastReferenceParam : lastReferenceExtraArray) {
+				if(lastReferenceParam.contains("mid_")){ // 상담원 지정 값만 사용하기 때문에 mid_하위만 추출
+					params.put( "mid", lastReferenceParam.replace("mid_" , "") );
+					break;
+				}
+			}
+		}
+
 		log.info("KAKAO COUNSEL PARSER, REFERENCE, PARAMS: {}", params);
 
 		return params;

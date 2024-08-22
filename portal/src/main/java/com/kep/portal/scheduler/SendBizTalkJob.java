@@ -50,10 +50,13 @@ public class SendBizTalkJob {
     @Resource
     private ObjectMapper objectMapper;
 
+    // NOTE : biz톡 관련 사항으로 스케줄러 임시 주석처리
+    /*
     @Scheduled(initialDelay = 1000 * 60, fixedDelay = 1000 * 60)
     @SchedulerLock(name = "SEND_BIZ_TALK"
             , lockAtLeastFor = "PT5S"
             , lockAtMostFor = "PT20S")
+     */
     public void run() {
         final String jobName = "SEND BIZ TALK";
         log.info(">>> SCHEDULER: {}, START", jobName);

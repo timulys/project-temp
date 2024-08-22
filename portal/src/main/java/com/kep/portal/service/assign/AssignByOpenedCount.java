@@ -52,6 +52,7 @@ public class AssignByOpenedCount implements Assignable {
             throw new UnsupportedOperationException("AssignByOpenedCount, NO ENV");
         }
 
+        // todo AssignByDisabled 함수에서 동일한 로직 체크하는 것으로 보임 체크 후 중복이라면 제거 필요
         boolean enabled = channelEnv.getAssignStandby().getEnabled();
         BranchDto branchDto = branchService.getById(issue.getBranchId());
         //issue.status open 만 체크
@@ -60,7 +61,8 @@ public class AssignByOpenedCount implements Assignable {
             Long openedCount = issueService.countOpenedByBranchId(issue.getBranchId());
             openedCount--;
             Long assignableCount = (branchDto.getMaxCounsel() == null) ? 0L : Long.valueOf(branchDto.getMaxCounsel());
-            if(openedCount >= assignableCount){
+            // 최대상담건수를 0으로 설정한 경우 예외처리 추가
+            if(openedCount >= assignableCount && assignableCount != 0 ){
                 if (issue.getAssignCount() < 2) {
                     eventBySystemService.sendOverAssignedAndClose(issue, channelEnv);
                 }

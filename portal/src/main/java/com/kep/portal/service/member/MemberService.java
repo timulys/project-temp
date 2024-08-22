@@ -34,8 +34,8 @@ import com.kep.portal.service.issue.IssueService;
 import com.kep.portal.service.privilege.RoleService;
 import com.kep.portal.service.team.TeamMemberService;
 import com.kep.portal.service.team.TeamService;
-import com.kep.portal.service.work.OffDutyHoursService;
 import com.kep.portal.service.work.OfficeHoursService;
+import com.kep.portal.service.work.WorkService;
 import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -119,7 +119,7 @@ public class MemberService {
 	private SystemMessageProperty systemMessageProperty;
 
 	@Resource
-	private OffDutyHoursService offDutyHoursService;
+	private WorkService workService;
 	
 	public Member findById(@NotNull @Positive Long id) {
 		return memberRepository.findById(id).orElse(null);
@@ -540,6 +540,8 @@ public class MemberService {
 		List<Long> memberIdList = new ArrayList<>(memberIds);
 		List<TeamMember> teamMembers = teamMemberService.findAllByMemberIdIn(memberIdList);
 
+		boolean isWork = true;
+
 		for (MemberAssignDto member : memberAssignDtos) {
 
 			log.info("MEMBER ID:{} , ASSIGNABLE STATUS:{} ", member.getId(), member.getStatus());
@@ -557,10 +559,10 @@ public class MemberService {
 				member.setTeamName(team.getName());
 			}
 
-			// Todo 다른 branch의 멤버 보이는지 확인 후 for문 위쪽으로 변경 필요
+			member.setAssignable(true);
 			// 오늘 휴무 인지 여부 체크 추가
-			List<OffDutyHours> branchOffDutyHoursList = offDutyHoursService.getOffDutyHours(member.getBranchId());
-			if(branchOffDutyHoursList.size() > 0 ){
+			isWork = workService.offDutyHours(branch);
+			if(!isWork){
 				member.setAssignable(false);
 				continue;
 			}
@@ -568,7 +570,6 @@ public class MemberService {
 			// Todo 대시보드 쪽에서 보이는 로직이랑 맞춰야 할 필요성 있어보임..
 			// eddie.j Assignable 컬럼 세팅 위치 변경 ( 같은 컬럼 데이터 덮어 씌우는 문제로 인하여 버그 발생 )
 			// 1. 온라인 / 오프라인 체크
-			member.setAssignable(true);
 			if (WorkType.OfficeHoursStatusType.off.equals(member.getStatus())) {
 				member.setAssignable(false);
 				continue;

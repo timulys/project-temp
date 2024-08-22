@@ -88,7 +88,7 @@ public class KakaoCounselCenterService {
 		try {
 			// WebClient에 시스템 proxy 설정(자동 인식하지 않음
 			ReactorClientHttpConnector reactorClientHttpConnector = new ReactorClientHttpConnector(HttpClient.create().proxyWithSystemProperties());
-			
+
 			KakaoSystemMessage systemMessage = WebClient.builder().clientConnector(reactorClientHttpConnector).baseUrl(getBaseUrl()).build().get()
 					.uri(uriBuilder -> uriBuilder.path(SYSTEM_MESSAGE_PATH).queryParam("senderKey", serviceKey).build(getApiKey())).accept(MediaType.APPLICATION_JSON).httpRequest(httpRequest -> {
 						HttpClientRequest reactorRequest = httpRequest.getNativeRequest();
@@ -100,6 +100,7 @@ public class KakaoCounselCenterService {
 						log.error("KAKAO CENTER SYSTEM MESSAGE , STATUS:{} , HEADERS:{}", response.statusCode(), response.headers());
 						return null;
 					}).bodyToMono(KakaoSystemMessage.class).block();
+
 			log.info("SYSTEM MESSAGE KAKAO MESSAGE:{}", systemMessage);
 
 			Assert.notNull(systemMessage, "NOT NULL KAKAO SYSTEM MESSAGE");

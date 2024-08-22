@@ -347,8 +347,7 @@ public class ChannelEnvService {
 			return new ChannelEnvDto();
 		}
 
-		// Todo 현재 서버에서 메세지를 제대로 받아오지 못해서 임시 주석처리 ( 일단 내부 DB에 있는 데이터 사용 )
-		/*
+		// 2024.08.21 eddie.j : 메세지 등록 후 승인처리 완료 주석 해제
 		List<IssuePayload> issuePayloads = systemMessageService.getSystemMessage(channel.getServiceKey());
 		if(!ObjectUtils.isEmpty(issuePayloads)){
 			Map<String , IssuePayload> chapter = systemMessageService.setSystemMessage(issuePayloads);
@@ -358,7 +357,6 @@ public class ChannelEnvService {
 			entity.getStart().getWaiting().setMessage(chapter.get("S4"));
 			entity.setImpossibleMessage(chapter.get("S3"));
 		}
-		*/
 
 		return channelEnvMapper.map(entity);
 	}
@@ -433,9 +431,10 @@ public class ChannelEnvService {
 		entity.setMemberDirectEnabled((envDto.getMemberDirectEnabled() != null) ? envDto.getMemberDirectEnabled() : entity.getMemberDirectEnabled());
 		entity.setRequestBlockEnabled((envDto.getRequestBlockEnabled() != null) ? envDto.getRequestBlockEnabled() : entity.getRequestBlockEnabled());
 		//무응답 상담 종료
+		// 20240822 eddie.j 상담이 불가능한 상태이기 때문에 무응답이 아닌 off로 세팅
 		entity.setImpossibleMessage(IssuePayload.builder()
 				.version(IssuePayload.CURRENT_VERSION)
-				.chapters(new IssuePayload(IssuePayload.PlatformAnswer.no_answer).getChapters())
+				.chapters(new IssuePayload(IssuePayload.PlatformAnswer.off).getChapters())
 				.build());
 		entity.setAssignStandby(SystemIssuePayload.EnabledNumberMessage.builder()
 						.number(envDto.getAssignStandby().getNumber())
