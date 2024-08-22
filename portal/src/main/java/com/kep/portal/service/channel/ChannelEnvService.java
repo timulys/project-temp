@@ -347,7 +347,8 @@ public class ChannelEnvService {
 			return new ChannelEnvDto();
 		}
 
-		// 2024.08.21 eddie.j : 메세지 등록 후 승인처리 완료 주석 해제
+		// 속도 이슈로 인하여 일단 다시 주석처리
+		/*
 		List<IssuePayload> issuePayloads = systemMessageService.getSystemMessage(channel.getServiceKey());
 		if(!ObjectUtils.isEmpty(issuePayloads)){
 			Map<String , IssuePayload> chapter = systemMessageService.setSystemMessage(issuePayloads);
@@ -357,6 +358,7 @@ public class ChannelEnvService {
 			entity.getStart().getWaiting().setMessage(chapter.get("S4"));
 			entity.setImpossibleMessage(chapter.get("S3"));
 		}
+		*/
 
 		return channelEnvMapper.map(entity);
 	}
