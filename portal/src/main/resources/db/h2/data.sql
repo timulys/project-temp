@@ -261,8 +261,8 @@ VALUES (1, 'Y', '{
   "version" : "0.1",
   "chapters" : [ {
     "sections" : [ {
-      "type" : "text",
-      "data" : "죄송합니다. 현재 원활한 상담이 어렵습니다. 추후에 다시 이용 부탁드립니다."
+      "type" : "platform_answer",
+      "data" : "off"
     } ]
   } ]
 }', 'category', 'Y', now(), 1, 'N', 1, 1, 1 , 3);
