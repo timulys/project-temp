@@ -16,6 +16,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -196,69 +197,6 @@ public class KakaoCounselParser {
 		}
 
 		return issuePayload;
-	}
-
-	public List<IssuePayload.Section> parseTextContents(@NotEmpty List<Object> contents) {
-
-		List<IssuePayload.Section> sections = new ArrayList<>();
-
-		for (Object object : contents) {
-			IssuePayload.Section section = new IssuePayload.Section();
-			section.setType(IssuePayload.SectionType.text);
-			section.setData(object.toString());
-			sections.add(section);
-		}
-
-		return sections;
-	}
-
-	public List<IssuePayload.Section> parseFileContents(@NotNull KakaoCounselReceiveEvent.MessageType messageType, @NotEmpty List<Object> contents) {
-
-		List<IssuePayload.Section> sections = new ArrayList<>();
-
-		// 이미지 파일인 경우
-		if (KakaoCounselReceiveEvent.MessageType.photo.equals(messageType)) {
-			log.warn("IMAGE");
-			// 이미지 전송 금지시, 안내 메세지로 교체
-			if (!platformProperty.isAllowReceiveImage()) {
-				log.warn("PREVENT IMAGE");
-				IssuePayload.Section section = new IssuePayload.Section();
-				section.setType(IssuePayload.SectionType.text);
-				section.setData(platformProperty.getReplaceMessageForPrevent());
-				sections.add(section);
-				return sections;
-			}
-		}
-		// 그 외 파일인 경우
-		else {
-			log.warn("FILE");
-			// 파일 전송 금지시, 안내 메세지로 교체
-			if (!platformProperty.isAllowReceiveFile()) {
-				log.warn("PREVENT FILE");
-				IssuePayload.Section section = new IssuePayload.Section();
-				section.setType(IssuePayload.SectionType.text);
-				section.setData(platformProperty.getReplaceMessageForPrevent());
-				sections.add(section);
-				return sections;
-			}
-		}
-
-		for (Object object : contents) {
-			IssuePayload.Section section = new IssuePayload.Section();
-			section.setType(IssuePayload.SectionType.file);
-			section.setDisplay(getDisplayOfFileSection(messageType));
-			try {
-				Map<String, String> fileContainer = (Map<String, String>) object;
-				section.setData(fileContainer.get("url"));
-				section.setName(fileContainer.get("comment"));
-			} catch (Exception e) {
-				log.error(e.getLocalizedMessage());
-				continue;
-			}
-			sections.add(section);
-		}
-
-		return sections;
 	}
 
 	public IssuePayload.SectionType getSectionType(@NotNull KakaoCounselReceiveEvent.MessageType messageType) {
@@ -446,5 +384,33 @@ public class KakaoCounselParser {
 		} else {
 			return IssuePayload.ActionType.message;
 		}
+	}
+
+	/************************* Private methods ****************************/
+	private List<IssuePayload.Section> parseTextContents(@NotEmpty List<Object> contents) {
+		return contents.stream().map(content -> IssuePayload.Section.builder()
+				.type(IssuePayload.SectionType.text)
+				.data(content.toString())
+				.build()).collect(Collectors.toList());
+	}
+
+	private List<IssuePayload.Section> parseFileContents(@NotNull KakaoCounselReceiveEvent.MessageType messageType, @NotEmpty List<Object> contents) {
+		if (KakaoCounselReceiveEvent.MessageType.photo.equals(messageType) && !platformProperty.isAllowReceiveImage()) {
+			log.warn("PREVENT IMAGE TYPE");
+			return Collections.singletonList(IssuePayload.Section.builder()
+							.type(IssuePayload.SectionType.text)
+							.data(platformProperty.getReplaceMessageForPrevent()).build());
+		} else if (!KakaoCounselReceiveEvent.MessageType.photo.equals(messageType) && !platformProperty.isAllowReceiveFile()) {
+			log.warn("PREVENT FILE TYPE");
+			return Collections.singletonList(IssuePayload.Section.builder()
+							. type(IssuePayload.SectionType.text)
+							.data(platformProperty.getReplaceMessageForPrevent()).build());
+		}
+
+		return contents.stream().map(content -> IssuePayload.Section.builder()
+				.display(getDisplayOfFileSection(messageType))
+				.data(((Map<String, String>) content).get("url"))
+				.name(((Map<String, String>) content).get("comment"))
+				.build()).collect(Collectors.toList());
 	}
 }
