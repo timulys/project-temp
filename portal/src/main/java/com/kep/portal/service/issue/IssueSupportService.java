@@ -195,11 +195,149 @@ public class IssueSupportService {
 		return issueSupportRepository.save(entity);
 	}
 
+	//직원전환 요청 검증
+	private void validateChangeMemberRequest(IssueSupportDto issueSupportDto) throws Exception {
+
+		// 상담직원전환요청 or 직원변경일 경우 따른 필수 값 체크
+		if (isChangeMemberRequest(issueSupportDto.getType(), issueSupportDto.getStatus())) {
+			Assert.notNull(issueSupportDto.getChangeType(), "change_type can not be null");
+
+			// 시스템 전환일 경우 필수 값 체크
+			if (IssueSupportChangeType.auto == issueSupportDto.getChangeType()) {
+				Assert.notNull(issueSupportDto.getBranchId(), "branch_id can not be null");
+				Assert.notNull(issueSupportDto.getCategoryId(), "category_id can not be null");
+				// 상담직원선택(상담포탈-상담직원전환/매니저-상담직원변경) 요청인 경우 필수 값 체크
+			} else {
+				Assert.notNull(issueSupportDto.getSelectMemberId(), "select_member_id can not be null");
+			}
+		}
+
+	}
+
+	//직원 전환 요청 여부 FIXME :: 도메인으로 이동 volka
+	private boolean isChangeMemberRequest(IssueSupportType type, IssueSupportStatus status) {
+		return (IssueSupportType.change == type && IssueSupportStatus.request == status) || IssueSupportStatus.change == status;
+	}
+
+	//지정 직원 전환 요청 여부 FIXME :: 도메인으로 이동 volka
+	private boolean isChangeSelectedMemberRequest(IssueSupportType type, IssueSupportStatus status, IssueSupportChangeType changeType) {
+		return (IssueSupportType.change == type || IssueSupportStatus.change == status)
+				&& IssueSupportChangeType.select == changeType;
+	}
+
+	// 상담직원전환요청/상담직원변경처리 시 상담원을 선택한 경우 상담 가능 여부 체크 후 상담 불가능일 경우 처리가 되지 않음
+	// 근무중 여부 체크
+	private boolean isWorkingMember(Long memberId) throws Exception {
+		Member changeInfo = memberRepository.findById(memberId).orElse(null);
+		MemberAssignDto memberAssignDto = memberMapper.mapAssign(changeInfo);
+
+		log.info("MEMBER ASSIGN INFO {}", memberAssignDto);
+
+		// 멤버의 상담 불가능 상태일 경우 400error로 return 처리
+		if (WorkType.OfficeHoursStatusType.off == memberAssignDto.getStatus()) {
+			return false;
+		}
+
+		OfficeHours branchOfficeHour = officeHoursService.branchHours(changeInfo.getBranchId());
+		Branch branch = branchService.findById(changeInfo.getBranchId());
+		branch.setOfficeHours(branchOfficeHour);
+
+		MemberOfficeHours memberOfficeHours = memberOfficeHoursRepository.findByMemberId(memberId);
+
+		OfficeHours officeHours = null;
+		if (branch.getAssign() == WorkType.Cases.branch) {
+			officeHours = branch.getOfficeHours();
+		}
+		if (branch.getAssign() == WorkType.Cases.member) {
+			if (!ObjectUtils.isEmpty(memberOfficeHours)) {
+				officeHours = memberOfficeHours;
+			}
+		}
+
+		if (officeHours != null) {
+			// 멤버의 상담 불가능 상태일 경우 400error로 return 처리
+            return officeHoursService.isOfficeHours(officeHours);
+		}
+
+		return true;
+	}
+
+	//지원요청에 답변/반려 가능 여부
+	//FIXME :: 도메인으로 이동 volka
+	private boolean isCanAnswer(IssueSupportStatus issueSupportStatus) {
+		return issueSupportStatus != IssueSupportStatus.reject && issueSupportStatus != IssueSupportStatus.finish;
+	}
+
+
+	/**
+	 * FIXME :: IssueSupportHistory 의 팩토리 메서드로 리팩토링 volka
+	 * @param issueSupport
+	 * @param inputSupportStatus
+	 * @param answerContent
+	 * @return
+	 */
+	private IssueSupportHistory createIssueSupportHistory(IssueSupport issueSupport, IssueSupportStatus inputSupportStatus, String answerContent, Long memberId) {
+		return IssueSupportHistory.builder()
+				.issueSupport(issueSupport)
+				.issue(issueSupport.getIssue())
+				.type(issueSupport.getType())
+				.status(inputSupportStatus)
+				.content(answerContent)
+				.changeType(issueSupport.getChangeType())
+				.branchId(issueSupport.getBranchId())
+				.categoryId(issueSupport.getCategoryId())
+				.selectMemberId(issueSupport.getSelectMemberId())
+				.creator(memberId)
+				.created(ZonedDateTime.now())
+				.build();
+	}
+
+	//전환 요청일 경우 셋업
+	//FIXME :: 도메인으로 이동
+	private IssueSupport getSetupIssueSupportWhenChangeRequest(Long issueSupportId, IssueSupportDto input) throws Exception {
+
+		IssueSupport issueSupport = issueSupportMapper.map(input);
+		issueSupport.setIssue(Issue.builder().id(issueSupportId).build());
+		issueSupport.setQuestioner(securityUtils.getMemberId());
+		issueSupport.setQuestionModified(ZonedDateTime.now());
+		issueSupport.setCreator(securityUtils.getMemberId());
+		issueSupport.setCreated(ZonedDateTime.now());
+
+		return issueSupport;
+	}
+
+	//자동전환일 때 셋업
+	//FIXME :: 도메인으로 이동
+	private void setupIssueSupportWhenAutoChange(CounselEnv counselEnv, IssueSupport issueSupport) {
+		if (null != counselEnv && counselEnv.getMemberAutoTransformEnabled()) {
+			issueSupport.setStatus(IssueSupportStatus.auto);
+			issueSupport.setAnswerer(property.getSystemMemberId());
+			issueSupport.setAnswerModified(ZonedDateTime.now());
+		}
+	}
+
+	// 상담 검토/직원전환 완료(상담원의 상담직원변경>시스템전환 자동배정시, 상담이어받기, 상담직원변경, 관리자의 완료(상담직원변경 요청에 대한))시에 후 처리 진행 여부
+	//FIXME :: 도메인으로 이동
+	private boolean isCheckOrChangeSuccess(IssueSupportStatus issueSupportStatus, IssueSupportChangeType changeType) {
+		return IssueSupportStatus.auto == issueSupportStatus
+				|| IssueSupportStatus.receive == issueSupportStatus
+				|| IssueSupportStatus.change == issueSupportStatus
+				|| (IssueSupportStatus.finish == issueSupportStatus && !ObjectUtils.isEmpty(changeType));
+	}
+
+	//알림 발송 대상 포함 요청 여부
+	private boolean isSendNotiStatus(IssueSupportStatus issueSupportStatus, IssueSupportType supportType) {
+		return IssueSupportStatus.request == issueSupportStatus
+				|| IssueSupportStatus.reject == issueSupportStatus
+				|| IssueSupportStatus.end == issueSupportStatus
+				|| (IssueSupportStatus.finish == issueSupportStatus && IssueSupportType.question == supportType) ;
+	}
+
 	/**
 	 * 상담 검토/직원전환 요청 SB-CP-P02, SP035, 상담검토요청 SB-CP-P01, SP036, 상담직원전환
 	 *
 	 * 상담 검토/직원전환 요청 완료처리 SB-CA-005, WA004/WA005, 상담 지원 요청
-	 * 
+	 *
 	 * @param issueSupportDto
 	 * @param id
 	 * @return
@@ -208,45 +346,29 @@ public class IssueSupportService {
 		Issue issue = null;
 		String content = null;
 
+		IssueSupportType inputSupportType = issueSupportDto.getType();
+		IssueSupportStatus inputSupportStatus = issueSupportDto.getStatus();
+		IssueSupportChangeType inputSupportChangeType = issueSupportDto.getChangeType();
+
+		// 상태 필수 값 체크
+		Assert.notNull(inputSupportStatus, "status can not be null");
+
 		// 요청일 경우 상담 직원전환/검토 구분 값 필수 체크
-		if (IssueSupportStatus.request.equals(issueSupportDto.getStatus())) {
-			Assert.notNull(issueSupportDto.getType(), "type can not be null");
-		}
+		if (IssueSupportStatus.request == inputSupportStatus) Assert.notNull(inputSupportType, "type can not be null");
 
 		// TODO: 상담지원요청의 조회 및 처리 기준이 브랜치로 될 경우 아래 부분 주석해제
 //		if (ObjectUtils.isEmpty(issueSupportDto.getBranchId())){
 //			issueSupportDto.setBranchId(securityUtils.getBranchId());
 //		}
 
-		// 상태 필수 값 체크
-		Assert.notNull(issueSupportDto.getStatus(), "status can not be null");
-
 		// 상담직원전환요청 or 직원변경일 경우 따른 필수 값 체크
-		if ((IssueSupportType.change.equals(issueSupportDto.getType()) && IssueSupportStatus.request.equals(issueSupportDto.getStatus()))
-				|| IssueSupportStatus.change.equals(issueSupportDto.getStatus())) {
-			Assert.notNull(issueSupportDto.getChangeType(), "change_type can not be null");
-
-			// 시스템 전환일 경우 필수 값 체크
-			if (IssueSupportChangeType.auto.equals(issueSupportDto.getChangeType())) {
-				Assert.notNull(issueSupportDto.getBranchId(), "branch_id can not be null");
-				Assert.notNull(issueSupportDto.getCategoryId(), "category_id can not be null");
-			// 상담직원선택(상담포탈-상담직원전환/매니저-상담직원변경) 요청인 경우 필수 값 체크
-			} else {
-				Assert.notNull(issueSupportDto.getSelectMemberId(), "select_member_id can not be null");
-			}
+		if (isChangeMemberRequest(inputSupportType, inputSupportStatus)) {
+			validateChangeMemberRequest(issueSupportDto);
 		} else {
-			if (!ObjectUtils.isEmpty(issueSupportDto.getChangeType())) {
-				issueSupportDto.setChangeType(null);
-			}
-			if (!ObjectUtils.isEmpty(issueSupportDto.getBranchId())) {
-				issueSupportDto.setBranchId(null);
-			}
-			if (!ObjectUtils.isEmpty(issueSupportDto.getCategoryId())) {
-				issueSupportDto.setCategoryId(null);
-			}
-			if (!ObjectUtils.isEmpty(issueSupportDto.getSelectMemberId())) {
-				issueSupportDto.setSelectMemberId(null);
-			}
+			issueSupportDto.setChangeType(null);
+			issueSupportDto.setBranchId(null);
+			issueSupportDto.setCategoryId(null);
+			issueSupportDto.setSelectMemberId(null);
 		}
 
 		// 이력 조회 시 브랜치 ID가 없을 경우 오류 발생으로 인하여 validation 체크 하도록 처리
@@ -256,82 +378,42 @@ public class IssueSupportService {
 		}
 
 		// 상담직원전환요청/상담직원변경처리 시 상담원을 선택한 경우 상담 가능 여부 체크 후 상담 불가능일 경우 처리가 되지 않음
-		if ((IssueSupportType.change.equals(issueSupportDto.getType()) || IssueSupportStatus.change.equals(issueSupportDto.getStatus()))
-				&& IssueSupportChangeType.select.equals(issueSupportDto.getChangeType())) {
-			Member changeInfo = memberRepository.findById(issueSupportDto.getSelectMemberId()).orElse(null);
-			MemberAssignDto memberAssignDto = memberMapper.mapAssign(changeInfo);
-
-			log.info("MEMBER ASSIGN INFO {}", memberAssignDto);
-
-			// 멤버의 상담 불가능 상태일 경우 400error로 return 처리
-			if (WorkType.OfficeHoursStatusType.off.equals(memberAssignDto.getStatus())) {
+		if (
+				isChangeSelectedMemberRequest(inputSupportType, inputSupportStatus, inputSupportChangeType)
+				&& !isWorkingMember(issueSupportDto.getSelectMemberId())
+		) {
 				return IssueSupportDto.builder().assignable(false).build();
-			}
-
-			OfficeHours branchOfficeHour = officeHoursService.branchHours(changeInfo.getBranchId());
-			Branch branch = branchService.findById(changeInfo.getBranchId());
-			branch.setOfficeHours(branchOfficeHour);
-
-			MemberOfficeHours memberOfficeHours = memberOfficeHoursRepository.findByMemberId(issueSupportDto.getSelectMemberId());
-
-			OfficeHours officeHours = null;
-			if (branch.getAssign().equals(WorkType.Cases.branch)) {
-				officeHours = branch.getOfficeHours();
-			}
-			if (branch.getAssign().equals(WorkType.Cases.member)) {
-				if (!ObjectUtils.isEmpty(memberOfficeHours)) {
-					officeHours = memberOfficeHours;
-				}
-			}
-
-			if (officeHours != null) {
-				// 멤버의 상담 불가능 상태일 경우 400error로 return 처리
-				if (!officeHoursService.isOfficeHours(officeHours)) {
-					return IssueSupportDto.builder().assignable(false).build();
-				}
-			}
 		}
 
 		CounselEnv counselEnv = new CounselEnv();
 		IssueSupport issueSupport;
-		IssueSupportStatus status = issueSupportDto.getStatus();
+
 		// 상담 검토/직원전환 요청 시 데이터 가공처리
-		if (IssueSupportStatus.request.equals(issueSupportDto.getStatus())) {
+		if (IssueSupportStatus.request == inputSupportStatus) {
 			// 이슈 정보 조회
 			issue = issueService.findById(id);
-
 			Assert.notNull(issue, "Not Found by IssueId to Issue");
 
-			issueSupport = issueSupportMapper.map(issueSupportDto);
-			issueSupport.setIssue(Issue.builder().id(id).build());
-			issueSupport.setQuestioner(securityUtils.getMemberId());
-			issueSupport.setQuestionModified(ZonedDateTime.now());
-			issueSupport.setCreator(securityUtils.getMemberId());
-			issueSupport.setCreated(ZonedDateTime.now());
+			issueSupport = getSetupIssueSupportWhenChangeRequest(id, issueSupportDto);
 			content = issueSupportDto.getQuestion();
 
 			// 상담 직원전환 요청 시 상담환경설정의 전환자동승인 상태를 체크하여 자동 승인처리를 해줌
-			if (IssueSupportType.change.equals(issueSupport.getType())) {
+			if (IssueSupportType.change == issueSupport.getType()) {
 				counselEnv = counselEnvRepository.findByBranchId(securityUtils.getBranchId());
-				if (null != counselEnv && counselEnv.getMemberAutoTransformEnabled()) {
-					issueSupport.setStatus(IssueSupportStatus.auto);
-					issueSupport.setAnswerer(property.getSystemMemberId());
-					issueSupport.setAnswerModified(ZonedDateTime.now());
-				}
+				setupIssueSupportWhenAutoChange(counselEnv, issueSupport);
 			}
 		// 답변 처리 시
 		} else {
 			issueSupport = issueSupportRepository.findById(id).orElse(null);
-
-			Assert.notNull(issueSupportDto, "data can not be null");
+			Assert.notNull(issueSupport, "Issue support can not be null");
+			Assert.isTrue(isCanAnswer(issueSupport.getStatus()), "issue support status can not be reject or finish");
 
 			// 이슈 정보 조회
 			issue = issueService.findById(issueSupport.getIssue().getId());
-
 			Assert.notNull(issue, "Not Found by IssueId to Issue");
 
 			// 지원요청된 데이터에 대하여 이슈가 종료 되었을 경우 처리가 되지 않아야함.(FE에서 해당값을 받아서 refresh 처리)
-			if (IssueStatus.close.equals(issue.getStatus())) {
+			if (IssueStatus.close == issue.getStatus()) {
 				return IssueSupportDto.builder().issueStatus(issue.getStatus()).build();
 			}
 
@@ -349,27 +431,23 @@ public class IssueSupportService {
 		issueSupport = issueSupportRepository.save(issueSupport);
 
 		// 이력 저장
-		issueSupportHistoryRepository.save(IssueSupportHistory.builder().issueSupport(issueSupport).issue(issueSupport.getIssue()).type(issueSupport.getType()).status(status)
-				.content(content).changeType(issueSupport.getChangeType()).branchId(issueSupport.getBranchId()).categoryId(issueSupport.getCategoryId()).selectMemberId(issueSupport.getSelectMemberId())
-				.creator(securityUtils.getMemberId())
-				.created(ZonedDateTime.now()).build());
+		issueSupportHistoryRepository.save(createIssueSupportHistory(issueSupport, inputSupportStatus, content, securityUtils.getMemberId()));
 
 		// 상담 검토/직원전환 완료(상담원의 상담직원변경>시스템전환 자동배정시, 상담이어받기, 상담직원변경, 관리자의 완료(상담직원변경 요청에 대한))시에 후 처리를 위한 부분
-		if (IssueSupportStatus.auto.equals(issueSupport.getStatus()) || IssueSupportStatus.receive.equals(issueSupport.getStatus()) || IssueSupportStatus.change.equals(issueSupport.getStatus())
-				|| (IssueSupportStatus.finish.equals(issueSupport.getStatus()) && !ObjectUtils.isEmpty(issueSupport.getChangeType()))) {
+		if (isCheckOrChangeSuccess(issueSupport.getStatus(), issueSupport.getChangeType())) {
 			callAssign(issueSupport, issue, counselEnv);
 			// 관리자의 상담종료 버튼을 눌렀을 경우
-		} else if (IssueSupportStatus.end.equals(issueSupport.getStatus())) {
+		} else if (IssueSupportStatus.end == issueSupport.getStatus()) {
 			// 상담 종료 처리
 			eventByManagerService.close(Collections.singletonList(issueSupport.getIssue().getId()), null);
 		}
 
-		// 알림 처리
-		if (IssueSupportStatus.request.equals(issueSupportDto.getStatus()) || IssueSupportStatus.reject.equals(issueSupportDto.getStatus())
-				|| (IssueSupportStatus.finish.equals(issueSupportDto.getStatus()) && IssueSupportType.question.equals(issueSupport.getType())) || IssueSupportStatus.end.equals(issueSupportDto.getStatus())) {
+		//알림 처리
+		if (isSendNotiStatus(inputSupportStatus, issueSupport.getType())) {
 			// 알림 처리
 			sendNotification(issueSupportDto, issueSupport, issue, counselEnv);
 		}
+
 
 		return issueSupportMapper.map(issueSupport);
 	}
@@ -381,13 +459,20 @@ public class IssueSupportService {
 		Long receiveMemberId = 0L;
 
 		// 알림 정보
-		NotificationDto notificationDto = NotificationDto.builder().displayType(NotificationDisplayType.toast).icon(NotificationIcon.member).target(NotificationTarget.member).build();
+		NotificationDto notificationDto = NotificationDto.builder()
+				.displayType(NotificationDisplayType.toast)
+				.icon(NotificationIcon.member)
+				.target(NotificationTarget.member)
+				.build();
 
 		NotificationInfoDto notificationInfoDto = new NotificationInfoDto();
 
 		// 상담 검토/직원전환 요청 알림 toast 추가
 		if (IssueSupportStatus.request.equals(issueSupportDto.getStatus())) {
-			BranchTeam branchTeam = branchTeamRepository.findByBranchAndTeam(Branch.builder().id(securityUtils.getBranchId()).build(), Team.builder().id(securityUtils.getTeamId()).build());
+			BranchTeam branchTeam = branchTeamRepository.findByBranchAndTeam(
+					Branch.builder().id(securityUtils.getBranchId()).build()
+					, Team.builder().id(securityUtils.getTeamId()).build()
+			);
 			// 알림 대상 ID
 			notificationInfoDto.setReceiverId(branchTeam.getMember().getId());
 
