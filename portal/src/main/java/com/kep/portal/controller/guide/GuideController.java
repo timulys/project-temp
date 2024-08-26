@@ -244,7 +244,7 @@ public class GuideController {
 
 
     @Tag(name = "가이드 API")
-    @Operation(summary = "가이드 검색", description = "가이드 검색(SB-CA-006)")
+    @Operation(summary = "가이드 단건 상세조회", description = "가이드 검색(SB-CA-006)")
     @GetMapping("/manage-search-dtl/{guideId}")
     @PreAuthorize("hasAnyAuthority('WRITE_GUIDE')")
     public ResponseEntity<ApiResult<GuideDto>> manageSearchDetail(

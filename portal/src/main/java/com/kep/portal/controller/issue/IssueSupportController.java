@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -85,11 +86,7 @@ public class IssueSupportController {
 	/**
 	 * 상담관리 > 상담 지원 요청 목록
 	 * SB-CA-005, WA004/WA005, 상담 지원 요청
-	 * @param searchStartDate
-	 * @param searchEndDate
-	 * @param type
-	 * @param memberId
-	 * @param status
+	 * @param issueSupportSearchDto
 	 * @param pageable
 	 * @return
 	 * @throws Exception
@@ -100,32 +97,12 @@ public class IssueSupportController {
 	@GetMapping("/manager")
 	@PreAuthorize("hasAnyAuthority('WRITE_SUPPORT')")
 	public ResponseEntity<ApiResult<List<IssueSupportDetailDto>>> get(
-			@Parameter(description = "조회 시작일")
-			@RequestParam(name = "search_start_date", required = false) String searchStartDate,
-			@Parameter(description = "조회 종료일")
-			@RequestParam(name = "search_end_date", required = false) String searchEndDate,
-			@Parameter(description = "상담 지원 타입 :: change : 상담 직원 전환 요청, question : 상담 검토 요청")
-			@RequestParam(name = "type", required = false) List<IssueSupportType> type,
-			@Parameter(description = "사용자 아이디")
-			@RequestParam(name = "member_id", required = false) Long memberId,
-			@Parameter(description = "상담 지원 상태 request : 상담검토/상담직원전환 요청\n" +
-					"reject : 반려\n" +
-					"finish : 완료\n" +
-					"change : 상담직원변경\n" +
-					"receive : 상담이어받기\n" +
-					"auto : 전환자동승인\n" +
-					"end : 상담종료")
-			@RequestParam(name = "status", required = false) List<IssueSupportStatus> status
+			@ParameterObject IssueSupportSearchDto issueSupportSearchDto
 			, @SortDefault.SortDefaults({
-				@SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable) throws Exception {
-
-		IssueSupportSearchDto issueSupportSearchDto = IssueSupportSearchDto.builder()
-														.searchStartDate(searchStartDate)
-														.searchEndDate(searchEndDate)
-														.type(type)
-														.memberId(memberId)
-														.status(status)
-														.build();
+				@SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}
+			)
+			@ParameterObject
+			Pageable pageable) throws Exception {
 
 		Assert.isTrue(!(null == issueSupportSearchDto.getStatus() || 0 == issueSupportSearchDto.getStatus().size()), "status can not be null");
 		Assert.isTrue(!(null == issueSupportSearchDto.getType() || 0 == issueSupportSearchDto.getType().size()), "type can not be null");

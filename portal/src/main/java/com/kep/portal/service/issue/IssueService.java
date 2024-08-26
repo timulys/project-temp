@@ -285,7 +285,11 @@ public class IssueService {
             return new PageImpl<>(Collections.emptyList());
         }
 
-        setConditionByRole(condition);
+        /**
+         * Admin : 브랜치 기준
+         * Manager : 팀 기준
+         */
+        setConditionByRole(condition, securityUtils.getRoles());
 
         Page<Issue> issuePage = issueRepository.search(condition, pageable);
 
@@ -352,11 +356,11 @@ public class IssueService {
     	
     	if (!ObjectUtils.isEmpty(condition.getCustomerSubject()) && !ObjectUtils.isEmpty(condition.getCustomerQuery())) {
 			List<Guest> guests = guestService.searchGuestAndCustomer(condition.getCustomerSubject(), condition.getCustomerQuery());
-			if (guests.isEmpty()) {
-				return false;
-			}
+			if (guests.isEmpty()) return false;
+
 			condition.setGuests(guests);
 		}
+
 		return true;
 	}
 
@@ -378,9 +382,7 @@ public class IssueService {
     /**
      * 역할별 조건 추가
      */
-    private boolean setConditionByRole(@NotNull IssueSearchCondition condition) {
-
-        List<String> roles = securityUtils.getRoles();
+    private void setConditionByRole(@NotNull IssueSearchCondition condition, List<String> roles) {
 
         // 역할별(레벨) 조건 추가
         if (roles.contains(Level.ROLE_ADMIN)) {
@@ -388,8 +390,6 @@ public class IssueService {
         } else if (roles.contains(Level.ROLE_MANAGER)) {
             condition.setTeamId(securityUtils.getTeamId());
         }
-
-        return true;
     }
 
     /**

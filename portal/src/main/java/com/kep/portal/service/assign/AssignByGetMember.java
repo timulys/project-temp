@@ -9,15 +9,14 @@ import com.kep.portal.model.entity.issue.IssueExtra;
 import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.repository.member.MemberRepository;
 import com.kep.portal.service.channel.ChannelEnvService;
-import com.kep.portal.service.member.MemberService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -37,9 +36,6 @@ public class AssignByGetMember implements Assignable {
 
     @Resource
     private ChannelEnvService channelEnvService;
-
-    @Resource
-    private MemberService memberService;
 
 
     public AssignByGetMember(AssignProvider assignProvider) {
@@ -66,7 +62,6 @@ public class AssignByGetMember implements Assignable {
                 log.info("GET MEMBER ISSUE EXTRA PARAMETER :{} ", issueExtra.getParameter());
                 Map<String, Object> parameter = objectMapper.readValue(issueExtra.getParameter(), new TypeReference<Map<String, Object>>() {});
 
-                //  FIXME :: eddie.j BNK 로직 삭제 예정
                 // vndrCustNo를 사용하여 상담원을 찾는 로직
                 if (!ObjectUtils.isEmpty(parameter.get("vndrCustNo"))) {
                     String vndrCustNo = (String) parameter.get("vndrCustNo");
@@ -91,6 +86,7 @@ public class AssignByGetMember implements Assignable {
                         }
                     }
                 }
+
             }
 
         } catch (Exception e){
