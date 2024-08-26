@@ -585,9 +585,6 @@ public class EventBySystemService {
 			if (enabled) {
 				IssuePayload issuePayload = channelEnv.getStart().getSt().getMessage();
 				String payload = objectMapper.writeValueAsString(issuePayload);
-				if (Objects.nonNull(issue.getMember())) {
-					payload = payload.replace("{위탁사명}", "Always_Dev");
-				}
 				IssueLog issueLog = saveSystemMessage(issue, payload);
 				sendToPlatformAndSocket(issue, issueLog);
 			}
