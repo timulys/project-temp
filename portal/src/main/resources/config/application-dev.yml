@@ -72,11 +72,11 @@ logging:
       max-history: 7
   level:
     root: info
-    org.hibernate.SQL: debug
+    org.hibernate.SQL: info
 #    org.hibernate.type: trace
-    org.hibernate.type.descriptor.sql.BasicBinder: trace
-    jdbc.sqlonly: debug
-    jdbc.resultsettable: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: info
+    jdbc.sqlonly: info
+    jdbc.resultsettable: info
     com.kep.portal.config.debug.DebugFilter: info
 
 application:
