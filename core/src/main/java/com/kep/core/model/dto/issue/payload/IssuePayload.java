@@ -59,6 +59,7 @@ public class IssuePayload {
 	 * 플랫폼에서 관리하는 메세지 (카카오 상담톡 무과금 메세지)
 	 */
 	public enum PlatformAnswer {
+		start , // 상담시작
 		off, // 상담불가
 		no_operator, // 상담부재
 		no_answer, // 무응답
