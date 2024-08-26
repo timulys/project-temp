@@ -153,10 +153,7 @@ public class KakaoCounselBuilder {
 						break;
 
 					case platform_answer:
-						if (IssuePayload.PlatformAnswer.start.name().equals(section.getData())) {
-							event.setAutoAnswer("ST");
-						}
-						else if (IssuePayload.PlatformAnswer.off.name().equals(section.getData())) {
+						if (IssuePayload.PlatformAnswer.off.name().equals(section.getData())) {
 							event.setAutoAnswer("S1");
 						} else if (IssuePayload.PlatformAnswer.no_operator.name().equals(section.getData())) {
 							event.setAutoAnswer("S2");
