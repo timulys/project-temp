@@ -193,7 +193,7 @@ public class NoticeSearchRepositoryImpl implements NoticeSearchRepository {
 				.leftJoin(qNoticeRead)
 				.on(qNotice.id.eq(qNoticeRead.noticeReadPk.notice_id).and(qNoticeRead.noticeReadPk.member_id.eq(memberId)))
 				.fetchJoin()
-				.where(qNoticeRead.isNull())
+				.where(qNoticeRead.isNull().and(qNotice.enabled.eq(true)))
 				.fetchFirst();
 	}
 
