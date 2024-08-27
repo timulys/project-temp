@@ -16,6 +16,7 @@ import com.kep.portal.repository.statisctics.IssueStatisticsRepository;
 import com.kep.portal.service.branch.BranchService;
 import com.kep.portal.service.member.MemberService;
 import com.kep.portal.service.team.TeamMemberService;
+import com.kep.portal.service.work.BreakTimeService;
 import com.kep.portal.service.work.OffDutyHoursService;
 import com.kep.portal.service.work.OfficeHoursService;
 import com.kep.portal.service.work.WorkService;
@@ -64,7 +65,8 @@ public class IssueStatisticsService {
     private TeamMemberService teamMemberService;
 
     @Resource
-    private OffDutyHoursService offDutyHoursService;
+    private BreakTimeService breakTimeService;
+
 
     /**
      * date group list
@@ -171,6 +173,8 @@ public class IssueStatisticsService {
         //근무 시간 예외 처리
         isWork = workService.offDutyHours(branch);
 
+        boolean isBreakTime = breakTimeService.isBreakTime();
+
         if(!isMemberAssign){
             //근무 (브랜치 근무시간 체크)
             if(isWork) {
@@ -241,6 +245,11 @@ public class IssueStatisticsService {
                 dto.setIng(dto.getIng() + ing);
                 dto.setDelay(dto.getDelay() + delay);
                 dto.setComplete(dto.getComplete() + complete);
+            }
+
+            // breaktime의 경우 상담원 상담불가능
+            if(isBreakTime){
+                status = WorkType.OfficeHoursStatusType.off;
             }
 
             memberStatisticsDtos.add(dto);

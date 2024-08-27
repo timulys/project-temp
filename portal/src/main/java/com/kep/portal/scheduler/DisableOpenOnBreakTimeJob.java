@@ -29,10 +29,14 @@ public class DisableOpenOnBreakTimeJob {
     @Resource
     private CounselEnvRepository counselEnvRepository;
 
+
+    // todo 개선 된 로직 검증 완료 후 제거할 로직
+    /*
     @Scheduled(initialDelay = 1000 * 10, fixedDelay = 1000 * 10)
     @SchedulerLock(name = "DISABLE_OPEN_ON_BREAK_TIME"
             , lockAtLeastFor = "PT5S"
             , lockAtMostFor = "PT20S")
+     */
     public void run() {
 
         final LocalTime start = LocalTime.parse(breakTimeStart);
