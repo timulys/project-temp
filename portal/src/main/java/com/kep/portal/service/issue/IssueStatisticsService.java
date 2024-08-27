@@ -173,7 +173,7 @@ public class IssueStatisticsService {
         //근무 시간 예외 처리
         isWork = workService.offDutyHours(branch);
 
-        boolean isBreakTime = breakTimeService.isBreakTime();
+        boolean isBreakTime = breakTimeService.getBreakTime();
 
         if(!isMemberAssign){
             //근무 (브랜치 근무시간 체크)
@@ -218,6 +218,11 @@ public class IssueStatisticsService {
                 status = WorkType.OfficeHoursStatusType.off;
             }
 
+            // breaktime의 경우 상담원 상담불가능
+            if(isBreakTime){
+                status = WorkType.OfficeHoursStatusType.off;
+            }
+
             IssueMemberStatisticsDto dto = IssueMemberStatisticsDto.builder()
                     .member(Member.builder()
                             .id(member.getId())
@@ -245,11 +250,6 @@ public class IssueStatisticsService {
                 dto.setIng(dto.getIng() + ing);
                 dto.setDelay(dto.getDelay() + delay);
                 dto.setComplete(dto.getComplete() + complete);
-            }
-
-            // breaktime의 경우 상담원 상담불가능
-            if(isBreakTime){
-                status = WorkType.OfficeHoursStatusType.off;
             }
 
             memberStatisticsDtos.add(dto);
