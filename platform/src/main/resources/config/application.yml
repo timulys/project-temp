@@ -86,13 +86,13 @@ spring:
               - write
           kakao-sync:
             authorization-grant-type: authorization_code
-            #           bnk개발
-            client-id: 15a497d976ccf083f21572d0b1ff8111
-            #            bnk개발
-            client-secret: 15a497d976ccf083f21572d0b1ff8111
+            #           eddie.j 테스트
+            client-id: 2f4a4c2ec4d42e4ac720950fb1753a2a
+            #            eddie.j 테스트
+            client-secret: Eu5JCcl59oO3MX7S4oS7gnKMpUxRmuAl
             #            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://connect-always-fe-cl.codeclick.co.kr/auth/kakao-sync/authorized}
             #            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://dev.bnkcapital.co.kr/platform/auth/kakao-sync/authorized}
-            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://bnk.codeclick.co.kr/platform/auth/kakao-sync/authorized}
+            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://always-talk.kakaoiconnect.ai/platform/auth/kakao-sync/authorized}
             scope:
               - read
               - write
