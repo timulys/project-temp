@@ -93,6 +93,8 @@ spring:
             #            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://connect-always-fe-cl.codeclick.co.kr/auth/kakao-sync/authorized}
             #            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://dev.bnkcapital.co.kr/platform/auth/kakao-sync/authorized}
             redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://always-talk.kakaoiconnect.ai/platform/auth/kakao-sync/authorized}
+            # eddie.j local에서 테스트할 때 사용
+            #redirect-uri: ${KAKAO_SYNC_RETURN_URL:http://127.0.0.1:9000/platform/auth/kakao-sync/authorized}
             scope:
               - read
               - write
