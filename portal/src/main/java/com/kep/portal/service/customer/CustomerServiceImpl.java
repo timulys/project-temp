@@ -332,7 +332,6 @@ public class CustomerServiceImpl implements CustomerService {
 	 * @param dto
 	 */
 	public Customer save(CustomerDto dto){
-		log.info("@@eddie.j dto.getIdentifier() = {} " , dto.getIdentifier());
 		Customer customer = customerRepository.findOne(
 						Example.of(Customer.builder().identifier(dto.getIdentifier()).build()))
 				.orElse(null);
