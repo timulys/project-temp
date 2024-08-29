@@ -31,6 +31,8 @@ import java.util.Collections;
 
 /**
  * 카카오 비즈톡, 발송 예약 {@link BizTalkTask} 스케줄러
+ *
+ * FIXME :: 로직 개선 및 도메인 재설계 필요 -> BizTalkTask
  */
 @Service
 @Transactional
@@ -81,6 +83,9 @@ public class SendBizTalkJob {
                     Assert.notNull(bizTalkRequest, "not found request");
                     PlatformTemplateDto template = bizTalkRequestService.getTemplateDto(bizTalkRequest);
 
+                    /**
+                     * FIXME :: BizTalkRequest 엔티티에 상태 변경하는 부분이 전혀 없는데 merge() 하는 이유가 없음 volka
+                     */
                     bizTalkRequestService.save(bizTalkRequest);
 
                     String phone = customerContactRepository.findAllByCustomerId(task.getCustomerId()).stream().filter(item -> item.getType().equals(CustomerContactType.call)).map(CustomerContact::getPayload).findFirst().orElse(null);
