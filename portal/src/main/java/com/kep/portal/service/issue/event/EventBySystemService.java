@@ -601,7 +601,9 @@ public class EventBySystemService {
 	 * @throws JsonProcessingException
 	 */
 	private String getTextBtnAddPayload(IssuePayload sendMessage , String buttonName) throws JsonProcessingException {
-		IssuePayload.Action action = IssuePayload.Action.builder().type(IssuePayload.ActionType.message).name(buttonName).build();
+		IssuePayload.Action action = IssuePayload.Action.builder().type(IssuePayload.ActionType.message)
+				     											  .name(buttonName)
+																  .build();
 		return this.getActionAddPayload(sendMessage , action);
 	}
 
@@ -616,7 +618,10 @@ public class EventBySystemService {
 	 * @throws JsonProcessingException
 	 */
 	private String getLinkBtnAddPayload(IssuePayload sendMessage , String buttonName , String buttonUrl) throws JsonProcessingException {
-		IssuePayload.Action action = IssuePayload.Action.builder().type(IssuePayload.ActionType.message).name(buttonName).data(buttonUrl).build();
+		IssuePayload.Action action = IssuePayload.Action.builder().type(IssuePayload.ActionType.link)
+				              								 	  .name(buttonName)
+															 	  .data(buttonUrl)
+																  .build();
 		return this.getActionAddPayload(sendMessage , action);
 	}
 
