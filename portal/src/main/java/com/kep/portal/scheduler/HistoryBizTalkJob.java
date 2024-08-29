@@ -47,6 +47,10 @@ public class HistoryBizTalkJob {
         final int pageSize = 10;
         try {
             int page = 0;
+            /**
+             * FIXME :: 코드 개선 필요. (매 루프마다 webClient 빌드 및 JPA 사용 시 영속성 컨텍스트에 있는 엔티티에 setter를 이용해서 상태 변경 후 JpaRepository.save()로 merge() 호출함 volka)
+             *
+             */
             // 전송 이력 리스트 결과 조회 갱신
             // UID가 있고 전송중인 메시지
             while (hasNext) {

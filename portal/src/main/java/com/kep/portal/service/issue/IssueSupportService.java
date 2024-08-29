@@ -265,7 +265,7 @@ public class IssueSupportService {
 	//지원요청에 답변/반려 가능 여부
 	//FIXME :: 도메인으로 이동 volka
 	private boolean isCanAnswer(IssueSupportStatus issueSupportStatus) {
-		return issueSupportStatus != IssueSupportStatus.reject && issueSupportStatus != IssueSupportStatus.finish;
+		return issueSupportStatus == IssueSupportStatus.request;
 	}
 
 
@@ -406,7 +406,7 @@ public class IssueSupportService {
 		} else {
 			issueSupport = issueSupportRepository.findById(id).orElse(null);
 			Assert.notNull(issueSupport, "Issue support can not be null");
-			Assert.isTrue(isCanAnswer(issueSupport.getStatus()), "issue support status can not be reject or finish");
+			Assert.isTrue(isCanAnswer(issueSupport.getStatus()), "Issue support status can be answered only request status");
 
 			// 이슈 정보 조회
 			issue = issueService.findById(issueSupport.getIssue().getId());
