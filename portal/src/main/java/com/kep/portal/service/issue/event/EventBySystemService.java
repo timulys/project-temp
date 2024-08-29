@@ -1,5 +1,6 @@
 package com.kep.portal.service.issue.event;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.channel.ChannelEnvDto;
 import com.kep.core.model.dto.issue.*;
@@ -326,12 +327,9 @@ public class EventBySystemService {
 				}
 			}
 
-			// 메세지
-			IssuePayload issuePayload = objectMapper.readValue(objectMapper.writeValueAsString(channelEnv.getEnd().getGuide().getMessage()), IssuePayload.class);
-			// 종료 버튼 추가
-			IssuePayload.Action action = IssuePayload.Action.builder().type(IssuePayload.ActionType.message).name("!종료").build();
-			issuePayload.add(IssuePayload.Section.builder().type(IssuePayload.SectionType.action).actions(Collections.singletonList(action)).build());
-			String payload = objectMapper.writeValueAsString(issuePayload);
+
+			// 종료 버튼 추가 된 메세지 발송
+			String payload = this.getTextBtnAddPayload(channelEnv.getEnd().getGuide().getMessage() , "!종료");
 
 			IssueLog issueLog = saveSystemMessage(issue, payload,securityUtils.getMemberId());
 			sendToPlatformAndSocket(issue, issueLog);
@@ -419,14 +417,8 @@ public class EventBySystemService {
 			log.info("BUILD EVALUATION, CONFIG: {}", channelEnv.getEvaluation());
 			boolean enabled = channelEnv.getEvaluation().getEnabled();
 			if (enabled) {
-				IssuePayload issuePayload = channelEnv.getEvaluation().getMessage();
-				// [상담평가하기] 버튼 추가
-				// 기능확인 완료 영향도 및 코드 정리 후 다시 commit 예정
-				/*
-				IssuePayload.Action action = IssuePayload.Action.builder().type(IssuePayload.ActionType.link).name("[상담평가하기]").data("https://always-talk.kakaoiconnect.ai").build();
-				issuePayload.add(IssuePayload.Section.builder().type(IssuePayload.SectionType.action).actions(Collections.singletonList(action)).build());
-				*/
-				String payload = objectMapper.writeValueAsString(issuePayload);
+				// todo '상담평가하기' 메세지에 등록하여 사용할지 논의 필요
+				String payload = this.getLinkBtnAddPayload(channelEnv.getEvaluation().getMessage(),"상담평가하기", portalProperty.getEvaluationLinkUrl()) ;
 				return saveSystemMessage(issue, payload);
 			}
 		} catch (Exception e) {
@@ -597,6 +589,48 @@ public class EventBySystemService {
 		} catch (Exception e) {
 			log.error(e.getLocalizedMessage(), e);
 		}
+	}
+
+	/**
+	 * 텍스트가 포함 된 버튼 발송 함수
+	 * 현재 : '!종료'버튼 발송에 사용 중
+	 *
+	 * @param sendMessage
+	 * @param buttonName
+	 * @return
+	 * @throws JsonProcessingException
+	 */
+	private String getTextBtnAddPayload(IssuePayload sendMessage , String buttonName) throws JsonProcessingException {
+		IssuePayload.Action action = IssuePayload.Action.builder().type(IssuePayload.ActionType.message).name(buttonName).build();
+		return this.getActionAddPayload(sendMessage , action);
+	}
+
+	/**
+	 * URL 링크가 포함 된 버튼 발송 함수
+	 * 현재 : '상담평가하기' 버튼 발송에 사용 중
+	 *
+	 * @param sendMessage
+	 * @param buttonName
+	 * @param buttonUrl
+	 * @return
+	 * @throws JsonProcessingException
+	 */
+	private String getLinkBtnAddPayload(IssuePayload sendMessage , String buttonName , String buttonUrl) throws JsonProcessingException {
+		IssuePayload.Action action = IssuePayload.Action.builder().type(IssuePayload.ActionType.message).name(buttonName).data(buttonUrl).build();
+		return this.getActionAddPayload(sendMessage , action);
+	}
+
+	/**
+	 * @param sendMessage
+	 * @param action
+	 * @return
+	 * @throws JsonProcessingException
+	 */
+	private String getActionAddPayload(IssuePayload sendMessage, IssuePayload.Action action) throws JsonProcessingException {
+		IssuePayload issuePayload = objectMapper.readValue(objectMapper.writeValueAsString(sendMessage), IssuePayload.class);
+		issuePayload.add(IssuePayload.Section.builder().type(IssuePayload.SectionType.action).actions(Collections.singletonList(action)).build());
+		String payload = objectMapper.writeValueAsString(issuePayload);
+		return payload;
 	}
 
 }
