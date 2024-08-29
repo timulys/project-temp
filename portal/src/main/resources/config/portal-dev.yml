@@ -31,7 +31,7 @@ application:
     break-time-start: "21:00"
     break-time-end: "22:00"
     #BNK  유입경로 FIXME :: bnk 설정
-    bnk-kakao-talk-url: https://yocodeclick.loca.lt/platform/auth/kakao-sync/getSync?state=
+    bnk-kakao-talk-url: https://always-talk.kakaoiconnect.ai/platform/auth/kakao-sync/getSync?state=
     dashboad:
       search-interval-minutes: 60
       batch-cron: 5 0/10 * * * *

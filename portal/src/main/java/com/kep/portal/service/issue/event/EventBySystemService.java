@@ -420,6 +420,12 @@ public class EventBySystemService {
 			boolean enabled = channelEnv.getEvaluation().getEnabled();
 			if (enabled) {
 				IssuePayload issuePayload = channelEnv.getEvaluation().getMessage();
+				// [상담평가하기] 버튼 추가
+				// 기능확인 완료 영향도 및 코드 정리 후 다시 commit 예정
+				/*
+				IssuePayload.Action action = IssuePayload.Action.builder().type(IssuePayload.ActionType.link).name("[상담평가하기]").data("https://always-talk.kakaoiconnect.ai").build();
+				issuePayload.add(IssuePayload.Section.builder().type(IssuePayload.SectionType.action).actions(Collections.singletonList(action)).build());
+				*/
 				String payload = objectMapper.writeValueAsString(issuePayload);
 				return saveSystemMessage(issue, payload);
 			}

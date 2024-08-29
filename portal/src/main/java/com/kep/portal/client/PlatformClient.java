@@ -44,6 +44,8 @@ import java.util.function.Consumer;
 
 /**
  * Platform API 클라아언트
+ *
+ * FIXME :: 통신 관련 전체 리팩토링 필요 volka
  */
 @Service
 @Slf4j
@@ -385,12 +387,12 @@ public class PlatformClient {
     public KakaoBizTalkSendResponse sendBizTalk(String jsonBody, PlatformType platformType) {
         WebClient webClient = webClientBuilder.baseUrl(coreProperty.getPlatformServiceUri() + platformProperty.getApiBasePath()).build();
         ApiResult<KakaoBizTalkSendResponse> response = null;
-        if (platformType.equals(PlatformType.kakao_alert_talk)) { // 알림톡
+        if (platformType == PlatformType.kakao_alert_talk) { // 알림톡
             response = webClient.post().uri("/alert-talk").headers(getHttpHeadersConsumer())
                     .bodyValue(jsonBody)
                     .retrieve().bodyToMono(new ParameterizedTypeReference<ApiResult<KakaoBizTalkSendResponse>>() {
                     }).block();
-        } else if (platformType.equals(platformType.kakao_friend_talk)) { // 친구톡
+        } else if (platformType == PlatformType.kakao_friend_talk) { // 친구톡
             response = webClient.post().uri("/friend-talk").headers(getHttpHeadersConsumer())
                     .bodyValue(jsonBody)
                     .retrieve().bodyToMono(new ParameterizedTypeReference<ApiResult<KakaoBizTalkSendResponse>>() {

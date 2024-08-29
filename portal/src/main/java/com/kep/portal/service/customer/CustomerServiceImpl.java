@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Objects;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
@@ -57,6 +58,7 @@ import com.kep.portal.repository.issue.IssueRepository;
 import com.kep.portal.repository.member.MemberRepository;
 import com.kep.portal.service.platform.PlatformSubscribeService;
 import com.kep.portal.util.SecurityUtils;
+
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -156,7 +158,8 @@ public class CustomerServiceImpl implements CustomerService {
 
 	/**
 	 * 고객 정보
-	 * @param customerId
+	 * @param id
+	 * @param issueId
 	 * @return
 	 */
 	public CustomerDto show(@NotNull @Positive Long id, Long issueId) {
@@ -329,7 +332,6 @@ public class CustomerServiceImpl implements CustomerService {
 	 * @param dto
 	 */
 	public Customer save(CustomerDto dto){
-
 		Customer customer = customerRepository.findOne(
 						Example.of(Customer.builder().identifier(dto.getIdentifier()).build()))
 				.orElse(null);
@@ -346,7 +348,9 @@ public class CustomerServiceImpl implements CustomerService {
 		customerRepository.flush();
 
 		this.contactStore(customer, dto.getContacts());
-		this.anniversaryStore(customer, dto.getAnniversaries());
+		if(Objects.nonNull(dto.getAnniversaries())){
+			this.anniversaryStore(customer, dto.getAnniversaries());
+		}
 		return customer;
 	}
 
