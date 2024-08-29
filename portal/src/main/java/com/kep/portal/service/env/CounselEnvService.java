@@ -159,4 +159,10 @@ public class CounselEnvService {
         List<CounselInflowEnv> counselInflowEnvs = counselInflowEnvRepository.findAllByBranchIdAndEnabled(branchId, true);
         return counselInflowEnvMapper.map(counselInflowEnvs);
     }
+
+    public List<CounselInflowEnvDto> findAllByBranchIdAndEnabledAndInflowPathType(Long branchId) {
+        List<CounselInflowEnv> counselInflowEnvs =
+                counselInflowEnvRepository.findAllByBranchIdAndEnabledAndInflowPathType(branchId, true, SystemEnvEnum.InflowPathType.unlimited);
+        return counselInflowEnvMapper.map(counselInflowEnvs);
+    }
 }
