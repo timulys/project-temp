@@ -4,7 +4,7 @@ application:
       # 상담원별 상담 이력 (본인의 이력만 노출) 기능 사용 여부
       use-assigner-on-issue-log: true
       # 이슈 생성시, 봇 이력 수집
-      save-bot-history-when-open: false
+      save-bot-history-when-open: true
       # 대화 목록에 봇 이력 제외
       exclude-relayed-issue-log: false
       # (솔루션에서) 이슈 종료 가능 여부 (by 상담원)
