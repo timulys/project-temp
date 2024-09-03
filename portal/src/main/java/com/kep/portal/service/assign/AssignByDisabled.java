@@ -77,7 +77,7 @@ public class AssignByDisabled implements Assignable {
         }
 
         // breakTime 인입 제한
-        boolean isBreakTime = breakTimeService.getBreakTime();
+        boolean isBreakTime = breakTimeService.inBreakTime();
         if(isBreakTime){
             // 기존과 동일하게 로직 처리
             eventBySystemService.sendDisabledAndClose(issue); // 1. 상담 불가 메세지 발송 후 종료

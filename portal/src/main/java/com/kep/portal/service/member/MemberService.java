@@ -547,7 +547,7 @@ public class MemberService {
 		boolean isWork = true;
 
 
-		boolean isBreakTime = breakTimeService.getBreakTime();
+		boolean isBreakTime = breakTimeService.inBreakTime();
 
 		for (MemberAssignDto member : memberAssignDtos) {
 
