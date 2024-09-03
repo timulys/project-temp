@@ -351,7 +351,11 @@ public class ChannelService {
 					.build());
 		}
 
-		Collections.sort(branchChannels,Collections.reverseOrder());
+		// Collections.sort(branchChannels,Collections.reverseOrder());
+		// [KICA-52] 채널 탭 정렬 순서 변경 요청 수정
+		// asis : 추가된 순으로 나열
+		// tobe : 기본채널 우측으로 추가된 순으로 채널 노출
+		Collections.sort(branchChannels);
 		return branchChannels;
 	}
 
@@ -387,3 +391,4 @@ public class ChannelService {
 		return branchChannelMapper.map(branchChannels);
 	}
 }
+
