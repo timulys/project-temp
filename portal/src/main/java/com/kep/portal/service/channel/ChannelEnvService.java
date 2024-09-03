@@ -433,10 +433,10 @@ public class ChannelEnvService {
 		entity.setMemberDirectEnabled((envDto.getMemberDirectEnabled() != null) ? envDto.getMemberDirectEnabled() : entity.getMemberDirectEnabled());
 		entity.setRequestBlockEnabled((envDto.getRequestBlockEnabled() != null) ? envDto.getRequestBlockEnabled() : entity.getRequestBlockEnabled());
 		//무응답 상담 종료
-		// 20240822 eddie.j 상담이 불가능한 상태이기 때문에 무응답이 아닌 off로 세팅
+		// eddie.j off -> no_answer 롤백 해당 부분 문구가 안맞다면 비즈 메세지 센터에서 문구를 적절하게 등록 하는 것으로 협의
 		entity.setImpossibleMessage(IssuePayload.builder()
 				.version(IssuePayload.CURRENT_VERSION)
-				.chapters(new IssuePayload(IssuePayload.PlatformAnswer.off).getChapters())
+				.chapters(new IssuePayload(IssuePayload.PlatformAnswer.no_answer).getChapters())
 				.build());
 		entity.setAssignStandby(SystemIssuePayload.EnabledNumberMessage.builder()
 						.number(envDto.getAssignStandby().getNumber())
