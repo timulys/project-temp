@@ -65,7 +65,7 @@ public class BizTalkRequestController {
      * 포탈에서 상담원이 알림톡 전송
      */
     @Tag(name = "비즈톡 요청 API")
-    @Operation(summary = "포탈에서 상담원이 알림톡 전송")
+    @Operation(summary = "상담원 알림톡 전송요청 저장")
     @PostMapping("/alert")
     @PreAuthorize("hasAnyAuthority('WRITE_KAKAO_ALERT_TALK')")
     public ResponseEntity<ApiResult<String>> postAlert(
@@ -91,7 +91,7 @@ public class BizTalkRequestController {
      * 포탈에서 상담원이 친구톡 전송
      */
     @Tag(name = "비즈톡 요청 API")
-    @Operation(summary = "포탈에서 상담원이 친구톡 전송")
+    @Operation(summary = "상담원 친구톡 전송요청 저장")
     @PostMapping("friend")
     @PreAuthorize("hasAnyAuthority('WRITE_KAKAO_FRIEND_TALK')")
     public ResponseEntity<ApiResult<String>> postFriend(
