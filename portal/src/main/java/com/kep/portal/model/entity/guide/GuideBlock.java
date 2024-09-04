@@ -14,10 +14,10 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
 @Entity
-@Table(indexes = {
-//        @Index(name = "IDX_GUIDE_BLOCK__MESSAGE", columnList = "guideId,messageCondition"),
-//        @Index(name = "IDX_GUIDE_BLOCK__FILE", columnList = "guideId,fileCondition")
-})
+//@Table(indexes = {
+////        @Index(name = "IDX_GUIDE_BLOCK__MESSAGE", columnList = "guideId,messageCondition"),
+////        @Index(name = "IDX_GUIDE_BLOCK__FILE", columnList = "guideId,fileCondition")
+//})
 @DynamicInsert
 @DynamicUpdate
 @Builder
