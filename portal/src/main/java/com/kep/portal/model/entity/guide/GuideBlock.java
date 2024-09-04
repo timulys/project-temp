@@ -54,9 +54,15 @@ public class GuideBlock {
     @NotNull
     private Integer contentCount;
 
+    @Lob
+    @Nationalized
+//    @Column(columnDefinition = "TEXT")
     @Comment("GuidePayload condition message")
     private String messageCondition;
 
+    @Lob
+    @Nationalized
+//    @Column(columnDefinition = "TEXT")
     @Comment("GuidePayload condition filename")
     private String fileCondition;
 }
