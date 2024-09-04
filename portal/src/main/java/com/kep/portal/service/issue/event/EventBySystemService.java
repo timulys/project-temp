@@ -569,29 +569,6 @@ public class EventBySystemService {
 	}
 
 	/**
-	 * eddie.j 추가 open 시 응답 메세지 메서드 추가
-	 * Todo 현재는 테스트로 소스 정리 X
-	 * 기능 테스트 후 소스 정리 필요
-	 * @param issue
-	 */
-	public void sendReplyWhenOpened(@NotNull Issue issue) {
-		log.info("SEND REPLY WHEN OPENED ISSUE: {}", issue.getId());
-		ChannelEnvDto channelEnv = channelEnvService.getByChannel(issue.getChannel());
-		try {
-			log.info("SEND REPLY WHEN OPENED CONFIG: {}", channelEnv.getStart().getSt());
-			boolean enabled = channelEnv.getStart().getSt().getEnabled();
-			if (enabled) {
-				IssuePayload issuePayload = channelEnv.getStart().getSt().getMessage();
-				String payload = objectMapper.writeValueAsString(issuePayload);
-				IssueLog issueLog = saveSystemMessage(issue, payload);
-				sendToPlatformAndSocket(issue, issueLog);
-			}
-		} catch (Exception e) {
-			log.error(e.getLocalizedMessage(), e);
-		}
-	}
-
-	/**
 	 * 텍스트가 포함 된 버튼 발송 함수
 	 * 현재 : '!종료'버튼 발송에 사용 중
 	 *

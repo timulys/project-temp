@@ -317,10 +317,6 @@ public class EventByPlatformService {
 		}
 		*/
 
-		if (IssueStatus.open.equals(issue.getStatus()) ) {
-			eventBySystemService.sendReplyWhenOpened(issue);
-		}
-
 		// 상담원 근무 시간이 아닌 경우
 //		if (!memberService.isMemberOnWorking(issue.getBranchId(), issue.getMember().getId()))
 //			eventBySystemService.sendOfficeHours(issue);
