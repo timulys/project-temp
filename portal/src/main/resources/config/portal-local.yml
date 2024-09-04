@@ -42,7 +42,7 @@ application:
     # eddie.j download api url 추가
     # download
     download-api-url : /portal/api/v1/download
-    evaluation-link-url : https://always-talk.kakaoiconnect.ai
+    evaluation-link-url : https://forms.gle/nRqDiAkKV7RmRwgs9
   customer:
     api-version: 1
     api-base-path: /api/v${application.customer.api-version}
