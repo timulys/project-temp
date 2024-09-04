@@ -9,14 +9,13 @@ import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.model.entity.statistics.IssueStatistics;
 import com.kep.portal.model.entity.work.BranchOfficeHours;
 import com.kep.portal.model.entity.work.MemberOfficeHours;
-import com.kep.portal.model.entity.work.OffDutyHours;
 import com.kep.portal.repository.assign.BranchOfficeHoursRepository;
 import com.kep.portal.repository.assign.MemberOfficeHoursRepository;
 import com.kep.portal.repository.statisctics.IssueStatisticsRepository;
 import com.kep.portal.service.branch.BranchService;
 import com.kep.portal.service.member.MemberService;
 import com.kep.portal.service.team.TeamMemberService;
-import com.kep.portal.service.work.OffDutyHoursService;
+import com.kep.portal.service.work.BreakTimeService;
 import com.kep.portal.service.work.OfficeHoursService;
 import com.kep.portal.service.work.WorkService;
 import com.kep.portal.util.OfficeHoursTimeUtils;
@@ -64,7 +63,8 @@ public class IssueStatisticsService {
     private TeamMemberService teamMemberService;
 
     @Resource
-    private OffDutyHoursService offDutyHoursService;
+    private BreakTimeService breakTimeService;
+
 
     /**
      * date group list

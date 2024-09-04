@@ -13,6 +13,7 @@ import com.kep.portal.service.env.CounselEnvService;
 import com.kep.portal.service.issue.IssueService;
 import com.kep.portal.service.issue.event.EventBySystemService;
 import com.kep.portal.service.member.MemberService;
+import com.kep.portal.service.work.BreakTimeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
@@ -47,9 +48,11 @@ public class AssignByDisabled implements Assignable {
     private BranchService branchService;
     @Resource
     private IssueService issueService;
-
     @Resource
     private ChannelEnvService channelEnvService;
+
+    @Resource
+    private BreakTimeService breakTimeService;
 
     public AssignByDisabled(AssignProvider assignProvider) {
         assignProvider.addMethod(signature, this);
@@ -71,6 +74,14 @@ public class AssignByDisabled implements Assignable {
         if (disabled) {
             eventBySystemService.sendDisabledAndClose(issue);
             throw new UnsupportedOperationException("AssignByDisabled, BRANCH OFF");
+        }
+
+        // breakTime 인입 제한
+        boolean isBreakTime = breakTimeService.inBreakTime();
+        if(isBreakTime){
+            // 기존과 동일하게 로직 처리
+            eventBySystemService.sendDisabledAndClose(issue); // 1. 상담 불가 메세지 발송 후 종료
+            throw new UnsupportedOperationException("AssignByDisabled, BREAK TIME"); // 2. 다음 step의 상담원 배정 로직을 안타기 위해서 강제 Exception 발생
         }
 
         // 상담직원 미등록

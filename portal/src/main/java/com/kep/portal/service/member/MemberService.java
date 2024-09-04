@@ -34,6 +34,7 @@ import com.kep.portal.service.issue.IssueService;
 import com.kep.portal.service.privilege.RoleService;
 import com.kep.portal.service.team.TeamMemberService;
 import com.kep.portal.service.team.TeamService;
+import com.kep.portal.service.work.BreakTimeService;
 import com.kep.portal.service.work.OfficeHoursService;
 import com.kep.portal.service.work.WorkService;
 import com.kep.portal.util.CommonUtils;
@@ -120,6 +121,9 @@ public class MemberService {
 
 	@Resource
 	private WorkService workService;
+
+	@Resource
+	private BreakTimeService breakTimeService;
 	
 	public Member findById(@NotNull @Positive Long id) {
 		return memberRepository.findById(id).orElse(null);
@@ -542,6 +546,9 @@ public class MemberService {
 
 		boolean isWork = true;
 
+
+		boolean isBreakTime = breakTimeService.inBreakTime();
+
 		for (MemberAssignDto member : memberAssignDtos) {
 
 			log.info("MEMBER ID:{} , ASSIGNABLE STATUS:{} ", member.getId(), member.getStatus());
@@ -563,6 +570,12 @@ public class MemberService {
 			// 오늘 휴무 인지 여부 체크 추가
 			isWork = workService.offDutyHours(branch);
 			if(!isWork){
+				member.setAssignable(false);
+				continue;
+			}
+
+			// breakTime(휴식시간) 여부 체크 추가가
+			if(isBreakTime){
 				member.setAssignable(false);
 				continue;
 			}

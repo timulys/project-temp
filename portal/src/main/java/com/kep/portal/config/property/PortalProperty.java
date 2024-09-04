@@ -2,11 +2,13 @@ package com.kep.portal.config.property;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
+import java.time.LocalTime;
 import java.util.Set;
 
 @ConfigurationProperties(prefix = "application.portal")
@@ -49,4 +51,11 @@ public class PortalProperty {
 	private Long kakaoBotMemberId;
 
 	private String redisMode;
+
+	@DateTimeFormat(pattern = "HH:mm")
+	private LocalTime breakTimeStart;
+
+	@DateTimeFormat(pattern = "HH:mm")
+	private LocalTime breakTimeEnd;
+
 }

@@ -52,6 +52,7 @@ public class AssignProvider {
 		for (Assignable assignable : assignables) {
 			if (assignable != null) {
 				try {
+					// FIXME : try catch 제거 예정 ( 해당 부분으로 for문을 나오는게 아닌 다른 로직으로 변경 예정 )
 					memberList = assignable.apply(issueAssign, issue, memberList);
 
 				} catch (Exception e) {
