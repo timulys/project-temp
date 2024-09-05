@@ -56,15 +56,13 @@ public class GuideCategoryService {
         if (branchId == null)
             branchId = securityUtils.getBranchId();
 
-        List<GuideCategory> guideCategories = categoryRepository.findByBranchAndDepthCategory(branchId, 1);
+        List<GuideCategory> guideCategories = categoryRepository.findByBranchIdAndDepthAndIsOpenTrue(branchId, 1);
 
         List<GuideCategoryDto> dtos = categoryMapper.map(guideCategories);
 
-
-
-        for (GuideCategoryDto dto : dtos) {
-            recursiveGetAllAndIsOpenCategory(dto.getChildren(), branchId);
-        }
+//        for (GuideCategoryDto dto : dtos) {
+//            recursiveGetAllAndIsOpenCategory(dto.getChildren(), branchId);
+//        }
 
         return dtos;
     }
@@ -77,18 +75,26 @@ public class GuideCategoryService {
 
         Long branchId = securityUtils.getBranchId();
 
-        List<GuideCategory> guideCategories = categoryRepository.findByMyBranchDepthCategory(branchId, 1);
+//        List<GuideCategory> guideCategories = categoryRepository.findByMyBranchDepthCategory(branchId, 1);
+        List<GuideCategory> guideCategories = categoryRepository.findByBranchIdAndDepthAndIsOpenTrue(branchId, 1);
 
         List<GuideCategoryDto> dtos = categoryMapper.map(guideCategories);
-        for (GuideCategoryDto dto : dtos) {
-            recursiveGetAllCategory(dto.getChildren(), branchId);
-        }
+//        for (GuideCategoryDto dto : dtos) {
+//            recursiveGetAllCategory(dto.getChildren(), branchId);
+//        }
 
         return dtos;
     }
 
 
-
+    /**
+     * FIXME :: open != true, input branchId != entity.branchId 조건으로 리스트에서 삭제.
+     * JPA에서 open == true, input.branchId == entity.branchId 조건 검색하면 됨. 굳이 재귀 돌리는 메서드 호출할 필요 없고 하등 의미 없음 volka
+     *
+     * @param list
+     * @param branchId
+     */
+    @Deprecated
     private void recursiveGetAllAndIsOpenCategory(List<GuideCategoryDto> list, Long branchId) {
         if (list.isEmpty())
             return;
