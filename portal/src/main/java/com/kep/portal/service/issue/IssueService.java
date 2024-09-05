@@ -3,7 +3,6 @@ package com.kep.portal.service.issue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.issue.*;
-import com.kep.core.model.dto.member.MemberDto;
 import com.kep.portal.model.dto.issue.IssueSearchCondition;
 import com.kep.portal.model.entity.channel.Channel;
 import com.kep.portal.model.entity.customer.CustomerMapper;
@@ -22,6 +21,7 @@ import com.kep.portal.service.customer.GuestService;
 import com.kep.portal.service.team.TeamMemberService;
 import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.SecurityUtils;
+import com.querydsl.core.Tuple;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Example;
@@ -43,7 +43,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparingLong;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.maxBy;
+import static java.util.stream.Collectors.toList;
 
 @Service
 @Transactional
@@ -466,5 +467,9 @@ public class IssueService {
                 .startDate(start)
                 .endDate(end)
                 .build());
+    }
+
+    public List<Tuple> findByStatusNotAndIssueAutoCloseEnabled(IssueStatus issueStatus, Boolean issueAutoCloseEnabled) {
+        return issueRepository.findByStatusNotAndIssueAutoCloseEnabled(issueStatus , issueAutoCloseEnabled);
     }
 }

@@ -1,28 +1,27 @@
 package com.kep.portal.repository.issue;
 
+import com.kep.core.model.dto.issue.IssueStatus;
 import com.kep.core.model.dto.issue.IssueSupportStatus;
 import com.kep.core.model.dto.issue.IssueSupportType;
 import com.kep.core.model.dto.issue.IssueType;
+import com.kep.core.model.dto.work.WorkType;
+import com.kep.portal.model.dto.issue.IssueSearchCondition;
+import com.kep.portal.model.entity.channel.Channel;
 import com.kep.portal.model.entity.customer.Customer;
+import com.kep.portal.model.entity.customer.Guest;
 import com.kep.portal.model.entity.issue.*;
-import com.kep.portal.model.entity.issue.QIssue;
-import com.kep.portal.model.entity.issue.QIssueLog;
-import com.kep.portal.model.entity.issue.QIssueSupport;
+import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.model.entity.member.QMember;
+import com.kep.portal.model.entity.subject.IssueCategory;
 import com.kep.portal.repository.customer.GuestRepository;
 import com.kep.portal.util.ZonedDateTimeUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.*;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.core.types.NullExpression;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.kep.core.model.dto.issue.IssueStatus;
-import com.kep.portal.model.dto.issue.IssueSearchCondition;
-import com.kep.portal.model.entity.channel.Channel;
-import com.kep.portal.model.entity.customer.Guest;
-import com.kep.portal.model.entity.member.Member;
-import com.kep.portal.model.entity.subject.IssueCategory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -32,17 +31,23 @@ import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
-import java.time.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
+import static com.kep.portal.model.entity.branch.QBranch.branch;
+import static com.kep.portal.model.entity.channel.QChannelEndAuto.channelEndAuto;
+import static com.kep.portal.model.entity.channel.QChannelEnv.channelEnv;
+import static com.kep.portal.model.entity.env.QCounselEnv.counselEnv;
 import static com.kep.portal.model.entity.issue.QIssue.issue;
+import static com.kep.portal.model.entity.work.QBranchOfficeHours.branchOfficeHours;
+import static com.kep.portal.model.entity.work.QMemberOfficeHours.memberOfficeHours;
 
 @Slf4j
 public class IssueSearchRepositoryImpl implements IssueSearchRepository {
 
-    //	@PersistenceContext
-//	private EntityManager entityManager;
     private final JPAQueryFactory queryFactory;
 
     public IssueSearchRepositoryImpl(JPAQueryFactory queryFactory) {
@@ -129,6 +134,8 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
                     .orderBy(qIssueSupport.id.asc())
                     .fetch();
 
+
+            // FIXME : 개선해야 될 코드 로직파악 후 심플하게 변경필요....
             for (Issue issue : issues) {
                 List<Member> supportMembers = new ArrayList<>();
                 if (!issueSupports.isEmpty()) {
@@ -206,6 +213,62 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
         return result;
     }
 
+    @Override
+    public Long count(@NotNull IssueSearchCondition condition) {
+
+        QIssue qIssue = new QIssue("issue");
+
+        return queryFactory.select(qIssue.count())
+                .from(qIssue)
+                .where(getConditions(condition))
+                .fetchFirst();
+    }
+
+
+    /**
+     * @param issueStatus
+     * @param issueAutoCloseEnabled
+     * @return
+     * eddie.j 근무시간 종료 후 상담 진행 중인 채팅 목록 자동종료에 사용하기 위해서 추가
+     * 기준값 : 종료 되지 않은 이슈들 추출 ( 단, 근무시간 종료 후 상담 진행 중인 채팅 목록 자동 종료 활성화 체크 )
+     */
+    public List<Tuple> findByStatusNotAndIssueAutoCloseEnabled(IssueStatus issueStatus, Boolean issueAutoCloseEnabled) {
+        List<Tuple> issueAndChannelEnvList = queryFactory.select(issue
+                                                                ,channelEndAuto)
+                                                         .from(issue)
+                                                            .innerJoin(branch)
+                                                                .on(branch.id.eq(issue.branchId))
+                                                            .innerJoin(counselEnv)
+                                                                .on(counselEnv.branchId.eq(branch.id))
+                                                            // 설정에 따른 자동발송 메세지
+                                                            .innerJoin(channelEnv)
+                                                                .on(channelEnv.channel.id.eq(issue.channel.id))
+                                                            .innerJoin(channelEndAuto)
+                                                                .on(channelEndAuto.id.eq(channelEnv.end.id))
+                                                            // 근무 시간 체크
+                                                            /*
+                                                            .innerJoin(branchOfficeHours)
+                                                                .on(branchOfficeHours.branchId.eq(branch.id))
+                                                            .innerJoin(member)
+                                                                .on(issue.member.id.eq(member.id))
+                                                            .innerJoin(memberOfficeHours)
+                                                                .on(memberOfficeHours.memberId.eq(member.id))
+                                                            */
+                                                            .where(
+                                                                 this.issueStatusNe(issueStatus)
+                                                                    .and(this.issueAutoCloseEnabledEq(issueAutoCloseEnabled))
+                                                                         // 근무 시간 체크
+                                                                         /*.and(
+                                                                                 ( this.branchAssignEq(WorkType.Cases.branch).and(this.branchOfficeHoursEndCounselTimeBefore(LocalTime.now())) )
+                                                                                 .or
+                                                                                 ( this.branchAssignEq(WorkType.Cases.member).and(this.memberOfficeHoursEndCounselTimeBefore(LocalTime.now())) )
+                                                                              )
+                                                                          */
+                                                            ).fetch();
+        return issueAndChannelEnvList;
+
+    }
+
     private BooleanExpression branchIdEq(Long branchId) {
         return branchId != null ? issue.branchId.eq(branchId) : null;
     }
@@ -228,14 +291,6 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
 
     private BooleanExpression guestIn(Collection<Guest> guests) {
         return !ObjectUtils.isEmpty(guests) ? issue.guest.in(guests) : null;
-    }
-
-    private BooleanExpression customerEq(Long customerId) {
-        return customerId != null ? issue.customerId.eq(customerId) : null;
-    }
-
-    private BooleanExpression customerIn(Collection<Long> customerIds) {
-        return !ObjectUtils.isEmpty(customerIds) ? issue.customerId.in(customerIds) : null;
     }
 
     private BooleanExpression channelIn(Collection<Channel> channels) {
@@ -290,16 +345,32 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
         return orders.stream().toArray(OrderSpecifier[]::new);
     }
 
+    private BooleanExpression issueAutoCloseEnabledEq(boolean issueAutoCloseEnabled) {
+        return !ObjectUtils.isEmpty(issueAutoCloseEnabled) ? counselEnv.issueAutoCloseEnabled.eq(issueAutoCloseEnabled) : null;
+    }
 
-    @Override
-    public Long count(@NotNull IssueSearchCondition condition) {
+    private BooleanExpression issueStatusNe(IssueStatus issueStatus) {
+        return !ObjectUtils.isEmpty(issueStatus) ? issue.status.ne(issueStatus) : null;
+    }
 
-        QIssue qIssue = new QIssue("issue");
+    private BooleanExpression memberOfficeHoursEndCounselTimeBefore(LocalTime localDateTime){
+        return this.formatStringPathToLocalTime(memberOfficeHours.endCounselTime).before(localDateTime);
+    }
 
-        return queryFactory.select(qIssue.count())
-                .from(qIssue)
-                .where(getConditions(condition))
-                .fetchFirst();
+    private BooleanExpression branchOfficeHoursEndCounselTimeBefore(LocalTime localDateTime){
+        return this.formatStringPathToLocalTime(branchOfficeHours.endCounselTime).before(localDateTime);
+    }
+
+    private BooleanExpression branchAssignEq(WorkType.Cases workTypeCases) {
+        return workTypeCases != null ? branch.assign.eq(workTypeCases) : null;
+    }
+
+    private DateTimeTemplate<LocalTime> formatStringPathToLocalTime (StringPath stringPath){
+        return Expressions.dateTimeTemplate(
+                LocalTime.class,
+                "STR_TO_DATE({0}, '%H:%i:%s')", // 시 분 초 포맷
+                stringPath
+        );
     }
 
 }
