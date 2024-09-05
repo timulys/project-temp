@@ -45,7 +45,7 @@ public class GuideCategoryController {
 	}
 
 	@Tag(name = "가이드 카테고리 API")
-	@Operation(summary = "내 브랜치 전체 조회(?)")
+	@Operation(summary = "권한별 가이드 카테고리 조회", description = "계정 소속 브랜치가 본사고 권한이 ADMIN일 경우, 1뎁스(대분류) 카테고리 전체 조회 / 아닐 경우 소속 브랜치 내 1뎁스(대분류) 및 open == Y 인 카테고리 조회")
 	@GetMapping("/manager")
 	public ResponseEntity<ApiResult<List<GuideCategoryDto>>> getMyBranch() {
 		List<GuideCategoryDto> item = categoryService.getMyBranchAll();
