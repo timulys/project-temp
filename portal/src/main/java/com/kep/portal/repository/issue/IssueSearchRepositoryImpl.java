@@ -9,9 +9,11 @@ import com.kep.portal.model.dto.issue.IssueSearchCondition;
 import com.kep.portal.model.entity.channel.Channel;
 import com.kep.portal.model.entity.customer.Customer;
 import com.kep.portal.model.entity.customer.Guest;
-import com.kep.portal.model.entity.issue.*;
+import com.kep.portal.model.entity.issue.Issue;
+import com.kep.portal.model.entity.issue.IssueSupport;
+import com.kep.portal.model.entity.issue.QIssue;
+import com.kep.portal.model.entity.issue.QIssueLog;
 import com.kep.portal.model.entity.member.Member;
-import com.kep.portal.model.entity.member.QMember;
 import com.kep.portal.model.entity.subject.IssueCategory;
 import com.kep.portal.repository.customer.GuestRepository;
 import com.kep.portal.util.ZonedDateTimeUtil;
@@ -42,6 +44,8 @@ import static com.kep.portal.model.entity.channel.QChannelEndAuto.channelEndAuto
 import static com.kep.portal.model.entity.channel.QChannelEnv.channelEnv;
 import static com.kep.portal.model.entity.env.QCounselEnv.counselEnv;
 import static com.kep.portal.model.entity.issue.QIssue.issue;
+import static com.kep.portal.model.entity.issue.QIssueSupport.issueSupport;
+import static com.kep.portal.model.entity.member.QMember.member;
 import static com.kep.portal.model.entity.work.QBranchOfficeHours.branchOfficeHours;
 import static com.kep.portal.model.entity.work.QMemberOfficeHours.memberOfficeHours;
 
@@ -56,9 +60,6 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
 
     @Resource
     private GuestRepository guestRepository;
-
-    @Resource
-    private IssueSupportRepository issueSupportRepository;
 
     @Override
     public List<Customer> latestCustomers(Long memberId) {
@@ -101,24 +102,19 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
     @Override
     public Page<Issue> search(@NotNull IssueSearchCondition condition, @NotNull Pageable pageable) {
 
-        QIssue qIssue = new QIssue("issue");
-        QIssueSupport qIssueSupport = new QIssueSupport("issueSupport");
-        QMember qMember = new QMember("member");
-
-        Long totalElements = queryFactory.select(qIssue.count())
-                .from(qIssue)
+        Long totalElements = queryFactory.select(issue.count())
+                .from(issue)
                 .where(getConditions(condition))
                 .fetchFirst();
 
         List<Issue> issues = Collections.emptyList();
         if (totalElements > 0) {
-            issues = queryFactory.selectFrom(qIssue)
+            issues = queryFactory.selectFrom(issue)
                     .where(getConditions(condition))
                     .orderBy(getOrderSpecifiers(pageable))
                     .offset(pageable.getOffset())
                     .limit(pageable.getPageSize())
                     .fetch();
-
 
             List<IssueSupportStatus> supportStatusList = new ArrayList<>();
             supportStatusList.add(IssueSupportStatus.finish);
@@ -126,33 +122,37 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
             supportStatusList.add(IssueSupportStatus.receive);
             supportStatusList.add(IssueSupportStatus.auto);
 
-            List<IssueSupport> issueSupports = queryFactory.selectFrom(qIssueSupport)
-                    .from(qIssueSupport)
-                    .where(
-                            qIssueSupport.issue.in(issues).and(qIssueSupport.type.eq(IssueSupportType.change).and(qIssueSupport.status.in(supportStatusList)))
-                    )
-                    .orderBy(qIssueSupport.id.asc())
-                    .fetch();
-
-
-            // FIXME : 개선해야 될 코드 로직파악 후 심플하게 변경필요....
-            for (Issue issue : issues) {
+            List<Tuple> issueSupportAndMemberList = queryFactory.select( issueSupport , member )
+                                                                .from(issueSupport)
+                                                                      .innerJoin(member)
+                                                                        .on(issueSupport.questioner.eq(member.id))
+                                                                .where(
+                                                                        issueSupport.issue.in(issues)
+                                                                                .and( this.issueSupportTypeEq(IssueSupportType.change)
+                                                                                    .and( this.issueSupportStatusIn(supportStatusList)) )
+                                                                      )
+                                                                .orderBy(issueSupport.issue.id.asc(),
+                                                                         issueSupport.id.asc()
+                                                                        )
+                                                                .fetch();
+            /**
+             Issue와 IssueSupport는 1:n 관계로 인하여 루프가 발생
+             todo : 현재 프론트에서 SupportMembers에서 nicname만 추출하여 사용 중
+                    프론트와 협의하여 구분자로 nicname만 사용하게 되면 한번의 쿼리로 개선 가능
+                    사용 메뉴 : 상담 관리 > 상담 > 상담 이력 >
+                    사용 컬럼 : List의 상담직원명
+             */
+            for(Issue resultIssue : issues){
                 List<Member> supportMembers = new ArrayList<>();
-                if (!issueSupports.isEmpty()) {
-                    for (IssueSupport issueSupport : issueSupports) {
-                        if (issue.getId().equals(issueSupport.getIssue().getId())) {
-                            if (issueSupport.getQuestioner() != null) {
-                                Member member = queryFactory.select(QMember.member).from(QMember.member).where(QMember.member.id.eq(issueSupport.getQuestioner())).fetchOne();
-                                if (!ObjectUtils.isEmpty(member)) {
-                                    supportMembers.add(member);
-                                }
-//								supportMembers.add(issueSupport.getMember());
-                            }
-                        }
+                for( Tuple issueSupportAndMember : issueSupportAndMemberList ){
+                    IssueSupport resultIssueSupport= issueSupportAndMember.get(issueSupport);
+                    Member resultMember = issueSupportAndMember.get(member);
+                    if ( resultIssue.getId() == resultIssueSupport.getIssue().getId() ) {
+                        supportMembers.add(resultMember);
                     }
                 }
-                supportMembers.add(issue.getMember());
-                issue.setSupportMembers(supportMembers);
+                supportMembers.add(resultIssue.getMember());
+                resultIssue.setSupportMembers(supportMembers);
             }
 
         }
@@ -371,6 +371,14 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
                 "STR_TO_DATE({0}, '%H:%i:%s')", // 시 분 초 포맷
                 stringPath
         );
+    }
+
+    private BooleanExpression issueSupportTypeEq(IssueSupportType issueSupportType) {
+        return issueSupport.type.eq(issueSupportType);
+    }
+
+    private BooleanExpression issueSupportStatusIn(List<IssueSupportStatus> issueSupportStatusList) {
+        return issueSupport.status.in(issueSupportStatusList);
     }
 
 }
