@@ -5,6 +5,7 @@ import com.kep.portal.service.issue.IssueService;
 import com.kep.portal.service.issue.event.EventBySystemService;
 import com.querydsl.core.Tuple;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -31,11 +32,17 @@ public class WorkingAfterChatEndJob {
      todo : 확인 필요
      * 확인해 보니 종료 시간 기준으로 count 되는 게 맞음 -> 이슈가 있어서 일단은 23시 50분으로 설정
      * 상담 진행 중인 이슈 종료 되는 부분 개선 -> 어떻게 할지 논의 필요
+     *
+     * lock 지속 시간 : 최소 5초 / 최대 40초 ( 새벽 시간이나 일과시간 이후로 진행 될 건이여서 lock시간을 크게 잡았습니다. )
      **/
     // 아래는 테스트 용도
     // @Scheduled(fixedDelay = 1000 * 30)
-    @Scheduled(cron = "0 50 23 * * *")
-    public void run() {
+    // @Scheduled(cron = "0 50 23 * * *")
+    @Scheduled(cron = "0 0 11 * * ?")
+    @SchedulerLock(name = "WORKING_AFTER_CHAT_END"
+            , lockAtLeastFor = "PT5S"
+            , lockAtMostFor = "PT40S")
+    public void run() throws Exception {
        log.info(">>> SCHEDULER: WORKING AFTER CHAT END, START");
 
         // 1. close할 issue 대상을 추출해옵니다.
