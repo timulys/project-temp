@@ -3,22 +3,15 @@ package com.kep.portal.repository.statisctics;
 import com.kep.portal.model.dto.statistics.GuestWaitingTimeAverageDto;
 import com.kep.portal.model.entity.statistics.QGuestWaitingTime;
 import com.kep.portal.util.ZonedDateTimeUtil;
-import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.MathExpressions;
-import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.TemporalType;
-import javax.swing.text.DateFormatter;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.time.*;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static com.kep.portal.model.entity.issue.QIssue.issue;
 

@@ -9,6 +9,7 @@ import com.kep.core.model.dto.system.SystemEnvEnum;
 import com.kep.portal.client.PlatformClient;
 import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.config.property.SocketProperty;
+import com.kep.portal.model.entity.channel.ChannelEndAuto;
 import com.kep.portal.model.entity.issue.*;
 import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.model.type.IssueStorageType;
@@ -19,6 +20,7 @@ import com.kep.portal.service.issue.IssueLogService;
 import com.kep.portal.service.issue.IssueService;
 import com.kep.portal.service.issue.IssueStorageService;
 import com.kep.portal.util.SecurityUtils;
+import com.querydsl.core.Tuple;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -34,6 +36,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+
+import static com.kep.portal.model.entity.channel.QChannelEndAuto.channelEndAuto;
+import static com.kep.portal.model.entity.issue.QIssue.issue;
 
 /**
  * 시스템 이벤트, 로직 도중 호출되므로 Exception 던지지 말 것
@@ -603,6 +608,7 @@ public class EventBySystemService {
 	}
 
 	/**
+	 * 로직 겹치는 부분 함수화 하기 위해서 추가
 	 * @param sendMessage
 	 * @param action
 	 * @return
@@ -613,6 +619,41 @@ public class EventBySystemService {
 		issuePayload.add(IssuePayload.Section.builder().type(IssuePayload.SectionType.action).actions(Collections.singletonList(action)).build());
 		String payload = objectMapper.writeValueAsString(issuePayload);
 		return payload;
+	}
+
+
+	/**
+	 * @param issueAndChannelEnvList
+	 */
+	public void issueCloseUseIssueAndChannelEnvList (List<Tuple> issueAndChannelEnvList) {
+		for (Tuple issueAndChannelEnv : issueAndChannelEnvList) {
+			// import static com.kep.portal.model.entity.channel.QChannelEndAuto.channelEndAuto
+			// 서비스에서 q파일 사용 문제 발생 됨.. 고민 필요
+			Issue issueEntity = issueAndChannelEnv.get(issue);
+			ChannelEndAuto channelEndAutoEnity = issueAndChannelEnv.get(channelEndAuto);
+			IssuePayload issuePayload = channelEndAutoEnity.getGuide().getNoticeMessage();
+
+			this.close(issueEntity, issuePayload);
+			// 1. 재사용할 때 문제가 될 수 있어보입니다.
+			// 2. 명확함에 문제가 있어보입니다... loop도는 것보다는 괜찮다고 생각하여 일단 이렇게 코딩해놓았습니다.
+			// 3. Q파일 호출하는 부분이 생겨서.. 애매해졌습니다.
+
+			// 아래 로직을 개선하기 위해서 Tuple 처음 사용
+            /*
+            ChannelEnvDto channelEnv = channelEnvService.getByChannel(issue.getChannel());
+            // 종료 (즉시 종료)
+            IssuePayload issuePayload = null;
+
+            try {
+                issuePayload = channelEnv.getEnd().getGuide().getNoticeMessage();
+            } catch (Exception e) {
+                log.warn(e.getLocalizedMessage());
+                issuePayload = new IssuePayload("고객님 다음 상담을 위해 상담을 종료합니다." +
+                        " 궁금하신 내용이 생기시면 언제든 다시 문의주시기 바라며," +
+                        " 오늘도 행복한 하루되세요^^");
+            }
+            */
+		}
 	}
 
 }
