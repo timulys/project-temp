@@ -144,21 +144,23 @@ public class BizTalkRequestService {
 
         Assert.isNull(dto.getId(), "Already Request");
 
-        if (!ObjectUtils.isEmpty(dto.getReserveDate()) && dto.getPlatform().equals(PlatformType.kakao_friend_talk)) {
-            ZonedDateTime dateTime = WorkDateTimeUtils.stringToDateTime(dto.getReserveDate());
-            if (dateTime.getHour() < 8 || dateTime.getHour() >= 21) {
-                throw new IllegalArgumentException("Transfer exception time");
-            }
-        } else if (ObjectUtils.isEmpty(dto.getReserveDate()) && dto.getPlatform().equals(PlatformType.kakao_friend_talk)) {
-            LocalTime currentTime = LocalTime.now();
-            LocalTime startTime = LocalTime.of(21, 0); // 21:00
-            LocalTime endTime = LocalTime.of(8, 0);   // 08:00
-            if (currentTime.isAfter(startTime) || currentTime.isBefore(endTime)) {
-                throw new IllegalArgumentException("Transfer exception time");
-            }
-        }
+        //FIXME :: 친구톡 발송 가능 시간 검증 제거. 고객사 니즈에 따라 추가 volka
+//        if (!ObjectUtils.isEmpty(dto.getReserveDate()) && dto.getPlatform().equals(PlatformType.kakao_friend_talk)) {
+//            ZonedDateTime dateTime = WorkDateTimeUtils.stringToDateTime(dto.getReserveDate());
+//            if (dateTime.getHour() < 8 || dateTime.getHour() >= 21) {
+//                throw new IllegalArgumentException("Transfer exception time");
+//            }
+//        } else if (ObjectUtils.isEmpty(dto.getReserveDate()) && dto.getPlatform().equals(PlatformType.kakao_friend_talk)) {
+//            LocalTime currentTime = LocalTime.now();
+//            LocalTime startTime = LocalTime.of(21, 0); // 21:00
+//            LocalTime endTime = LocalTime.of(8, 0);   // 08:00
+//            if (currentTime.isAfter(startTime) || currentTime.isBefore(endTime)) {
+//                throw new IllegalArgumentException("Transfer exception time");
+//            }
+//        }
 
-        BizTalkRequest bizTalkRequest = BizTalkRequest.builder()
+
+        BizTalkRequest.BizTalkRequestBuilder bizTalkRequestBuilder = BizTalkRequest.builder()
                 .platform(dto.getPlatform())
                 .status(BizTalkRequestStatus.ready) // 처음 등록시 대기 상태
                 .templateId(dto.getTemplateId())
@@ -168,23 +170,24 @@ public class BizTalkRequestService {
                 .customers(dto.getToCustomers())
                 .creator(securityUtils.getMemberId())
                 .modifier(securityUtils.getMemberId())
-                .build();
-
-        if (!ObjectUtils.isEmpty(dto.getFriendPayload())) {
-            bizTalkRequest.setFriendPayload(objectMapper.writeValueAsString(dto.getFriendPayload()));
-        }
+                ;
 
         if (!ObjectUtils.isEmpty(dto.getReserveDate())) {
             ZonedDateTime reserveDate = WorkDateTimeUtils.stringToDateTime(dto.getReserveDate());
-            bizTalkRequest.setReserved(reserveDate);
+            bizTalkRequestBuilder.reserved(reserveDate);
 
-            if (bizTalkRequest.getReserved().isBefore(ZonedDateTime.now())) {
+            if (reserveDate.isBefore(ZonedDateTime.now())) {
                 throw new IllegalArgumentException("Reservations cannot be made on previous dates.");
             }
         }
 
-        BizTalkRequest save = bizTalkRequestRepository.save(bizTalkRequest);
+        if (!ObjectUtils.isEmpty(dto.getFriendPayload())) {
+            bizTalkRequestBuilder.friendPayload(objectMapper.writeValueAsString(dto.getFriendPayload()));
+        }
 
+        BizTalkRequest bizTalkRequest = bizTalkRequestBuilder.build();
+
+        BizTalkRequest save = bizTalkRequestRepository.save(bizTalkRequest);
 
         CounselEnvDto counselEnv = counselEnvService.get(save.getBranchId());
 
