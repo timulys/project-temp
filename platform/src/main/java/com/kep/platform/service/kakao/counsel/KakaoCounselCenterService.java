@@ -17,6 +17,7 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.kep.core.model.dto.issue.payload.IssuePayload;
@@ -41,6 +42,9 @@ public class KakaoCounselCenterService {
 	private WebClient.Builder externalWebClientBuilder;
 	@Resource
 	private ObjectMapper objectMapper;
+
+	@Resource
+	private RestTemplate externalRestTemplate;
 
 	private String getApiKey() {
 		return platformProperty.getPlatforms().get(PlatformType.kakao_counsel_center.name()).getApiKey();
@@ -87,8 +91,16 @@ public class KakaoCounselCenterService {
 		List<IssuePayload> issuePayloads = new ArrayList<>();
 		try {
 			// WebClient에 시스템 proxy 설정(자동 인식하지 않음
-			ReactorClientHttpConnector reactorClientHttpConnector = new ReactorClientHttpConnector(HttpClient.create().proxyWithSystemProperties());
 
+
+			String url = getBaseUrl() + SYSTEM_MESSAGE_PATH.replace("{API_KEY}", getApiKey()) + "?senderKey=" + serviceKey;
+
+			log.info("@@eddie.j url = {} " , url );
+
+			KakaoSystemMessage systemMessage =  externalRestTemplate.getForObject(url, KakaoSystemMessage.class);
+			/*
+
+			ReactorClientHttpConnector reactorClientHttpConnector = new ReactorClientHttpConnector(HttpClient.create().proxyWithSystemProperties());
 			KakaoSystemMessage systemMessage = WebClient.builder().clientConnector(reactorClientHttpConnector).baseUrl(getBaseUrl()).build().get()
 					.uri(uriBuilder -> uriBuilder.path(SYSTEM_MESSAGE_PATH).queryParam("senderKey", serviceKey).build(getApiKey())).accept(MediaType.APPLICATION_JSON).httpRequest(httpRequest -> {
 						HttpClientRequest reactorRequest = httpRequest.getNativeRequest();
@@ -100,7 +112,7 @@ public class KakaoCounselCenterService {
 						log.error("KAKAO CENTER SYSTEM MESSAGE , STATUS:{} , HEADERS:{}", response.statusCode(), response.headers());
 						return null;
 					}).bodyToMono(KakaoSystemMessage.class).block();
-
+			*/
 			log.info("SYSTEM MESSAGE KAKAO MESSAGE:{}", systemMessage);
 
 			Assert.notNull(systemMessage, "NOT NULL KAKAO SYSTEM MESSAGE");
