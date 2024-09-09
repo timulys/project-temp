@@ -101,7 +101,10 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
 
     @Override
     public Page<Issue> search(@NotNull IssueSearchCondition condition, @NotNull Pageable pageable) {
-
+        /**
+         * todo dto로 변경하게 된다면 걷어내야 할 부분
+         * 동일한 쿼리 2번 실행하게 되어있음
+         */
         Long totalElements = queryFactory.select(issue.count())
                 .from(issue)
                 .where(getConditions(condition))
@@ -154,9 +157,7 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
                 supportMembers.add(resultIssue.getMember());
                 resultIssue.setSupportMembers(supportMembers);
             }
-
         }
-
         return new PageImpl<>(issues, pageable, totalElements);
     }
 
