@@ -43,6 +43,9 @@ application:
     # download
     download-api-url : /portal/api/v1/download
     evaluation-link-url : https://always-talk.kakaoiconnect.ai
+    # 친구톡 발송 불가 시간 (카카오 스펙) 추가 volka
+    friend-talk-enable-start-time: "08:00"
+    friend-talk-enable-end-time: "20:50"
   customer:
     api-version: 1
     api-base-path: /api/v${application.customer.api-version}

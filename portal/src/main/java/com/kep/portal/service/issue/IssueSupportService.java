@@ -1,47 +1,10 @@
 package com.kep.portal.service.issue;
 
-import java.text.SimpleDateFormat;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-import javax.transaction.Transactional;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
-
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
-
 import com.kep.core.model.dto.branch.BranchDto;
 import com.kep.core.model.dto.channel.ChannelDto;
-import com.kep.core.model.dto.issue.IssueDto;
-import com.kep.core.model.dto.issue.IssueExtraDto;
-import com.kep.core.model.dto.issue.IssueStatus;
-import com.kep.core.model.dto.issue.IssueSupportChangeType;
-import com.kep.core.model.dto.issue.IssueSupportDto;
-import com.kep.core.model.dto.issue.IssueSupportHistoryDto;
-import com.kep.core.model.dto.issue.IssueSupportStatus;
-import com.kep.core.model.dto.issue.IssueSupportType;
+import com.kep.core.model.dto.issue.*;
 import com.kep.core.model.dto.member.MemberDto;
-import com.kep.core.model.dto.notification.NotificationDisplayType;
-import com.kep.core.model.dto.notification.NotificationDto;
-import com.kep.core.model.dto.notification.NotificationIcon;
-import com.kep.core.model.dto.notification.NotificationTarget;
-import com.kep.core.model.dto.notification.NotificationType;
+import com.kep.core.model.dto.notification.*;
 import com.kep.core.model.dto.subject.IssueCategoryDto;
 import com.kep.core.model.dto.work.WorkType;
 import com.kep.portal.config.property.PortalProperty;
@@ -55,15 +18,7 @@ import com.kep.portal.model.dto.notification.NotificationInfoDto;
 import com.kep.portal.model.entity.branch.Branch;
 import com.kep.portal.model.entity.branch.BranchTeam;
 import com.kep.portal.model.entity.env.CounselEnv;
-import com.kep.portal.model.entity.issue.Issue;
-import com.kep.portal.model.entity.issue.IssueAssign;
-import com.kep.portal.model.entity.issue.IssueExtraMapper;
-import com.kep.portal.model.entity.issue.IssueLog;
-import com.kep.portal.model.entity.issue.IssueLogMapper;
-import com.kep.portal.model.entity.issue.IssueMapper;
-import com.kep.portal.model.entity.issue.IssueSupport;
-import com.kep.portal.model.entity.issue.IssueSupportHistory;
-import com.kep.portal.model.entity.issue.IssueSupportMapper;
+import com.kep.portal.model.entity.issue.*;
 import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.model.entity.member.MemberMapper;
 import com.kep.portal.model.entity.privilege.Level;
@@ -94,8 +49,25 @@ import com.kep.portal.service.work.OfficeHoursService;
 import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.SecurityUtils;
 import com.kep.portal.util.ZonedDateTimeUtil;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
+
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -632,17 +604,23 @@ public class IssueSupportService {
 		// 검색 날짜가 따로 세팅되어 있지 않은 경우 최근 1주일 날짜 세팅
 		if (ObjectUtils.isEmpty(search.getSearchStartDate()) && ObjectUtils.isEmpty(search.getSearchEndDate())) {
 			// 날짜 형식 정의
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-			Calendar c = Calendar.getInstance();
+			ZonedDateTime now = ZonedDateTime.now();
 
-			// 오늘 날짜 세팅
-			search.setSearchEndDate(sdf.format(c.getTime()));
+			search.setSearchEndDate(now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))); //FIXME :: 패턴 DateUtil 이동 volka
+			search.setSearchStartDate(now.minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))); //FIXME :: 패턴 DateUtil 이동 volka
 
-			// 일주일 전 날짜를 구하기 위한 처리
-			c.add(c.DATE, -7);
+//			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+//			Calendar c = Calendar.getInstance();
+//
+//			// 오늘 날짜 세팅
+//			search.setSearchEndDate(sdf.format(c.getTime()));
+//
+//			// 일주일 전 날짜를 구하기 위한 처리
+//			c.add(c.DATE, -7);
+//
+//			// 일주일 전 날짜 세팅
+//			search.setSearchStartDate(sdf.format(c.getTime()));
 
-			// 일주일 전 날짜 세팅
-			search.setSearchStartDate(sdf.format(c.getTime()));
 		}
 
 		startDate = ZonedDateTimeUtil.stringToDateTime(search.getSearchStartDate() + " 00:00:00");
@@ -652,20 +630,22 @@ public class IssueSupportService {
 		Page<IssueSupport> issueSupportPage = issueSupportRepository.search(startDate, endDate, search.getType(), search.getStatus(), memberIds, pageable);
 		// TODO: 상담지원요청의 조회 및 처리 기준이 브랜치로 될 경우 아래 부분 주석해제 위 부분 주석처리
 //		Page<IssueSupport> issueSupportPage = issueSupportRepository.search(startDate, endDate, search.getType(), search.getStatus(), securityUtils.getBranchId(), pageable);
-
-		// 조회된 목록으로 frontend에 필요한 데이터 가공
 		List<IssueSupportDetailDto> dtos = new ArrayList<>();
-		for (IssueSupport issueSupport : issueSupportPage.getContent()) {
-			IssueSupportDetailDto dto = issueSupportMapper.mapDetail(issueSupport);
 
-			// 지원요청 상담원 이름 및 팀 정보 조회
-			dto.setQuestionerInfo(getMemberInfo(issueSupport.getQuestioner()));
+		if (issueSupportPage.hasContent()) {
+			// 조회된 목록으로 frontend에 필요한 데이터 가공
+			for (IssueSupport issueSupport : issueSupportPage.getContent()) {
+				IssueSupportDetailDto dto = issueSupportMapper.mapDetail(issueSupport);
 
-			IssueDto issueDto = issueService.getById(issueSupport.getIssue().getId());
+				// 지원요청 상담원 이름 및 팀 정보 조회
+				dto.setQuestionerInfo(getMemberInfo(issueSupport.getQuestioner()));
 
-			dto.setIssueStatus(issueDto.getStatus());
+				IssueDto issueDto = issueService.getById(issueSupport.getIssue().getId());
 
-			dtos.add(dto);
+				dto.setIssueStatus(issueDto.getStatus());
+
+				dtos.add(dto);
+			}
 		}
 
 		Assert.notNull(dtos, "DTOs is null");

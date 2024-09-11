@@ -58,4 +58,10 @@ public class PortalProperty {
 	@DateTimeFormat(pattern = "HH:mm")
 	private LocalTime breakTimeEnd;
 
+
+	@DateTimeFormat(pattern = "HH:mm")
+	private LocalTime friendTalkEnableStartTime;
+	@DateTimeFormat(pattern = "HH:mm")
+	private LocalTime friendTalkEnableEndTime;
+
 }

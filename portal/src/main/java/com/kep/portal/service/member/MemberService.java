@@ -1,6 +1,7 @@
 package com.kep.portal.service.member;
 
 import com.kep.core.model.dto.env.CounselInflowEnvDto;
+import com.kep.core.model.dto.issue.payload.IssuePayload;
 import com.kep.core.model.dto.member.MemberDto;
 import com.kep.core.model.dto.work.WorkType;
 import com.kep.portal.config.property.CoreProperty;
@@ -195,6 +196,35 @@ public class MemberService {
 	}
 
 	/**
+	 * 인사말 검증
+	 * @param issuePayload
+	 */
+	private void validFirstMessage(IssuePayload issuePayload) {
+
+		List<IssuePayload.Chapter> chapters = issuePayload.getChapters();
+
+		if (chapters == null || chapters.isEmpty()) throw new IllegalArgumentException("chapters can not be empty");
+
+		List<IssuePayload.Section> sections = null;
+
+		for (IssuePayload.Chapter chapter : chapters) {
+			sections = chapter.getSections();
+			if (sections == null || sections.isEmpty()) throw new IllegalArgumentException("sections can not be empty");
+
+			for (IssuePayload.Section section : sections) {
+				if (section.getType() == null) throw new IllegalArgumentException("section type can not be null");
+
+				//인사말에 파일 첨부는 이미지파일만 가능. 따라서 섹션 속성이 버튼은 없음
+				if (section.getActions() != null && !section.getActions().isEmpty()) {
+					for (IssuePayload.Action action : section.getActions()) {
+						if (action.getType() == null || action.getData() == null || action.getData().isEmpty()) throw new IllegalArgumentException("action's type and data can not be empty");
+					}
+				}
+			}
+		}
+	}
+
+	/**
 	 * @수정일자		/ 수정자		 	/ 수정내용
 	 * 2023.05.31	/ asher.shin	/ 상담원 생성/수정시 근무 외 상담가능 여부 추가
 	 * 2024.05.27	/ tim.c			/ 첫 인사말 사용 유무 체크 기능 추가
@@ -265,13 +295,16 @@ public class MemberService {
 		// 회원 첫 인사말
 		// TODO: 첫 인사말 안넘어오는 경우, 삭제 필요 (GNB > 내 정보 수정)
 		// TODO: 그 외 첫 인사말이 화면에 아에 없는 경우 (계정 관리 등) 예외 필요 (URL 분리 필요)
-		if (dto.getUsedMessage() == null || dto.getUsedMessage() == false) {
+		if (dto.getUsedMessage() == null || !dto.getUsedMessage()) {
 			member.setUsedMessage(false);
 			member.setFirstMessage(null);
 		} else {
-			member.setUsedMessage(dto.getUsedMessage());
+			validFirstMessage(dto.getFirstMessage());
+
+			member.setUsedMessage(true);
 			member.setFirstMessage(dto.getFirstMessage());
 		}
+
 		member = memberRepository.save(member);
 
 		// Member Role 매칭 저장
