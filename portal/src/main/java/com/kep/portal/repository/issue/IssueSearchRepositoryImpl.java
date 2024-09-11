@@ -30,6 +30,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
@@ -44,6 +45,7 @@ import static com.kep.portal.model.entity.channel.QChannelEndAuto.channelEndAuto
 import static com.kep.portal.model.entity.channel.QChannelEnv.channelEnv;
 import static com.kep.portal.model.entity.env.QCounselEnv.counselEnv;
 import static com.kep.portal.model.entity.issue.QIssue.issue;
+import static com.kep.portal.model.entity.issue.QIssueLog.issueLog;
 import static com.kep.portal.model.entity.issue.QIssueSupport.issueSupport;
 import static com.kep.portal.model.entity.member.QMember.member;
 import static com.kep.portal.model.entity.work.QBranchOfficeHours.branchOfficeHours;
@@ -100,9 +102,55 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
     }
 
     @Override
+    public Page<Issue> searchWithLog(IssueSearchCondition condition, Pageable pageable) {
+        // 조건이 되는 elements count를 확인하여 0이면 스킵
+        Long totalElements = queryFactory.select(issue.count())
+                .from(issue)
+                .where(getConditions(condition))
+                .fetchFirst();
+
+        List<Issue> issuesWithLog = Collections.emptyList();
+        if (totalElements > 0) {
+            // 후보군이 되는 issue 목록 조회
+            List<Issue> issues = queryFactory.selectFrom(issue)
+                    .where(getConditions(condition))
+                    .orderBy(getOrderSpecifiers(pageable))
+                    .offset(pageable.getOffset())
+                    .limit(pageable.getPageSize())
+                    .fetch();
+
+            // 실제 payload(대화내용)을 보유하고 있는 issueLog 테이블과 조인
+            // FIXME : 추후 기획으로 인하여 식별되는 검색 조건이 추가될 수 있음.
+            BooleanBuilder builder = new BooleanBuilder();
+            if (StringUtils.hasText(condition.getPayload())) {
+                builder.and(issueLog.payload.like("%" + condition.getPayload() + "%", '+'));
+            }
+            if ("created".equals(condition.getDateSubject()) && condition.getStartDate() != null) {
+                builder.and(issueLog.created.stringValue().contains(condition.getStartDate().toString()));
+            }
+
+            // 검색 조건 키워드의 내용을 issueLog에 갖고 있는 issue 조회
+            issuesWithLog = queryFactory.select(issue)
+                        .from(issue)
+                        .leftJoin(issueLog)
+                        .on(issue.id.eq(issueLog.issueId))
+                                // 검색 조건에 추가되는 내용 검색
+                        .where (
+                            // 후보군 대화 이력 in 으로 정렬
+                            issue.in(issues)
+                                .and(builder)
+                        )
+                        .orderBy(issue.created.desc())
+                        .groupBy(issue.id)
+                        .fetch();
+        }
+        return new PageImpl<>(issuesWithLog, pageable, issuesWithLog.size());
+    }
+
+    @Override
     public Page<Issue> search(@NotNull IssueSearchCondition condition, @NotNull Pageable pageable) {
         /**
-         * todo dto로 변경하게 된다면 걷어내야 할 부분
+//         * todo dto로 변경하게 된다면 걷어내야 할 부분
          * 동일한 쿼리 2번 실행하게 되어있음
          */
         Long totalElements = queryFactory.select(issue.count())

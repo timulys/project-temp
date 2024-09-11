@@ -31,6 +31,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Nullable;
 import javax.annotation.Resource;
@@ -340,11 +341,19 @@ public class IssueService {
             condition.setChannels(channels);
         }
 
-        //setConditionByRole(condition);
         //2023.05.02 브랜치 기준으로 변경(공통)
         condition.setBranchId(securityUtils.getBranchId());
 
-        Page<Issue> issuePage = issueRepository.search(condition, pageable);
+        Page<Issue> issuePage;
+        // 대화 이력에 대한 내용이 condition에 포함되어 있다면
+        if (StringUtils.hasText(condition.getPayload())) {
+            // 내용 검색 처리
+            issuePage = issueRepository.searchWithLog(condition, pageable);
+        } else {
+            // 그 외에는 일반 search
+            issuePage = issueRepository.search(condition, pageable);
+        }
+
         log.debug("SEARCH ISSUE HISTORY: {}", objectMapper.writeValueAsString(issuePage));
 
         return new PageImpl<>(issueMapper.map(issuePage.getContent()), issuePage.getPageable(), issuePage.getTotalElements());

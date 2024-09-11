@@ -76,6 +76,10 @@ public class IssueSearchCondition {
 	@Schema(description = "게스트 아이디")
 	private Long guestId;
 
+	// tim.c : 대화 내용 검색용
+	@Schema(description = "대화 내용")
+	private String payload;
+
 	// ////////////////////////////////////////////////////////////////////////
 	// platform -> channels
 	@Schema(description = "채널 목록")

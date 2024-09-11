@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.SortDefault;
@@ -27,6 +28,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -159,12 +161,10 @@ public class IssueController {
 	@Tag(name = "이슈(상담, 채팅 등) API")
 	@Operation(summary = "상담 이력 조회")
 	@GetMapping(value = "/search/history")
-	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE_HISTORY')")
 	public ResponseEntity<ApiResult<List<IssueDto>>> searchHistory(
 			@ParameterObject @QueryParam @Valid IssueSearchCondition condition,
 			@SortDefault.SortDefaults({
 					@SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable) throws Exception {
-
 		log.info("ISSUE, GET HISTORY, PARAM: {}", condition);
 
 		Page<IssueDto> page = issueService.searchHistory(condition, pageable);
@@ -179,19 +179,17 @@ public class IssueController {
 	@Tag(name = "이슈(상담, 채팅 등) API")
 	@Operation(summary = "상담 이력 조회 (by Guest)")
 	@GetMapping(value = "/search/history/{guestId}")
-	//@PreAuthorize(("hasAnyAuthority('WRITE_ISSUE')")
 	public ResponseEntity<ApiResult<List<IssueDto>>> searchHistoryByGuest(
 			@PathVariable(value = "guestId") Long guestId,
 			@SortDefault.SortDefaults({
 				@SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable) throws Exception {
 		log.info("ISSUE, GET HISTORY BY GUEST, GUEST: {}", guestId);
-		
-		
+
 		IssueSearchCondition condition = IssueSearchCondition.builder()
 				.guestId(guestId)
 				.status(Collections.singletonList(IssueStatus.close))
 				.build();
-		
+
 		Page<IssueDto> page = issueService.searchHistory(condition, pageable);
 		return response(page, HttpStatus.OK);
 	}

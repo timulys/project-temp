@@ -17,7 +17,10 @@ public interface IssueSearchRepository {
 
 	Page<Issue> search(@NotNull IssueSearchCondition condition, @NotNull Pageable pageable);
 
+	Page<Issue> searchWithLog(@NotNull IssueSearchCondition condition, @NotNull Pageable pageable);
+
 	Map<Long, Long> countByStatusInGroupByMember(@NotNull Collection<IssueStatus> statuses, @NotNull Collection<Long> memberIds);
+
 	Long count(@NotNull IssueSearchCondition condition);
 
 	List<Customer> latestCustomers(@NotNull Long memberId);
