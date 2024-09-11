@@ -30,22 +30,14 @@ public class WorkingAfterChatEndJob {
 
     /**
      todo : 확인 필요
-     * 확인해 보니 종료 시간 기준으로 count 되는 게 맞음 -> 이슈가 있어서 일단은 23시 50분으로 설정
      * 상담 진행 중인 이슈 종료 되는 부분 개선 -> 어떻게 할지 논의 필요
-     * lock 지속 시간 : 최소 5초 / 최대 40초 ( 새벽 시간이나 일과시간 이후로 진행 될 건이여서 lock시간을 크게 잡았습니다. )
-     *
-     * 새벽에 close 되면 알람으로 인해 깰 수 있을 것 같아서 일단 기능 자체를 주석 처리 ( 기능 자체에 대한 테스트는 완료 )
-     * 상세 협의 및 코드 정리 필요
-     * ㄴ close 시 front에 소켓통신 필요할까? ( 어차피.. 실시간 필요없을 듯 해서 논의 필요 )
-     * ㄴ 만약에 소켓통신 제거 할 경우 코드 정리 필요해보염
      **/
     // 아래는 테스트 용도
     // @Scheduled(fixedDelay = 1000 * 30)
-    /*@Scheduled(cron = "0 50 23 * * ?")
+    @Scheduled(cron = "0 0 18 * * ?")
     @SchedulerLock(name = "WORKING_AFTER_CHAT_END"
             , lockAtLeastFor = "PT5S"
-            , lockAtMostFor = "PT40S")
-     */
+            , lockAtMostFor = "PT20S")
     public void run() throws Exception {
        log.info(">>> SCHEDULER: WORKING AFTER CHAT END, START");
 
