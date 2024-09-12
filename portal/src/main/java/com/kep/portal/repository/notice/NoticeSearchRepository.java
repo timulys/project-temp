@@ -27,5 +27,5 @@ public interface NoticeSearchRepository {
 
     Page<Notice> searchList(String keyword, String type, @NotNull Long branchId, @NotNull Long memberId ,@NotNull Pageable pageable , boolean fixation);
 
-	Long unreadNotice(@NotNull Long branchId, @NotNull Long MemberId);
+	Long unreadNotice(@NotNull Long branchId, @NotNull Long memberId , @NotNull Long teamId);
 }
