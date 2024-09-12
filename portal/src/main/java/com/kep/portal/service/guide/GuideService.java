@@ -385,7 +385,7 @@ public class GuideService {
         Map<Integer, Integer> requireMap = createRequiredMap(guidePayload);
         List<GuideBlock> requireGuideBlockList = new ArrayList<>();
 
-        validRequiredMap(requireMap);
+        if (!requireMap.isEmpty()) validRequiredMap(requireMap);
 
 //        int currentIndex = 0;
 
