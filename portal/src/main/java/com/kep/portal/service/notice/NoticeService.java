@@ -242,7 +242,7 @@ public class NoticeService {
 	 */
 	public Long unreadNotice() {
 		// FIXME : 미확인 공지사항 목록 조회
-		return noticeRepository.unreadNotice(securityUtils.getBranchId(), securityUtils.getMemberId());
+		return noticeRepository.unreadNotice(securityUtils.getBranchId(), securityUtils.getMemberId() , securityUtils.getTeamId() ) ;
 	}
 
 	/**

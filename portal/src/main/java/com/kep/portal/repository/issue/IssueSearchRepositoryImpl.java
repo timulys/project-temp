@@ -1,48 +1,59 @@
 package com.kep.portal.repository.issue;
 
+import com.kep.core.model.dto.issue.IssueStatus;
 import com.kep.core.model.dto.issue.IssueSupportStatus;
 import com.kep.core.model.dto.issue.IssueSupportType;
 import com.kep.core.model.dto.issue.IssueType;
+import com.kep.core.model.dto.work.WorkType;
+import com.kep.portal.model.dto.issue.IssueSearchCondition;
+import com.kep.portal.model.entity.channel.Channel;
 import com.kep.portal.model.entity.customer.Customer;
-import com.kep.portal.model.entity.issue.*;
+import com.kep.portal.model.entity.customer.Guest;
+import com.kep.portal.model.entity.issue.Issue;
+import com.kep.portal.model.entity.issue.IssueSupport;
 import com.kep.portal.model.entity.issue.QIssue;
 import com.kep.portal.model.entity.issue.QIssueLog;
-import com.kep.portal.model.entity.issue.QIssueSupport;
-import com.kep.portal.model.entity.member.QMember;
+import com.kep.portal.model.entity.member.Member;
+import com.kep.portal.model.entity.subject.IssueCategory;
 import com.kep.portal.repository.customer.GuestRepository;
 import com.kep.portal.util.ZonedDateTimeUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.*;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.core.types.NullExpression;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.kep.core.model.dto.issue.IssueStatus;
-import com.kep.portal.model.dto.issue.IssueSearchCondition;
-import com.kep.portal.model.entity.channel.Channel;
-import com.kep.portal.model.entity.customer.Guest;
-import com.kep.portal.model.entity.member.Member;
-import com.kep.portal.model.entity.subject.IssueCategory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
-import java.time.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
+import static com.kep.portal.model.entity.branch.QBranch.branch;
+import static com.kep.portal.model.entity.channel.QChannelEndAuto.channelEndAuto;
+import static com.kep.portal.model.entity.channel.QChannelEnv.channelEnv;
+import static com.kep.portal.model.entity.env.QCounselEnv.counselEnv;
 import static com.kep.portal.model.entity.issue.QIssue.issue;
+import static com.kep.portal.model.entity.issue.QIssueLog.issueLog;
+import static com.kep.portal.model.entity.issue.QIssueSupport.issueSupport;
+import static com.kep.portal.model.entity.member.QMember.member;
+import static com.kep.portal.model.entity.work.QBranchOfficeHours.branchOfficeHours;
+import static com.kep.portal.model.entity.work.QMemberOfficeHours.memberOfficeHours;
 
 @Slf4j
 public class IssueSearchRepositoryImpl implements IssueSearchRepository {
 
-    //	@PersistenceContext
-//	private EntityManager entityManager;
     private final JPAQueryFactory queryFactory;
 
     public IssueSearchRepositoryImpl(JPAQueryFactory queryFactory) {
@@ -51,9 +62,6 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
 
     @Resource
     private GuestRepository guestRepository;
-
-    @Resource
-    private IssueSupportRepository issueSupportRepository;
 
     @Override
     public List<Customer> latestCustomers(Long memberId) {
@@ -94,26 +102,70 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
     }
 
     @Override
-    public Page<Issue> search(@NotNull IssueSearchCondition condition, @NotNull Pageable pageable) {
-
-        QIssue qIssue = new QIssue("issue");
-        QIssueSupport qIssueSupport = new QIssueSupport("issueSupport");
-        QMember qMember = new QMember("member");
-
-        Long totalElements = queryFactory.select(qIssue.count())
-                .from(qIssue)
+    public Page<Issue> searchWithLog(IssueSearchCondition condition, Pageable pageable) {
+        // 조건이 되는 elements count를 확인하여 0이면 스킵
+        Long totalElements = queryFactory.select(issue.count())
+                .from(issue)
                 .where(getConditions(condition))
                 .fetchFirst();
 
-        List<Issue> issues = Collections.emptyList();
+        List<Issue> issuesWithLog = Collections.emptyList();
         if (totalElements > 0) {
-            issues = queryFactory.selectFrom(qIssue)
+            // 후보군이 되는 issue 목록 조회
+            List<Issue> issues = queryFactory.selectFrom(issue)
                     .where(getConditions(condition))
                     .orderBy(getOrderSpecifiers(pageable))
                     .offset(pageable.getOffset())
                     .limit(pageable.getPageSize())
                     .fetch();
 
+            // 실제 payload(대화내용)을 보유하고 있는 issueLog 테이블과 조인
+            // FIXME : 추후 기획으로 인하여 식별되는 검색 조건이 추가될 수 있음.
+            BooleanBuilder builder = new BooleanBuilder();
+            if (StringUtils.hasText(condition.getPayload())) {
+                builder.and(issueLog.payload.like("%" + condition.getPayload() + "%", '+'));
+            }
+            if ("created".equals(condition.getDateSubject()) && condition.getStartDate() != null) {
+                builder.and(issueLog.created.stringValue().contains(condition.getStartDate().toString()));
+            }
+
+            // 검색 조건 키워드의 내용을 issueLog에 갖고 있는 issue 조회
+            issuesWithLog = queryFactory.select(issue)
+                        .from(issue)
+                        .leftJoin(issueLog)
+                        .on(issue.id.eq(issueLog.issueId))
+                                // 검색 조건에 추가되는 내용 검색
+                        .where (
+                            // 후보군 대화 이력 in 으로 정렬
+                            issue.in(issues)
+                                .and(builder)
+                        )
+                        .orderBy(issue.created.desc())
+                        .groupBy(issue.id)
+                        .fetch();
+        }
+        return new PageImpl<>(issuesWithLog, pageable, issuesWithLog.size());
+    }
+
+    @Override
+    public Page<Issue> search(@NotNull IssueSearchCondition condition, @NotNull Pageable pageable) {
+        /**
+//         * todo dto로 변경하게 된다면 걷어내야 할 부분
+         * 동일한 쿼리 2번 실행하게 되어있음
+         */
+        Long totalElements = queryFactory.select(issue.count())
+                .from(issue)
+                .where(getConditions(condition))
+                .fetchFirst();
+
+        List<Issue> issues = Collections.emptyList();
+        if (totalElements > 0) {
+            issues = queryFactory.selectFrom(issue)
+                    .where(getConditions(condition))
+                    .orderBy(getOrderSpecifiers(pageable))
+                    .offset(pageable.getOffset())
+                    .limit(pageable.getPageSize())
+                    .fetch();
 
             List<IssueSupportStatus> supportStatusList = new ArrayList<>();
             supportStatusList.add(IssueSupportStatus.finish);
@@ -121,35 +173,39 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
             supportStatusList.add(IssueSupportStatus.receive);
             supportStatusList.add(IssueSupportStatus.auto);
 
-            List<IssueSupport> issueSupports = queryFactory.selectFrom(qIssueSupport)
-                    .from(qIssueSupport)
-                    .where(
-                            qIssueSupport.issue.in(issues).and(qIssueSupport.type.eq(IssueSupportType.change).and(qIssueSupport.status.in(supportStatusList)))
-                    )
-                    .orderBy(qIssueSupport.id.asc())
-                    .fetch();
-
-            for (Issue issue : issues) {
+            List<Tuple> issueSupportAndMemberList = queryFactory.select( issueSupport , member )
+                                                                .from(issueSupport)
+                                                                      .innerJoin(member)
+                                                                        .on(issueSupport.questioner.eq(member.id))
+                                                                .where(
+                                                                        issueSupport.issue.in(issues)
+                                                                                .and( this.issueSupportTypeEq(IssueSupportType.change)
+                                                                                    .and( this.issueSupportStatusIn(supportStatusList)) )
+                                                                      )
+                                                                .orderBy(issueSupport.issue.id.asc(),
+                                                                         issueSupport.id.asc()
+                                                                        )
+                                                                .fetch();
+            /**
+             Issue와 IssueSupport는 1:n 관계로 인하여 루프가 발생
+             todo : 현재 프론트에서 SupportMembers에서 nicname만 추출하여 사용 중
+                    프론트와 협의하여 구분자로 nicname만 사용하게 되면 한번의 쿼리로 개선 가능
+                    사용 메뉴 : 상담 관리 > 상담 > 상담 이력 >
+                    사용 컬럼 : List의 상담직원명
+             */
+            for(Issue resultIssue : issues){
                 List<Member> supportMembers = new ArrayList<>();
-                if (!issueSupports.isEmpty()) {
-                    for (IssueSupport issueSupport : issueSupports) {
-                        if (issue.getId().equals(issueSupport.getIssue().getId())) {
-                            if (issueSupport.getQuestioner() != null) {
-                                Member member = queryFactory.select(QMember.member).from(QMember.member).where(QMember.member.id.eq(issueSupport.getQuestioner())).fetchOne();
-                                if (!ObjectUtils.isEmpty(member)) {
-                                    supportMembers.add(member);
-                                }
-//								supportMembers.add(issueSupport.getMember());
-                            }
-                        }
+                for( Tuple issueSupportAndMember : issueSupportAndMemberList ){
+                    IssueSupport resultIssueSupport= issueSupportAndMember.get(issueSupport);
+                    Member resultMember = issueSupportAndMember.get(member);
+                    if ( resultIssue.getId() == resultIssueSupport.getIssue().getId() ) {
+                        supportMembers.add(resultMember);
                     }
                 }
-                supportMembers.add(issue.getMember());
-                issue.setSupportMembers(supportMembers);
+                supportMembers.add(resultIssue.getMember());
+                resultIssue.setSupportMembers(supportMembers);
             }
-
         }
-
         return new PageImpl<>(issues, pageable, totalElements);
     }
 
@@ -206,6 +262,62 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
         return result;
     }
 
+    @Override
+    public Long count(@NotNull IssueSearchCondition condition) {
+
+        QIssue qIssue = new QIssue("issue");
+
+        return queryFactory.select(qIssue.count())
+                .from(qIssue)
+                .where(getConditions(condition))
+                .fetchFirst();
+    }
+
+
+    /**
+     * @param issueStatus
+     * @param issueAutoCloseEnabled
+     * @return
+     * eddie.j 근무시간 종료 후 상담 진행 중인 채팅 목록 자동종료에 사용하기 위해서 추가
+     * 기준값 : 종료 되지 않은 이슈들 추출 ( 단, 근무시간 종료 후 상담 진행 중인 채팅 목록 자동 종료 활성화 체크 )
+     */
+    public List<Tuple> findByStatusNotAndIssueAutoCloseEnabled(IssueStatus issueStatus, Boolean issueAutoCloseEnabled) {
+        List<Tuple> issueAndChannelEnvList = queryFactory.select(issue
+                                                                ,channelEndAuto)
+                                                         .from(issue)
+                                                            .innerJoin(branch)
+                                                                .on(branch.id.eq(issue.branchId))
+                                                            .innerJoin(counselEnv)
+                                                                .on(counselEnv.branchId.eq(branch.id))
+                                                            // 설정에 따른 자동발송 메세지
+                                                            .innerJoin(channelEnv)
+                                                                .on(channelEnv.channel.id.eq(issue.channel.id))
+                                                            .innerJoin(channelEndAuto)
+                                                                .on(channelEndAuto.id.eq(channelEnv.end.id))
+                                                            // 근무 시간 체크
+                                                            /*
+                                                            .innerJoin(branchOfficeHours)
+                                                                .on(branchOfficeHours.branchId.eq(branch.id))
+                                                            .innerJoin(member)
+                                                                .on(issue.member.id.eq(member.id))
+                                                            .innerJoin(memberOfficeHours)
+                                                                .on(memberOfficeHours.memberId.eq(member.id))
+                                                            */
+                                                            .where(
+                                                                 this.issueStatusNe(issueStatus)
+                                                                    .and(this.issueAutoCloseEnabledEq(issueAutoCloseEnabled))
+                                                                         // 근무 시간 체크
+                                                                         /*.and(
+                                                                                 ( this.branchAssignEq(WorkType.Cases.branch).and(this.branchOfficeHoursEndCounselTimeBefore(LocalTime.now())) )
+                                                                                 .or
+                                                                                 ( this.branchAssignEq(WorkType.Cases.member).and(this.memberOfficeHoursEndCounselTimeBefore(LocalTime.now())) )
+                                                                              )
+                                                                          */
+                                                            ).fetch();
+        return issueAndChannelEnvList;
+
+    }
+
     private BooleanExpression branchIdEq(Long branchId) {
         return branchId != null ? issue.branchId.eq(branchId) : null;
     }
@@ -228,14 +340,6 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
 
     private BooleanExpression guestIn(Collection<Guest> guests) {
         return !ObjectUtils.isEmpty(guests) ? issue.guest.in(guests) : null;
-    }
-
-    private BooleanExpression customerEq(Long customerId) {
-        return customerId != null ? issue.customerId.eq(customerId) : null;
-    }
-
-    private BooleanExpression customerIn(Collection<Long> customerIds) {
-        return !ObjectUtils.isEmpty(customerIds) ? issue.customerId.in(customerIds) : null;
     }
 
     private BooleanExpression channelIn(Collection<Channel> channels) {
@@ -290,16 +394,40 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
         return orders.stream().toArray(OrderSpecifier[]::new);
     }
 
+    private BooleanExpression issueAutoCloseEnabledEq(boolean issueAutoCloseEnabled) {
+        return !ObjectUtils.isEmpty(issueAutoCloseEnabled) ? counselEnv.issueAutoCloseEnabled.eq(issueAutoCloseEnabled) : null;
+    }
 
-    @Override
-    public Long count(@NotNull IssueSearchCondition condition) {
+    private BooleanExpression issueStatusNe(IssueStatus issueStatus) {
+        return !ObjectUtils.isEmpty(issueStatus) ? issue.status.ne(issueStatus) : null;
+    }
 
-        QIssue qIssue = new QIssue("issue");
+    private BooleanExpression memberOfficeHoursEndCounselTimeBefore(LocalTime localDateTime){
+        return this.formatStringPathToLocalTime(memberOfficeHours.endCounselTime).before(localDateTime);
+    }
 
-        return queryFactory.select(qIssue.count())
-                .from(qIssue)
-                .where(getConditions(condition))
-                .fetchFirst();
+    private BooleanExpression branchOfficeHoursEndCounselTimeBefore(LocalTime localDateTime){
+        return this.formatStringPathToLocalTime(branchOfficeHours.endCounselTime).before(localDateTime);
+    }
+
+    private BooleanExpression branchAssignEq(WorkType.Cases workTypeCases) {
+        return workTypeCases != null ? branch.assign.eq(workTypeCases) : null;
+    }
+
+    private DateTimeTemplate<LocalTime> formatStringPathToLocalTime (StringPath stringPath){
+        return Expressions.dateTimeTemplate(
+                LocalTime.class,
+                "STR_TO_DATE({0}, '%H:%i:%s')", // 시 분 초 포맷
+                stringPath
+        );
+    }
+
+    private BooleanExpression issueSupportTypeEq(IssueSupportType issueSupportType) {
+        return issueSupport.type.eq(issueSupportType);
+    }
+
+    private BooleanExpression issueSupportStatusIn(List<IssueSupportStatus> issueSupportStatusList) {
+        return issueSupport.status.in(issueSupportStatusList);
     }
 
 }

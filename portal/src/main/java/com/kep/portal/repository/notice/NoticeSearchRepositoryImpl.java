@@ -1,6 +1,9 @@
 package com.kep.portal.repository.notice;
 
 import static com.kep.portal.model.entity.notice.QNotice.notice;
+import static com.kep.portal.model.entity.notice.QNoticeRead.noticeRead;
+import static com.kep.portal.model.entity.notice.QNoticeUpload.noticeUpload;
+import static com.kep.portal.model.entity.upload.QUpload.upload;
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.list;
 
@@ -60,14 +63,11 @@ public class NoticeSearchRepositoryImpl implements NoticeSearchRepository {
 	@Override
 	public Page<Notice> searchMangerList(String keyword, String type, @NotNull Long branchId ,@NotNull Long memberId, @NotNull Pageable pageable) {
 
-		QNotice qNotice = new QNotice("notice");
-		QNoticeUpload qNoticeUpload = new QNoticeUpload("noticeUpload");
-		QUpload qUpload = new QUpload("upload");
 
 		Long teamId = securityUtils.getTeamId();
 
-		Long totalElements = queryFactory.select(qNotice.count())
-				.from(qNotice)
+		Long totalElements = queryFactory.select(notice.count())
+				.from(notice)
 				.where(getSearchManagerCondition(keyword, type, branchId , teamId))
 				.fetchFirst();
 
@@ -78,37 +78,37 @@ public class NoticeSearchRepositoryImpl implements NoticeSearchRepository {
 
 		if (totalElements > 0) {
 			notices = queryFactory
-					.from(qNotice)
-					.leftJoin(qNotice.noticeUpload,qNoticeUpload)
-					.leftJoin(qNoticeUpload.upload,qUpload)
-					.on(qNotice.id.eq(qNoticeUpload.notice.id),qNoticeUpload.upload.id.eq(qUpload.id))
+					.from(notice)
+					.leftJoin(notice.noticeUpload,noticeUpload)
+					.leftJoin(noticeUpload.upload, upload)
+					.on(notice.id.eq(noticeUpload.notice.id),noticeUpload.upload.id.eq(upload.id))
 					.where(getSearchManagerCondition(keyword, type, branchId ,teamId))
 					.orderBy(getOrderSpecifiers(pageable))
 					.limit(pageable.getPageSize())
 					.offset(pageable.getOffset())
 					.transform(
-							groupBy(qNotice.id)
+							groupBy(notice.id)
 									.list(Projections.fields(
 											Notice.class
-											,qNotice.id
-											,qNotice.title
-											,qNotice.created
-											,qNotice.creator
-											,qNotice.fixation
-											,qNotice.branchId
-											,qNotice.teamId
-											,qNotice.openType
+											,notice.id
+											,notice.title
+											,notice.created
+											,notice.creator
+											,notice.fixation
+											,notice.branchId
+											,notice.teamId
+											,notice.openType
 											, ExpressionUtils.as(list(
 													Projections.fields(
 															NoticeUpload.class
-															,qNoticeUpload.id.as("id")
+															,noticeUpload.id.as("id")
 															,ExpressionUtils.as(
 																	Projections.fields(Upload.class,
-																			qUpload.id.as("id")
-																			,qUpload.url.as("url")
-																			,qUpload.originalName.as("originalName")
-																			,qUpload.name.as("name")
-																			,qUpload.path.as("path")),"upload"
+																			 upload.id.as("id")
+																			,upload.url.as("url")
+																			,upload.originalName.as("originalName")
+																			,upload.name.as("name")
+																			,upload.path.as("path")),"upload"
 															)
 
 													)
@@ -116,7 +116,7 @@ public class NoticeSearchRepositoryImpl implements NoticeSearchRepository {
 											,ExpressionUtils.as(JPAExpressions.select(qNoticeRead.count())
 															.from(qNoticeRead)
 															.where(qNoticeRead.noticeReadPk.member_id.eq(memberId)
-																	.and(qNoticeRead.noticeReadPk.notice_id.eq(qNotice.id)))
+																	.and(qNoticeRead.noticeReadPk.notice_id.eq(notice.id)))
 													, "readFlag")
 									)
 							)
@@ -144,32 +144,29 @@ public class NoticeSearchRepositoryImpl implements NoticeSearchRepository {
 	@Override
 	public Page<Notice> searchList(String keyword, String type, @NotNull Long branchId,@NotNull Long memberId, @NotNull Pageable pageable , boolean fixation) {
 
-		QNotice qNotice = new QNotice("notice");
-		QNoticeRead qNoticeRead = new QNoticeRead("noticeRead");
-
 		Long teamId = securityUtils.getTeamId();
-		Long totalElements = queryFactory.select(qNotice.count())
-				.from(qNotice)
+		Long totalElements = queryFactory.select(notice.count())
+				.from(notice)
 				.where(getSearchCondition(keyword, type, branchId , teamId , fixation))
 				.fetchFirst();
 
 		List<Notice> notices = Collections.emptyList();
 		if (totalElements > 0) {
 			notices = queryFactory.select(
-					Projections.fields(Notice.class,qNotice.id
-							,qNotice.title
-							,qNotice.creator
-							,qNotice.created
-							,qNotice.branchId
-							,qNotice.teamId
-							,qNotice.openType
-							,qNotice.fixation
-							,ExpressionUtils.as(JPAExpressions.select(qNoticeRead.count())
-							.from(qNoticeRead)
-							.where(qNoticeRead.noticeReadPk.member_id.eq(memberId)
-							.and(qNoticeRead.noticeReadPk.notice_id.eq(qNotice.id)))
+					Projections.fields(Notice.class,notice.id
+							,notice.title
+							,notice.creator
+							,notice.created
+							,notice.branchId
+							,notice.teamId
+							,notice.openType
+							,notice.fixation
+							,ExpressionUtils.as(JPAExpressions.select(noticeRead.count())
+							.from(noticeRead)
+							.where(noticeRead.noticeReadPk.member_id.eq(memberId)
+							.and(noticeRead.noticeReadPk.notice_id.eq(notice.id)))
 							, "readFlag")))
-					.from(qNotice)
+					.from(notice)
 					.where(getSearchCondition(keyword, type, branchId , teamId , fixation))
 					.orderBy(getOrderSpecifiers(pageable))
 					.offset(pageable.getOffset())
@@ -184,16 +181,17 @@ public class NoticeSearchRepositoryImpl implements NoticeSearchRepository {
 	 * 미확인 공지사항 카운팅
 	 */
 	@Override
-	public Long unreadNotice(Long branchId, Long memberId) {
-		QNotice qNotice = new QNotice("notice");
-		QNoticeRead qNoticeRead = new QNoticeRead("noticeRead");
+	public Long unreadNotice(Long branchId, Long memberId , Long teamId) {
 		return queryFactory
-				.select(qNotice.count())
-				.from(qNotice)
-				.leftJoin(qNoticeRead)
-				.on(qNotice.id.eq(qNoticeRead.noticeReadPk.notice_id).and(qNoticeRead.noticeReadPk.member_id.eq(memberId)))
+				.select(notice.count())
+				.from(notice)
+				.leftJoin(noticeRead)
+				.on(notice.id.eq(noticeRead.noticeReadPk.notice_id).and(noticeRead.noticeReadPk.member_id.eq(memberId)))
 				.fetchJoin()
-				.where(qNoticeRead.isNull().and(qNotice.enabled.eq(true)))
+				.where(noticeRead.isNull()
+							.and(this.enabledEq(true))
+						   		.and(this.branchIdEqOpenTypeIn(branchId,teamId))
+					  )
 				.fetchFirst();
 	}
 
