@@ -308,29 +308,36 @@ public class GuideService {
         return guideMapper.map(guide);
     }
 
-
+    /**
+     * 선행블록 검증 (dfs 재귀 주의) volka
+     * @param requiredMap
+     */
     private void validRequiredMap(Map<Integer, Integer> requiredMap) {
-        Set<Integer> keySet = requiredMap.keySet();
-        Collection<Integer> required = requiredMap.values();
 
-        Set<Integer> visitedSet = new HashSet<>();
-        Set<Integer> recursionSet = new HashSet<>();
+        if (requiredMap != null && !requiredMap.isEmpty()) {
 
-        //중복 체크
-        if (!required.stream().filter(v -> Collections.frequency(required, v) > 1).collect(Collectors.toSet()).isEmpty()) {
-            throw new IllegalArgumentException("requiredIds are not duplicated");
-        }
+            Set<Integer> keySet = requiredMap.keySet();
+            Collection<Integer> required = requiredMap.values();
 
-        Integer val = null;
+            Set<Integer> visitedSet = new HashSet<>();
+            Set<Integer> recursionSet = new HashSet<>();
 
-        for (Integer idx : keySet) {
-            val = requiredMap.get(idx);
-            if (val.equals(idx)) throw new IllegalArgumentException("requiredIds must be unique");
-            //서로 참조
-            if (keySet.contains(val) && requiredMap.get(val).equals(idx)) throw new IllegalArgumentException("requiredIds not reference each other");
+            //중복 체크
+            if (!required.stream().filter(v -> Collections.frequency(required, v) > 1).collect(Collectors.toSet()).isEmpty()) {
+                throw new IllegalArgumentException("requiredIds are not duplicated");
+            }
 
-            //순환참조 체크 by dfs :: volka
-            if (hasCircularReference(idx, requiredMap, visitedSet, recursionSet)) throw new IllegalArgumentException("requiredIds can not be circular reference");
+            Integer val = null;
+
+            for (Integer idx : keySet) {
+                val = requiredMap.get(idx);
+                if (val.equals(idx)) throw new IllegalArgumentException("requiredIds must be unique");
+                //서로 참조
+                if (keySet.contains(val) && requiredMap.get(val).equals(idx)) throw new IllegalArgumentException("requiredIds not reference each other");
+
+                //순환참조 체크 by dfs :: volka
+                if (hasCircularReference(idx, requiredMap, visitedSet, recursionSet)) throw new IllegalArgumentException("requiredIds can not be circular reference");
+            }
         }
     }
 
@@ -358,7 +365,7 @@ public class GuideService {
     }
 
     /**
-     * 가이드 선행블록 검증용 Map 생성
+     * 가이드 선행블록 검증용 Map 생성 (content not empty 체크는 createBlock() 호출부에서 검증)
      * @param guidePayload
      * @return
      */
