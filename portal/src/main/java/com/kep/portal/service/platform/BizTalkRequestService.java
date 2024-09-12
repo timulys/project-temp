@@ -15,6 +15,7 @@ import com.kep.core.model.dto.platform.kakao.KakaoBizMessageTemplatePayload;
 import com.kep.core.model.dto.platform.kakao.KakaoBizTalkSendResponse;
 import com.kep.core.model.dto.platform.kakao.KakaoFriendSendEvent;
 import com.kep.portal.client.PlatformClient;
+import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.model.dto.notification.NotificationInfoDto;
 import com.kep.portal.model.dto.platform.BizTalkRequestCondition;
 import com.kep.portal.model.entity.branch.Branch;
@@ -54,8 +55,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -109,6 +113,9 @@ public class BizTalkRequestService {
     @Resource
     private BizTalkHistoryService bizTalkHistoryService;
 
+    @Resource
+    private PortalProperty portalProperty;
+
     public Page<BizTalkRequestDto> search(BizTalkRequestCondition condition, Pageable pageable) {
         if(condition.getStatus() == null){
             return new PageImpl<>(Collections.emptyList());
@@ -138,27 +145,35 @@ public class BizTalkRequestService {
         return new PageImpl<>(dtoList, requestPage.getPageable(), requestPage.getTotalElements());
     }
 
+    /**
+     * 친구톡 발송가능 시간 검증
+     * @param reservedDate
+     */
+    private void validFriendTalkTime(String reservedDate) {
+        LocalTime startTime = portalProperty.getFriendTalkEnableStartTime(); //08:00
+        LocalTime endTime = portalProperty.getFriendTalkEnableEndTime(); //20:50
+
+        ZonedDateTime now = ZonedDateTime.now();
+        ZonedDateTime reservedDateTime = ObjectUtils.isEmpty(reservedDate) ? now : WorkDateTimeUtils.stringToDateTime(reservedDate) ;
+
+        LocalDate date = reservedDateTime.toLocalDate();
+        LocalTime time = reservedDateTime.toLocalTime();
+
+        if (now.toLocalDate().isBefore(date) || time.isBefore(startTime) || time.isAfter(endTime)) {
+            throw new IllegalArgumentException("Transfer exception time");
+        }
+    }
+
     public String store(BizTalkRequestDto dto) throws JsonProcessingException {
 
         String resultMessage = null;
 
         Assert.isNull(dto.getId(), "Already Request");
 
-        if (!ObjectUtils.isEmpty(dto.getReserveDate()) && dto.getPlatform().equals(PlatformType.kakao_friend_talk)) {
-            ZonedDateTime dateTime = WorkDateTimeUtils.stringToDateTime(dto.getReserveDate());
-            if (dateTime.getHour() < 8 || dateTime.getHour() >= 21) {
-                throw new IllegalArgumentException("Transfer exception time");
-            }
-        } else if (ObjectUtils.isEmpty(dto.getReserveDate()) && dto.getPlatform().equals(PlatformType.kakao_friend_talk)) {
-            LocalTime currentTime = LocalTime.now();
-            LocalTime startTime = LocalTime.of(21, 0); // 21:00
-            LocalTime endTime = LocalTime.of(8, 0);   // 08:00
-            if (currentTime.isAfter(startTime) || currentTime.isBefore(endTime)) {
-                throw new IllegalArgumentException("Transfer exception time");
-            }
-        }
+        //친구톡일 때 발송 가능 시간 검증 volka
+        if (dto.getPlatform() == PlatformType.kakao_friend_talk) validFriendTalkTime(dto.getReserveDate());
 
-        BizTalkRequest bizTalkRequest = BizTalkRequest.builder()
+        BizTalkRequest.BizTalkRequestBuilder bizTalkRequestBuilder = BizTalkRequest.builder()
                 .platform(dto.getPlatform())
                 .status(BizTalkRequestStatus.ready) // 처음 등록시 대기 상태
                 .templateId(dto.getTemplateId())
@@ -168,23 +183,24 @@ public class BizTalkRequestService {
                 .customers(dto.getToCustomers())
                 .creator(securityUtils.getMemberId())
                 .modifier(securityUtils.getMemberId())
-                .build();
-
-        if (!ObjectUtils.isEmpty(dto.getFriendPayload())) {
-            bizTalkRequest.setFriendPayload(objectMapper.writeValueAsString(dto.getFriendPayload()));
-        }
+                ;
 
         if (!ObjectUtils.isEmpty(dto.getReserveDate())) {
             ZonedDateTime reserveDate = WorkDateTimeUtils.stringToDateTime(dto.getReserveDate());
-            bizTalkRequest.setReserved(reserveDate);
+            bizTalkRequestBuilder.reserved(reserveDate);
 
-            if (bizTalkRequest.getReserved().isBefore(ZonedDateTime.now())) {
+            if (reserveDate.isBefore(ZonedDateTime.now())) {
                 throw new IllegalArgumentException("Reservations cannot be made on previous dates.");
             }
         }
 
-        BizTalkRequest save = bizTalkRequestRepository.save(bizTalkRequest);
+        if (!ObjectUtils.isEmpty(dto.getFriendPayload())) {
+            bizTalkRequestBuilder.friendPayload(objectMapper.writeValueAsString(dto.getFriendPayload()));
+        }
 
+        BizTalkRequest bizTalkRequest = bizTalkRequestBuilder.build();
+
+        BizTalkRequest save = bizTalkRequestRepository.save(bizTalkRequest);
 
         CounselEnvDto counselEnv = counselEnvService.get(save.getBranchId());
 

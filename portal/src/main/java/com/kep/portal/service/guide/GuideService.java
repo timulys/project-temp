@@ -195,29 +195,24 @@ public class GuideService {
         Assert.notNull(guidePayload.getCategoryId(), "category_id must not be null");
         Assert.notNull(guidePayload.getName(), "name must not be null");
         Assert.notNull(guidePayload.getType(), "type must not be null");
-
+        Assert.isTrue(guidePayload.getContents().size() <= 10, "guide blocks are under 10 size");
 
         if (enabled) {
             Assert.notEmpty(guidePayload.getContents(), "content must not be empty");
         }
 
-        Branch branch = null;
-        if (guidePayload.getBranchId() == null) {
-            branch = branchRepository.findById(securityUtils.getBranchId()).orElse(null);
-        } else {
-            branch = branchRepository.findById(guidePayload.getBranchId()).orElse(null);
-        }
+        Long branchId = guidePayload.getBranchId() == null ? securityUtils.getBranchId() : guidePayload.getBranchId();
+        Team team = null;
+
+        Branch branch = branchRepository.findById(branchId)
+                .orElse(null);
         Assert.notNull(branch, "Not Found Branch");
 
-        Team team = null;
-        if (guidePayload.getTeamId() == null && securityUtils.getTeamId() != null) {
-            team = teamRepository.findById(securityUtils.getTeamId()).orElse(null);
-            Assert.notNull(team, "Not Found Team");
-        } else if (guidePayload.getTeamId() != null && securityUtils.getTeamId() == null) {
-            team = teamRepository.findById(guidePayload.getTeamId()).orElse(null);
+        if (guidePayload.getTeamId() != null || securityUtils.getTeamId() != null) {
+            team = teamRepository.findById(guidePayload.getTeamId() == null ? securityUtils.getTeamId() : guidePayload.getTeamId())
+                    .orElse(null);
             Assert.notNull(team, "Not Found Team");
         }
-
 
         Member member = memberRepository.findById(securityUtils.getMemberId()).orElse(null);
         Assert.notNull(member, "Not Found Member");
@@ -257,7 +252,7 @@ public class GuideService {
             }
 
             guide = guideRepository.save(guide);
-            createBlock(guidePayload, guide);
+            if (!guidePayload.getContents().isEmpty()) createBlock(guidePayload, guide);
         }
         // id가 있으면 수정
         else {
@@ -284,7 +279,7 @@ public class GuideService {
             List<Long> originBlockIds = objectMapper.readValue(guide.getBlockIds().toString(), new TypeReference<List<Long>>() {
             });
             guideBlockRepository.deleteAllById(originBlockIds);
-            createBlock(guidePayload, guide);
+            if (!guidePayload.getContents().isEmpty()) createBlock(guidePayload, guide);
 
 
             if (!guide.getBranch().getId().equals(branch.getId())) {
@@ -313,12 +308,45 @@ public class GuideService {
         return guideMapper.map(guide);
     }
 
+
+    private void validRequiredMap(Map<Integer, Integer> requiredMap) {
+        Set<Integer> keySet = requiredMap.keySet();
+        Collection<Integer> required = requiredMap.values();
+
+        //중복 체크
+        if (!required.stream().filter(v -> Collections.frequency(required, v) > 1).collect(Collectors.toSet()).isEmpty()) {
+            throw new IllegalArgumentException("requiredIds are not duplicated");
+        }
+
+        Integer val = null;
+
+        for (Integer idx : keySet) {
+            val = requiredMap.get(idx);
+            if (val.equals(idx)) throw new IllegalArgumentException("requiredIds must be unique");
+            //서로 참조
+            if (keySet.contains(val) && requiredMap.get(val).equals(idx)) throw new IllegalArgumentException("requiredIds not reference each other");
+        }
+    }
+
     // guidePayload속 content를 guideBlock으로 데이터 저장
     private void createBlock(GuidePayload guidePayload, Guide guide) throws JsonProcessingException {
+
         guide.getBlockIds().clear();
-        Map<Integer, Long> requireMap = new HashMap<>();
+        Map<Integer, Integer> requireMap = new HashMap<>();
         List<GuideBlock> requireGuideBlockList = new ArrayList<>();
-        int currentIndex = 0;
+
+        Integer idx = 0;
+        for (GuidePayload.Content content : guidePayload.getContents()) {
+            if (content.getRequireId() != null) {
+                requireMap.put(idx, content.getRequireId().intValue());
+            }
+
+            idx++;
+        }
+
+        validRequiredMap(requireMap);
+
+//        int currentIndex = 0;
 
         for (GuidePayload.Content content : guidePayload.getContents()) {
             if (content.getPayload().getChapters().isEmpty()) {
@@ -339,9 +367,9 @@ public class GuideService {
                     .payload(payload)
                     .build();
 
-            if (content.getRequireId() != null) {
-                requireMap.put(currentIndex, content.getRequireId());
-            }
+//            if (content.getRequireId() != null) {
+//                requireMap.put(currentIndex, content.getRequireId().intValue());
+//            }
 
             StringBuilder messageCondition = new StringBuilder();
             StringBuilder fileCondition = new StringBuilder();
@@ -381,12 +409,13 @@ public class GuideService {
             guide.getBlockIds().add(guideBlock.getId());
             requireGuideBlockList.add(guideBlock);
 
-            currentIndex++;
+//            currentIndex++;
         }
-        for (Map.Entry<Integer, Long> entry : requireMap.entrySet()) {
-            log.info("entry = {},{}", entry.getKey(), entry.getValue());
-            requireGuideBlockList.get(entry.getKey()).setRequireId(requireGuideBlockList.get(entry.getValue().intValue()).getId());
-        }
+
+        requireMap.forEach((k, v) -> {
+            log.info("entry = {},{}", k, v);
+            requireGuideBlockList.get(k).setRequireId(requireGuideBlockList.get(v).getId());
+        });
     }
 
     //가이드 검색(SB-CP-T07)
@@ -697,8 +726,7 @@ public class GuideService {
 
             guide = guideRepository.save(guide);
 
-            if (guidePayload.getContents() != null)
-                createBlock(guidePayload, guide);
+            if (guidePayload.getContents() != null && !guidePayload.getContents().isEmpty()) createBlock(guidePayload, guide);
 
         }
     }
