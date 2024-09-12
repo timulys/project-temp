@@ -313,6 +313,9 @@ public class GuideService {
         Set<Integer> keySet = requiredMap.keySet();
         Collection<Integer> required = requiredMap.values();
 
+        Set<Integer> visitedSet = new HashSet<>();
+        Set<Integer> recursionSet = new HashSet<>();
+
         //중복 체크
         if (!required.stream().filter(v -> Collections.frequency(required, v) > 1).collect(Collectors.toSet()).isEmpty()) {
             throw new IllegalArgumentException("requiredIds are not duplicated");
@@ -325,24 +328,62 @@ public class GuideService {
             if (val.equals(idx)) throw new IllegalArgumentException("requiredIds must be unique");
             //서로 참조
             if (keySet.contains(val) && requiredMap.get(val).equals(idx)) throw new IllegalArgumentException("requiredIds not reference each other");
+
+            //순환참조 체크 by dfs :: volka
+            if (hasCircularReference(idx, requiredMap, visitedSet, recursionSet)) throw new IllegalArgumentException("requiredIds can not be circular reference");
         }
     }
+
+    /**
+     * 순환참조 검증 dfs :: volka
+     * @param current
+     * @param requiredMap
+     * @param visitedSet
+     * @param recursionSet
+     * @return
+     */
+    private boolean hasCircularReference(Integer current, Map<Integer, Integer> requiredMap, Set<Integer> visitedSet, Set<Integer> recursionSet) {
+        if (recursionSet.contains(current)) return true;
+        if (visitedSet.contains(current)) return false;
+
+        visitedSet.add(current);
+        recursionSet.add(current);
+
+        Integer next = requiredMap.get(current);
+        if (next != null && hasCircularReference(next, requiredMap, visitedSet, recursionSet)) return true;
+
+        recursionSet.remove(current);
+
+        return false;
+    }
+
+    /**
+     * 가이드 선행블록 검증용 Map 생성
+     * @param guidePayload
+     * @return
+     */
+    private Map<Integer, Integer> createRequiredMap(GuidePayload guidePayload) {
+        Map<Integer, Integer> requiredMap = new HashMap<>();
+
+        Integer idx = 0;
+        for (GuidePayload.Content content : guidePayload.getContents()) {
+            if (content.getRequireId() != null) {
+                requiredMap.put(idx, content.getRequireId().intValue());
+            }
+
+            idx++;
+        }
+
+        return requiredMap;
+    }
+
 
     // guidePayload속 content를 guideBlock으로 데이터 저장
     private void createBlock(GuidePayload guidePayload, Guide guide) throws JsonProcessingException {
 
         guide.getBlockIds().clear();
-        Map<Integer, Integer> requireMap = new HashMap<>();
+        Map<Integer, Integer> requireMap = createRequiredMap(guidePayload);
         List<GuideBlock> requireGuideBlockList = new ArrayList<>();
-
-        Integer idx = 0;
-        for (GuidePayload.Content content : guidePayload.getContents()) {
-            if (content.getRequireId() != null) {
-                requireMap.put(idx, content.getRequireId().intValue());
-            }
-
-            idx++;
-        }
 
         validRequiredMap(requireMap);
 
