@@ -18,7 +18,6 @@ import javax.validation.constraints.Positive;
 
 import com.kep.portal.model.entity.issue.*;
 import com.kep.portal.service.forbidden.ForbiddenService;
-import com.kep.portal.service.statistics.StatisticsService;
 import org.springframework.data.domain.Example;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -56,11 +55,9 @@ import com.kep.portal.scheduler.TryAssignOpenedIssueJob;
 import com.kep.portal.service.assign.AssignProducer;
 import com.kep.portal.service.branch.BranchService;
 import com.kep.portal.service.channel.ChannelService;
-import com.kep.portal.service.customer.CustomerService;
 import com.kep.portal.service.customer.GuestService;
 import com.kep.portal.service.issue.IssueLogService;
 import com.kep.portal.service.issue.IssueService;
-import com.kep.portal.service.member.MemberService;
 import com.kep.portal.service.subject.IssueCategoryService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -206,7 +203,7 @@ public class EventByPlatformService {
 
 		// 카카오 상담톡인 경우, 봇 이력 수집
 		if (PlatformType.kakao_counsel_talk.equals(channel.getPlatform()) && modeProperty.getSaveBotHistoryWhenOpen()) {
-			relay(issue);
+			this.relay(issue);
 		}
 
 		// 소켓으로 이슈 전송
@@ -402,7 +399,7 @@ public class EventByPlatformService {
 				.member(Member.builder().id(portalProperty.getKakaoBotMemberId()).build()).channel(chatIssue.getChannel()).guest(chatIssue.getGuest()).customerId(chatIssue.getCustomerId()).askCount(0L)
 				.assignCount(0).created(chatIssue.getCreated().minusMinutes(1L)).modified(chatIssue.getModified().minusMinutes(1L)).statusModified(chatIssue.getStatusModified().minusMinutes(1L))
 				.firstAsked(chatIssue.getFirstAsked().minusMinutes(1L)).build();
-		botIssue = issueService.save(botIssue);
+
 
 		try {
 			// 봇 이력 요청 (platform -> kakao)
@@ -410,6 +407,13 @@ public class EventByPlatformService {
 
 			Long currentAskIssueLogId = null;
 			int issueLogCount = 0;
+
+			// Todo 실제 로직 확인 필요
+			if(issuePayloads.size() == 0 ){
+				return;
+			}
+
+			botIssue = issueService.save(botIssue);
 
 			// 대화 저장 (IssueLog)
 			for (IssuePayload issuePayload : issuePayloads) {

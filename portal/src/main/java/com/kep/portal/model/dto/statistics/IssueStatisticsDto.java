@@ -31,6 +31,9 @@ public class IssueStatisticsDto {
     @Positive
     private Long ing;
 
+    @Positive
+    private Long chat;
+
     private LocalDate from;
     private LocalDate to;
 }

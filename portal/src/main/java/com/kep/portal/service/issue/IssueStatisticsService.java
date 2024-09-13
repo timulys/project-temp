@@ -108,13 +108,23 @@ public class IssueStatisticsService {
                 .open(0L)
                 .ing(0L)
                 .close(0L)
+                .chat(0L)
                 .to(to)
                 .build();
 
         for (IssueStatisticsDto issueStatisticsDto : dtos){
             dto.setOpen(dto.getOpen() + issueStatisticsDto.getOpen());
-            dto.setIng(dto.getIng() + issueStatisticsDto.getIng());
+            dto.setIng(dto.getIng() + issueStatisticsDto.getIng() );
             dto.setClose(dto.getClose() + issueStatisticsDto.getClose());
+            // 채팅 유지의 경우 close 된 건 제외 요청 ( KICA-12 )
+            if( issueStatisticsDto.getIng() == 1L && issueStatisticsDto.getClose() == 1L ){
+                dto.setIng(dto.getIng() - issueStatisticsDto.getClose() );
+            }
+            // 채팅 상담건수의 경우 금일 기준으로 open or ing 한건만 표기 ( KICA-12 )
+            dto.setChat( dto.getChat() + ( issueStatisticsDto.getOpen() + issueStatisticsDto.getIng() ) );
+            if( issueStatisticsDto.getOpen() == 1L && issueStatisticsDto.getIng() == 1L ){
+                dto.setChat( dto.getChat() - 1L );
+            }
         }
         return dto;
     }
