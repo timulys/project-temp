@@ -176,10 +176,10 @@ public class IssueStatisticsService {
         List<IssueMemberStatisticsDto> memberStatisticsDtos = new ArrayList<>();
 
         boolean isMemberAssign = branch.getAssign().equals(WorkType.Cases.member);
-        boolean isWork = true;
-
         //근무 시간 예외 처리
-        isWork = workService.offDutyHours(branch);
+        boolean isWork = workService.offDutyHours(branch);
+        // 휴게 시간 예외 처리 추가 ( 기획자와 구두 논의 완료 ) ( 임시 추가 )
+        boolean isBreakTime = breakTimeService.inBreakTime();
 
         if(!isMemberAssign){
             //근무 (브랜치 근무시간 체크)
@@ -216,11 +216,13 @@ public class IssueStatisticsService {
                             , officeHours.getDayOfWeek());
                 }
             }
-            WorkType.OfficeHoursStatusType status =
-                    isOfficeHours ? WorkType.OfficeHoursStatusType.on : WorkType.OfficeHoursStatusType.off;
+            WorkType.OfficeHoursStatusType status = isOfficeHours ? WorkType.OfficeHoursStatusType.on : WorkType.OfficeHoursStatusType.off;
 
             //상담원 상태가 on 아니면 무조건 off
             if(!member.getStatus().equals(WorkType.OfficeHoursStatusType.on)){
+                status = WorkType.OfficeHoursStatusType.off;
+            }
+            if(isBreakTime){
                 status = WorkType.OfficeHoursStatusType.off;
             }
 

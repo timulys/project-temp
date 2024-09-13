@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.List;
+import static com.kep.portal.model.entity.issue.QIssue.issue;
 import static com.kep.portal.model.entity.statistics.QIssueStatistics.issueStatistics;
 
 @Slf4j
@@ -28,36 +29,32 @@ public class IssueStatisticsRepositoryImpl implements IssueStatisticsSearchRepos
 
     @Override
     public List<IssueMemberStatisticsDto> members(ZonedDateTime from, ZonedDateTime to, Long branchId, Long teamId) {
-        QIssue qIssue = new QIssue("issue");
-        BooleanBuilder whereBuilder = new BooleanBuilder();
-
-
         return queryFactory.select((Projections.fields(
                 IssueMemberStatisticsDto.class
-                ,qIssue.member.id.as("memberId")
+                ,issue.member.id.as("memberId")
                 ,new CaseBuilder()
-                        .when(qIssue.status.eq(IssueStatus.assign))
+                        .when(issue.status.in(IssueStatus.open , IssueStatus.assign))
                         .then(1L)
                         .otherwise(0L)
-                        .sum().as("wait")
+                        .sum().as("waiting")
                 ,new CaseBuilder()
-                        .when(qIssue.status.in(IssueStatus.ask , IssueStatus.reply))
+                        .when(issue.status.in(IssueStatus.ask , IssueStatus.reply))
                         .then(1L)
                         .otherwise(0L)
                         .sum().as("ing")
                 ,new CaseBuilder()
-                        .when(qIssue.status.eq(IssueStatus.urgent))
+                        .when(issue.status.eq(IssueStatus.urgent))
                         .then(1L)
                         .otherwise(0L)
                         .sum().as("delay")
                 ,new CaseBuilder()
-                        .when(qIssue.status.eq(IssueStatus.close))
+                        .when(issue.status.eq(IssueStatus.close))
                         .then(1L)
                         .otherwise(0L)
                         .sum().as("complete")
-        ))).from(qIssue)
-                .where(qIssue.branchId.eq(branchId).and(qIssue.modified.between(from , to)).and(whereBuilder))
-                .groupBy(qIssue.member.id)
+        ))).from(issue)
+                .where(issue.branchId.eq(branchId).and(issue.modified.between(from , to)))
+                .groupBy(issue.member.id)
                 .fetch();
 
     }
