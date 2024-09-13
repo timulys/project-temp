@@ -108,13 +108,23 @@ public class IssueStatisticsService {
                 .open(0L)
                 .ing(0L)
                 .close(0L)
+                .chat(0L)
                 .to(to)
                 .build();
 
         for (IssueStatisticsDto issueStatisticsDto : dtos){
             dto.setOpen(dto.getOpen() + issueStatisticsDto.getOpen());
-            dto.setIng(dto.getIng() + issueStatisticsDto.getIng());
+            dto.setIng(dto.getIng() + issueStatisticsDto.getIng() );
             dto.setClose(dto.getClose() + issueStatisticsDto.getClose());
+            // 채팅 유지의 경우 close 된 건 제외 요청 ( KICA-12 )
+            if( issueStatisticsDto.getIng() == 1L && issueStatisticsDto.getClose() == 1L ){
+                dto.setIng(dto.getIng() - issueStatisticsDto.getClose() );
+            }
+            // 채팅 상담건수의 경우 금일 기준으로 open or ing 한건만 표기 ( KICA-12 )
+            dto.setChat( dto.getChat() + ( issueStatisticsDto.getOpen() + issueStatisticsDto.getIng() ) );
+            if( issueStatisticsDto.getOpen() == 1L && issueStatisticsDto.getIng() == 1L ){
+                dto.setChat( dto.getChat() - 1L );
+            }
         }
         return dto;
     }
@@ -166,10 +176,10 @@ public class IssueStatisticsService {
         List<IssueMemberStatisticsDto> memberStatisticsDtos = new ArrayList<>();
 
         boolean isMemberAssign = branch.getAssign().equals(WorkType.Cases.member);
-        boolean isWork = true;
-
         //근무 시간 예외 처리
-        isWork = workService.offDutyHours(branch);
+        boolean isWork = workService.offDutyHours(branch);
+        // 휴게 시간 예외 처리 추가 ( 기획자와 구두 논의 완료 ) ( 임시 추가 )
+        boolean isBreakTime = breakTimeService.inBreakTime();
 
         if(!isMemberAssign){
             //근무 (브랜치 근무시간 체크)
@@ -206,11 +216,13 @@ public class IssueStatisticsService {
                             , officeHours.getDayOfWeek());
                 }
             }
-            WorkType.OfficeHoursStatusType status =
-                    isOfficeHours ? WorkType.OfficeHoursStatusType.on : WorkType.OfficeHoursStatusType.off;
+            WorkType.OfficeHoursStatusType status = isOfficeHours ? WorkType.OfficeHoursStatusType.on : WorkType.OfficeHoursStatusType.off;
 
             //상담원 상태가 on 아니면 무조건 off
             if(!member.getStatus().equals(WorkType.OfficeHoursStatusType.on)){
+                status = WorkType.OfficeHoursStatusType.off;
+            }
+            if(isBreakTime){
                 status = WorkType.OfficeHoursStatusType.off;
             }
 

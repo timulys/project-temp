@@ -20,6 +20,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.kep.portal.model.entity.customer.QGuest.guest;
 import static com.kep.portal.model.entity.issue.QIssue.issue;
 
 @Slf4j
@@ -104,33 +105,39 @@ public class ReplyStatusSearchRepositoryImpl implements ReplyStatusSearchReposit
     @Override
     public TodaySummaryDto findTodaySummary(ZonedDateTime start, ZonedDateTime end , Long branchId , Long teamId , Long memberId) {
 
-        QIssue qIssue = new QIssue("issue");
-        QIssueLog qIssueLog = new QIssueLog("issueLog");
 
         //고객수 , 진행 , 대기 , 지연
         TodaySummaryDto dto = queryFactory
                 .select(Projections.fields(
                         TodaySummaryDto.class,
-                        qIssue.count().as("guestCount")
+                        guest.userKey.countDistinct().as("guestCount")
                         , new CaseBuilder()
-                                .when(qIssue.status.in(IssueStatus.ask,IssueStatus.reply))
+                                .when(issue.status.in(IssueStatus.ask,IssueStatus.reply))
                                 .then(1L)
                                 .otherwise(0L)
                                 .sum().as("counselingCount")
                         , new CaseBuilder()
-                                .when(qIssue.status.in(IssueStatus.open,IssueStatus.assign))
+                                .when(issue.status.in(IssueStatus.open,IssueStatus.assign))
                                 .then(1L)
                                 .otherwise(0L)
                                 .sum().as("waitingCount")
                         , new CaseBuilder()
-                                .when(qIssue.status.eq(IssueStatus.urgent))
+                                .when(issue.status.eq(IssueStatus.urgent))
                                 .then(1L)
                                 .otherwise(0L)
                                 .sum().as("delayCount")
+                        , new CaseBuilder()
+                                .when(issue.status.eq(IssueStatus.close))
+                                .then(1L)
+                                .otherwise(0L)
+                                .sum().as("closedCount")
+
                 ))
-                .from(qIssue)
+                .from(issue)
+                    .innerJoin(guest)
+                    .on(guest.id.eq(issue.guest.id))
                 .where(
-                        qIssue.modified.between(start , end)
+                        issue.modified.between(start , end)
                         , branchIdEq(branchId)
                         , teamIdEq(teamId)
                         , memberIdEq(memberId)
@@ -141,6 +148,7 @@ public class ReplyStatusSearchRepositoryImpl implements ReplyStatusSearchReposit
             dto.setCounselingCount((dto.getCounselingCount() == null) ? 0L : dto.getCounselingCount());
             dto.setWaitingCount((dto.getWaitingCount() == null) ? 0L : dto.getWaitingCount());
             dto.setDelayCount((dto.getDelayCount() == null) ? 0L : dto.getDelayCount());
+            dto.setClosedCount((dto.getClosedCount() == null) ? 0L : dto.getClosedCount());
         }
 
         // todo 논의 필요 missing에 대한 로직 주석처리 ( 일단 주석처리 해놓긴했지만 논의 필요 )
@@ -173,21 +181,6 @@ public class ReplyStatusSearchRepositoryImpl implements ReplyStatusSearchReposit
             }
         }
         */
-
-        //종료
-        TodaySummaryDto closed = queryFactory.select(
-                Projections.fields(
-                        TodaySummaryDto.class
-                        ,qIssue.count().as("closedCount"))
-                ).from(qIssue)
-                .where(qIssue.closed.between(start , end)
-                        .and(qIssue.status.eq(IssueStatus.close))
-                        ,branchIdEq(branchId) , teamIdEq(teamId) , memberIdEq(memberId)
-                ).fetchOne();
-
-        if(!ObjectUtils.isEmpty(dto)){
-            dto.setClosedCount(ObjectUtils.isEmpty(closed) ? 0L : closed.getClosedCount());
-        }
 
         return dto;
     }
