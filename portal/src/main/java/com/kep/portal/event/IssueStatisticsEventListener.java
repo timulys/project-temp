@@ -60,22 +60,17 @@ public class IssueStatisticsEventListener {
                     issueStatisticsService.store(entity);
                 }
             }
-            if(!ObjectUtils.isEmpty(issue.getLastIssueLog())){
-                LocalDate latest = issue.getLastIssueLog().getCreated().toLocalDate();
-                if(latest.equals(localDate)){
-                    IssueStatistics issueIngEntity =
-                            issueStatisticsService.findByIssueStatusCreated(issue.getId() , IssueStatisticsStatus.ing , localDate);
-                    if(ObjectUtils.isEmpty(issueIngEntity)){
-                        issueStatisticsService.store(IssueStatistics.builder()
-                                .issueId(issue.getId())
-                                .branchId(issue.getBranchId())
-                                .teamId(issue.getTeamId())
-                                .memberId(issue.getMember().getId())
-                                .status(IssueStatisticsStatus.ing)
-                                .created(localDate)
-                                .build());
-                    }
-                }
+
+            IssueStatistics issueIngEntity = issueStatisticsService.findByIssueIdAndStatus(issue.getId() , IssueStatisticsStatus.ing);
+            if(ObjectUtils.isEmpty(issueIngEntity)){
+                issueStatisticsService.store(IssueStatistics.builder()
+                        .issueId(issue.getId())
+                        .branchId(issue.getBranchId())
+                        .teamId(issue.getTeamId())
+                        .memberId(issue.getMember().getId())
+                        .status(IssueStatisticsStatus.ing)
+                        .created(localDate)
+                        .build());
             }
         }
 
@@ -92,8 +87,9 @@ public class IssueStatisticsEventListener {
         }
 
 
+        /*
         if(issue.getStatus().equals(IssueStatus.ask) || issue.getStatus().equals(IssueStatus.reply)){
-            IssueStatistics entity = issueStatisticsService.findByIssueStatusCreated(issue.getId() , IssueStatisticsStatus.ing , localDate);
+            IssueStatistics entity = issueStatisticsService.findByIssueIdAndStatus(issue.getId() , IssueStatisticsStatus.ing );
             if(ObjectUtils.isEmpty(entity)){
                 issueStatisticsService.store(IssueStatistics.builder()
                     .issueId(issue.getId())
@@ -105,5 +101,7 @@ public class IssueStatisticsEventListener {
                 .build());
             }
         }
+        */
+
     }
 }
