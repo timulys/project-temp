@@ -31,10 +31,11 @@ public class WorkingAfterChatEndJob {
     /**
      todo : 확인 필요
      * 상담 진행 중인 이슈 종료 되는 부분 개선 -> 어떻게 할지 논의 필요
+     * 스케줄 시간은 23시로 합의 관련 jira : https://kko.to/6Le3d
      **/
     // 아래는 테스트 용도
     // @Scheduled(fixedDelay = 1000 * 30)
-    @Scheduled(cron = "0 0 18 * * ?")
+    @Scheduled(cron = "0 0 23 * * ?")
     @SchedulerLock(name = "WORKING_AFTER_CHAT_END"
             , lockAtLeastFor = "PT5S"
             , lockAtMostFor = "PT20S")
