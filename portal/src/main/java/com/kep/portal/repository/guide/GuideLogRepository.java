@@ -14,4 +14,6 @@ public interface GuideLogRepository extends JpaRepository<GuideLog, Long> {
     List<GuideLog> findByGuideIdAndIssueId(Long guideId, Long issueId);
 
     List<GuideLog> findByGuideIdAndIssueIdAndBlockId(Long guideId, Long issueId, Long id);
+
+    boolean existsByGuideIdAndIssueId(Long guideId, Long issueId);
 }
