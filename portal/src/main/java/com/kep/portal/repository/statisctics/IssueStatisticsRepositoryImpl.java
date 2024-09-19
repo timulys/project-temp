@@ -61,7 +61,6 @@ public class IssueStatisticsRepositoryImpl implements IssueStatisticsSearchRepos
 
     @Override
     public List<IssueStatisticsDto> search(LocalDate from , LocalDate to, Long branchId, Long teamId, Long memberId) {
-
         return queryFactory.select(
                 (Projections.fields(
                         IssueStatisticsDto.class
@@ -84,14 +83,52 @@ public class IssueStatisticsRepositoryImpl implements IssueStatisticsSearchRepos
                 ))
         ).from(issueStatistics)
                 .where(issueStatistics.created.between(from , to)
-                        .and(this.branchIdEq(branchId))
-                            .and(this.teamIdEq(teamId))
-                                .and(this.memberIdEq(memberId))
+                        .and( this.getIssueStatisticsConditions(branchId, teamId, memberId) )
                       )
                 .groupBy(issueStatistics.issueId)
                 .fetch();
     }
 
+    @Override
+    public IssueStatisticsDto searchAllPeriod(LocalDate from , LocalDate to, Long branchId, Long teamId, Long memberId) {
+        return queryFactory.select(
+                        (Projections.fields(
+                                IssueStatisticsDto.class
+                                ,new CaseBuilder()
+                                        .when(issueStatistics.status.eq(IssueStatisticsStatus.open))
+                                        .then(1L)
+                                        .otherwise(0L)
+                                        .sum().as("open")
+                                ,new CaseBuilder()
+                                        .when(issueStatistics.status.eq(IssueStatisticsStatus.ing))
+                                        .then(1L)
+                                        .otherwise(0L)
+                                        .sum().as("ing")
+                                ,new CaseBuilder()
+                                        .when(issueStatistics.status.eq(IssueStatisticsStatus.close))
+                                        .then(1L)
+                                        .otherwise(0L)
+                                        .sum().as("close")
+                                ,new CaseBuilder()
+                                        .when(issueStatistics.status.eq(IssueStatisticsStatus.close)
+                                                                    .and(issueStatistics.memberId.isNotNull())
+                                              )
+                                        .then(1L)
+                                        .otherwise(0L)
+                                        .sum().as("ingAfterClose")
+                        ))
+                ).from(issueStatistics)
+                .where(
+                        this.getIssueStatisticsConditions(branchId, teamId, memberId)
+                      )
+                .fetchOne();
+    }
+
+    private BooleanExpression getIssueStatisticsConditions(Long branchId , Long teamId , Long memberId){
+        return this.branchIdEq(branchId)
+                    .and(this.teamIdEq(teamId))
+                        .and(this.memberIdEq(memberId));
+    }
 
     private BooleanExpression branchIdEq(Long branchId) {
         return branchId != null ? issueStatistics.branchId.eq(branchId) : null;

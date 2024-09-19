@@ -12,12 +12,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.util.ObjectUtils;
-
 import javax.persistence.PostPersist;
 import javax.persistence.PostUpdate;
 import java.time.LocalDate;
-import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Objects;
+
 @Slf4j
 @Component
 public class IssueStatisticsEventListener {
@@ -84,7 +84,7 @@ public class IssueStatisticsEventListener {
                     .issueId(issue.getId())
                     .branchId(issue.getBranchId())
                     .teamId(issue.getTeamId())
-                    .memberId(issue.getMember().getId())
+                    .memberId(Objects.isNull(issue.getMember()) ? null : issue.getMember().getId())
                     .status(IssueStatisticsStatus.close)
                     .created(localDate)
                     .build();
