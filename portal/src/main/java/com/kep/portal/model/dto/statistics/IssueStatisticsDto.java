@@ -8,8 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import javax.validation.constraints.Positive;
 import java.time.LocalDate;
-import java.time.ZonedDateTime;
-import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -33,6 +31,9 @@ public class IssueStatisticsDto {
 
     @Positive
     private Long chat;
+
+    @Positive
+    private Long ingAfterClose;
 
     private LocalDate from;
     private LocalDate to;
