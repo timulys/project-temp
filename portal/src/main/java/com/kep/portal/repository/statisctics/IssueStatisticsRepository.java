@@ -13,5 +13,5 @@ public interface IssueStatisticsRepository extends JpaRepository<IssueStatistics
     List<IssueStatistics> findByIssueId(Long id);
 
 
-    IssueStatistics findByIssueIdAndStatusAndCreated(Long id , IssueStatisticsStatus status , LocalDate localDate);
+    IssueStatistics findByIssueIdAndStatus(Long id , IssueStatisticsStatus status);
 }
