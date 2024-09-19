@@ -102,8 +102,9 @@ public class IssueStatisticsService {
      * @return
      */
     public IssueStatisticsDto sum(@NotNull LocalDate from , @NotNull LocalDate to, Long branchId , Long teamId , Long memberId){
-        List<IssueStatisticsDto> dtos = this.lists(from , to , branchId , teamId , memberId);
-        IssueStatisticsDto dto = IssueStatisticsDto.builder()
+        List<IssueStatisticsDto> issueStatisticsDtoList = this.lists(from , to , branchId , teamId , memberId);
+        IssueStatisticsDto issueStatisticsDtoAllPeriod = this.searchAllPeriod(from , to , branchId , teamId , memberId);
+        IssueStatisticsDto resultIssueStatisticsDto = IssueStatisticsDto.builder()
                 .from(from)
                 .open(0L)
                 .ing(0L)
@@ -112,21 +113,20 @@ public class IssueStatisticsService {
                 .to(to)
                 .build();
 
-        for (IssueStatisticsDto issueStatisticsDto : dtos){
-            dto.setOpen(dto.getOpen() + issueStatisticsDto.getOpen());
-            dto.setIng(dto.getIng() + issueStatisticsDto.getIng() );
-            dto.setClose(dto.getClose() + issueStatisticsDto.getClose());
-            // 채팅 유지의 경우 close 된 건 제외 요청 ( KICA-12 )
-            if( issueStatisticsDto.getIng() == 1L && issueStatisticsDto.getClose() == 1L ){
-                dto.setIng(dto.getIng() - issueStatisticsDto.getClose() );
-            }
-            // 채팅 상담건수의 경우 금일 기준으로 open or ing 한건만 표기 ( KICA-12 )
-            dto.setChat( dto.getChat() + ( issueStatisticsDto.getOpen() + issueStatisticsDto.getIng() ) );
-            if( issueStatisticsDto.getOpen() == 1L && issueStatisticsDto.getIng() == 1L ){
-                dto.setChat( dto.getChat() - 1L );
-            }
+        for (IssueStatisticsDto issueStatisticsDto : issueStatisticsDtoList){
+            resultIssueStatisticsDto.setOpen(resultIssueStatisticsDto.getOpen() + issueStatisticsDto.getOpen());
+            resultIssueStatisticsDto.setClose(resultIssueStatisticsDto.getClose() + issueStatisticsDto.getClose());
         }
-        return dto;
+
+        // 관련 jira : KICA-12
+        // 1. 채팅 유지의 경우 close 된 건 제외 요청
+        // 2. 채팅 유지의 경우 금일 채팅 유지가 아닌 모든 채팅 유지를 보여주도록 수정
+        resultIssueStatisticsDto.setIng( ( issueStatisticsDtoAllPeriod.getIng() - issueStatisticsDtoAllPeriod.getIngAfterClose() ) );
+
+        // 전체 상담 건중에 close 안된 건들에 대한 count
+        resultIssueStatisticsDto.setChat( ( issueStatisticsDtoAllPeriod.getOpen() - issueStatisticsDtoAllPeriod.getClose() ) ) ;
+
+        return resultIssueStatisticsDto;
     }
 
     /**
@@ -260,5 +260,9 @@ public class IssueStatisticsService {
 
 
         return memberStatisticsDtos;
+    }
+
+    private IssueStatisticsDto searchAllPeriod(@NotNull LocalDate from , @NotNull LocalDate to, Long branchId , Long teamId , Long memberId){
+        return issueStatisticsRepository.searchAllPeriod(from , to , branchId , teamId , memberId);
     }
 }
