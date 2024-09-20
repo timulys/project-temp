@@ -245,8 +245,8 @@ VALUES (1, 'Y', '{
   "version" : "0.1",
   "chapters" : [ {
     "sections" : [ {
-      "type" : "platform_answer",
-      "data" : "off"
+      "type" : "text",
+      "data" : "죄송합니다. 현재 먼저 접수된 상담이 많아 채팅상담이 지연되고 있습니다. 잠시 후 다시 이용 부탁드립니다."
     } ]
   } ]
 }', 50, now(), 1, 'basic', 'N', '{
