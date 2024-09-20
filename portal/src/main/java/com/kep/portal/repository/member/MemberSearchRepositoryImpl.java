@@ -1,16 +1,18 @@
 package com.kep.portal.repository.member;
 
+import com.kep.core.model.dto.member.MemberDto;
+import com.kep.portal.model.dto.member.MemberSearchCondition;
+import com.kep.portal.model.entity.member.Member;
+import com.kep.portal.model.entity.member.QMember;
 import com.kep.portal.model.entity.member.QMemberRole;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.kep.portal.model.dto.member.MemberSearchCondition;
-import com.kep.portal.model.entity.member.Member;
-import com.kep.portal.model.entity.member.QMember;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -19,12 +21,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.util.ObjectUtils;
 
 import javax.validation.constraints.NotNull;
-
 import java.util.*;
 
 import static com.kep.portal.model.entity.member.QMember.member;
-import static com.kep.portal.model.entity.member.QMemberRole.memberRole;
 import static com.kep.portal.model.entity.privilege.QRoleMenu.roleMenu;
+import static com.kep.portal.model.entity.team.QTeam.team;
+import static com.kep.portal.model.entity.team.QTeamMember.teamMember;
 
 @Slf4j
 public class MemberSearchRepositoryImpl implements MemberSearchRepository {
@@ -57,6 +59,35 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
         }
 
         return new PageImpl<>(members, pageable, totalElements);
+    }
+
+
+    @Override
+    public List<MemberDto> findMemberUseTeamId(Long teamId) {
+        return queryFactory.select(
+                                        Projections.fields( MemberDto.class,
+                                                member.id.as("id"),
+                                                member.username.as("username"),
+                                                member.nickname.as("nickname"),
+                                                member.enabled.as("enabled"),
+                                                member.modifier.as("modifier"),
+                                                member.modified.as("modified"),
+                                                member.created.as("created"),
+                                                member.outsourcing.as("outsourcing"),
+                                                member.maxCounsel.as("maxCounsel"),
+                                                member.status.as("status"),
+                                                member.usedMessage.as("usedMessage")
+                                        )
+                                )
+                                .from(team)
+                                .innerJoin(teamMember)
+                                    .on(team.id.eq(teamMember.team.id))
+                                .innerJoin(member)
+                                    .on(teamMember.memberId.eq(member.id))
+                                .where(
+                                        this.teamIdEq(teamId)
+                                      )
+                                .fetch();
     }
 
     private Predicate[] getConditions(@NotNull MemberSearchCondition condition) {
@@ -109,6 +140,10 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
 
     private BooleanExpression managedEq(Boolean managed) {
         return managed != null ? member.managed.eq(managed) : null;
+    }
+
+    private BooleanExpression teamIdEq(Long teamId) {
+        return teamId != null ? team.id.eq(teamId) : null;
     }
 
     private OrderSpecifier[] getOrderSpecifiers(@NotNull Pageable pageable) {
