@@ -24,20 +24,20 @@ public class TeamSearchRepositoryImpl implements TeamSearchRepository  {
     public List<TeamDto> findTeamUseChannelId(Long channelId) {
         return queryFactory.select(
                                     Projections.fields( TeamDto.class,
-                                                        team.id.as("id"),
-                                                        team.name.as("name"),
-                                                        team.memberCount.as("memberCount"),
-                                                        team.modified.as("modified"),
-                                                        team.modifier.as("modifier")
+                                                        team.id,
+                                                        team.name,
+                                                        team.memberCount,
+                                                        team.modified,
+                                                        team.modifier
                                                        )
                             )
                             .from(channel)
                             .innerJoin(branchChannel)
-                                .on(channel.id.eq(branchChannel.channel.id))
+                                .on(channel.eq(branchChannel.channel))
                             .innerJoin(branchTeam)
-                                .on(branchChannel.branch.id.eq(branchTeam.branch.id))
+                                .on(branchChannel.branch.eq(branchTeam.branch))
                             .innerJoin(team)
-                                .on(branchTeam.team.id.eq(team.id))
+                                .on(branchTeam.team.eq(team))
                             .where(
                                     this.channelIdEq(channelId)
                                   )

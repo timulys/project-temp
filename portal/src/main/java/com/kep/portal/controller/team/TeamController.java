@@ -244,12 +244,12 @@ public class TeamController {
      * @return
      */
     @Tag(name = "팀 관리 API")
-    @Operation(summary = "채널 상담 배분 설정 조회", description = "채널ID를 사용한 상담 배분 설정의 상담원 조회(시스템 설정 > 상담 배분 설정 > 상담직원)")
-    @GetMapping(value = "/with-members/{id}")
+    @Operation(summary = "카테고리 상담 배분 지정 > 채널별 상담 직원 ", description = "채널ID를 사용한 상담 배분 설정의 상담원 조회(시스템 설정 > 상담 배분 설정 > 상담직원)")
+    @GetMapping(value = "/with-members/{channelId}")
     public ResponseEntity<ApiResult<List<TeamDto>>> getWithMembersUseChannelId(
-                @SortDefault.SortDefaults({@SortDefault(sort = {"id"}, direction = Sort.Direction.ASC)}) Pageable pageable,
+                @SortDefault.SortDefaults({@SortDefault(sort = {"channelId"}, direction = Sort.Direction.ASC)}) Pageable pageable,
                 @Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
-                @PathVariable(name = "id") @NotNull Long channelId
+                @PathVariable(name = "channelId") @NotNull Long channelId
         ) {
         log.info("TEAM, GET USE CHANNEL ID ");
         Page<TeamDto> teams = teamService.getBranchTeamMembers(pageable , channelId);

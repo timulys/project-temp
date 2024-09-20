@@ -65,28 +65,29 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
     @Override
     public List<MemberDto> findMemberUseTeamId(Long teamId) {
         return queryFactory.select(
-                                        Projections.fields( MemberDto.class,
-                                                member.id.as("id"),
-                                                member.username.as("username"),
-                                                member.nickname.as("nickname"),
-                                                member.enabled.as("enabled"),
-                                                member.modifier.as("modifier"),
-                                                member.modified.as("modified"),
-                                                member.created.as("created"),
-                                                member.outsourcing.as("outsourcing"),
-                                                member.maxCounsel.as("maxCounsel"),
-                                                member.status.as("status"),
-                                                member.usedMessage.as("usedMessage")
-                                        )
+                                    Projections.fields( MemberDto.class,
+                                                        member.id,
+                                                        member.username,
+                                                        member.nickname,
+                                                        member.enabled,
+                                                        member.modifier,
+                                                        member.modified,
+                                                        member.created,
+                                                        member.outsourcing,
+                                                        member.maxCounsel,
+                                                        member.status,
+                                                        member.usedMessage
+                                                      )
                                 )
                                 .from(team)
                                 .innerJoin(teamMember)
-                                    .on(team.id.eq(teamMember.team.id))
+                                    .on(team.eq(teamMember.team))
                                 .innerJoin(member)
                                     .on(teamMember.memberId.eq(member.id))
                                 .where(
                                         this.teamIdEq(teamId)
                                       )
+                                .orderBy(member.id.asc())
                                 .fetch();
     }
 
