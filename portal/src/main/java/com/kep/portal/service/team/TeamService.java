@@ -1,16 +1,14 @@
 package com.kep.portal.service.team;
 
 import com.kep.core.model.dto.branch.BranchTeamDto;
+import com.kep.core.model.dto.member.MemberDto;
 import com.kep.core.model.dto.team.TeamDto;
-import com.kep.core.model.exception.BizException;
 import com.kep.portal.model.dto.team.TeamMembersDto;
 import com.kep.portal.model.entity.branch.Branch;
-import com.kep.portal.model.entity.branch.BranchMapper;
 import com.kep.portal.model.entity.branch.BranchTeam;
 import com.kep.portal.model.entity.branch.BranchTeamMapper;
 import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.model.entity.member.MemberMapper;
-import com.kep.portal.model.entity.privilege.Level;
 import com.kep.portal.model.entity.team.Team;
 import com.kep.portal.model.entity.team.TeamMapper;
 import com.kep.portal.model.entity.team.TeamMember;
@@ -19,10 +17,12 @@ import com.kep.portal.repository.branch.BranchTeamRepository;
 import com.kep.portal.repository.member.MemberRepository;
 import com.kep.portal.repository.team.TeamMemberRepository;
 import com.kep.portal.repository.team.TeamRepository;
+import com.kep.portal.repository.team.TeamSearchRepository;
 import com.kep.portal.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -33,7 +33,10 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -69,8 +72,7 @@ public class TeamService {
     private BranchTeamMapper branchTeamMapper;
 
     @Resource
-    private BranchMapper branchMapper;
-
+    private TeamSearchRepository teamSearchRepository;
 
     @Nullable
     public Team findById(@NotNull @Positive Long id) {
@@ -336,6 +338,20 @@ public class TeamService {
             }
         }
         return deleted;
+    }
+
+
+    public Page<TeamDto> getBranchTeamMembers(@NotNull Pageable pageable, @NotNull Long channelId) {
+        return this.findBranchTeamMembersUseChannelId(pageable , channelId);
+    }
+
+    private  Page<TeamDto> findBranchTeamMembersUseChannelId(Pageable pageable , Long channelId) {
+        List<TeamDto> teamDtoList = teamSearchRepository.findTeamUseChannelId(channelId);
+        for(TeamDto teamDto  : teamDtoList ){
+            List<MemberDto> memberDtoList = memberRepository.findMemberUseTeamId(teamDto.getId());
+            teamDto.setMembers(memberDtoList);
+        }
+        return new PageImpl<>(teamDtoList, pageable, teamDtoList.size());
     }
 
 }

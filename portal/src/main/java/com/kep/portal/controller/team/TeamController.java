@@ -4,7 +4,6 @@ package com.kep.portal.controller.team;
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.branch.BranchTeamDto;
-import com.kep.core.model.dto.member.MemberDto;
 import com.kep.core.model.dto.team.TeamDto;
 import com.kep.core.model.exception.BizException;
 import com.kep.portal.service.team.TeamService;
@@ -17,7 +16,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -239,4 +237,23 @@ public class TeamController {
             return new ResponseEntity<>(response , HttpStatus.OK);
         }
     }
+
+    /**
+     * 신규 API 채널별 상담원 조회
+     * @param channelId
+     * @return
+     */
+    @Tag(name = "팀 관리 API")
+    @Operation(summary = "채널 상담 배분 설정 조회", description = "채널ID를 사용한 상담 배분 설정의 상담원 조회(시스템 설정 > 상담 배분 설정 > 상담직원)")
+    @GetMapping(value = "/with-members/{id}")
+    public ResponseEntity<ApiResult<List<TeamDto>>> getWithMembersUseChannelId(
+                @SortDefault.SortDefaults({@SortDefault(sort = {"id"}, direction = Sort.Direction.ASC)}) Pageable pageable,
+                @Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
+                @PathVariable(name = "id") @NotNull Long channelId
+        ) {
+        log.info("TEAM, GET USE CHANNEL ID ");
+        Page<TeamDto> teams = teamService.getBranchTeamMembers(pageable , channelId);
+        return response(teams, HttpStatus.OK);
+    }
+
 }
