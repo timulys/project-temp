@@ -21,19 +21,19 @@ public class IssueStatisticsDto {
     private IssueStatisticsStatus status;
 
     @Positive
-    private Long open;
+    private Long open = 0L;
 
     @Positive
-    private Long close;
+    private Long close = 0L;
 
     @Positive
-    private Long ing;
+    private Long ing = 0L;
 
     @Positive
-    private Long chat;
+    private Long chat = 0L;
 
     @Positive
-    private Long ingAfterClose;
+    private Long ingAfterClose = 0L;
 
     private LocalDate from;
     private LocalDate to;
