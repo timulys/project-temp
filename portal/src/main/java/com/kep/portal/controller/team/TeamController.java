@@ -247,13 +247,14 @@ public class TeamController {
     @Operation(summary = "카테고리 상담 배분 지정 > 채널별 상담 직원 ", description = "채널ID를 사용한 상담 배분 설정의 상담원 조회(시스템 설정 > 상담 배분 설정 > 상담직원)")
     @GetMapping(value = "/with-members/{channelId}")
     public ResponseEntity<ApiResult<List<TeamDto>>> getWithMembersUseChannelId(
-                @SortDefault.SortDefaults({@SortDefault(sort = {"channelId"}, direction = Sort.Direction.ASC)}) Pageable pageable,
                 @Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
                 @PathVariable(name = "channelId") @NotNull Long channelId
         ) {
         log.info("TEAM, GET USE CHANNEL ID ");
-        Page<TeamDto> teams = teamService.getBranchTeamMembers(pageable , channelId);
-        return response(teams, HttpStatus.OK);
+        ApiResult<List<TeamDto>> response = ApiResult.<List<TeamDto>>builder().code(ApiResultCode.succeed)
+                                                                              .payload( teamService.getBranchTeamMembers(channelId) )
+                                                                              .build();
+        return new ResponseEntity<>(response , HttpStatus.OK);
     }
 
 }

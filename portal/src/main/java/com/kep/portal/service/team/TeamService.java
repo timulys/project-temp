@@ -341,17 +341,17 @@ public class TeamService {
     }
 
 
-    public Page<TeamDto> getBranchTeamMembers(@NotNull Pageable pageable, @NotNull Long channelId) {
-        return this.findBranchTeamMembersUseChannelId(pageable , channelId);
+    public List<TeamDto> getBranchTeamMembers(@NotNull Long channelId) {
+        return this.findBranchTeamMembersUseChannelId(channelId);
     }
 
-    private  Page<TeamDto> findBranchTeamMembersUseChannelId(Pageable pageable , Long channelId) {
+    private  List<TeamDto> findBranchTeamMembersUseChannelId(Long channelId) {
         List<TeamDto> teamDtoList = teamSearchRepository.findTeamUseChannelId(channelId);
         for(TeamDto teamDto  : teamDtoList ){
             List<MemberDto> memberDtoList = memberRepository.findMemberUseTeamId(teamDto.getId());
             teamDto.setMembers(memberDtoList);
         }
-        return new PageImpl<>(teamDtoList, pageable, teamDtoList.size());
+        return teamDtoList;
     }
 
 }
