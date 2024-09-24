@@ -3,7 +3,6 @@ package com.kep.portal.repository.member;
 import com.kep.core.model.dto.member.MemberDto;
 import com.kep.portal.model.dto.member.MemberSearchCondition;
 import com.kep.portal.model.entity.member.Member;
-import com.kep.portal.model.entity.member.QMember;
 import com.kep.portal.model.entity.member.QMemberRole;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -40,17 +39,14 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
     @Override
     public Page<Member> search(@NotNull MemberSearchCondition condition, @NotNull Pageable pageable) {
 
-        // TODO: member1
-        QMember qMember = new QMember("member1");
-
-        Long totalElements = queryFactory.select(qMember.count())
-                .from(qMember)
+        Long totalElements = queryFactory.select(member.count())
+                .from(member)
                 .where(getConditions(condition))
                 .fetchFirst();
 
         List<Member> members = Collections.emptyList();
         if (totalElements > 0) {
-            members = queryFactory.selectFrom(qMember)
+            members = queryFactory.selectFrom(member)
                     .where(getConditions(condition))
                     .orderBy(getOrderSpecifiers(pageable))
                     .offset(pageable.getOffset())

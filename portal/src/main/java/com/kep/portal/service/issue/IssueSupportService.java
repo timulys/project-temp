@@ -870,7 +870,7 @@ public class IssueSupportService {
 			if (!this.storeIssueSupportValCheckUseIssue(memberId, issue) ) {
 				continue;
 			}
-			IssueSupportHistory issueSupportHistory = this.storeIssueSupportAndResultIssueSupportHistory(issue , IssueSupportChangeType.select , memberId);
+			IssueSupportHistory issueSupportHistory = this.storeIssueSupportAndResultIssueSupportHistory(issue , IssueSupportChangeType.select , memberId , null);
 			eventByManagerService.assignByMember(issueId , memberId , issueSupportHistory  );
 		}
 	}
@@ -885,12 +885,12 @@ public class IssueSupportService {
 			if (!this.storeIssueSupportValCheckUseIssue(issueId, issue) ) {
 				continue;
 			}
-			IssueSupportHistory issueSupportHistory = this.storeIssueSupportAndResultIssueSupportHistory(issue, IssueSupportChangeType.auto , null );
+			IssueSupportHistory issueSupportHistory = this.storeIssueSupportAndResultIssueSupportHistory(issue, IssueSupportChangeType.auto , null  , branchId);
 			eventByManagerService.assignByBranch(issueId , branchId , issueSupportHistory);
 		}
 	}
 
-	public void assignByCategory(@NotNull List<Long> issueIds, @NotNull @Positive Long issueCategoryId) {
+	public void assignByCategory(@NotNull List<Long> issueIds, @NotNull @Positive Long issueCategoryId , @Positive Long issueBranchId) {
 
 		IssueCategory issueCategory = issueCategoryService.findById(issueCategoryId);
 		Assert.notNull(issueCategory, "issueCategory is not found");
@@ -901,13 +901,13 @@ public class IssueSupportService {
 			if (!this.storeIssueSupportValCheckUseIssue(issueId, issue) ) {
 				continue;
 			}
-			IssueSupportHistory issueSupportHistory = this.storeIssueSupportAndResultIssueSupportHistory(issue , IssueSupportChangeType.auto , null);
+			IssueSupportHistory issueSupportHistory = this.storeIssueSupportAndResultIssueSupportHistory(issue , IssueSupportChangeType.auto , null , issueBranchId);
 			eventByManagerService.assignByCategory(issueId , issueCategoryId , issueSupportHistory );
 		}
 	}
 
 
-	public IssueSupportHistory storeIssueSupportAndResultIssueSupportHistory(@NotNull Issue issue , @NotNull IssueSupportChangeType issueSupportChangeType , Long selectMemberId )  {
+	public IssueSupportHistory storeIssueSupportAndResultIssueSupportHistory(@NotNull Issue issue , @NotNull IssueSupportChangeType issueSupportChangeType , Long memberId  , Long branchId )  {
 
 		IssueSupport issueSupport = IssueSupport.builder().answerer(property.getSystemMemberId())
 														  .changeType(issueSupportChangeType)
@@ -918,7 +918,8 @@ public class IssueSupportService {
 														  .questionModified(ZonedDateTime.now())
 														  .creator(securityUtils.getMemberId())
 														  .created(ZonedDateTime.now())
-														  .selectMemberId(selectMemberId)
+														  .selectMemberId(memberId)
+														  .branchId(branchId)
 														  .status(IssueSupportStatus.auto)
 														  .build();
 		// 지원 요청 데이터 저장

@@ -58,14 +58,14 @@ public class EventByManagerController {
 		log.info("EVENT BY MANAGER, ASSIGN, ISSUES: {}, MEMBER: {}, BRANCH: {}, CATEGORY: {}",
 				issueIds, memberId, branchId, issueCategoryId);
 
-
 		if (!ObjectUtils.isEmpty(memberId)) {
 			issueSupportService.assignByMember(issueIds, memberId);
+		}  else if (!ObjectUtils.isEmpty(issueCategoryId)) {
+			issueSupportService.assignByCategory(issueIds, issueCategoryId , branchId);
 		} else if (!ObjectUtils.isEmpty(branchId)) {
 			issueSupportService.assignByBranch(issueIds, branchId);
-		} else if (!ObjectUtils.isEmpty(issueCategoryId)) {
-			issueSupportService.assignByCategory(issueIds, issueCategoryId);
-		} else {
+		}
+		else {
 			log.error("EVENT BY MANAGER, ASSIGN, ASSIGN OBJECT IS NULL");
 			return new ResponseEntity<>(new ApiResult<>(ApiResultCode.failed), HttpStatus.NOT_ACCEPTABLE);
 		}
