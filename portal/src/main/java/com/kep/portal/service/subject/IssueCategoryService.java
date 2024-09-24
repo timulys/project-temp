@@ -329,21 +329,6 @@ public class IssueCategoryService {
         return legacyClient.getBnkCategoryInfo(dto);
     }
 
-    /**
-     * 이슈(상담) 카테고리 뎁스 설정 (신규) 20240718 volka
-     * @param channelId
-     * @param maxDepth
-     * @return
-     */
-    public Integer setCategoryMaxDepth(Long channelId, Integer maxDepth) {
-        ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId)
-                .orElseThrow(() -> new BizException("not exists channel"));
-        Assert.isTrue(channelEnv.getMaxIssueCategoryDepth() == 0, "already setup issue category depth");
-
-        channelEnv.setMaxIssueCategoryDepth(maxDepth);
-        return maxDepth;
-    }
-
 
 
 //    private void delete(List<Long> deleteIds, List<IssueCategory> entities, Map<Long, IssueCategory> entityMap) {
@@ -386,6 +371,7 @@ public class IssueCategoryService {
 //    }
 
 
+
     /**
      * 상담 카테고리 저장 (신규) 20240718 volka
      * TODO :: 공통팝업 협의 후 소스 정리
@@ -393,50 +379,83 @@ public class IssueCategoryService {
      * @param issueCategorySetting
      * @return
      */
-    public String saveIssueCategorys(IssueCategorySetting issueCategorySetting) {
+    public String saveIssueCategories(IssueCategorySetting issueCategorySetting) {
 
         Long channelId = issueCategorySetting.getChannelId();
-        if (!channelRepository.existsById(channelId)) throw new BizException("not exist channel");
 
-        List<IssueCategorySaveDto> stores = issueCategorySetting.getIssueCategories();
-//        List<Long> deleteIds = issueCategorySetting.getDeleteIds();
+        ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId).orElseThrow(() -> new BizException("not exist channel"));
+        if (channelEnv.getMaxIssueCategoryDepth().equals(0)) throw new IllegalStateException("Issue Category is not initialized");
+
+        Integer maxDepth = channelEnv.getMaxIssueCategoryDepth();
+
+        List<IssueCategoryTreeDto> stores = issueCategorySetting.getIssueCategories();
+//        List<Long> unableIds = issueCategorySetting.getUnableIssueCategoryIds();
+
 
         List<IssueCategory> entities = issueCategoryRepository.findAllByChannelId(issueCategorySetting.getChannelId());
 
-        Map<Integer, List<IssueCategory>> depthMap =  entities.stream().collect(Collectors.groupingBy(IssueCategory::getDepth));
+        if (maxDepth > 1) {
+            Map<IssueCategory, List<IssueCategory>> depthMap =  entities.stream()
+                    .filter(item -> item.getDepth() > 1)
+                    .collect(Collectors.groupingBy(IssueCategory::getParent));
+        }
+
+
 
         Map<Long, IssueCategory> issueCategoryMap = entities.stream()
                 .collect(Collectors.toMap(IssueCategory::getId, item -> item));
 
 
-        if (stores != null && !stores.isEmpty()) {
-
-            IssueCategory entity = null;
-
-            for (IssueCategorySaveDto store : stores) {
-                entity = issueCategoryMap.get(store.getCategoryId());
-
-                if (entity == null) { //save
-                    IssueCategory newEntity = new IssueCategory();
-                    newEntity.setName(store.getName());
-                    newEntity.setEnabled(store.getEnabled());
-                    newEntity.setDepth(store.getDepth());
-                    newEntity.setChannelId(channelId);
-                    newEntity.setParent(store.getParentId() == null ? null : issueCategoryMap.get(store.getParentId()));
-                    newEntity.setModifier(securityUtils.getMemberId());
-                    newEntity.setModified(ZonedDateTime.now());
-                } else { //update
-                    entity.setName(store.getName());
-                    entity.setEnabled(store.getEnabled());
-                    entity.setExposed(store.getExposed());
-                    entity.setSort(store.getSort());
-                    entity.setModifier(securityUtils.getMemberId());
-                    entity.setModified(ZonedDateTime.now());
-                }
-            }
-        }
 
         return ApiResultCode.succeed.name();
     }
 
+    private List<IssueCategoryTreeDto> createCategoryTree(List<IssueCategory> issueCategories, Integer maxDepth) {
+
+        List<IssueCategoryTreeDto> dtoList = issueCategories.stream()
+                .map(IssueCategoryTreeDto::of)
+                .collect(Collectors.toList());
+
+
+        if (maxDepth > 1) {
+            Map<Integer, List<IssueCategoryTreeDto>> depthMap = dtoList.stream().collect(Collectors.groupingBy(IssueCategoryTreeDto::getDepth));
+            Map<Long, IssueCategoryTreeDto> dtoMap = dtoList.stream().collect(Collectors.toMap(IssueCategoryTreeDto::getIssueCategoryId, item -> item));
+
+            Long parentId = null;
+            List<IssueCategoryTreeDto> depthList = null;
+            IssueCategoryTreeDto categoryTreeDto = null;
+
+            for (Integer i = maxDepth; i > 1; i--) {
+                depthList = depthMap.get(i);
+
+                for (IssueCategoryTreeDto issueCategoryTreeDto : depthList) {
+                    parentId = issueCategoryTreeDto.getParentId();
+                    categoryTreeDto = dtoMap.get(parentId);
+
+                    if (issueCategoryTreeDto.getParentId() != null && categoryTreeDto != null) {
+                        dtoMap.get(parentId).getChildren().add(issueCategoryTreeDto);
+                    }
+                }
+            }
+
+            return depthMap.get(1);
+        } else {
+            return dtoList;
+        }
+    }
+
+    /**
+     * 채널별 상담 카테고리 전체 조회 (Tree구조)
+     * @param channelId
+     * @return
+     */
+    public List<IssueCategoryTreeDto> getAllCategoriesByChannelId(Long channelId) {
+        ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId).orElseThrow(() -> new BizException("not exist channel"));
+        if (channelEnv.getMaxIssueCategoryDepth().equals(0)) return Collections.emptyList();
+
+        List<IssueCategory> issueCategories = issueCategoryRepository.findAllByChannelId(channelId);
+        if (issueCategories.isEmpty()) return Collections.emptyList();
+
+        return createCategoryTree(issueCategories, channelEnv.getMaxIssueCategoryDepth());
+    }
 }

@@ -31,4 +31,6 @@ public interface GuideCategoryRepository extends JpaRepository<GuideCategory, Lo
 
 
     List<GuideCategory> findByBranchIdAndDepthAndIsOpenTrue(Long branchId, Integer depth);
+
+    List<GuideCategory> findByBranchIdAndDepth(Long branchId, Integer depth);
 }

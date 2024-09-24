@@ -4,10 +4,7 @@ import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.legacy.LegacyBnkCategoryDto;
 import com.kep.core.model.dto.subject.IssueCategoryBasicDto;
-import com.kep.portal.model.dto.subject.IssueCategorySetting;
-import com.kep.portal.model.dto.subject.IssueCategoryChildrenDto;
-import com.kep.portal.model.dto.subject.IssueCategoryStoreDto;
-import com.kep.portal.model.dto.subject.IssueCategoryWithChannelDto;
+import com.kep.portal.model.dto.subject.*;
 import com.kep.portal.service.subject.IssueCategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,10 +14,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
@@ -30,6 +29,7 @@ import java.util.List;
  * 상담 관리, 상담 진행 목록, SB-CA-P01
  */
 @Tag(name = "이슈 카테고리 API", description = "/api/v1/issue/category")
+@Validated
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/issue/category")
@@ -115,6 +115,25 @@ public class IssueCategoryController {
 		ApiResult<List<IssueCategoryBasicDto>> response = ApiResult.<List<IssueCategoryBasicDto>>builder()
 				.code(ApiResultCode.succeed)
 				.payload(issueCategories)
+				.build();
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+
+	@Tag(name = "이슈 카테고리 API")
+	@Operation(summary = "이슈 카테고리 목록 조회")
+	@GetMapping("/{channel_id}")
+	public ResponseEntity<ApiResult<List<IssueCategoryTreeDto>>> getCategoryTree(
+			@Parameter(description = "채널 아이디", required = true, in = ParameterIn.PATH)
+			@PathVariable("channel_id") Long channelId
+	) {
+		log.info("ISSUE CATEGORY, GET, CHANNEL: {}", channelId);
+
+		List<IssueCategoryTreeDto> results = issueCategoryService.getAllCategoriesByChannelId(channelId);
+
+		ApiResult<List<IssueCategoryTreeDto>> response = ApiResult.<List<IssueCategoryTreeDto>>builder()
+				.code(ApiResultCode.succeed)
+				.payload(results)
 				.build();
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
@@ -270,36 +289,12 @@ public class IssueCategoryController {
 	}
 
 
-	/**
-	 * 추가 20240718 volka
-	 * @param channelId
-	 * @param maxDepth
-	 * @return
-	 */
-	@Tag(name = "이슈 카테고리 API")
-	@Operation(summary = "이슈 카테고리 단계(뎁스) 설정")
-	@PostMapping("/depth/{channel_id}/{max_depth}")
-	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN')") //FIXME :: 권한 코드 맞는지 체크 필요 20240717 volka
-	public ResponseEntity<ApiResult<Integer>> setCategoryDepth(
-			@Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
-			@PositiveOrZero @PathVariable("channel_id") Long channelId
-			, @Parameter(description = "뎁스", in = ParameterIn.PATH, required = true)
-			@PositiveOrZero @PathVariable("max_depth") Integer maxDepth
-	) {
-		ApiResult<Integer> result = ApiResult.<Integer>builder()
-				.code(ApiResultCode.succeed)
-				.payload(issueCategoryService.setCategoryMaxDepth(channelId, maxDepth))
-				.build();
-
-		return new ResponseEntity<>(result, HttpStatus.OK);
-	}
-
 	@Tag(name = "이슈 카테고리 API")
 	@Operation(summary = "이슈 카테고리 저장(신규)")
 	@PostMapping("/list")
-	public ResponseEntity<ApiResult<String>> saveIssueCategorys(@Valid @RequestBody IssueCategorySetting issueCategorySetting) {
+	public ResponseEntity<ApiResult<String>> saveIssueCategories(@Valid @RequestBody IssueCategorySetting issueCategorySetting) {
 
-		String result = issueCategoryService.saveIssueCategorys(issueCategorySetting);
+		String result = issueCategoryService.saveIssueCategories(issueCategorySetting);
 
 		ApiResult<String> response = ApiResult.<String>builder()
 				.code(ApiResultCode.succeed)
