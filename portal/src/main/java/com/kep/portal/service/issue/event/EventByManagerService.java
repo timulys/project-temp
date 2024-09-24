@@ -1,37 +1,22 @@
 package com.kep.portal.service.issue.event;
 
 import com.kep.core.model.dto.channel.ChannelEnvDto;
-import com.kep.core.model.dto.issue.IssueCloseType;
-import com.kep.core.model.dto.issue.IssueDto;
-import com.kep.core.model.dto.issue.IssueLogDto;
 import com.kep.core.model.dto.issue.IssueStatus;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
-import com.kep.portal.client.PlatformClient;
-import com.kep.portal.config.property.SocketProperty;
-import com.kep.portal.model.entity.branch.Branch;
-import com.kep.portal.model.entity.issue.*;
-import com.kep.portal.model.entity.member.Member;
-import com.kep.portal.model.entity.subject.IssueCategory;
+import com.kep.portal.model.entity.issue.Issue;
+import com.kep.portal.model.entity.issue.IssueAssign;
+import com.kep.portal.model.entity.issue.IssueSupportHistory;
 import com.kep.portal.service.assign.AssignProducer;
-import com.kep.portal.service.branch.BranchService;
 import com.kep.portal.service.channel.ChannelEnvService;
-import com.kep.portal.service.issue.IssueLogService;
 import com.kep.portal.service.issue.IssueService;
-import com.kep.portal.service.member.MemberService;
-import com.kep.portal.service.subject.IssueCategoryService;
-import com.kep.portal.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -49,64 +34,48 @@ public class EventByManagerService {
 	@Resource
 	private AssignProducer assignProducer;
 	@Resource
-	private MemberService memberService;
-	@Resource
-	private BranchService branchService;
-	@Resource
 	private IssueService issueService;
-	@Resource
-	private IssueCategoryService issueCategoryService;
 	@Resource
 	private EventBySystemService eventBySystemService;
 	@Resource
 	private ChannelEnvService channelEnvService;
 
-	public void assignByMember(@NotNull List<Long> issueIds, @NotNull @Positive Long memberId, Map<String, Object> options) {
 
-		Member member = memberService.findById(memberId);
-		Assert.notNull(member, "member is not found");
-		Assert.isTrue(member.getEnabled(), "member is disabled");
-
-		for (Long issueId : issueIds) {
+	public void assignByMember(@NotNull Long issueId, @NotNull @Positive Long memberId, IssueSupportHistory issueSupportHistory) {
 			IssueAssign issueAssign = IssueAssign.builder()
-					.id(issueId)
-					.memberId(memberId)
-					.build();
+												 .id(issueId)
+					 							 .memberId(memberId)
+												 .issueSupportYn(true)
+												 .issueSupport(issueSupportHistory.getIssueSupport())
+												 .issueSupportHistory(issueSupportHistory)
+												 .build();
 			assignProducer.sendMessage(issueAssign);
 			// TODO: 로그 (배정 변경)
-		}
 	}
 
-	public void assignByBranch(@NotNull List<Long> issueIds, @NotNull @Positive Long branchId, Map<String, Object> options) {
 
-		Branch branch = branchService.findById(branchId);
-		Assert.notNull(branch, "branch is not found");
-		Assert.isTrue(branch.getEnabled(), "branch is disabled");
-
-		for (Long issueId : issueIds) {
-			IssueAssign issueAssign = IssueAssign.builder()
-					.id(issueId)
-					.branchId(branchId)
-					.build();
-			assignProducer.sendMessage(issueAssign);
-			// TODO: 로그 (배정 변경)
-		}
+	public void assignByBranch(@NotNull Long issueId, @NotNull @Positive Long branchId, IssueSupportHistory issueSupportHistory) {
+		IssueAssign issueAssign = IssueAssign.builder()
+											 .id(issueId)
+											 .branchId(branchId)
+											 .issueSupportYn(true)
+											 .issueSupport(issueSupportHistory.getIssueSupport())
+											 .issueSupportHistory(issueSupportHistory)
+											 .build();
+		assignProducer.sendMessage(issueAssign);
+		// TODO: 로그 (배정 변경)
 	}
 
-	public void assignByCategory(@NotNull List<Long> issueIds, @NotNull @Positive Long issueCategoryId, Map<String, Object> options) {
-
-		IssueCategory issueCategory = issueCategoryService.findById(issueCategoryId);
-		Assert.notNull(issueCategory, "issueCategory is not found");
-		Assert.isTrue(issueCategory.getEnabled(), "issueCategory is disabled");
-
-		for (Long issueId : issueIds) {
-			IssueAssign issueAssign = IssueAssign.builder()
-					.id(issueId)
-					.issueCategoryId(issueCategoryId)
-					.build();
-			assignProducer.sendMessage(issueAssign);
-			// TODO: 로그 (배정 변경)
-		}
+	public void assignByCategory(@NotNull Long issueId, @NotNull @Positive Long issueCategoryId, IssueSupportHistory issueSupportHistory )  {
+		IssueAssign issueAssign = IssueAssign.builder()
+											 .id(issueId)
+											 .issueSupportYn(true)
+											 .issueSupport(issueSupportHistory.getIssueSupport())
+											 .issueSupportHistory(issueSupportHistory)
+											 .issueCategoryId(issueCategoryId)
+											 .build();
+		assignProducer.sendMessage(issueAssign);
+		// TODO: 로그 (배정 변경)
 	}
 
 	public void close(@NotNull List<Long> issueIds, Map<String, Object> options) throws Exception {
