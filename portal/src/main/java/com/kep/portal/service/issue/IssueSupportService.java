@@ -43,6 +43,7 @@ import com.kep.portal.service.assign.AssignProducer;
 import com.kep.portal.service.branch.BranchService;
 import com.kep.portal.service.channel.ChannelService;
 import com.kep.portal.service.issue.event.EventByManagerService;
+import com.kep.portal.service.member.MemberService;
 import com.kep.portal.service.notification.NotificationService;
 import com.kep.portal.service.subject.IssueCategoryService;
 import com.kep.portal.service.work.OfficeHoursService;
@@ -162,6 +163,9 @@ public class IssueSupportService {
 
 	@Resource
 	private IssueMemoService issueMemoService;
+
+	@Resource
+	private MemberService memberService;
 
 	public IssueSupport save(@NotNull @Valid IssueSupport entity) {
 		return issueSupportRepository.save(entity);
@@ -851,4 +855,96 @@ public class IssueSupportService {
 		return "[" + branchDto.getName() + "/" + channelDto.getName() + "] " + issueCategoryDto.getPath().get(0).getName() + ">" + issueCategoryDto.getPath().get(1).getName() + ">"
 				+ issueCategoryDto.getPath().get(2).getName();
 	}
+
+
+	public void assignByMember(@NotNull List<Long> issueIds, @NotNull @Positive Long memberId) throws Exception {
+		Member member = memberService.findById(memberId);
+		Assert.notNull(member, "member is not found");
+		Assert.isTrue(member.getEnabled(), "member is disabled");
+
+		for (Long issueId : issueIds) {
+			Issue issue = issueService.findById(issueId);
+			if(!this.isWorkingMember(memberId)){
+				continue;
+			}
+			if (!this.storeIssueSupportValCheckUseIssue(memberId, issue) ) {
+				continue;
+			}
+			IssueSupportHistory issueSupportHistory = this.storeIssueSupportAndResultIssueSupportHistory(issue , IssueSupportChangeType.select , memberId);
+			eventByManagerService.assignByMember(issueId , memberId , issueSupportHistory  );
+		}
+	}
+
+	public void assignByBranch(@NotNull List<Long> issueIds, @NotNull @Positive Long branchId) {
+		Branch branch = branchService.findById(branchId);
+		Assert.notNull(branch, "branch is not found");
+		Assert.isTrue(branch.getEnabled(), "branch is disabled");
+
+		for (Long issueId : issueIds) {
+			Issue issue = issueService.findById(issueId);
+			if (!this.storeIssueSupportValCheckUseIssue(issueId, issue) ) {
+				continue;
+			}
+			IssueSupportHistory issueSupportHistory = this.storeIssueSupportAndResultIssueSupportHistory(issue, IssueSupportChangeType.auto , null );
+			eventByManagerService.assignByBranch(issueId , branchId , issueSupportHistory);
+		}
+	}
+
+	public void assignByCategory(@NotNull List<Long> issueIds, @NotNull @Positive Long issueCategoryId) {
+
+		IssueCategory issueCategory = issueCategoryService.findById(issueCategoryId);
+		Assert.notNull(issueCategory, "issueCategory is not found");
+		Assert.isTrue(issueCategory.getEnabled(), "issueCategory is disabled");
+
+		for (Long issueId : issueIds) {
+			Issue issue = issueService.findById(issueId);
+			if (!this.storeIssueSupportValCheckUseIssue(issueId, issue) ) {
+				continue;
+			}
+			IssueSupportHistory issueSupportHistory = this.storeIssueSupportAndResultIssueSupportHistory(issue , IssueSupportChangeType.auto , null);
+			eventByManagerService.assignByCategory(issueId , issueCategoryId , issueSupportHistory );
+		}
+	}
+
+
+	public IssueSupportHistory storeIssueSupportAndResultIssueSupportHistory(@NotNull Issue issue , @NotNull IssueSupportChangeType issueSupportChangeType , Long selectMemberId )  {
+
+		IssueSupport issueSupport = IssueSupport.builder().answerer(property.getSystemMemberId())
+														  .changeType(issueSupportChangeType)
+														  .type(IssueSupportType.change)
+														  .issue(issue)
+														  .answerModified(ZonedDateTime.now())
+														  .questioner(issue.getMember().getId())
+														  .questionModified(ZonedDateTime.now())
+														  .creator(securityUtils.getMemberId())
+														  .created(ZonedDateTime.now())
+														  .selectMemberId(selectMemberId)
+														  .status(IssueSupportStatus.auto)
+														  .build();
+		// 지원 요청 데이터 저장
+		issueSupportRepository.save(issueSupport);
+
+		// 전환 자동 승인 데이터 생성
+		return IssueSupportHistory.builder().issueSupport(issueSupport)
+									 .issue(issueSupport.getIssue())
+							         .type(issueSupport.getType())
+							         .changeType(issueSupport.getChangeType())
+									 .status(IssueSupportStatus.auto).build();
+	}
+
+	private boolean storeIssueSupportValCheckUseIssue(Long memberId, Issue issue) {
+		if(Objects.isNull(issue)){
+			return false;
+		}
+
+		if(Objects.isNull(issue.getMember())){
+			return false;
+		}
+
+		if( issue.getMember().getId() == memberId){
+			return false;
+		}
+		return true;
+	}
+
 }

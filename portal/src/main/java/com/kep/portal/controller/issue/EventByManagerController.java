@@ -3,6 +3,7 @@ package com.kep.portal.controller.issue;
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.issue.IssueDto;
+import com.kep.portal.service.issue.IssueSupportService;
 import com.kep.portal.service.issue.event.EventByManagerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -33,6 +34,9 @@ public class EventByManagerController {
 	@Resource
 	private EventByManagerService eventByManagerService;
 
+	@Resource
+	private IssueSupportService issueSupportService;
+
 	/**
 	 * 상담 관리 > 상담 진행 목록 > 상담 직원 배정
 	 * TODO: 강제 배정 필요한가?
@@ -49,18 +53,18 @@ public class EventByManagerController {
 			@Parameter(description = "브랜치 아이디")
 			@RequestParam(value = "branch_id", required = false) Long branchId,
 			@Parameter(description = "이슈 카테고리 아이디")
-			@RequestParam(value = "issue_category_id", required = false) Long issueCategoryId,
-			@RequestBody(required = false) Map<String, Object> options) {
+			@RequestParam(value = "issue_category_id", required = false) Long issueCategoryId) throws Exception {
 
-		log.info("EVENT BY MANAGER, ASSIGN, ISSUES: {}, MEMBER: {}, BRANCH: {}, CATEGORY: {}, OPTIONS: {}",
-				issueIds, memberId, branchId, issueCategoryId, options);
+		log.info("EVENT BY MANAGER, ASSIGN, ISSUES: {}, MEMBER: {}, BRANCH: {}, CATEGORY: {}",
+				issueIds, memberId, branchId, issueCategoryId);
+
 
 		if (!ObjectUtils.isEmpty(memberId)) {
-			eventByManagerService.assignByMember(issueIds, memberId, options);
+			issueSupportService.assignByMember(issueIds, memberId);
 		} else if (!ObjectUtils.isEmpty(branchId)) {
-			eventByManagerService.assignByBranch(issueIds, branchId, options);
+			issueSupportService.assignByBranch(issueIds, branchId);
 		} else if (!ObjectUtils.isEmpty(issueCategoryId)) {
-			eventByManagerService.assignByCategory(issueIds, issueCategoryId, options);
+			issueSupportService.assignByCategory(issueIds, issueCategoryId);
 		} else {
 			log.error("EVENT BY MANAGER, ASSIGN, ASSIGN OBJECT IS NULL");
 			return new ResponseEntity<>(new ApiResult<>(ApiResultCode.failed), HttpStatus.NOT_ACCEPTABLE);
