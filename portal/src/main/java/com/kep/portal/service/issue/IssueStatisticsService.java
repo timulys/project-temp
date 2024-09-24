@@ -149,11 +149,10 @@ public class IssueStatisticsService {
      * issue and status and created search
      * @param issueId
      * @param status
-     * @param localDate
      * @return
      */
-    public IssueStatistics findByIssueStatusCreated(@NotNull Long issueId , @NotNull IssueStatisticsStatus status , @NotNull LocalDate localDate){
-        return issueStatisticsRepository.findByIssueIdAndStatusAndCreated(issueId , status , localDate);
+    public IssueStatistics findByIssueIdAndStatus(@NotNull Long issueId , @NotNull IssueStatisticsStatus status){
+        return issueStatisticsRepository.findByIssueIdAndStatus(issueId , status);
     }
 
     public List<IssueMemberStatisticsDto> issueMemberStatistics(@NotNull ZonedDateTime from , @NotNull ZonedDateTime to , @NotNull Long branchId , Long teamId){
