@@ -6,6 +6,7 @@ import com.kep.core.model.dto.issue.*;
 import com.kep.core.model.dto.member.MemberDto;
 import com.kep.core.model.dto.notification.*;
 import com.kep.core.model.dto.subject.IssueCategoryDto;
+import com.kep.core.model.dto.team.TeamDto;
 import com.kep.core.model.dto.work.WorkType;
 import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.config.property.SocketProperty;
@@ -46,6 +47,7 @@ import com.kep.portal.service.issue.event.EventByManagerService;
 import com.kep.portal.service.member.MemberService;
 import com.kep.portal.service.notification.NotificationService;
 import com.kep.portal.service.subject.IssueCategoryService;
+import com.kep.portal.service.team.TeamService;
 import com.kep.portal.service.work.OfficeHoursService;
 import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.SecurityUtils;
@@ -166,6 +168,9 @@ public class IssueSupportService {
 
 	@Resource
 	private MemberService memberService;
+
+	@Resource
+	private TeamService teamService;
 
 	public IssueSupport save(@NotNull @Valid IssueSupport entity) {
 		return issueSupportRepository.save(entity);
@@ -617,49 +622,20 @@ public class IssueSupportService {
 
 			search.setSearchEndDate(now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))); //FIXME :: 패턴 DateUtil 이동 volka
 			search.setSearchStartDate(now.minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))); //FIXME :: 패턴 DateUtil 이동 volka
-
-//			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-//			Calendar c = Calendar.getInstance();
-//
-//			// 오늘 날짜 세팅
-//			search.setSearchEndDate(sdf.format(c.getTime()));
-//
-//			// 일주일 전 날짜를 구하기 위한 처리
-//			c.add(c.DATE, -7);
-//
-//			// 일주일 전 날짜 세팅
-//			search.setSearchStartDate(sdf.format(c.getTime()));
-
 		}
 
 		startDate = ZonedDateTimeUtil.stringToDateTime(search.getSearchStartDate() + " 00:00:00");
 		endDate = ZonedDateTimeUtil.stringToDateTime(search.getSearchEndDate() + " 23:59:59");
 
-		// 목록 조회
-		Page<IssueSupport> issueSupportPage = issueSupportRepository.search(startDate, endDate, search.getType(), search.getStatus(), memberIds, pageable);
-		// TODO: 상담지원요청의 조회 및 처리 기준이 브랜치로 될 경우 아래 부분 주석해제 위 부분 주석처리
-//		Page<IssueSupport> issueSupportPage = issueSupportRepository.search(startDate, endDate, search.getType(), search.getStatus(), securityUtils.getBranchId(), pageable);
-		List<IssueSupportDetailDto> dtos = new ArrayList<>();
+		Page<IssueSupportDetailDto> issueSupportPageList = issueSupportRepository.search(startDate, endDate, search.getType(), search.getStatus(), memberIds, pageable);
 
-		if (issueSupportPage.hasContent()) {
-			// 조회된 목록으로 frontend에 필요한 데이터 가공
-			for (IssueSupport issueSupport : issueSupportPage.getContent()) {
-				IssueSupportDetailDto dto = issueSupportMapper.mapDetail(issueSupport);
-
-				// 지원요청 상담원 이름 및 팀 정보 조회
-				dto.setQuestionerInfo(getMemberInfo(issueSupport.getQuestioner()));
-
-				IssueDto issueDto = issueService.getById(issueSupport.getIssue().getId());
-
-				dto.setIssueStatus(issueDto.getStatus());
-
-				dtos.add(dto);
-			}
+		for(IssueSupportDetailDto issueSupportDetailDto  : issueSupportPageList.getContent() ){
+			List<TeamDto> teamDtoList  = teamService.getTeamListUseMemberId( issueSupportDetailDto.getQuestionerInfo().getId() ) ;
+			issueSupportDetailDto.getQuestionerInfo().setTeams(teamDtoList);
 		}
 
-		Assert.notNull(dtos, "DTOs is null");
+		return new PageImpl<>(issueSupportPageList.getContent(), issueSupportPageList.getPageable(), issueSupportPageList.getTotalElements());
 
-		return new PageImpl<>(dtos, issueSupportPage.getPageable(), issueSupportPage.getTotalElements());
 	}
 
 	/**

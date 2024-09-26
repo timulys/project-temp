@@ -1,15 +1,17 @@
 package com.kep.portal.repository.issue;
 
-import com.querydsl.core.BooleanBuilder;
+import com.kep.core.model.dto.issue.IssueStatus;
+import com.kep.core.model.dto.issue.IssueSupportStatus;
+import com.kep.core.model.dto.issue.IssueSupportType;
+import com.kep.core.model.dto.member.MemberDto;
+import com.kep.portal.model.dto.issue.IssueSupportDetailDto;
+import com.kep.portal.model.entity.issue.IssueSupport;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.kep.core.model.dto.issue.IssueSupportStatus;
-import com.kep.core.model.dto.issue.IssueSupportType;
-import com.kep.portal.model.entity.issue.IssueSupport;
-import com.kep.portal.model.entity.issue.QIssueSupport;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -19,9 +21,12 @@ import org.springframework.util.ObjectUtils;
 
 import javax.validation.constraints.NotNull;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
+import static com.kep.portal.model.entity.issue.QIssue.issue;
 import static com.kep.portal.model.entity.issue.QIssueSupport.issueSupport;
+import static com.kep.portal.model.entity.member.QMember.member;
 
 @Slf4j
 public class IssueSupportSearchRepositoryImpl implements IssueSupportSearchRepository {
@@ -31,51 +36,65 @@ public class IssueSupportSearchRepositoryImpl implements IssueSupportSearchRepos
 		this.queryFactory = queryFactory;
 	}
 
-	// @Override
-	public Page<IssueSupport> search(ZonedDateTime startDate, ZonedDateTime endDate, List<IssueSupportType> type, List<IssueSupportStatus> status, @NotNull List<Long> memberIds, @NotNull Pageable pageable) {
-	// TODO: 상담지원요청의 조회 및 처리 기준이 브랜치로 될 경우 아래 부분 주석해제 위 부분 주석처리
-//	public Page<IssueSupport> search(ZonedDateTime startDate, ZonedDateTime endDate, List<IssueSupportType> type, List<IssueSupportStatus> status, @NotNull Long branchId, @NotNull Pageable pageable) {
+	@Override
+	public Page<IssueSupportDetailDto> search(ZonedDateTime startDate, ZonedDateTime endDate, List<IssueSupportType> type, List<IssueSupportStatus> status, @NotNull List<Long> memberIds, @NotNull Pageable pageable) {
 
-		QIssueSupport qIssueSupport = new QIssueSupport("issueSupport");
+		// mysql 8이상에서만 COUNT() OVER (PARTITION BY ...) 지원하기 떄문에 totalElements 구하기 위해서 count 쿼리 따로 작성
+		Long totalElements = queryFactory.select(issueSupport.count())
+										 .from(issueSupport)
+										 .innerJoin(issue)
+										 	.on(issueSupport.issue.eq(issue))
+										 .innerJoin(member)
+										 	.on(issueSupport.questioner.eq(member.id))
+										 .where(
+												this.getConditions(startDate, endDate, type, status, memberIds)
+										       )
+										 .fetchFirst();
 
-		Long totalElements = queryFactory.select(qIssueSupport.count()).from(qIssueSupport)
-				 .where(getConditions(startDate, endDate, type, status, memberIds))
-				// TODO: 상담지원요청의 조회 및 처리 기준이 브랜치로 될 경우 아래 부분 주석해제 위 부분 주석처리
-//				.where(getConditions(startDate, endDate, type, status, branchId))
-				.fetchFirst();
-
-		List<IssueSupport> issueSupports = Collections.emptyList();
-		if (totalElements > 0) {
-			issueSupports = queryFactory.selectFrom(qIssueSupport)
-					 .where(getConditions(startDate, endDate, type, status, memberIds))
-					// TODO: 상담지원요청의 조회 및 처리 기준이 브랜치로 될 경우 아래 부분 주석해제 위 부분 주석처리
-//					.where(getConditions(startDate, endDate, type, status, branchId))
-					.orderBy(getOrderSpecifiers(pageable)).offset(pageable.getOffset()).limit(pageable.getPageSize()).fetch();
+		// Todo 요청관리 > 상담 지원 요청에서 페이징 기능 사용 하지 않고 있음
+		// Page<IssueSupportDetailDto> 해당 부분 필요 한지 체크 후 -> List<IssueSupportDetailDto>로 변경하는 게 좋아보임 ( 위에 쿼리도 없앨 수 있는 장점 존재 )
+		List <IssueSupportDetailDto> issueSupportDetailDtoList = queryFactory.select(Projections.fields(IssueSupportDetailDto.class,
+																										issueSupport.id,
+																										issueSupport.type,
+																										issueSupport.status,
+																										issueSupport.question,
+																										issueSupport.questionModified,
+																										issueSupport.answerModified,
+																										issueSupport.changeType,
+																										issueSupport.selectMemberId,
+																										issue.status.as("issueStatus"),
+																										Projections.fields(MemberDto.class,
+																														   member.id,
+																													       member.username,
+																														   member.nickname
+																														  ).as("questionerInfo")
+																						   				)
+											    								     )
+																.from(issueSupport)
+															    .innerJoin(issue)
+														        	.on(issueSupport.issue.eq(issue))
+																.innerJoin(member)
+																	.on(issueSupport.questioner.eq(member.id))
+																.where(
+																		this.getConditions(startDate, endDate, type, status, memberIds)
+																      )
+																.orderBy( issueSupport.created.desc() )
+															    .offset(pageable.getOffset())
+															    .limit(pageable.getPageSize())
+															    .fetch();
+			return new PageImpl<>(issueSupportDetailDtoList, pageable, totalElements);
 		}
 
-		return new PageImpl<>(issueSupports, pageable, totalElements);
+	private BooleanExpression getConditions(ZonedDateTime startDate, ZonedDateTime endDate, List<IssueSupportType> type, List<IssueSupportStatus> status, @NotNull List<Long> memberIds) {
+		return this.questionModifiedBetween(startDate, endDate)
+					.and(this.typeIn(type))
+					.and(this.statusIn(status))
+					.and(this.questionerIn(memberIds))
+				    .and(this.issueStatusNe(IssueStatus.close));
 	}
 
-	private BooleanBuilder getConditions(ZonedDateTime startDate, ZonedDateTime endDate, List<IssueSupportType> type, List<IssueSupportStatus> status, @NotNull List<Long> memberIds) {
-		BooleanBuilder mainBuilder = new BooleanBuilder();
-
-		mainBuilder.and(questionModifiedBetween(startDate, endDate));
-		mainBuilder.and(typeIn(type));
-		mainBuilder.and(statusIn(status));
-		mainBuilder.and(questionerIn(memberIds));
-
-		return mainBuilder;
-	}
-
-	private BooleanBuilder getConditions(ZonedDateTime startDate, ZonedDateTime endDate, List<IssueSupportType> type, List<IssueSupportStatus> status, @NotNull Long branchId) {
-		BooleanBuilder mainBuilder = new BooleanBuilder();
-
-		mainBuilder.and(questionModifiedBetween(startDate, endDate));
-		mainBuilder.and(typeIn(type));
-		mainBuilder.and(statusIn(status));
-		mainBuilder.and(branchIdEq(branchId));
-
-		return mainBuilder;
+	private BooleanExpression issueStatusNe(IssueStatus issueStatus) {
+		return !ObjectUtils.isEmpty(issueStatus) ? issue.status.ne(issueStatus) : null;
 	}
 
 	private BooleanExpression questionModifiedBetween(ZonedDateTime startDate, ZonedDateTime endDate) {

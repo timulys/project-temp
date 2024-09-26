@@ -5,6 +5,8 @@ import java.util.List;
 
 public interface TeamSearchRepository  {
 
-    List<TeamDto> findTeamUseChannelId(Long channelId);
+    List<TeamDto> searchTeamUseChannelId(Long channelId);
+
+    List<TeamDto> searchTeamUseMemberId(Long memberId);
 
 }
