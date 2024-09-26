@@ -15,4 +15,6 @@ public interface IssueSupportRepository extends JpaRepository<IssueSupport, Long
 
     List<IssueSupport> findAllByIssueInAndType(List<Issue> issues , IssueSupportType issueSupportType);
 
+    List<IssueSupport> findAllByIssue(Issue issue);
+
 }
