@@ -346,12 +346,16 @@ public class TeamService {
     }
 
     private  List<TeamDto> findBranchTeamMembersUseChannelId(Long channelId) {
-        List<TeamDto> teamDtoList = teamSearchRepository.findTeamUseChannelId(channelId);
+        List<TeamDto> teamDtoList = teamSearchRepository.searchTeamUseChannelId(channelId);
         for(TeamDto teamDto  : teamDtoList ){
             List<MemberDto> memberDtoList = memberRepository.findMemberUseTeamId(teamDto.getId());
             teamDto.setMembers(memberDtoList);
         }
         return teamDtoList;
+    }
+
+    public List<TeamDto> getTeamListUseMemberId(Long memberId) {
+        return teamSearchRepository.searchTeamUseMemberId(memberId);
     }
 
 }
