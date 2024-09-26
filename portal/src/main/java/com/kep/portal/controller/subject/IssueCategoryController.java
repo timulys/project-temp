@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 /**
@@ -119,24 +119,6 @@ public class IssueCategoryController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
-
-	@Tag(name = "이슈 카테고리 API")
-	@Operation(summary = "이슈 카테고리 목록 조회")
-	@GetMapping("/{channel_id}")
-	public ResponseEntity<ApiResult<List<IssueCategoryTreeDto>>> getCategoryTree(
-			@Parameter(description = "채널 아이디", required = true, in = ParameterIn.PATH)
-			@PathVariable("channel_id") Long channelId
-	) {
-		log.info("ISSUE CATEGORY, GET, CHANNEL: {}", channelId);
-
-		List<IssueCategoryTreeDto> results = issueCategoryService.getAllCategoriesByChannelId(channelId);
-
-		ApiResult<List<IssueCategoryTreeDto>> response = ApiResult.<List<IssueCategoryTreeDto>>builder()
-				.code(ApiResultCode.succeed)
-				.payload(results)
-				.build();
-		return new ResponseEntity<>(response, HttpStatus.OK);
-	}
 
 
 
@@ -290,11 +272,38 @@ public class IssueCategoryController {
 
 
 	@Tag(name = "이슈 카테고리 API")
-	@Operation(summary = "이슈 카테고리 저장(신규)")
-	@PostMapping("/list")
-	public ResponseEntity<ApiResult<String>> saveIssueCategories(@Valid @RequestBody IssueCategorySetting issueCategorySetting) {
+	@Operation(summary = "이슈 카테고리 목록 조회 (신규)", description = "트리구조 조회")
+	@GetMapping("/{channel_id}")
+	public ResponseEntity<ApiResult<IssueCategoryResponse>> getCategoryTree(
+			@Parameter(description = "채널 아이디", required = true, in = ParameterIn.PATH)
+			@PathVariable("channel_id") Long channelId
+	) {
+		log.info("ISSUE CATEGORY, GET, CHANNEL: {}", channelId);
 
-		String result = issueCategoryService.saveIssueCategories(issueCategorySetting);
+		IssueCategoryResponse result = issueCategoryService.getAllCategoriesByChannelId(channelId);
+
+		ApiResult<IssueCategoryResponse> response = ApiResult.<IssueCategoryResponse>builder()
+				.code(ApiResultCode.succeed)
+				.payload(result)
+				.build();
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@Tag(name = "이슈 카테고리 API")
+	@Operation(summary = "이슈 카테고리 저장(신규)")
+	@PostMapping("/{channel_id}")
+	public ResponseEntity<ApiResult<String>> saveIssueCategories(
+			@Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
+			@Positive
+			@PathVariable("channel_id") Long channelId
+			,
+			@NotEmpty
+			@Valid
+			@RequestBody
+			List<IssueCategoryTreeDto> issueCategories
+	) {
+
+		String result = issueCategoryService.saveIssueCategories(channelId, issueCategories);
 
 		ApiResult<String> response = ApiResult.<String>builder()
 				.code(ApiResultCode.succeed)

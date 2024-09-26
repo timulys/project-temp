@@ -29,10 +29,10 @@ public class TryAssignOpenedIssueJob {
 	@Resource
 	private AssignProducer assignProducer;
 
-	@Scheduled(fixedDelay = 1000 * 30)
-	@SchedulerLock(name = "TRY_ASSIGN_OPENED_ISSUE"
-			, lockAtLeastFor = "PT5S"
-			, lockAtMostFor = "PT20S")
+//	@Scheduled(fixedDelay = 1000 * 30)
+//	@SchedulerLock(name = "TRY_ASSIGN_OPENED_ISSUE"
+//			, lockAtLeastFor = "PT5S"
+//			, lockAtMostFor = "PT20S")
 	public void run() {
 
 		final String jobName = "TRY ASSIGN OPENED ISSUE";

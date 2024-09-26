@@ -21,6 +21,7 @@ import com.kep.portal.service.channel.ChannelEnvService;
 import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -376,46 +377,166 @@ public class IssueCategoryService {
      * 상담 카테고리 저장 (신규) 20240718 volka
      * TODO :: 공통팝업 협의 후 소스 정리
      *
-     * @param issueCategorySetting
+     *
      * @return
      */
-    public String saveIssueCategories(IssueCategorySetting issueCategorySetting) {
-
-        Long channelId = issueCategorySetting.getChannelId();
+    public String saveIssueCategories(Long channelId, List<IssueCategoryTreeDto> issueCategories) {
 
         ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId).orElseThrow(() -> new BizException("not exist channel"));
-        if (channelEnv.getMaxIssueCategoryDepth().equals(0)) throw new IllegalStateException("Issue Category is not initialized");
-
         Integer maxDepth = channelEnv.getMaxIssueCategoryDepth();
 
-        List<IssueCategoryTreeDto> stores = issueCategorySetting.getIssueCategories();
-//        List<Long> unableIds = issueCategorySetting.getUnableIssueCategoryIds();
+        if (isInitDepth(maxDepth)) throw new IllegalStateException("Issue Category is not initialized");
 
+        Long memberId = securityUtils.getMemberId();
 
-        List<IssueCategory> entities = issueCategoryRepository.findAllByChannelId(issueCategorySetting.getChannelId());
+        Map<Long, IssueCategory> entityMap = issueCategoryRepository.findAllByChannelIdWithParent(channelId).stream()
+                .collect(Collectors.toMap(IssueCategory::getId, entity -> entity));
 
-        if (maxDepth > 1) {
-            Map<IssueCategory, List<IssueCategory>> depthMap =  entities.stream()
-                    .filter(item -> item.getDepth() > 1)
-                    .collect(Collectors.groupingBy(IssueCategory::getParent));
-        }
+        //입력 검증
+        validIssueCategory(issueCategories, maxDepth, entityMap);
 
-
-
-        Map<Long, IssueCategory> issueCategoryMap = entities.stream()
-                .collect(Collectors.toMap(IssueCategory::getId, item -> item));
-
-
+        recursiveSaveIssueCategory(memberId, channelId, null, issueCategories, entityMap);
 
         return ApiResultCode.succeed.name();
     }
 
+    //id가 있는 경우 parent가 바뀌진 않음
+    private void modifyIssueCategory(Long memberId, Long channelId, IssueCategory record, IssueCategoryTreeDto dto) {
+        record.setName(dto.getName());
+        record.setEnabled(dto.getEnabled());
+        record.setDepth(dto.getDepth());
+        record.setChannelId(channelId);
+        record.setSort(dto.getSort());
+        record.setExposed(dto.getExposed());
+        record.setModifier(memberId);
+    }
+
+    /**
+     * IssueCategory 입력 검증
+     * @param issueCategories
+     * @param maxDepth
+     * @param recordMap
+     */
+    private void validIssueCategory(List<IssueCategoryTreeDto> issueCategories, int maxDepth, Map<Long, IssueCategory> recordMap) {
+
+        List<IssueCategoryTreeDto> flattenTargets = new ArrayList<>(issueCategories);
+        List<IssueCategoryTreeDto> nextFlattenTargets = new ArrayList<>();
+        int totalCount = 0;
+
+        if (isDuplicatedSort(flattenTargets)) throw new IllegalArgumentException("not duplicated sort"); //정렬 중복
+
+        for (int i = 1; i <= maxDepth; i++) {
+
+            totalCount += flattenTargets.size();
+
+            for (IssueCategoryTreeDto dto : flattenTargets) {
+                if (dto.getDepth() != i) throw new IllegalArgumentException("not correct depth variables"); //valid depth
+                if (dto.getIssueCategoryId() != null && !recordMap.containsKey(dto.getIssueCategoryId())) throw new IllegalArgumentException("issue category is not found"); //수정일 때 미존재 entity일경우
+
+                //최하위 노드, 최대 뎁스 1일 때 제외
+                if (i < maxDepth && maxDepth > 1) {
+                    //설정 뎁스까지 카테고리 못채운경우
+                    if (dto.getChildren() == null || dto.getChildren().isEmpty()) throw new IllegalArgumentException("must having children");
+                    if (isDuplicatedSort(dto.getChildren())) throw new IllegalArgumentException("not duplicated sort"); //하위 노드 정렬 중복
+
+                    nextFlattenTargets.addAll(dto.getChildren());
+                }
+            }
+
+            if (!nextFlattenTargets.isEmpty()) {
+                flattenTargets.clear();
+                flattenTargets.addAll(nextFlattenTargets);
+                nextFlattenTargets.clear();
+            }
+        }
+
+        //카테고리 삭제 요건은 없기 때문에 항상 데이터 개수는 입력 >= 레코드
+        if (totalCount < recordMap.keySet().size()) throw new IllegalArgumentException("not enough categories size");
+    }
+
+    /**
+     * 정렬 중복
+     * @param issueCategories
+     * @return
+     */
+    private boolean isDuplicatedSort(List<IssueCategoryTreeDto> issueCategories) {
+        int size = issueCategories.stream()
+                .map(IssueCategoryTreeDto::getSort)
+                .collect(Collectors.toSet()).size();
+
+        return size != issueCategories.size();
+    }
+
+    private boolean isNotCorrectDepth(List<IssueCategoryTreeDto> issueCategories, int currentDepth) {
+        return issueCategories.stream().anyMatch(item -> !item.getDepth().equals(currentDepth));
+    }
+
+    private int countIssueCategory(List<IssueCategoryTreeDto> dtos) {
+        int count = 0;
+
+        for (IssueCategoryTreeDto dto : dtos) {
+            count += recursiveCountChildren(dto);
+        }
+
+        return count;
+    }
+
+    /**
+     * 하위 노드 카운트 재귀
+     * @param issueCategory
+     * @return
+     */
+    private int recursiveCountChildren(IssueCategoryTreeDto issueCategory) {
+        if (issueCategory == null) return 0;
+
+        int count = 1;
+        if (!ObjectUtils.isEmpty(issueCategory.getChildren())) {
+            for (IssueCategoryTreeDto child : issueCategory.getChildren()) {
+                count += recursiveCountChildren(child);
+            }
+        }
+
+        return count;
+    }
+
+    /**
+     * IssueCategory 트리 저장/수정 재귀 volka
+     * @param memberId
+     * @param channelId
+     * @param parent
+     * @param dtoChildren
+     * @param recordMap
+     */
+    private void recursiveSaveIssueCategory(Long memberId, Long channelId, IssueCategory parent, List<IssueCategoryTreeDto> dtoChildren, Map<Long, IssueCategory> recordMap) {
+        IssueCategory record = null;
+
+        for (IssueCategoryTreeDto child : dtoChildren) {
+            if (child.getIssueCategoryId() == null) {
+                record = issueCategoryRepository.save(child.toEntity(memberId, channelId, parent));
+            } else {
+                record = recordMap.get(child.getIssueCategoryId());
+                modifyIssueCategory(memberId, channelId, record, child);
+            }
+
+            if (!ObjectUtils.isEmpty(child.getChildren())) {
+                recursiveSaveIssueCategory(memberId, channelId, record, child.getChildren(), recordMap);
+            }
+        }
+    }
+
+    /**
+     * 상담 카테고리 트리 생성 volka
+     * @param issueCategories
+     * @param maxDepth
+     * @return
+     */
     private List<IssueCategoryTreeDto> createCategoryTree(List<IssueCategory> issueCategories, Integer maxDepth) {
 
         List<IssueCategoryTreeDto> dtoList = issueCategories.stream()
                 .map(IssueCategoryTreeDto::of)
                 .collect(Collectors.toList());
 
+        List<IssueCategoryTreeDto> result = null;
 
         if (maxDepth > 1) {
             Map<Integer, List<IssueCategoryTreeDto>> depthMap = dtoList.stream().collect(Collectors.groupingBy(IssueCategoryTreeDto::getDepth));
@@ -433,29 +554,48 @@ public class IssueCategoryService {
                     categoryTreeDto = dtoMap.get(parentId);
 
                     if (issueCategoryTreeDto.getParentId() != null && categoryTreeDto != null) {
-                        dtoMap.get(parentId).getChildren().add(issueCategoryTreeDto);
+                        categoryTreeDto.getChildren().add(issueCategoryTreeDto);
                     }
                 }
             }
 
-            return depthMap.get(1);
+            dtoMap.values().stream()
+                    .filter(item -> !item.getChildren().isEmpty())
+                    .forEach(dto -> {
+                        dto.getChildren().sort(Comparator.comparingInt(IssueCategoryTreeDto::getSort));
+                    });
+
+            result = depthMap.get(1); //대분류
+
         } else {
-            return dtoList;
+            result = dtoList;
         }
+
+        result.sort(Comparator.comparingInt(IssueCategoryTreeDto::getSort)); //대분류 sort
+
+        return result;
     }
 
     /**
-     * 채널별 상담 카테고리 전체 조회 (Tree구조)
+     * 채널별 상담 카테고리 전체 조회 (Tree구조) volka
+     *
+     * maxDepth == 0 일 경우(미설정시) 카테고리가 없는게 정상(추가불가) (현재 20240924 기획 기준)
+     *
      * @param channelId
      * @return
      */
-    public List<IssueCategoryTreeDto> getAllCategoriesByChannelId(Long channelId) {
+    public IssueCategoryResponse getAllCategoriesByChannelId(Long channelId) {
         ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId).orElseThrow(() -> new BizException("not exist channel"));
-        if (channelEnv.getMaxIssueCategoryDepth().equals(0)) return Collections.emptyList();
+        if (isInitDepth(channelEnv.getMaxIssueCategoryDepth())) return null;
 
-        List<IssueCategory> issueCategories = issueCategoryRepository.findAllByChannelId(channelId);
-        if (issueCategories.isEmpty()) return Collections.emptyList();
+        List<IssueCategory> issueCategories = issueCategoryRepository.findAllByChannelIdWithParent(channelId);
+        if (issueCategories.isEmpty()) return null;
 
-        return createCategoryTree(issueCategories, channelEnv.getMaxIssueCategoryDepth());
+        return new IssueCategoryResponse(channelEnv.getMaxIssueCategoryDepth(), createCategoryTree(issueCategories, channelEnv.getMaxIssueCategoryDepth()));
+    }
+
+
+    private boolean isInitDepth(@NotNull Integer maxDepth) {
+        return maxDepth.equals(0);
     }
 }
