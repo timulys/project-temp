@@ -370,6 +370,11 @@ public class IssueSupportService {
 			issue = issueService.findById(id);
 			Assert.notNull(issue, "Not Found by IssueId to Issue");
 
+			// 기 요청 이력이 있는 경우 중복 요청 안 되도록 validation check
+			if(!this.issueSupportRequestCheck(issue)){
+				return IssueSupportDto.builder().assignable(false).build();
+			}
+
 			issueSupport = getSetupIssueSupportWhenChangeRequest(id, issueSupportDto);
 			content = issueSupportDto.getQuestion();
 
@@ -944,6 +949,16 @@ public class IssueSupportService {
 
 		if( issue.getMember().getId() == memberId){
 			return false;
+		}
+		return true;
+	}
+
+	private boolean issueSupportRequestCheck(Issue issue){
+		List<IssueSupport> issueSupportList = issueSupportRepository.findAllByIssue(issue);
+		for(IssueSupport issueSupportTemp : issueSupportList){
+			if (IssueSupportStatus.request == issueSupportTemp.getStatus()){
+				return false;
+			}
 		}
 		return true;
 	}
