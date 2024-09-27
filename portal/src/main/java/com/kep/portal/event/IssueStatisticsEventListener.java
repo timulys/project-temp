@@ -75,15 +75,18 @@ public class IssueStatisticsEventListener {
         }
 
         if(issue.getStatus().equals(IssueStatus.close)){
-            IssueStatistics entity = IssueStatistics.builder()
-                    .issueId(issue.getId())
-                    .branchId(issue.getBranchId())
-                    .teamId(issue.getTeamId())
-                    .memberId(Objects.isNull(issue.getMember()) ? null : issue.getMember().getId())
-                    .status(IssueStatisticsStatus.close)
-                    .created(localDate)
-                    .build();
-            issueStatisticsService.store(entity);
+            IssueStatistics issueCloseEntity = issueStatisticsService.findByIssueIdAndStatus(issue.getId() , IssueStatisticsStatus.close);
+            if(ObjectUtils.isEmpty(issueCloseEntity)) {
+                IssueStatistics entity = IssueStatistics.builder()
+                        .issueId(issue.getId())
+                        .branchId(issue.getBranchId())
+                        .teamId(issue.getTeamId())
+                        .memberId(Objects.isNull(issue.getMember()) ? null : issue.getMember().getId())
+                        .status(IssueStatisticsStatus.close)
+                        .created(localDate)
+                        .build();
+                issueStatisticsService.store(entity);
+            }
         }
 
 

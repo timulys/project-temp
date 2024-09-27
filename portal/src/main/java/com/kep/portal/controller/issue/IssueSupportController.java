@@ -2,10 +2,7 @@ package com.kep.portal.controller.issue;
 
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
-import com.kep.core.model.dto.issue.IssueStatus;
 import com.kep.core.model.dto.issue.IssueSupportDto;
-import com.kep.core.model.dto.issue.IssueSupportStatus;
-import com.kep.core.model.dto.issue.IssueSupportType;
 import com.kep.portal.model.dto.issue.IssueSupportDetailDto;
 import com.kep.portal.model.dto.issue.IssueSupportHistoryResponseDto;
 import com.kep.portal.model.dto.issue.IssueSupportSearchDetailDto;
@@ -29,7 +26,6 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
 import java.util.List;
 
 /**

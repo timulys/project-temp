@@ -12,6 +12,8 @@ import static com.kep.portal.model.entity.branch.QBranchChannel.branchChannel;
 import static com.kep.portal.model.entity.branch.QBranchTeam.branchTeam;
 import static com.kep.portal.model.entity.channel.QChannel.channel;
 import static com.kep.portal.model.entity.team.QTeam.team;
+import static com.kep.portal.model.entity.team.QTeamMember.teamMember;
+import static com.kep.portal.model.entity.member.QMember.member;
 
 @Slf4j
 @Repository
@@ -21,7 +23,7 @@ public class TeamSearchRepositoryImpl implements TeamSearchRepository  {
     private JPAQueryFactory queryFactory;
 
     @Override
-    public List<TeamDto> findTeamUseChannelId(Long channelId) {
+    public List<TeamDto> searchTeamUseChannelId(Long channelId) {
         return queryFactory.select(
                                     Projections.fields( TeamDto.class,
                                                         team.id,
@@ -45,7 +47,33 @@ public class TeamSearchRepositoryImpl implements TeamSearchRepository  {
                             .fetch();
     }
 
+    @Override
+    public List<TeamDto> searchTeamUseMemberId(Long memberId) {
+        return queryFactory.select(
+                                    Projections.fields( TeamDto.class,
+                                                        team.id,
+                                                        team.name,
+                                                        team.memberCount,
+                                                        team.modified,
+                                                        team.modifier
+                                                       )
+                                    )
+                                    .from(team)
+                                    .innerJoin(teamMember)
+                                        .on(teamMember.team.eq(team))
+                                    .innerJoin(member)
+                                        .on(member.id.eq(teamMember.memberId))
+                                    .where(
+                                            this.memberIdEq(memberId)
+                                          )
+                                    .fetch();
+    }
+
     private BooleanExpression channelIdEq(Long channelId) {
         return channelId != null ? channel.id.eq(channelId) : null;
+    }
+
+    private BooleanExpression memberIdEq(Long memberId) {
+        return memberId != null ? member.id.eq(memberId) : null;
     }
 }
