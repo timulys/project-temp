@@ -386,8 +386,7 @@ public class IssueCategoryService {
 
         if (isInitDepth(maxDepth)) throw new IllegalStateException("Issue Category is not initialized");
 
-//        Long memberId = securityUtils.getMemberId();
-        Long memberId = 1L;
+        Long memberId = securityUtils.getMemberId();
 
         Map<Long, IssueCategory> entityMap = issueCategoryRepository.findAllByChannelIdWithParent(channelId).stream()
                 .collect(Collectors.toMap(IssueCategory::getId, entity -> entity));

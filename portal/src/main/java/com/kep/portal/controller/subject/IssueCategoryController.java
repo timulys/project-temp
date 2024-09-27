@@ -125,8 +125,9 @@ public class IssueCategoryController {
 	/**
 	 * 분류 관리, 생성
 	 */
+	@Deprecated
 	@Tag(name = "이슈 카테고리 API")
-	@Operation(summary = "이슈 카테고리 생성")
+	@Operation(summary = "이슈 카테고리 생성", deprecated = true)
 	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN')")
 	@PostMapping
 	public ResponseEntity<ApiResult<IssueCategoryBasicDto>> post(
@@ -150,8 +151,9 @@ public class IssueCategoryController {
 	/**
 	 * 분류 관리, 수정
 	 */
+	@Deprecated
 	@Tag(name = "이슈 카테고리 API")
-	@Operation(summary = "이슈 카테고리 수정")
+	@Operation(summary = "이슈 카테고리 수정", deprecated = true)
 	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN')")
 	@PutMapping("/{id}")
 	public ResponseEntity<ApiResult<IssueCategoryBasicDto>> put(
@@ -175,7 +177,7 @@ public class IssueCategoryController {
 	 */
 	@Deprecated
 	@Tag(name = "이슈 카테고리 API")
-	@Operation(summary = "이슈 카테고리 삭제")
+	@Operation(summary = "이슈 카테고리 삭제", deprecated = true)
 	@DeleteMapping("/{id}")
 	public ResponseEntity<ApiResult<String>> delete(
 			@Parameter(description = "이슈 카테고리 아이디", in = ParameterIn.PATH, required = true)
@@ -277,6 +279,7 @@ public class IssueCategoryController {
 	@GetMapping("/{channel_id}")
 	public ResponseEntity<ApiResult<IssueCategoryResponse>> getCategoryTree(
 			@Parameter(description = "채널 아이디", required = true, in = ParameterIn.PATH)
+			@Positive
 			@PathVariable("channel_id") Long channelId
 	) {
 		log.info("ISSUE CATEGORY, GET, CHANNEL: {}", channelId);
@@ -299,13 +302,12 @@ public class IssueCategoryController {
 			@Positive
 			@PathVariable("channel_id") Long channelId
 			,
-			@NotEmpty
 			@Valid
 			@RequestBody
-			List<IssueCategoryTreeDto> issueCategories
+			IssueCategorySetting issueCategorySetting
 	) {
 
-		issueCategoryService.saveIssueCategories(channelId, issueCategories);
+		issueCategoryService.saveIssueCategories(channelId, issueCategorySetting.getIssueCategories());
 
 		ApiResult<String> response = ApiResult.<String>builder()
 				.code(ApiResultCode.succeed)
