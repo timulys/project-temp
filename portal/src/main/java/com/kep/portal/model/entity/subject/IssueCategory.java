@@ -17,6 +17,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 이슈 분류
@@ -114,7 +115,6 @@ public class IssueCategory {
 	public static List<IssueCategory> getPath(@NotNull IssueCategory issueCategory) {
 
 		List<IssueCategory> path = new ArrayList<>();
-
 		IssueCategory current = issueCategory;
 		path.add(current);
 
@@ -122,8 +122,9 @@ public class IssueCategory {
 			current = current.getParent();
 			path.add(current);
 		}
-
-		path.sort(Comparator.comparingInt(IssueCategory::getDepth));
+		if(Objects.nonNull(issueCategory.getDepth())){
+			path.sort(Comparator.comparingInt(IssueCategory::getDepth));
+		}
 		return path;
 	}
 

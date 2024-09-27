@@ -9,12 +9,10 @@ import com.kep.portal.model.dto.issue.IssueSearchCondition;
 import com.kep.portal.model.entity.channel.Channel;
 import com.kep.portal.model.entity.customer.Customer;
 import com.kep.portal.model.entity.customer.Guest;
-import com.kep.portal.model.entity.issue.Issue;
-import com.kep.portal.model.entity.issue.IssueSupport;
-import com.kep.portal.model.entity.issue.QIssue;
-import com.kep.portal.model.entity.issue.QIssueLog;
+import com.kep.portal.model.entity.issue.*;
 import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.model.entity.subject.IssueCategory;
+import com.kep.portal.model.entity.subject.QIssueCategory;
 import com.kep.portal.repository.customer.GuestRepository;
 import com.kep.portal.util.ZonedDateTimeUtil;
 import com.querydsl.core.BooleanBuilder;
@@ -22,6 +20,7 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.NullExpression;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -41,11 +40,15 @@ import java.time.ZonedDateTime;
 import java.util.*;
 
 import static com.kep.portal.model.entity.branch.QBranch.branch;
+import static com.kep.portal.model.entity.channel.QChannel.channel;
 import static com.kep.portal.model.entity.channel.QChannelEndAuto.channelEndAuto;
 import static com.kep.portal.model.entity.channel.QChannelEnv.channelEnv;
+import static com.kep.portal.model.entity.customer.QGuest.guest;
 import static com.kep.portal.model.entity.env.QCounselEnv.counselEnv;
 import static com.kep.portal.model.entity.issue.QIssue.issue;
+import static com.kep.portal.model.entity.issue.QIssueExtra.issueExtra;
 import static com.kep.portal.model.entity.issue.QIssueLog.issueLog;
+import static com.kep.portal.model.entity.issue.QIssueMemo.issueMemo;
 import static com.kep.portal.model.entity.issue.QIssueSupport.issueSupport;
 import static com.kep.portal.model.entity.member.QMember.member;
 import static com.kep.portal.model.entity.work.QBranchOfficeHours.branchOfficeHours;
@@ -149,10 +152,12 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
 
     @Override
     public Page<Issue> search(@NotNull IssueSearchCondition condition, @NotNull Pageable pageable) {
-        /**
-//         * todo dto로 변경하게 된다면 걷어내야 할 부분
-         * 동일한 쿼리 2번 실행하게 되어있음
-         */
+
+        QIssueCategory issueIssueCategory = new QIssueCategory("issueIssueCategory");
+        QIssueCategory issueExtraIssueCategory = new QIssueCategory("issueExtraIssueCategory");
+        QIssueCategory issueExtraParentIssueCategory = new QIssueCategory("issueExtraParentIssueCategory");
+        QIssueCategory issueExtraGrandParentIssueCategory = new QIssueCategory("issueExtraGrandParentIssueCategory");
+
         Long totalElements = queryFactory.select(issue.count())
                 .from(issue)
                 .where(getConditions(condition))
@@ -160,12 +165,89 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
 
         List<Issue> issues = Collections.emptyList();
         if (totalElements > 0) {
-            issues = queryFactory.selectFrom(issue)
-                    .where(getConditions(condition))
-                    .orderBy(getOrderSpecifiers(pageable))
-                    .offset(pageable.getOffset())
-                    .limit(pageable.getPageSize())
-                    .fetch();
+            issues = queryFactory.select( Projections.fields( Issue.class,
+                                                              issue.id,
+                                                              issue.type,
+                                                              issue.status,
+                                                              issue.closeType,
+                                                              issue.branchId,
+                                                              channel.as("channel"),
+                                                              issueIssueCategory.as("issueCategory"),
+                                                              issue.teamId,
+                                                              member.as("member"),
+                                                              guest.as("guest"),
+                                                              issue.customerId,
+                                                              issue.relayed,
+                                                              issue.called,
+                                                              issue.videoCalled,
+                                                              Projections.fields( IssueExtra.class,
+                                                                                  issueExtra.issueCategoryId,
+                                                                                  issueExtra.guestId,
+                                                                                  issueExtra.summary,
+                                                                                  Projections.fields( IssueCategory.class,
+                                                                                              issueExtraIssueCategory.id.as("id"),
+                                                                                              issueExtraIssueCategory.name.as("name"),
+                                                                                              issueExtraIssueCategory.depth.as("depth"),
+                                                                                              Projections.fields( IssueCategory.class,
+                                                                                                                  issueExtraParentIssueCategory.id.as("id"),
+                                                                                                                  issueExtraParentIssueCategory.name.as("name"),
+                                                                                                                  issueExtraParentIssueCategory.depth.as("depth")
+                                                                                                                 , Projections.fields( IssueCategory.class,
+                                                                                                                                       issueExtraGrandParentIssueCategory.id.as("id"),
+                                                                                                                                       issueExtraGrandParentIssueCategory.name.as("name"),
+                                                                                                                                       issueExtraGrandParentIssueCategory.depth.as("depth")
+                                                                                                                                     ).as("parent")
+                                                                                                                 ).as("parent")
+                                                                                  ).as("issueCategory"),
+                                                                                  issueExtra.summaryModified,
+                                                                                  issueExtra.summaryCompleted,
+                                                                                  issueExtra.memo,
+                                                                                  issueExtra.memoModified,
+                                                                                  issueExtra.parameter.as("parameter"),
+                                                                                  issueExtra.inflow,
+                                                                                  issueExtra.inflowModified,
+                                                                                  issueExtra.id,
+                                                                                  issueExtra.evaluationModified
+                                                                                ).as("issueExtra"),
+                                                              issueLog.as("lastIssueLog"),
+                                                              issue.askCount,
+                                                              issue.assignCount,
+                                                              issue.created,
+                                                              issue.modified,
+                                                              issueMemo.as("lastIssueMemo"),
+                                                              issue.statusModified,
+                                                              issue.firstAsked,
+                                                              issue.closed,
+                                                              issue.memberFirstAsked,
+                                                              issue.sendFlag
+                                                             )
+                                         )
+                                        .from(issue)
+                                        .leftJoin(issueExtra)
+                                            .on(issue.issueExtra.eq(issueExtra))
+                                        .leftJoin(issueExtraIssueCategory)
+                                            .on(issueExtra.issueCategoryId.eq(issueExtraIssueCategory.id))
+                                        .leftJoin(issueExtraParentIssueCategory)
+                                            .on(issueExtraIssueCategory.parent.eq(issueExtraParentIssueCategory))
+                                        .leftJoin(issueExtraGrandParentIssueCategory)
+                                            .on(issueExtraParentIssueCategory.parent.eq(issueExtraGrandParentIssueCategory))
+                                        .leftJoin(issueIssueCategory)
+                                            .on(issue.issueCategory.id.eq(issueIssueCategory.id))
+                                        .leftJoin(issueLog)
+                                            .on(issue.lastIssueLog.eq(issueLog))
+                                        .leftJoin(channel)
+                                            .on(issue.channel.eq(channel))
+                                        .leftJoin(member)
+                                            .on(issue.member.eq(member))
+                                        .leftJoin(guest)
+                                            .on(issue.guest.eq(guest))
+                                        .leftJoin(issueMemo)
+                                            .on(issue.lastIssueMemo.eq(issueMemo))
+                                        .where(getConditions(condition))
+                                        .orderBy(issue.created.desc())
+                                        .offset(pageable.getOffset())
+                                        .limit(pageable.getPageSize())
+                                        .fetch();
 
             List<IssueSupportStatus> supportStatusList = new ArrayList<>();
             supportStatusList.add(IssueSupportStatus.finish);
