@@ -173,6 +173,7 @@ public class IssueCategoryController {
 	/**
 	 * 분류 관리, 삭제
 	 */
+	@Deprecated
 	@Tag(name = "이슈 카테고리 API")
 	@Operation(summary = "이슈 카테고리 삭제")
 	@DeleteMapping("/{id}")
@@ -290,7 +291,8 @@ public class IssueCategoryController {
 	}
 
 	@Tag(name = "이슈 카테고리 API")
-	@Operation(summary = "이슈 카테고리 저장(신규)")
+	@Operation(summary = "이슈 카테고리 저장(신규)", description = "요청 시 조회 트리 전체 전송")
+	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN')")
 	@PostMapping("/{channel_id}")
 	public ResponseEntity<ApiResult<String>> saveIssueCategories(
 			@Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
@@ -303,11 +305,10 @@ public class IssueCategoryController {
 			List<IssueCategoryTreeDto> issueCategories
 	) {
 
-		String result = issueCategoryService.saveIssueCategories(channelId, issueCategories);
+		issueCategoryService.saveIssueCategories(channelId, issueCategories);
 
 		ApiResult<String> response = ApiResult.<String>builder()
 				.code(ApiResultCode.succeed)
-				.payload(result)
 				.build();
 
 		return new ResponseEntity<>(response, HttpStatus.OK);

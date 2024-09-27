@@ -278,6 +278,7 @@ public class IssueCategoryService {
         return issueCategoryMapper.mapBasic(issueCategory);
     }
 
+    @Deprecated
     public void delete(@NotNull @Positive Long id) {
 
         IssueCategory issueCategory = this.findById(id);
@@ -374,20 +375,19 @@ public class IssueCategoryService {
 
 
     /**
-     * 상담 카테고리 저장 (신규) 20240718 volka
-     * TODO :: 공통팝업 협의 후 소스 정리
-     *
+     * 상담 카테고리 저장 (신규) 20240926 volka
      *
      * @return
      */
-    public String saveIssueCategories(Long channelId, List<IssueCategoryTreeDto> issueCategories) {
+    public void saveIssueCategories(Long channelId, List<IssueCategoryTreeDto> issueCategories) {
 
         ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId).orElseThrow(() -> new BizException("not exist channel"));
         Integer maxDepth = channelEnv.getMaxIssueCategoryDepth();
 
         if (isInitDepth(maxDepth)) throw new IllegalStateException("Issue Category is not initialized");
 
-        Long memberId = securityUtils.getMemberId();
+//        Long memberId = securityUtils.getMemberId();
+        Long memberId = 1L;
 
         Map<Long, IssueCategory> entityMap = issueCategoryRepository.findAllByChannelIdWithParent(channelId).stream()
                 .collect(Collectors.toMap(IssueCategory::getId, entity -> entity));
@@ -397,7 +397,6 @@ public class IssueCategoryService {
 
         recursiveSaveIssueCategory(memberId, channelId, null, issueCategories, entityMap);
 
-        return ApiResultCode.succeed.name();
     }
 
     //id가 있는 경우 parent가 바뀌진 않음
@@ -413,6 +412,8 @@ public class IssueCategoryService {
 
     /**
      * IssueCategory 입력 검증
+     *
+     * TODO :: BizException -> IllegalArgumentException으로 수정 volka -> 현재 예외처리 핸들러에서 IllegalArgumentException의 경우 예외 메시지 응답처리 해주는 부분이 없음 -> 프론트 연계 테스트를 위해 BizException으로 임시 변경
      * @param issueCategories
      * @param maxDepth
      * @param recordMap
@@ -421,24 +422,22 @@ public class IssueCategoryService {
 
         List<IssueCategoryTreeDto> flattenTargets = new ArrayList<>(issueCategories);
         List<IssueCategoryTreeDto> nextFlattenTargets = new ArrayList<>();
+        Set<Integer> sortSet = new HashSet<>();
         int totalCount = 0;
 
-        if (isDuplicatedSort(flattenTargets)) throw new IllegalArgumentException("not duplicated sort"); //정렬 중복
+        if (isDuplicatedSort(flattenTargets)) throw new BizException("not duplicated sort"); //정렬 중복
 
         for (int i = 1; i <= maxDepth; i++) {
 
             totalCount += flattenTargets.size();
 
             for (IssueCategoryTreeDto dto : flattenTargets) {
-                if (dto.getDepth() != i) throw new IllegalArgumentException("not correct depth variables"); //valid depth
-                if (dto.getIssueCategoryId() != null && !recordMap.containsKey(dto.getIssueCategoryId())) throw new IllegalArgumentException("issue category is not found"); //수정일 때 미존재 entity일경우
+                if (dto.getDepth() != i) throw new BizException("not correct depth variables"); //valid depth
+                if (dto.getIssueCategoryId() != null && !recordMap.containsKey(dto.getIssueCategoryId())) throw new BizException("issue category is not found"); //수정일 때 미존재 entity일경우
 
                 //최하위 노드, 최대 뎁스 1일 때 제외
                 if (i < maxDepth && maxDepth > 1) {
-                    //설정 뎁스까지 카테고리 못채운경우
-                    if (dto.getChildren() == null || dto.getChildren().isEmpty()) throw new IllegalArgumentException("must having children");
-                    if (isDuplicatedSort(dto.getChildren())) throw new IllegalArgumentException("not duplicated sort"); //하위 노드 정렬 중복
-
+                    validIssueCategoryChildren(dto);
                     nextFlattenTargets.addAll(dto.getChildren());
                 }
             }
@@ -451,10 +450,25 @@ public class IssueCategoryService {
         }
 
         //카테고리 삭제 요건은 없기 때문에 항상 데이터 개수는 입력 >= 레코드
-        if (totalCount < recordMap.keySet().size()) throw new IllegalArgumentException("not enough categories size");
+        if (totalCount < recordMap.keySet().size()) throw new BizException("not enough categories size");
     }
 
     /**
+     * 이슈 카테고리 하위노드 검증
+     * @param parent
+     */
+    private void validIssueCategoryChildren(IssueCategoryTreeDto parent) {
+        //설정 뎁스까지 카테고리 못채운경우
+        if (parent.getChildren() == null || parent.getChildren().isEmpty()) throw new BizException("must having children");
+
+        Boolean parentEnabled = parent.getEnabled();
+        if (parent.getChildren().stream().anyMatch(child -> parentEnabled.equals(false) && child.getEnabled().equals(true))) throw new BizException("can not enabled true when parent enabled false");
+        if (isDuplicatedSort(parent.getChildren())) throw new BizException("not duplicated sort");
+    }
+
+    /**
+     * 하위 사용여부
+     *
      * 정렬 중복
      * @param issueCategories
      * @return
@@ -467,37 +481,6 @@ public class IssueCategoryService {
         return size != issueCategories.size();
     }
 
-    private boolean isNotCorrectDepth(List<IssueCategoryTreeDto> issueCategories, int currentDepth) {
-        return issueCategories.stream().anyMatch(item -> !item.getDepth().equals(currentDepth));
-    }
-
-    private int countIssueCategory(List<IssueCategoryTreeDto> dtos) {
-        int count = 0;
-
-        for (IssueCategoryTreeDto dto : dtos) {
-            count += recursiveCountChildren(dto);
-        }
-
-        return count;
-    }
-
-    /**
-     * 하위 노드 카운트 재귀
-     * @param issueCategory
-     * @return
-     */
-    private int recursiveCountChildren(IssueCategoryTreeDto issueCategory) {
-        if (issueCategory == null) return 0;
-
-        int count = 1;
-        if (!ObjectUtils.isEmpty(issueCategory.getChildren())) {
-            for (IssueCategoryTreeDto child : issueCategory.getChildren()) {
-                count += recursiveCountChildren(child);
-            }
-        }
-
-        return count;
-    }
 
     /**
      * IssueCategory 트리 저장/수정 재귀 volka
