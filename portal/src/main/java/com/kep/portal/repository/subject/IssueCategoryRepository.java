@@ -1,6 +1,7 @@
 package com.kep.portal.repository.subject;
 
 import com.kep.portal.model.entity.subject.IssueCategory;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,7 +10,6 @@ import org.springframework.stereotype.Repository;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
-import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -69,6 +69,7 @@ public interface IssueCategoryRepository extends JpaRepository<IssueCategory, Lo
 
 	List<IssueCategory> findByParentIdIn(List<Long> parentIds);
 
-//	@Query("select ic from IssueCategory ic join fetch where ic.channelId = :channelId")
-	List<IssueCategory> findAllByChannelId(Long channelId);
+	@Query("select ic, ic2 from IssueCategory ic left join fetch IssueCategory ic2 on ic.parent = ic2 where ic.channelId = :channelId")
+	List<IssueCategory> findAllByChannelIdWithParent(Long channelId);
+
 }

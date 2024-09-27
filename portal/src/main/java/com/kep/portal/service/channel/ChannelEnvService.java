@@ -461,6 +461,7 @@ public class ChannelEnvService {
 
 	public Integer setCategoryDepth(Channel channel, Integer depth) {
 		Assert.notNull(depth,"depth cannot be null");
+		Assert.isTrue(depth > 0, "depth must be greater than 0");
 		ChannelEnv entity = channelEnvRepository.findByChannel(channel);
 		Assert.isTrue(entity.getMaxIssueCategoryDepth().equals(0),"already set up");
 

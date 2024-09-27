@@ -3,6 +3,8 @@ package com.kep.portal.controller.guide;
 import java.util.List;
 
 import javax.annotation.Resource;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -83,7 +85,8 @@ public class GuideCategoryController {
 	@PostMapping("/depth")
 	@PreAuthorize("hasAnyAuthority('WRITE_GUIDE_CATEGORY')")
 	public ResponseEntity<ApiResult<Integer>> setCategoryDepth(
-			@Parameter(description = "가이드 카테고리 단계")
+			@Parameter(description = "가이드 카테고리 단계", required = true)
+			@NotNull
 			@RequestParam Integer depth
 	){
 		int maxDepth = categoryService.setCategoryMaxDepth(depth);

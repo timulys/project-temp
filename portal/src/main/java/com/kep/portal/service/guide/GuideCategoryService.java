@@ -38,10 +38,12 @@ public class GuideCategoryService {
     private BranchService branchService;
 
     public Integer setCategoryMaxDepth(Integer maxDepth) {
+
         Branch branch = branchService.findById(securityUtils.getBranchId());
 
         Assert.isTrue(branch.getHeadQuarters(), "Branch is not headquarters");
         Assert.isTrue(branch.getMaxGuideCategoryDepth().equals(0), "Already set up");
+        Assert.isTrue(maxDepth > 0, "Max depth must be greater than 0");
 
         Branch headQuarters = branchService.findHeadQuarters();
         headQuarters.setMaxGuideCategoryDepth(maxDepth);
@@ -56,13 +58,13 @@ public class GuideCategoryService {
         if (branchId == null)
             branchId = securityUtils.getBranchId();
 
-        List<GuideCategory> guideCategories = categoryRepository.findByBranchIdAndDepthAndIsOpenTrue(branchId, 1);
+        List<GuideCategory> guideCategories = categoryRepository.findByBranchAndDepthCategory(branchId, 1);
 
         List<GuideCategoryDto> dtos = categoryMapper.map(guideCategories);
 
-//        for (GuideCategoryDto dto : dtos) {
-//            recursiveGetAllAndIsOpenCategory(dto.getChildren(), branchId);
-//        }
+        for (GuideCategoryDto dto : dtos) {
+            recursiveGetAllAndIsOpenCategory(dto.getChildren(), branchId);
+        }
 
         return dtos;
     }
@@ -75,8 +77,7 @@ public class GuideCategoryService {
 
         Long branchId = securityUtils.getBranchId();
 
-//        List<GuideCategory> guideCategories = categoryRepository.findByMyBranchDepthCategory(branchId, 1);
-        List<GuideCategory> guideCategories = categoryRepository.findByBranchIdAndDepthAndIsOpenTrue(branchId, 1);
+        List<GuideCategory> guideCategories = categoryRepository.findByBranchIdAndDepth(branchId, 1);
 
         List<GuideCategoryDto> dtos = categoryMapper.map(guideCategories);
 //        for (GuideCategoryDto dto : dtos) {
@@ -87,14 +88,6 @@ public class GuideCategoryService {
     }
 
 
-    /**
-     * FIXME :: open != true, input branchId != entity.branchId 조건으로 리스트에서 삭제.
-     * JPA에서 open == true, input.branchId == entity.branchId 조건 검색하면 됨. 굳이 재귀 돌리는 메서드 호출할 필요 없고 하등 의미 없음 volka
-     *
-     * @param list
-     * @param branchId
-     */
-    @Deprecated
     private void recursiveGetAllAndIsOpenCategory(List<GuideCategoryDto> list, Long branchId) {
         if (list.isEmpty())
             return;
@@ -110,6 +103,13 @@ public class GuideCategoryService {
         list.remove(delete);
     }
 
+    /**
+     * 소속 브랜치 id와 미일치 시 반환목록에서 제거 -> isOpen 여부 상관없이 수행이므로 조회 쿼리 자체에 브랜치와 동일할경우로 넣어주면 됨
+     *
+     * @param list
+     * @param branchId
+     */
+    @Deprecated
     private void recursiveGetAllCategory(List<GuideCategoryDto> list, Long branchId) {
         if (list.isEmpty())
             return;
@@ -130,8 +130,9 @@ public class GuideCategoryService {
         List<Long> delete = guideCategorySettings.getDelete();
 
         Branch branch = branchService.findById(securityUtils.getBranchId());
-
         Assert.notNull(branch, "Not Found Branch");
+
+        if (branch.getMaxGuideCategoryDepth() == 0) throw new IllegalStateException("Guide category depth is not initialized");
 
         if (guideCategorySettings.getCreate() != null) {
             List<GuideCategoryDto> create = guideCategorySettings.getCreate();

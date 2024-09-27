@@ -21,6 +21,7 @@ import com.kep.portal.service.channel.ChannelEnvService;
 import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -277,6 +278,7 @@ public class IssueCategoryService {
         return issueCategoryMapper.mapBasic(issueCategory);
     }
 
+    @Deprecated
     public void delete(@NotNull @Positive Long id) {
 
         IssueCategory issueCategory = this.findById(id);
@@ -329,21 +331,6 @@ public class IssueCategoryService {
         return legacyClient.getBnkCategoryInfo(dto);
     }
 
-    /**
-     * 이슈(상담) 카테고리 뎁스 설정 (신규) 20240718 volka
-     * @param channelId
-     * @param maxDepth
-     * @return
-     */
-    public Integer setCategoryMaxDepth(Long channelId, Integer maxDepth) {
-        ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId)
-                .orElseThrow(() -> new BizException("not exists channel"));
-        Assert.isTrue(channelEnv.getMaxIssueCategoryDepth() == 0, "already setup issue category depth");
-
-        channelEnv.setMaxIssueCategoryDepth(maxDepth);
-        return maxDepth;
-    }
-
 
 
 //    private void delete(List<Long> deleteIds, List<IssueCategory> entities, Map<Long, IssueCategory> entityMap) {
@@ -386,57 +373,211 @@ public class IssueCategoryService {
 //    }
 
 
+
     /**
-     * 상담 카테고리 저장 (신규) 20240718 volka
-     * TODO :: 공통팝업 협의 후 소스 정리
+     * 상담 카테고리 저장 (신규) 20240926 volka
      *
-     * @param issueCategorySetting
      * @return
      */
-    public String saveIssueCategorys(IssueCategorySetting issueCategorySetting) {
+    public void saveIssueCategories(Long channelId, List<IssueCategoryTreeDto> issueCategories) {
 
-        Long channelId = issueCategorySetting.getChannelId();
-        if (!channelRepository.existsById(channelId)) throw new BizException("not exist channel");
+        ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId).orElseThrow(() -> new BizException("not exist channel"));
+        Integer maxDepth = channelEnv.getMaxIssueCategoryDepth();
 
-        List<IssueCategorySaveDto> stores = issueCategorySetting.getIssueCategories();
-//        List<Long> deleteIds = issueCategorySetting.getDeleteIds();
+        if (isInitDepth(maxDepth)) throw new IllegalStateException("Issue Category is not initialized");
 
-        List<IssueCategory> entities = issueCategoryRepository.findAllByChannelId(issueCategorySetting.getChannelId());
+        Long memberId = securityUtils.getMemberId();
 
-        Map<Integer, List<IssueCategory>> depthMap =  entities.stream().collect(Collectors.groupingBy(IssueCategory::getDepth));
+        Map<Long, IssueCategory> entityMap = issueCategoryRepository.findAllByChannelIdWithParent(channelId).stream()
+                .collect(Collectors.toMap(IssueCategory::getId, entity -> entity));
 
-        Map<Long, IssueCategory> issueCategoryMap = entities.stream()
-                .collect(Collectors.toMap(IssueCategory::getId, item -> item));
+        //입력 검증
+        validIssueCategory(issueCategories, maxDepth, entityMap);
 
+        recursiveSaveIssueCategory(memberId, channelId, null, issueCategories, entityMap);
 
-        if (stores != null && !stores.isEmpty()) {
+    }
 
-            IssueCategory entity = null;
+    //id가 있는 경우 parent가 바뀌진 않음
+    private void modifyIssueCategory(Long memberId, Long channelId, IssueCategory record, IssueCategoryTreeDto dto) {
+        record.setName(dto.getName());
+        record.setEnabled(dto.getEnabled());
+        record.setDepth(dto.getDepth());
+        record.setChannelId(channelId);
+        record.setSort(dto.getSort());
+        record.setExposed(dto.getExposed());
+        record.setModifier(memberId);
+    }
 
-            for (IssueCategorySaveDto store : stores) {
-                entity = issueCategoryMap.get(store.getCategoryId());
+    /**
+     * IssueCategory 입력 검증
+     *
+     * TODO :: BizException -> IllegalArgumentException으로 수정 volka -> 현재 예외처리 핸들러에서 IllegalArgumentException의 경우 예외 메시지 응답처리 해주는 부분이 없음 -> 프론트 연계 테스트를 위해 BizException으로 임시 변경
+     * @param issueCategories
+     * @param maxDepth
+     * @param recordMap
+     */
+    private void validIssueCategory(List<IssueCategoryTreeDto> issueCategories, int maxDepth, Map<Long, IssueCategory> recordMap) {
 
-                if (entity == null) { //save
-                    IssueCategory newEntity = new IssueCategory();
-                    newEntity.setName(store.getName());
-                    newEntity.setEnabled(store.getEnabled());
-                    newEntity.setDepth(store.getDepth());
-                    newEntity.setChannelId(channelId);
-                    newEntity.setParent(store.getParentId() == null ? null : issueCategoryMap.get(store.getParentId()));
-                    newEntity.setModifier(securityUtils.getMemberId());
-                    newEntity.setModified(ZonedDateTime.now());
-                } else { //update
-                    entity.setName(store.getName());
-                    entity.setEnabled(store.getEnabled());
-                    entity.setExposed(store.getExposed());
-                    entity.setSort(store.getSort());
-                    entity.setModifier(securityUtils.getMemberId());
-                    entity.setModified(ZonedDateTime.now());
+        List<IssueCategoryTreeDto> flattenTargets = new ArrayList<>(issueCategories);
+        List<IssueCategoryTreeDto> nextFlattenTargets = new ArrayList<>();
+        Set<Integer> sortSet = new HashSet<>();
+        int totalCount = 0;
+
+        if (isDuplicatedSort(flattenTargets)) throw new BizException("not duplicated sort"); //정렬 중복
+
+        for (int i = 1; i <= maxDepth; i++) {
+
+            totalCount += flattenTargets.size();
+
+            for (IssueCategoryTreeDto dto : flattenTargets) {
+                if (dto.getDepth() != i) throw new BizException("not correct depth variables"); //valid depth
+                if (dto.getIssueCategoryId() != null && !recordMap.containsKey(dto.getIssueCategoryId())) throw new BizException("issue category is not found"); //수정일 때 미존재 entity일경우
+
+                //최하위 노드, 최대 뎁스 1일 때 제외
+                if (i < maxDepth && maxDepth > 1) {
+                    validIssueCategoryChildren(dto);
+                    nextFlattenTargets.addAll(dto.getChildren());
                 }
+            }
+
+            if (!nextFlattenTargets.isEmpty()) {
+                flattenTargets.clear();
+                flattenTargets.addAll(nextFlattenTargets);
+                nextFlattenTargets.clear();
             }
         }
 
-        return ApiResultCode.succeed.name();
+        //카테고리 삭제 요건은 없기 때문에 항상 데이터 개수는 입력 >= 레코드
+        if (totalCount < recordMap.keySet().size()) throw new BizException("not enough categories size");
     }
 
+    /**
+     * 이슈 카테고리 하위노드 검증
+     * @param parent
+     */
+    private void validIssueCategoryChildren(IssueCategoryTreeDto parent) {
+        //설정 뎁스까지 카테고리 못채운경우
+        if (parent.getChildren() == null || parent.getChildren().isEmpty()) throw new BizException("must having children");
+
+        Boolean parentEnabled = parent.getEnabled();
+        if (parent.getChildren().stream().anyMatch(child -> parentEnabled.equals(false) && child.getEnabled().equals(true))) throw new BizException("can not enabled true when parent enabled false");
+        if (isDuplicatedSort(parent.getChildren())) throw new BizException("not duplicated sort");
+    }
+
+    /**
+     * 하위 사용여부
+     *
+     * 정렬 중복
+     * @param issueCategories
+     * @return
+     */
+    private boolean isDuplicatedSort(List<IssueCategoryTreeDto> issueCategories) {
+        int size = issueCategories.stream()
+                .map(IssueCategoryTreeDto::getSort)
+                .collect(Collectors.toSet()).size();
+
+        return size != issueCategories.size();
+    }
+
+
+    /**
+     * IssueCategory 트리 저장/수정 재귀 volka
+     * @param memberId
+     * @param channelId
+     * @param parent
+     * @param dtoChildren
+     * @param recordMap
+     */
+    private void recursiveSaveIssueCategory(Long memberId, Long channelId, IssueCategory parent, List<IssueCategoryTreeDto> dtoChildren, Map<Long, IssueCategory> recordMap) {
+        IssueCategory record = null;
+
+        for (IssueCategoryTreeDto child : dtoChildren) {
+            if (child.getIssueCategoryId() == null) {
+                record = issueCategoryRepository.save(child.toEntity(memberId, channelId, parent));
+            } else {
+                record = recordMap.get(child.getIssueCategoryId());
+                modifyIssueCategory(memberId, channelId, record, child);
+            }
+
+            if (!ObjectUtils.isEmpty(child.getChildren())) {
+                recursiveSaveIssueCategory(memberId, channelId, record, child.getChildren(), recordMap);
+            }
+        }
+    }
+
+    /**
+     * 상담 카테고리 트리 생성 volka
+     * @param issueCategories
+     * @param maxDepth
+     * @return
+     */
+    private List<IssueCategoryTreeDto> createCategoryTree(List<IssueCategory> issueCategories, Integer maxDepth) {
+
+        List<IssueCategoryTreeDto> dtoList = issueCategories.stream()
+                .map(IssueCategoryTreeDto::of)
+                .collect(Collectors.toList());
+
+        List<IssueCategoryTreeDto> result = null;
+
+        if (maxDepth > 1) {
+            Map<Integer, List<IssueCategoryTreeDto>> depthMap = dtoList.stream().collect(Collectors.groupingBy(IssueCategoryTreeDto::getDepth));
+            Map<Long, IssueCategoryTreeDto> dtoMap = dtoList.stream().collect(Collectors.toMap(IssueCategoryTreeDto::getIssueCategoryId, item -> item));
+
+            Long parentId = null;
+            List<IssueCategoryTreeDto> depthList = null;
+            IssueCategoryTreeDto categoryTreeDto = null;
+
+            for (Integer i = maxDepth; i > 1; i--) {
+                depthList = depthMap.get(i);
+
+                for (IssueCategoryTreeDto issueCategoryTreeDto : depthList) {
+                    parentId = issueCategoryTreeDto.getParentId();
+                    categoryTreeDto = dtoMap.get(parentId);
+
+                    if (issueCategoryTreeDto.getParentId() != null && categoryTreeDto != null) {
+                        categoryTreeDto.getChildren().add(issueCategoryTreeDto);
+                    }
+                }
+            }
+
+            dtoMap.values().stream()
+                    .filter(item -> !item.getChildren().isEmpty())
+                    .forEach(dto -> {
+                        dto.getChildren().sort(Comparator.comparingInt(IssueCategoryTreeDto::getSort));
+                    });
+
+            result = depthMap.get(1); //대분류
+
+        } else {
+            result = dtoList;
+        }
+
+        result.sort(Comparator.comparingInt(IssueCategoryTreeDto::getSort)); //대분류 sort
+
+        return result;
+    }
+
+    /**
+     * 채널별 상담 카테고리 전체 조회 (Tree구조) volka
+     *
+     * maxDepth == 0 일 경우(미설정시) 카테고리가 없는게 정상(추가불가) (현재 20240924 기획 기준)
+     *
+     * @param channelId
+     * @return
+     */
+    public IssueCategoryResponse getAllCategoriesByChannelId(Long channelId) {
+        ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId).orElseThrow(() -> new BizException("not exist channel"));
+        if (isInitDepth(channelEnv.getMaxIssueCategoryDepth())) return null;
+
+        List<IssueCategory> issueCategories = issueCategoryRepository.findAllByChannelIdWithParent(channelId);
+        if (issueCategories.isEmpty()) return null;
+
+        return new IssueCategoryResponse(channelEnv.getMaxIssueCategoryDepth(), createCategoryTree(issueCategories, channelEnv.getMaxIssueCategoryDepth()));
+    }
+
+
+    private boolean isInitDepth(@NotNull Integer maxDepth) {
+        return maxDepth.equals(0);
+    }
 }

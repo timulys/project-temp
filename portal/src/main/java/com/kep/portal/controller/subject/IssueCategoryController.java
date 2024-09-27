@@ -4,10 +4,7 @@ import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.legacy.LegacyBnkCategoryDto;
 import com.kep.core.model.dto.subject.IssueCategoryBasicDto;
-import com.kep.portal.model.dto.subject.IssueCategorySetting;
-import com.kep.portal.model.dto.subject.IssueCategoryChildrenDto;
-import com.kep.portal.model.dto.subject.IssueCategoryStoreDto;
-import com.kep.portal.model.dto.subject.IssueCategoryWithChannelDto;
+import com.kep.portal.model.dto.subject.*;
 import com.kep.portal.service.subject.IssueCategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,11 +14,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import javax.validation.constraints.PositiveOrZero;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Positive;
 import java.util.List;
 
 /**
@@ -30,6 +29,7 @@ import java.util.List;
  * 상담 관리, 상담 진행 목록, SB-CA-P01
  */
 @Tag(name = "이슈 카테고리 API", description = "/api/v1/issue/category")
+@Validated
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/issue/category")
@@ -121,11 +121,13 @@ public class IssueCategoryController {
 
 
 
+
 	/**
 	 * 분류 관리, 생성
 	 */
+	@Deprecated
 	@Tag(name = "이슈 카테고리 API")
-	@Operation(summary = "이슈 카테고리 생성")
+	@Operation(summary = "이슈 카테고리 생성", deprecated = true)
 	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN')")
 	@PostMapping
 	public ResponseEntity<ApiResult<IssueCategoryBasicDto>> post(
@@ -149,8 +151,9 @@ public class IssueCategoryController {
 	/**
 	 * 분류 관리, 수정
 	 */
+	@Deprecated
 	@Tag(name = "이슈 카테고리 API")
-	@Operation(summary = "이슈 카테고리 수정")
+	@Operation(summary = "이슈 카테고리 수정", deprecated = true)
 	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN')")
 	@PutMapping("/{id}")
 	public ResponseEntity<ApiResult<IssueCategoryBasicDto>> put(
@@ -172,8 +175,9 @@ public class IssueCategoryController {
 	/**
 	 * 분류 관리, 삭제
 	 */
+	@Deprecated
 	@Tag(name = "이슈 카테고리 API")
-	@Operation(summary = "이슈 카테고리 삭제")
+	@Operation(summary = "이슈 카테고리 삭제", deprecated = true)
 	@DeleteMapping("/{id}")
 	public ResponseEntity<ApiResult<String>> delete(
 			@Parameter(description = "이슈 카테고리 아이디", in = ParameterIn.PATH, required = true)
@@ -270,40 +274,43 @@ public class IssueCategoryController {
 	}
 
 
-	/**
-	 * 추가 20240718 volka
-	 * @param channelId
-	 * @param maxDepth
-	 * @return
-	 */
 	@Tag(name = "이슈 카테고리 API")
-	@Operation(summary = "이슈 카테고리 단계(뎁스) 설정")
-	@PostMapping("/depth/{channel_id}/{max_depth}")
-	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN')") //FIXME :: 권한 코드 맞는지 체크 필요 20240717 volka
-	public ResponseEntity<ApiResult<Integer>> setCategoryDepth(
-			@Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
-			@PositiveOrZero @PathVariable("channel_id") Long channelId
-			, @Parameter(description = "뎁스", in = ParameterIn.PATH, required = true)
-			@PositiveOrZero @PathVariable("max_depth") Integer maxDepth
+	@Operation(summary = "이슈 카테고리 목록 조회 (신규)", description = "트리구조 조회")
+	@GetMapping("/{channel_id}")
+	public ResponseEntity<ApiResult<IssueCategoryResponse>> getCategoryTree(
+			@Parameter(description = "채널 아이디", required = true, in = ParameterIn.PATH)
+			@Positive
+			@PathVariable("channel_id") Long channelId
 	) {
-		ApiResult<Integer> result = ApiResult.<Integer>builder()
-				.code(ApiResultCode.succeed)
-				.payload(issueCategoryService.setCategoryMaxDepth(channelId, maxDepth))
-				.build();
+		log.info("ISSUE CATEGORY, GET, CHANNEL: {}", channelId);
 
-		return new ResponseEntity<>(result, HttpStatus.OK);
+		IssueCategoryResponse result = issueCategoryService.getAllCategoriesByChannelId(channelId);
+
+		ApiResult<IssueCategoryResponse> response = ApiResult.<IssueCategoryResponse>builder()
+				.code(ApiResultCode.succeed)
+				.payload(result)
+				.build();
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 	@Tag(name = "이슈 카테고리 API")
-	@Operation(summary = "이슈 카테고리 저장(신규)")
-	@PostMapping("/list")
-	public ResponseEntity<ApiResult<String>> saveIssueCategorys(@Valid @RequestBody IssueCategorySetting issueCategorySetting) {
+	@Operation(summary = "이슈 카테고리 저장(신규)", description = "요청 시 조회 트리 전체 전송")
+	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN')")
+	@PostMapping("/{channel_id}")
+	public ResponseEntity<ApiResult<String>> saveIssueCategories(
+			@Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
+			@Positive
+			@PathVariable("channel_id") Long channelId
+			,
+			@Valid
+			@RequestBody
+			IssueCategorySetting issueCategorySetting
+	) {
 
-		String result = issueCategoryService.saveIssueCategorys(issueCategorySetting);
+		issueCategoryService.saveIssueCategories(channelId, issueCategorySetting.getIssueCategories());
 
 		ApiResult<String> response = ApiResult.<String>builder()
 				.code(ApiResultCode.succeed)
-				.payload(result)
 				.build();
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
