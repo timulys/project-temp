@@ -383,8 +383,8 @@ public class IssueCategoryService {
 
         ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId).orElseThrow(() -> new BizException("not exist channel"));
         Integer maxDepth = channelEnv.getMaxIssueCategoryDepth();
-
-        if (isInitDepth(maxDepth)) throw new IllegalStateException("Issue Category is not initialized");
+        //TODO :: IllegalArgumentException으로 수정
+        if (isInitDepth(maxDepth)) throw new BizException("Issue Category is not initialized");
 
         Long memberId = securityUtils.getMemberId();
 
