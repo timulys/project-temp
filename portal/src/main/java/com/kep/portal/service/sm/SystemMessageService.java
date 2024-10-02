@@ -3,14 +3,12 @@ package com.kep.portal.service.sm;
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
-import com.kep.portal.model.entity.channel.Channel;
-import com.kep.portal.service.channel.ChannelService;
+import com.kep.portal.config.property.SystemMessageProperty;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClientRequest;
@@ -25,6 +23,9 @@ import java.util.stream.Collectors;
 public class SystemMessageService {
     @Resource(name = "webClientBuilder")
     private WebClient.Builder webClientBuilder;
+
+    @Resource
+    private SystemMessageProperty systemMessageProperty;
     /**
      * system message;
      * @param payloads
@@ -48,6 +49,7 @@ public class SystemMessageService {
                             .chapters(new IssuePayload(IssuePayload.Section.builder()
                                     .type(IssuePayload.SectionType.platform_answer)
                                     .data(section.getData())
+                                    .extra(section.getExtra())
                                     .build()).getChapters())
                             .build());
                 }
@@ -96,5 +98,28 @@ public class SystemMessageService {
             return payloads.getPayload();
         }
         return null;
+    }
+
+    public List<IssuePayload> createSystemMessage() {
+        // todo extra에 code가 아닌 IssuePayload.PlatformAnswer의 code가 보일지 나중에 체크 필요 ( 코드클릭에는 그렇게 되어있음 )
+        List<IssuePayload> issuePayloads = new ArrayList<>();
+        // ST 상담 시작
+        issuePayloads.add(this.getDefaultSystemMessage( systemMessageProperty.getChannel().getStart().getSt().getMessage() , systemMessageProperty.getChannel().getStart().getSt().getCode() ));
+        // S1 상담 불가
+        issuePayloads.add(this.getDefaultSystemMessage( systemMessageProperty.getChannel().getStart().getUnable().getMessage() , systemMessageProperty.getChannel().getStart().getUnable().getCode() ));
+        // S2 상담 부재
+        issuePayloads.add(this.getDefaultSystemMessage( systemMessageProperty.getChannel().getStart().getAbsence().getMessage() , systemMessageProperty.getChannel().getStart().getAbsence().getCode() ));
+        // S3 무응답 종료
+        issuePayloads.add(this.getDefaultSystemMessage( systemMessageProperty.getChannel().getStart().getNoResponseEnd().getMessage() , systemMessageProperty.getChannel().getStart().getNoResponseEnd().getCode() ));
+        // S4 상담 대기
+        issuePayloads.add(this.getDefaultSystemMessage( systemMessageProperty.getChannel().getStart().getWaiting().getMessage() , systemMessageProperty.getChannel().getStart().getWaiting().getCode() ));
+        return issuePayloads;
+    }
+
+    private IssuePayload getDefaultSystemMessage(String data , String extra ) {
+        return new IssuePayload(IssuePayload.Section.builder().type(IssuePayload.SectionType.platform_answer)
+                .data(data)
+                .extra(extra)
+                .build());
     }
 }

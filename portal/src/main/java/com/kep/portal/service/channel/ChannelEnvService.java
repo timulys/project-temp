@@ -267,7 +267,7 @@ public class ChannelEnvService {
 				Assert.notNull(entity , "channel start auto message null");
 				entity.setUnable(SystemIssuePayload.EnabledCodeMessage.builder()
 								.enabled(dto.getUnable().getEnabled())
-								.code(entity.getAbsence().getCode())
+								.code(entity.getUnable().getCode())
 								.message(IssuePayload.builder()
 										.version(IssuePayload.CURRENT_VERSION)
 										.chapters(new IssuePayload(IssuePayload.PlatformAnswer.off).getChapters())
@@ -340,25 +340,24 @@ public class ChannelEnvService {
 
 	@Transactional(readOnly = true)
 	public ChannelEnvDto getByChannelView(@NotNull Channel channel){
-		ChannelEnv entity = channelEnvRepository.findByChannel(channel);
+		ChannelEnv channelEnv = channelEnvRepository.findByChannel(channel);
 //		Assert.notNull(entity , "channel env message null");
-		if (entity == null) {
+		if (channelEnv == null) {
 			log.error("CHANNEL ENV NOT FOUND: CHANNEL: {}", channel.getId());
 			return new ChannelEnvDto();
 		}
-
-		// 디버깅을 위해서 주석 해제
+		ChannelEnvDto channelEnvDto = channelEnvMapper.map(channelEnv);
 		List<IssuePayload> issuePayloads = systemMessageService.getSystemMessage(channel.getServiceKey());
-		if(!ObjectUtils.isEmpty(issuePayloads)){
-			Map<String , IssuePayload> chapter = systemMessageService.setSystemMessage(issuePayloads);
-			entity.getStart().getSt().setMessage(chapter.get("ST"));
-			entity.getStart().getUnable().setMessage(chapter.get("S1"));
-			entity.getStart().getAbsence().setMessage(chapter.get("S2"));
-			entity.getStart().getWaiting().setMessage(chapter.get("S4"));
-			entity.setImpossibleMessage(chapter.get("S3"));
+		if(ObjectUtils.isEmpty(issuePayloads)){
+			issuePayloads = systemMessageService.createSystemMessage();
 		}
-
-		return channelEnvMapper.map(entity);
+		Map<String , IssuePayload> chapter = systemMessageService.setSystemMessage(issuePayloads);
+		channelEnvDto.getStart().getSt().setMessage(chapter.get("ST"));
+		channelEnvDto.getStart().getUnable().setMessage(chapter.get("S1"));
+		channelEnvDto.getStart().getAbsence().setMessage(chapter.get("S2"));
+		channelEnvDto.getStart().getWaiting().setMessage(chapter.get("S4"));
+		channelEnvDto.setImpossibleMessage(chapter.get("S3"));
+		return channelEnvDto;
 	}
 
 	/**

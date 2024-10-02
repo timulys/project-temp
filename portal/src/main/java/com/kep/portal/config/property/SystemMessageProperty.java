@@ -73,6 +73,11 @@ public class SystemMessageProperty {
             private CodeMessage absence;
 
             /**
+             * [S3 무응답 종료]
+             */
+            private CodeMessage noResponseEnd;
+
+            /**
              * #상담대기 안내 [S4 상담대기]
              */
             private CodeMessage waiting;
