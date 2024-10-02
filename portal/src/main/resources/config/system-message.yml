@@ -87,3 +87,8 @@ system-message:
         not-password-rule: 비밀번호는 10~16자의 영문 대소문자와 숫자, 특수문자 중 2가지를 혼합하여 사용할 수 있습니다.
         not-equal-confirm: 새 비밀번호와 새 비밀번호 확인이 일치하지 않습니다.
         not-safety: 안전도가 너무 낮습니다. 동일한 문자를 연속으로 3자리 이상 설정이 불가합니다.
+
+  consultation-talk:
+    button:
+      close: 종료!
+      evaluation: 상담평가하기
