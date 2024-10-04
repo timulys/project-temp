@@ -1,9 +1,7 @@
 package com.kep.portal.config.property;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 /**
  * 시스템 기본 메시지
@@ -16,6 +14,8 @@ public class SystemMessageProperty {
 
     private Portal portal;
 
+    // todo inner class 제거 예정으로 알고 있음... ( 확정되면 추후 걷어내야 할 수 있는 코드 )
+    private ConsultationTalk consultationTalk;
 
     @Data
     @NoArgsConstructor
@@ -192,6 +192,20 @@ public class SystemMessageProperty {
 
                 private String notSafety;
             }
+        }
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class ConsultationTalk {
+
+        private ConsultationTalk.Button button;
+
+        @Data
+        @NoArgsConstructor
+        public static class Button {
+            private String close;
+            private String evaluation;
         }
     }
 }

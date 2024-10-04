@@ -73,6 +73,9 @@ public class MemberDto {
 	@Schema(description = "수정일시")
 	private ZonedDateTime modified;
 
+	@Schema(description = "생성자")
+	private Long creator;
+
 	@Schema(description = "생성일시")
 	private ZonedDateTime created;
 
@@ -136,5 +139,8 @@ public class MemberDto {
 	@Builder.Default
 	@Schema(description = "첫 인사말 사용 여부 (default : false)")
 	private Boolean usedMessage = false;
+
+	@Schema(description = "관리 가능 여부")
+	private Boolean managed;
 
 }

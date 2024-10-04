@@ -11,6 +11,8 @@ import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 
+import com.kep.portal.model.dto.member.MemberStatusSyncDto;
+import com.kep.portal.repository.assign.OfficeHoursSearchRepository;
 import org.springframework.stereotype.Component;
 
 import com.kep.core.model.dto.work.OfficeHoursDto;
@@ -55,6 +57,9 @@ public class OfficeHoursService {
 
 	@Resource
 	private OfficeHoursMapper officeHoursMapper;
+
+	@Resource
+	private OfficeHoursSearchRepository memberOfficeHoursSearchRepository;
 
 	/**
 	 * 근무 시간 체크
@@ -242,4 +247,11 @@ public class OfficeHoursService {
 
 	}
 
+	public List<MemberStatusSyncDto> getMemberAndMemberOfficeHoursListUseBranchId(Long branchId) {
+		return memberOfficeHoursSearchRepository.searchMemberAndMemberOfficeHoursListUseBranchId(branchId);
+	}
+
+	public List<MemberStatusSyncDto> getMemberAndBranchOfficeHoursList(){
+		return memberOfficeHoursSearchRepository.searchMemberAndBranchOfficeHoursList();
+	}
 }
