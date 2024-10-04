@@ -85,8 +85,8 @@ public class OfficeHoursController {
         log.info("OFFICE HOURS :{}" ,officeWorkDto.getOfficeHours().getDayOfWeek());
 
         //브랜치 근무 설정 create
-        // OfficeHoursDto officeHoursDto = officeHoursService.branch(officeWorkDto,branchId);
-        OfficeHoursDto officeHoursDto = memberService.saveOfficeHours(officeWorkDto);
+        OfficeHoursDto officeHoursDto = officeHoursService.branch(officeWorkDto,branchId);
+        //OfficeHoursDto officeHoursDto = memberService.saveOfficeHours(officeWorkDto);
 
         officeWorkDto.setBranch(dto);
         officeWorkDto.setOfficeHours(officeHoursDto);

@@ -36,11 +36,13 @@ public class MemberStatusSyncAssignMemberJob {
      * 다음날에 대한 온/오프라인 Sync를 위해서 자정에 한 번 더 Sync 합니다. ( 이 경우 날짜만 체크합니다. )
      * ( 임시 지정이며, 논의가 필요합니다. )
      ********************************************************/
+    /*
     @Scheduled(cron = "0 0/10 15-23 * * ?")
     @Scheduled(cron = "0 0 0 * * ?")
     @SchedulerLock(name = "MEMBER_STATUS_SYNC_ASSIGN_MEMBER"
             , lockAtLeastFor = "PT5S"
             , lockAtMostFor = "PT20S")
+     */
     public void run() throws Exception {
         List<MemberStatusSyncDto> memberAndMemberOfficeHoursList = officeHoursService.getMemberAndMemberOfficeHoursListUseBranchId(null);
         List<Member> memberList = new ArrayList<>();
