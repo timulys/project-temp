@@ -1,5 +1,6 @@
 package com.kep.portal.util;
 
+import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.model.entity.privilege.Level;
 import com.kep.portal.model.security.AuthMember;
 import com.kep.portal.model.security.AuthMemberMapper;
@@ -14,6 +15,7 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 세션 정보 (로그인 사용자 이벤트시에만 사용할 것)
@@ -25,11 +27,14 @@ public class SecurityUtils {
 	@Resource
 	private AuthMemberMapper authMemberMapper;
 
+	@Resource
+	private PortalProperty portalProperty;
+
 	public AuthMember getAuthMember() {
 
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		try {
-			return (AuthMember) authentication.getPrincipal();
+			return Objects.nonNull(authentication) ? (AuthMember) authentication.getPrincipal() : null;
 		} catch (Exception e) {
 			log.error("principal: {}, {}", authentication.getPrincipal(), e.getLocalizedMessage());
 			throw new AccessDeniedException("can not find principal");
@@ -37,8 +42,10 @@ public class SecurityUtils {
 	}
 
 	public Long getMemberId() {
-
 		AuthMember authMember = getAuthMember();
+		if(Objects.isNull(authMember)){
+			return portalProperty.getSystemMemberId();
+		}
 		return authMember.getId();
 	}
 	
@@ -66,7 +73,7 @@ public class SecurityUtils {
 	public Long getTeamId() {
 
 		AuthMember authMember = getAuthMember();
-		if (!ObjectUtils.isEmpty(authMember.getTeamIds())) {
+		if (Objects.nonNull(authMember) && !ObjectUtils.isEmpty(authMember.getTeamIds())) {
 			return authMember.getTeamIds().get(0);
 		}
 

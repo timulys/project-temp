@@ -199,4 +199,17 @@ public class ZonedDateTimeUtil {
 		return ZonedDateTime.of(Integer.parseInt(date.substring(0, 4)), Integer.parseInt(date.substring(4, 6)),
 				Integer.parseInt(date.substring(6, 8)), 0, 0, 0, 0, TimeZone.getDefault().toZoneId());
 	}
+
+	/**
+	 * 자정인지 여부 체크
+	 * @return
+	 */
+	public static boolean isMidNight(){
+		ZonedDateTime now = ZonedDateTime.now();
+		if (now.getHour() == 0 && now.getMinute() == 0) {
+			return true;
+		}
+		return false;
+	}
+
 }

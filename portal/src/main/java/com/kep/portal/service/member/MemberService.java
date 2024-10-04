@@ -3,12 +3,15 @@ package com.kep.portal.service.member;
 import com.kep.core.model.dto.env.CounselInflowEnvDto;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
 import com.kep.core.model.dto.member.MemberDto;
+import com.kep.core.model.dto.work.OfficeHoursDto;
+import com.kep.core.model.dto.work.OfficeWorkDto;
 import com.kep.core.model.dto.work.WorkType;
 import com.kep.portal.config.property.CoreProperty;
 import com.kep.portal.config.property.SystemMessageProperty;
 import com.kep.portal.model.dto.member.MemberAssignDto;
 import com.kep.portal.model.dto.member.MemberPassDto;
 import com.kep.portal.model.dto.member.MemberSearchCondition;
+import com.kep.portal.model.dto.member.MemberStatusSyncDto;
 import com.kep.portal.model.entity.branch.Branch;
 import com.kep.portal.model.entity.branch.BranchTeam;
 import com.kep.portal.model.entity.member.Member;
@@ -39,7 +42,9 @@ import com.kep.portal.service.work.BreakTimeService;
 import com.kep.portal.service.work.OfficeHoursService;
 import com.kep.portal.service.work.WorkService;
 import com.kep.portal.util.CommonUtils;
+import com.kep.portal.util.OfficeHoursTimeUtils;
 import com.kep.portal.util.SecurityUtils;
+import com.kep.portal.util.ZonedDateTimeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -1100,4 +1105,73 @@ public class MemberService {
 		log.info("ASSIGN TYPE:{} , ID:{} , OFFICE_HOURS:{}", branch.getAssign(), branch.getId(), officeHoursMapper.map(officeHours));
 		return officeHours;
 	}
+
+	public OfficeHoursDto saveOfficeHours(@NotNull OfficeWorkDto officeWorkDto) {
+		if(Objects.nonNull(officeWorkDto.getBranch()) && Objects.nonNull(officeWorkDto.getBranch().getAssign()) ){
+			switch (officeWorkDto.getBranch().getAssign()) {
+				case branch:
+					this.updateMemberStatusUseOfficeWorkDto(officeWorkDto);
+					break;
+				case member:
+					this.updateMemberStatusAssignMember(officeWorkDto.getBranch().getId());
+					break;
+				default:
+					break;
+			}
+		}
+		OfficeHoursDto resultOfficeHoursDto = officeHoursService.branch(officeWorkDto , officeWorkDto.getBranch().getId() );
+		return resultOfficeHoursDto;
+	}
+
+	public void updateMemberStatusAssignMember(Long branchId) {
+		List<MemberStatusSyncDto> officeHoursDtoList = officeHoursService.getMemberAndMemberOfficeHoursListUseBranchId(branchId);
+		this.updateMemberStatusUseOfficeHoursDtoList(officeHoursDtoList);
+	}
+
+	public void updateMemberStatusUseOfficeHoursDtoList(List<MemberStatusSyncDto> officeHoursDtoList) {
+		List<Member> memberList = new ArrayList<>();
+		for(MemberStatusSyncDto memberAndOfficeHourDto : officeHoursDtoList) {
+			boolean isOfficeHour = officeHoursService.isOfficeHours ( memberAndOfficeHourDto.getStartCounselTime() , memberAndOfficeHourDto.getEndCounselTime() , memberAndOfficeHourDto.getDayOfWeek() );
+			Member member = memberAndOfficeHourDto.toMemberEntity();
+			this.setMemberStatusUseIsOfficeHour(member , isOfficeHour);
+			memberList.add(member);
+		}
+		this.memberSaveAll(memberList);
+	}
+
+	public void updateMemberStatusUseOfficeWorkDto(OfficeWorkDto officeWorkDto){
+		boolean isOfficeHour = officeHoursService.isOfficeHours( OfficeHoursTimeUtils.hours(officeWorkDto.getOfficeHours().getStartCounselHours() , officeWorkDto.getOfficeHours().getStartCounselMinutes())
+																,OfficeHoursTimeUtils.hours(officeWorkDto.getOfficeHours().getEndCounselHours()   , officeWorkDto.getOfficeHours().getEndCounselMinutes()  )
+																,OfficeHoursTimeUtils.dayOfWeek(officeWorkDto.getOfficeHours().getDayOfWeek())
+															   );
+		List<Member> memberList = memberRepository.findByEnabledAndBranchId(true, officeWorkDto.getBranch().getId());
+		for(Member member : memberList){
+			this.setMemberStatusUseIsOfficeHour(member, isOfficeHour);
+		}
+		this.memberSaveAll(memberList);
+	}
+
+	public void setMemberStatusUseIsOfficeHour(Member member, boolean isOfficeHour) {
+		WorkType.OfficeHoursStatusType updateStatus = isOfficeHour ? WorkType.OfficeHoursStatusType.on : WorkType.OfficeHoursStatusType.off;
+		WorkType.OfficeHoursStatusType currentStatus = member.getStatus();
+		// 원래 엔티티에 어노테이션을 활용해야겠지만 영향도 파악이 어려워서 if문 사용
+		if(currentStatus != updateStatus){
+			member.setModified(ZonedDateTime.now());
+			member.setModifier(securityUtils.getMemberId());
+		}
+		member.setStatus(updateStatus);
+	}
+
+
+	public Member getMemberUseMemberStatusSyncScheduler(MemberStatusSyncDto memberStatusSyncDto) {
+		boolean isOfficeHour = ZonedDateTimeUtil.isMidNight() ? OfficeHoursTimeUtils.isDayOfWeek(memberStatusSyncDto.getDayOfWeek()) : officeHoursService.isOfficeHours (memberStatusSyncDto.getStartCounselTime(), memberStatusSyncDto.getEndCounselTime(), memberStatusSyncDto.getDayOfWeek() );
+		Member member = memberStatusSyncDto.toMemberEntity();
+		this.setMemberStatusUseIsOfficeHour( member, isOfficeHour );
+		return member;
+	}
+
+	public void memberSaveAll(List<Member> memberList) {
+		memberRepository.saveAll(memberList);
+	}
+
 }
