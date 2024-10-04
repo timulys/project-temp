@@ -90,5 +90,5 @@ system-message:
 
   consultation-talk:
     button:
-      close: 종료!
+      close: "!종료"
       evaluation: 상담평가하기
