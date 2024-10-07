@@ -44,7 +44,7 @@ public interface MemberRepository extends JpaRepository<Member, Long>, MemberSea
     Long countByEnabledAndBranchId(Boolean enabled, Long branchId);
     
     //BNK 계정 카운트
-    Long countByUsernameNot(String username);
+    Long countByEnabledAndUsernameNot(Boolean enabled, String username);
 
 
     

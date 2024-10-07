@@ -1112,7 +1112,7 @@ public class MemberService {
 	
 	//총 멤버수 
 	public long getTotalmembers() {
-		return memberRepository.countByUsernameNot("master1");
+		return memberRepository.countByEnabledAndUsernameNot(true , "master1");
 	}
 
 
