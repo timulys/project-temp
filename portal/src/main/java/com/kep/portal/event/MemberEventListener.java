@@ -14,9 +14,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import javax.annotation.Resource;
-import javax.persistence.*;
-import javax.servlet.http.HttpServletRequest;
+import javax.persistence.PostPersist;
+import javax.persistence.PostRemove;
+import javax.persistence.PostUpdate;
 
 
 /**
@@ -65,46 +65,8 @@ public class MemberEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     protected void onUpdateHandler(Member member) {
 
-        SecurityUtils securityUtils = BeanUtils.getBean(SecurityUtils.class);
-        ObjectMapper objectMapper = BeanUtils.getBean(ObjectMapper.class);
-        MemberService memberService = BeanUtils.getBean(MemberService.class);
-        SystemEventService systemEventService = BeanUtils.getBean(SystemEventService.class);
-
-        Member beforeMember = memberService.findById(member.getId());
-        Member fromMember = memberService.findById(securityUtils.getMemberId());
-
-        SystemEventHistoryActionType action = SystemEventHistoryActionType.member_update;
-        if(member.isPasswordChanged()){
-            action = SystemEventHistoryActionType.member_password;
-        }
-
-        String afterPayload = "";
-        String beforePayload = "";
-        try {
-            if(SystemEventHistoryActionType.member_password.equals(action)){
-                beforeMember.setPassword(null);
-                afterPayload = objectMapper.writeValueAsString(Member.builder()
-                        .username(member.getUsername())
-                        .nickname(member.getNickname())
-                        .branchId(member.getBranchId())
-                        .enabled(member.getEnabled())
-                        .managed(member.getManaged())
-                        .modifier(member.getModifier())
-                        .modified(member.getModified())
-                        .status(member.getStatus())
-                        .maxCounsel(member.getMaxCounsel())
-                        .outsourcing(member.getOutsourcing())
-                        .setting(member.getSetting())
-                        .build());
-                beforePayload = objectMapper.writeValueAsString(beforeMember);
-            }
-
-        } catch (JsonProcessingException ignored){
-
-        }
-
-        systemEventService.store( fromMember, member.getId(),  action,"Member",beforePayload , afterPayload , null , null , "UPDATE" , securityUtils.getTeamId());
     }
+
     @Async("eventTaskExecutor")
     @PostRemove
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMPLETION)
