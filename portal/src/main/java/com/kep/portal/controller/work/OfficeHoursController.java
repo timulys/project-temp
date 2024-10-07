@@ -10,6 +10,7 @@ import com.kep.portal.model.entity.branch.Branch;
 import com.kep.portal.model.entity.branch.BranchMapper;
 import com.kep.portal.repository.branch.BranchRepository;
 import com.kep.portal.service.branch.BranchService;
+import com.kep.portal.service.member.MemberService;
 import com.kep.portal.service.work.OfficeHoursService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -44,6 +45,9 @@ public class OfficeHoursController {
 
     @Resource
     private BranchService branchService;
+
+    @Resource
+    private MemberService memberService;
 
     /**
      * 브랜치 근무시간 설정
@@ -82,6 +86,7 @@ public class OfficeHoursController {
 
         //브랜치 근무 설정 create
         OfficeHoursDto officeHoursDto = officeHoursService.branch(officeWorkDto,branchId);
+        //OfficeHoursDto officeHoursDto = memberService.saveOfficeHours(officeWorkDto);
 
         officeWorkDto.setBranch(dto);
         officeWorkDto.setOfficeHours(officeHoursDto);

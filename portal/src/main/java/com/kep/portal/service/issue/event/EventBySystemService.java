@@ -9,6 +9,7 @@ import com.kep.core.model.dto.system.SystemEnvEnum;
 import com.kep.portal.client.PlatformClient;
 import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.config.property.SocketProperty;
+import com.kep.portal.config.property.SystemMessageProperty;
 import com.kep.portal.model.entity.channel.ChannelEndAuto;
 import com.kep.portal.model.entity.issue.*;
 import com.kep.portal.model.entity.member.Member;
@@ -73,6 +74,9 @@ public class EventBySystemService {
 
 	@Resource
 	private SecurityUtils securityUtils;
+
+	@Resource
+	private SystemMessageProperty systemMessageProperty;
 
 	// ////////////////////////////////////////////////////////////////////////
 	// 시스템 관리 > 상담 시작 설정 적용
@@ -334,7 +338,7 @@ public class EventBySystemService {
 
 
 			// 종료 버튼 추가 된 메세지 발송
-			String payload = this.getTextBtnAddPayload(channelEnv.getEnd().getGuide().getMessage() , "!종료");
+			String payload = this.getTextBtnAddPayload(channelEnv.getEnd().getGuide().getMessage() , systemMessageProperty.getConsultationTalk().getButton().getClose() );
 
 			IssueLog issueLog = saveSystemMessage(issue, payload,securityUtils.getMemberId());
 			sendToPlatformAndSocket(issue, issueLog);
@@ -422,8 +426,7 @@ public class EventBySystemService {
 			log.info("BUILD EVALUATION, CONFIG: {}", channelEnv.getEvaluation());
 			boolean enabled = channelEnv.getEvaluation().getEnabled();
 			if (enabled) {
-				// todo '상담평가하기' 메세지에 등록하여 사용할지 논의 필요
-				String payload = this.getLinkBtnAddPayload(channelEnv.getEvaluation().getMessage(),"상담평가하기", portalProperty.getEvaluationLinkUrl()) ;
+				String payload = this.getLinkBtnAddPayload(channelEnv.getEvaluation().getMessage(), systemMessageProperty.getConsultationTalk().getButton().getEvaluation() , portalProperty.getEvaluationLinkUrl()) ;
 				return saveSystemMessage(issue, payload);
 			}
 		} catch (Exception e) {

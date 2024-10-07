@@ -125,10 +125,12 @@ public class KakaoCounselCenterService {
 			log.error("KAKAO SYSTEM MESSAGE :{}", e.getMessage(), e);
 		}
 
+		/*
 		List<String> code = Arrays.asList("S1", "S2", "S3", "S4", "ED", "ER", "BL", "SB");
 		for (int i = 0; i < code.size(); i++) {
 			issuePayloads.add(new IssuePayload(IssuePayload.Section.builder().type(IssuePayload.SectionType.platform_answer).data("상담톡 시스템메세지(API)에 접근할수 없습니다.").extra(code.get(i)).build()));
 		}
+		*/
 		return issuePayloads;
 	}
 }
