@@ -3,7 +3,6 @@ package com.kep.portal.service.env;
 import com.kep.core.model.dto.env.CounselEnvDto;
 import com.kep.core.model.dto.env.CounselInflowEnvDto;
 import com.kep.core.model.dto.system.SystemEnvEnum;
-import com.kep.portal.config.property.CoreProperty;
 import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.model.entity.env.CounselEnv;
 import com.kep.portal.model.entity.env.CounselEnvMapper;
@@ -35,8 +34,6 @@ public class CounselEnvService {
     private CounselEnvMapper counselEnvMapper;
     @Resource
     private CounselInflowEnvMapper counselInflowEnvMapper;
-	@Resource
-	private CoreProperty coreProperty;
 
     @Resource
     private SecurityUtils securityUtils;
@@ -103,8 +100,7 @@ public class CounselEnvService {
 
             counselInflowEnv = counselInflowEnvMapper.map(dto);
             // FIXME : jhchoi - 기존 BZM 송수신 알고리즘으로 변경
-            String newPath = PortalProperty.kakaoCounselTalkBaseUrl + "/open/{{channel_name}}?extra=path_" + dto.getParams();
-            System.out.println("newPath = " + newPath);
+            String newPath = portalProperty.kakaoCounselTalkBaseUrl + "/open/{{channel_name}}?extra=path_" + dto.getParams();
             // 새로운 카카오 싱크 URL을 사용하여 유입경로 설정
 //            String newPath = bnkKaKaoTalkUrl + "path_" + dto.getParams();
             counselInflowEnv.setValue(newPath);
