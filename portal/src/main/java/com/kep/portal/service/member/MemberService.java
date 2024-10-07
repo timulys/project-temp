@@ -2,6 +2,7 @@ package com.kep.portal.service.member;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kep.core.model.dto.env.CounselEnvDto;
 import com.kep.core.model.dto.env.CounselInflowEnvDto;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
 import com.kep.core.model.dto.member.MemberDto;
@@ -607,6 +608,9 @@ public class MemberService {
 			item.setOfficeHours(officeHours);
 		}).collect(Collectors.toList());
 
+		CounselEnvDto counselEnvDto = counselEnvService.get(condition.getBranchId());
+
+
 		// 근무시간체크
 		Set<Long> memberIds = members.stream().map(Member::getId).collect(Collectors.toSet());
 		List<MemberOfficeHours> memberOfficeHoursList = memberOfficeHoursRepository.findAllByMemberIdIn(memberIds);
@@ -645,21 +649,25 @@ public class MemberService {
 				continue;
 			}
 
-			// breakTime(휴식시간) 여부 체크 추가가
+			// 1. breakTime(휴식시간) 여부 체크
 			if(isBreakTime){
 				member.setAssignable(false);
 				continue;
 			}
 
-			// Todo 대시보드 쪽에서 보이는 로직이랑 맞춰야 할 필요성 있어보임..
-			// eddie.j Assignable 컬럼 세팅 위치 변경 ( 같은 컬럼 데이터 덮어 씌우는 문제로 인하여 버그 발생 )
-			// 1. 온라인 / 오프라인 체크
+			// 2. 온라인 / 오프라인 체크
 			if (WorkType.OfficeHoursStatusType.off.equals(member.getStatus())) {
 				member.setAssignable(false);
 				continue;
 			}
 
-			// 2. 근무시간 체크
+			// 3. 상담 인입 제한 체크
+			if(Objects.nonNull(counselEnvDto) && counselEnvDto.getRequestBlockEnabled()){
+				member.setAssignable(false);
+				continue;
+			}
+
+			// 4. 근무시간 체크
 			if (Objects.nonNull(officeHours)) {
 				member.setAssignable(officeHoursService.isOfficeHours(officeHours));
 			}

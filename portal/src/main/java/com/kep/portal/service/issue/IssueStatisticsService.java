@@ -1,5 +1,6 @@
 package com.kep.portal.service.issue;
 
+import com.kep.core.model.dto.env.CounselEnvDto;
 import com.kep.core.model.dto.work.WorkType;
 import com.kep.portal.model.dto.statistics.IssueStatisticsStatus;
 import com.kep.portal.model.dto.statistics.IssueStatisticsDto;
@@ -13,6 +14,7 @@ import com.kep.portal.repository.assign.BranchOfficeHoursRepository;
 import com.kep.portal.repository.assign.MemberOfficeHoursRepository;
 import com.kep.portal.repository.statisctics.IssueStatisticsRepository;
 import com.kep.portal.service.branch.BranchService;
+import com.kep.portal.service.env.CounselEnvService;
 import com.kep.portal.service.member.MemberService;
 import com.kep.portal.service.team.TeamMemberService;
 import com.kep.portal.service.work.BreakTimeService;
@@ -64,6 +66,9 @@ public class IssueStatisticsService {
 
     @Resource
     private BreakTimeService breakTimeService;
+
+    @Resource
+    private CounselEnvService counselEnvService;
 
 
     /**
@@ -174,6 +179,8 @@ public class IssueStatisticsService {
         List<IssueMemberStatisticsDto> issueMemberStatistics = issueStatisticsRepository.members(from, to, branchId, teamId);
         List<IssueMemberStatisticsDto> memberStatisticsDtos = new ArrayList<>();
 
+        CounselEnvDto counselEnvDto = counselEnvService.get(branch.getId());
+
         boolean isMemberAssign = branch.getAssign().equals(WorkType.Cases.member);
         //근무 시간 예외 처리
         boolean isWork = workService.offDutyHours(branch);
@@ -222,6 +229,11 @@ public class IssueStatisticsService {
                 status = WorkType.OfficeHoursStatusType.off;
             }
             if(isBreakTime){
+                status = WorkType.OfficeHoursStatusType.off;
+            }
+
+            // 상담인입 제한일 경우 상담 불가능
+            if(counselEnvDto.getRequestBlockEnabled()){
                 status = WorkType.OfficeHoursStatusType.off;
             }
 
