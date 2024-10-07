@@ -1,12 +1,16 @@
 package com.kep.portal.service.member;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.env.CounselInflowEnvDto;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
 import com.kep.core.model.dto.member.MemberDto;
+import com.kep.core.model.dto.system.SystemEventHistoryActionType;
 import com.kep.core.model.dto.work.OfficeHoursDto;
 import com.kep.core.model.dto.work.OfficeWorkDto;
 import com.kep.core.model.dto.work.WorkType;
 import com.kep.portal.config.property.CoreProperty;
+import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.config.property.SystemMessageProperty;
 import com.kep.portal.model.dto.member.MemberAssignDto;
 import com.kep.portal.model.dto.member.MemberPassDto;
@@ -36,6 +40,7 @@ import com.kep.portal.service.branch.BranchService;
 import com.kep.portal.service.env.CounselEnvService;
 import com.kep.portal.service.issue.IssueService;
 import com.kep.portal.service.privilege.RoleService;
+import com.kep.portal.service.system.SystemEventService;
 import com.kep.portal.service.team.TeamMemberService;
 import com.kep.portal.service.team.TeamService;
 import com.kep.portal.service.work.BreakTimeService;
@@ -46,6 +51,7 @@ import com.kep.portal.util.OfficeHoursTimeUtils;
 import com.kep.portal.util.SecurityUtils;
 import com.kep.portal.util.ZonedDateTimeUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -130,6 +136,15 @@ public class MemberService {
 
 	@Resource
 	private BreakTimeService breakTimeService;
+
+	@Resource
+	private SystemEventService systemEventService;
+
+	@Resource
+	private ObjectMapper objectMapper;
+
+	@Resource
+	private PortalProperty portalProperty;
 	
 	public Member findById(@NotNull @Positive Long id) {
 		return memberRepository.findById(id).orElse(null);
@@ -164,11 +179,14 @@ public class MemberService {
 	 * @param status
 	 * @return
 	 */
-	public boolean status(Long id, WorkType.OfficeHoursStatusType status) {
+	public boolean status(Long id, WorkType.OfficeHoursStatusType status) throws Exception {
 		Member member = this.findById(id);
+		Member beforeMember = new Member();
+		BeanUtils.copyProperties(member , beforeMember );
 		Assert.notNull(member, "member is null");
 		member.setStatus(status);
 		memberRepository.save(member);
+		this.systemEventStore(SystemEventHistoryActionType.member_update , beforeMember , member);
 		return true;
 	}
 
@@ -236,9 +254,10 @@ public class MemberService {
 	 * @param dto
 	 * @return
 	 */
-	public MemberDto store(@NotNull MemberDto dto) {
+	public MemberDto store(@NotNull MemberDto dto) throws Exception {
 		// Member 저장
 		Member member;
+		Member beforeMember = new Member();
 		Branch branch = branchService.findById(dto.getBranchId());
 		Assert.notNull(branch, "not null branch id:" + dto.getBranchId());
 
@@ -281,7 +300,7 @@ public class MemberService {
 
 			int maxCounsel = branch.getMaxCounsel() != null ? branch.getMaxCounsel() : 0;
 
-			 if(WorkType.MaxCounselType.individual.equals(branch.getMaxCounselType())) {
+			if(WorkType.MaxCounselType.individual.equals(branch.getMaxCounselType())) {
 				maxCounsel = branch.getMaxMemberCounsel() != null ? branch.getMaxMemberCounsel() : 0;
 			}
 
@@ -290,6 +309,7 @@ public class MemberService {
 			member.setStatus(getStatusType(dto));
 		} else {
 			member = memberRepository.findById(dto.getId()).orElse(null);
+			BeanUtils.copyProperties(member , beforeMember );
 			Assert.notNull(member, "member is null");
 			CommonUtils.copyNotEmptyProperties(dto, member);
 		}
@@ -308,6 +328,16 @@ public class MemberService {
 
 			member.setUsedMessage(true);
 			member.setFirstMessage(dto.getFirstMessage());
+		}
+
+		// 근무시간
+		if (!ObjectUtils.isEmpty(dto.getOfficeHours())) {
+			OfficeHours officeHours = officeHoursService.member(dto.getOfficeHours(), member.getId());
+			member.setOfficeHours(officeHours);
+
+			boolean isOfficeHour = officeHoursService.isOfficeHours(officeHours.getStartCounselTime(), officeHours.getEndCounselTime(), officeHours.getDayOfWeek() );
+			WorkType.OfficeHoursStatusType status = isOfficeHour ? WorkType.OfficeHoursStatusType.on : WorkType.OfficeHoursStatusType.off;
+			member.setStatus(status);
 		}
 
 		member = memberRepository.save(member);
@@ -351,12 +381,12 @@ public class MemberService {
 			dto.getOfficeHours().setOffDutyCounselYn(yn);
 		}
 
-		// 근무시간
-		if (!ObjectUtils.isEmpty(dto.getOfficeHours())) {
-			OfficeHours officeHours = officeHoursService.member(dto.getOfficeHours(), member.getId());
-			member.setOfficeHours(officeHours);
-		}
+
 		member.setBranch(branch);
+		// SystemEventHistory 저장 (update의 경우 MemberEventListener 사용 X )
+		if(Objects.nonNull(dto.getId())){
+			this.systemEventStore(SystemEventHistoryActionType.member_update , beforeMember , member);
+		}
 		return memberMapper.map(member);
 	}
 
@@ -379,11 +409,14 @@ public class MemberService {
 	 * @param memberId
 	 * @return
 	 */
-	public boolean resetPassword(Long memberId) {
+	public boolean resetPassword(Long memberId) throws Exception {
 		Member member = memberRepository.findById(memberId).orElse(null);
+		Member beforeMember = new Member();
 		if (member != null) {
+			BeanUtils.copyProperties(member , beforeMember );
 			member.setPassword(passwordEncoder.encode(member.getUsername()));
 			memberRepository.save(member);
+			this.systemEventStore(SystemEventHistoryActionType.member_password , beforeMember , member);
 			return true;
 		}
 		return false;
@@ -1110,10 +1143,10 @@ public class MemberService {
 		if(Objects.nonNull(officeWorkDto.getBranch()) && Objects.nonNull(officeWorkDto.getBranch().getAssign()) ){
 			switch (officeWorkDto.getBranch().getAssign()) {
 				case branch:
-					this.updateMemberStatusUseOfficeWorkDto(officeWorkDto);
+					this.updateMemberStatusUseOfficeWorkDto(officeWorkDto , securityUtils.getMemberId());
 					break;
 				case member:
-					this.updateMemberStatusAssignMember(officeWorkDto.getBranch().getId());
+					this.updateMemberStatusAssignMember(officeWorkDto.getBranch().getId() , securityUtils.getMemberId());
 					break;
 				default:
 					break;
@@ -1123,50 +1156,50 @@ public class MemberService {
 		return resultOfficeHoursDto;
 	}
 
-	public void updateMemberStatusAssignMember(Long branchId) {
+	public void updateMemberStatusAssignMember(Long branchId , Long modifier) {
 		List<MemberStatusSyncDto> officeHoursDtoList = officeHoursService.getMemberAndMemberOfficeHoursListUseBranchId(branchId);
-		this.updateMemberStatusUseOfficeHoursDtoList(officeHoursDtoList);
+		this.updateMemberStatusUseOfficeHoursDtoList(officeHoursDtoList , modifier);
 	}
 
-	public void updateMemberStatusUseOfficeHoursDtoList(List<MemberStatusSyncDto> officeHoursDtoList) {
+	public void updateMemberStatusUseOfficeHoursDtoList(List<MemberStatusSyncDto> officeHoursDtoList , Long modifier) {
 		List<Member> memberList = new ArrayList<>();
 		for(MemberStatusSyncDto memberAndOfficeHourDto : officeHoursDtoList) {
 			boolean isOfficeHour = officeHoursService.isOfficeHours ( memberAndOfficeHourDto.getStartCounselTime() , memberAndOfficeHourDto.getEndCounselTime() , memberAndOfficeHourDto.getDayOfWeek() );
 			Member member = memberAndOfficeHourDto.toMemberEntity();
-			this.setMemberStatusUseIsOfficeHour(member , isOfficeHour);
+			this.setMemberStatusUseIsOfficeHour(member , isOfficeHour , modifier);
 			memberList.add(member);
 		}
 		this.memberSaveAll(memberList);
 	}
 
-	public void updateMemberStatusUseOfficeWorkDto(OfficeWorkDto officeWorkDto){
+	public void updateMemberStatusUseOfficeWorkDto(OfficeWorkDto officeWorkDto , Long modifier){
 		boolean isOfficeHour = officeHoursService.isOfficeHours( OfficeHoursTimeUtils.hours(officeWorkDto.getOfficeHours().getStartCounselHours() , officeWorkDto.getOfficeHours().getStartCounselMinutes())
 																,OfficeHoursTimeUtils.hours(officeWorkDto.getOfficeHours().getEndCounselHours()   , officeWorkDto.getOfficeHours().getEndCounselMinutes()  )
 																,OfficeHoursTimeUtils.dayOfWeek(officeWorkDto.getOfficeHours().getDayOfWeek())
 															   );
 		List<Member> memberList = memberRepository.findByEnabledAndBranchId(true, officeWorkDto.getBranch().getId());
 		for(Member member : memberList){
-			this.setMemberStatusUseIsOfficeHour(member, isOfficeHour);
+			this.setMemberStatusUseIsOfficeHour(member, isOfficeHour , modifier);
 		}
 		this.memberSaveAll(memberList);
 	}
 
-	public void setMemberStatusUseIsOfficeHour(Member member, boolean isOfficeHour) {
+	public void setMemberStatusUseIsOfficeHour(Member member, boolean isOfficeHour , Long modifier) {
 		WorkType.OfficeHoursStatusType updateStatus = isOfficeHour ? WorkType.OfficeHoursStatusType.on : WorkType.OfficeHoursStatusType.off;
 		WorkType.OfficeHoursStatusType currentStatus = member.getStatus();
 		// 원래 엔티티에 어노테이션을 활용해야겠지만 영향도 파악이 어려워서 if문 사용
 		if(currentStatus != updateStatus){
 			member.setModified(ZonedDateTime.now());
-			member.setModifier(securityUtils.getMemberId());
+			member.setModifier(modifier);
 		}
 		member.setStatus(updateStatus);
 	}
 
 
-	public Member getMemberUseMemberStatusSyncScheduler(MemberStatusSyncDto memberStatusSyncDto) {
+	public Member getMemberUseMemberStatusSyncScheduler(MemberStatusSyncDto memberStatusSyncDto , Long modifier) {
 		boolean isOfficeHour = ZonedDateTimeUtil.isMidNight() ? OfficeHoursTimeUtils.isDayOfWeek(memberStatusSyncDto.getDayOfWeek()) : officeHoursService.isOfficeHours (memberStatusSyncDto.getStartCounselTime(), memberStatusSyncDto.getEndCounselTime(), memberStatusSyncDto.getDayOfWeek() );
 		Member member = memberStatusSyncDto.toMemberEntity();
-		this.setMemberStatusUseIsOfficeHour( member, isOfficeHour );
+		this.setMemberStatusUseIsOfficeHour( member, isOfficeHour , modifier);
 		return member;
 	}
 
@@ -1174,4 +1207,18 @@ public class MemberService {
 		memberRepository.saveAll(memberList);
 	}
 
+	public void systemEventStore(SystemEventHistoryActionType action , Member beforeMember , Member member) throws JsonProcessingException {
+		Member fromMember = this.findById(securityUtils.getMemberId());
+		String beforePayload = objectMapper.writeValueAsString(beforeMember);
+		String afterPayload = objectMapper.writeValueAsString(member);
+		systemEventService.store( fromMember, member.getId(),  action,"Member",beforePayload , afterPayload , null , null , "UPDATE" , securityUtils.getTeamId());
+	}
+
+	public void memberStatusSyncJobSaveAll (List<Member> memberList) {
+		this.memberSaveAll(memberList);
+		Member fromMember = this.findById(portalProperty.getSystemMemberId());
+		if(Objects.nonNull(fromMember)){
+			systemEventService.store(fromMember , portalProperty.getSystemMemberId(), SystemEventHistoryActionType.schedule_member_status_sync , "Member" , null , null , null , null , "UPDATE",null);
+		}
+	}
 }

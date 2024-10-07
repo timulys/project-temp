@@ -1,16 +1,13 @@
 package com.kep.portal.service.system;
 
-import com.kep.core.model.dto.guide.GuideDto;
 import com.kep.core.model.dto.system.SystemEventHistoryActionType;
 import com.kep.core.model.dto.system.SystemEventHistoryDto;
 import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.model.entity.system.SystemEventHistory;
 import com.kep.portal.model.entity.system.SystemEventHistoryMapper;
 import com.kep.portal.repository.system.SystemEventHistoryRepository;
-import com.kep.portal.util.SecurityUtils;
 import com.kep.portal.util.ZonedDateTimeUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -21,7 +18,6 @@ import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -31,9 +27,6 @@ public class SystemEventService {
 
     @Resource
     private SystemEventHistoryRepository systemEventHistoryRepository;
-
-    @Resource
-    private SecurityUtils securityUtils;
 
     @Resource
     private SystemEventHistoryMapper systemEventHistoryMapper;
