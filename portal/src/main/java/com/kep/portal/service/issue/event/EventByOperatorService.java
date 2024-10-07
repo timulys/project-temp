@@ -278,11 +278,6 @@ public class EventByOperatorService {
         Assert.isTrue(counselEnvDto.getIssueFileMimeType().getEnabled(), "Disable File Transfer");
         String mimeType = uploadUtils.getMimeType(multipartFile);
 
-        if (SystemEnvEnum.FileMimeType.image.equals(counselEnvDto.getIssueFileMimeType().getFileMimeType())) {
-            Assert.isTrue(mimeType.contains("image"), "File Only Image");
-        }
-
-
         String serviceKey = issue.getChannel().getServiceKey();
         PlatformType platformType = issue.getChannel().getPlatform();
 
@@ -307,7 +302,7 @@ public class EventByOperatorService {
             sourceUrl = convertURL(sourceUrl);
 
         } else {
-            platformUploadUrl = platformClient.uploadImage(issueMapper.map(issue), uploadPlatformRequestDto);
+            platformUploadUrl = platformClient.uploadFile(issueMapper.map(issue), uploadPlatformRequestDto);
             sourceUrl = platformUploadUrl;
             sourceUrl = convertURL(sourceUrl);
 
