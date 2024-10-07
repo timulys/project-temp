@@ -16,9 +16,10 @@ import com.kep.portal.model.entity.customer.Guest;
 public interface GuestRepository extends JpaRepository<Guest, Long> {
 
 	List<Guest> findAllByNameContaining(@NotEmpty String name);
-	
+
+	// FIXME : BNK 비즈니스 로직 관련 기능 모두 제거
 	//BNK 고객번호로 검색 추가 
-	List<Guest> findAllByCustNoContaining(@NotEmpty String custNo);
+//	List<Guest> findAllByCustNoContaining(@NotEmpty String custNo);
 	
 	//BNK 싱크없는 고객 조회
 //	List<Guest> findByCustomerIdIsNullAndId(Long id);
