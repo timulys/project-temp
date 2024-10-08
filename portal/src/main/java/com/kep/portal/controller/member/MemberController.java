@@ -417,7 +417,7 @@ public class MemberController {
     public ResponseEntity<ApiResult<Map<String,Object>>> change(
             @Parameter(description = "사용자 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable("id") Long memberId
-            ,@RequestBody MemberPassDto dto){
+            ,@RequestBody MemberPassDto dto) throws Exception {
 
         if(memberId == null){
             ApiResult<Map<String,Object>> response = ApiResult.<Map<String,Object>>builder()
