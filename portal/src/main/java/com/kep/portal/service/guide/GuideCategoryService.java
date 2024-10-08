@@ -1,6 +1,7 @@
 package com.kep.portal.service.guide;
 
 import com.kep.core.model.dto.guide.GuideCategoryDto;
+import com.kep.core.model.exception.BizException;
 import com.kep.portal.model.dto.guide.GuideCategorySetting;
 import com.kep.portal.model.entity.branch.Branch;
 import com.kep.portal.model.entity.guide.GuideCategory;
@@ -60,10 +61,16 @@ public class GuideCategoryService {
 
         List<GuideCategory> guideCategories = categoryRepository.findByBranchAndDepthCategory(branchId, 1);
 
+        if (guideCategories.isEmpty()) return Collections.emptyList();
+
         List<GuideCategoryDto> dtos = categoryMapper.map(guideCategories);
 
         for (GuideCategoryDto dto : dtos) {
-            recursiveGetAllAndIsOpenCategory(dto.getChildren(), branchId);
+            if (!dto.getIsOpen() && !dto.getBranchId().equals(branchId)) {
+                dtos.remove(dto);
+            }
+
+//            recursiveGetAllAndIsOpenCategory(dto.getChildren(), branchId);
         }
 
         return dtos;
@@ -125,39 +132,43 @@ public class GuideCategoryService {
         list.remove(delete);
     }
 
-    public void setCUD(GuideCategorySetting guideCategorySettings) {
-        List<GuideCategoryDto> update = guideCategorySettings.getUpdate();
-        List<Long> delete = guideCategorySettings.getDelete();
 
+    public void setCUD(GuideCategorySetting guideCategorySettings) {
         Branch branch = branchService.findById(securityUtils.getBranchId());
+//        Branch branch = branchService.findById(1L);//FIXME ::  테스트 후 제거
         Assert.notNull(branch, "Not Found Branch");
 
         if (branch.getMaxGuideCategoryDepth() == 0) throw new IllegalStateException("Guide category depth is not initialized");
+        Long memberId = securityUtils.getMemberId();
+//        Long memberId = 1L;//FIXME ::  테스트 후 제거
 
-        if (guideCategorySettings.getCreate() != null) {
+        if (!ObjectUtils.isEmpty(guideCategorySettings.getCreate())) {
             List<GuideCategoryDto> create = guideCategorySettings.getCreate();
+
             for (GuideCategoryDto dto : create) {
+                if (dto.getEnabled() == null) dto.setEnabled(true);
                 GuideCategory entity = categoryMapper.map(dto);
                 entity.setId(null);
-                entity.setCreator(securityUtils.getMemberId());
-                entity.setModifier(securityUtils.getMemberId());
-
-                if (dto.getBranchId() != null) {
-                    dto.setBranchId(dto.getBranchId());
-                } else {
-                    entity.setBranch(branch);
-                }
+                entity.setCreator(memberId);
+                entity.setModifier(memberId);
+                entity.setBranch(branch);
+//                if (dto.getBranchId() != null) {
+//                    dto.setBranchId(dto.getBranchId());
+//                } else {
+//                    entity.setBranch(branch);
+//                }
 
                 if (dto.getParentId() != null) {
                     GuideCategory parent = categoryRepository.findById(dto.getParentId()).orElse(null);
                     if (parent == null) {
                         log.error("Not Found Parent Category");
-                        continue;
+                        throw new BizException("Not Found Parent Category");
                     }
                     if (parent.getDepth() >= getCategoryMaxDepth()) {
                         log.error("Depth Outbound");
-                        continue;
+                        throw new BizException("Depth Outbound");
                     } else {
+                        if (!parent.getEnabled()) Assert.isTrue(!entity.getEnabled(), "children can not be enable true when parent enabled is false");
                         entity.setDepth(parent.getDepth() + 1);
                         entity.setParent(parent);
                         entity.setChildren(new ArrayList<>());
@@ -168,64 +179,85 @@ public class GuideCategoryService {
                     entity.setChildren(new ArrayList<>());
                 }
                 categoryRepository.save(entity);
-                if (dto.getChildren() != null) {
+
+                if (!ObjectUtils.isEmpty(dto.getChildren())) {
                     recursiveSave(dto.getChildren(), entity, entity.getDepth() + 1);
                 }
             }
             categoryRepository.flush();
         }
 
-        if (guideCategorySettings.getUpdate() != null) {
+        if (!ObjectUtils.isEmpty(guideCategorySettings.getUpdate())) {
+            List<GuideCategoryDto> update = guideCategorySettings.getUpdate();
             for (GuideCategoryDto dto : update) {
-                GuideCategory category = null;
-                if(securityUtils.isHeadQuarters()){
-                    category = categoryRepository.findById(dto.getId()).orElse(null);
-                }else{
-                    category = categoryRepository.findByIdAndBranchId(dto.getId(), branch.getId()).orElse(null);
+                GuideCategory category;
+
+                //본사 > 관리자일 경우엔 타브랜치 가이드 카테고리 전체오픈 여부만 수정 가능 -> 조회시 전체
+                if (securityUtils.isHeadQuarters() && securityUtils.hasRole(Level.ROLE_ADMIN)){
+                    category = categoryRepository.findById(dto.getId())
+                            .orElseThrow(() -> new BizException("Not Found Category"));
+
+                } else {
+                    category = categoryRepository.findByIdAndBranchId(dto.getId(), branch.getId())
+                            .orElseThrow(() -> new BizException("Not Found Category"));
                 }
 
-                if (category == null) {
-                    log.error("Not Found Category");
-                    continue;
+                //소속 브랜치 카테고리일 경우 수정 가능
+                if (category.getBranch().equals(branch)) {
+                    category.setName(dto.getName()); //명칭 수정
                 }
-                category.setModifier(securityUtils.getMemberId());
+
+//                category.setEnabled(dto.getEnabled()); //사용여부 추가 TODO :: 복구. 현재 프론트와 연동 때문에 delete list에 enabled 처리
+                category.setIsOpen(dto.getIsOpen()); //브랜치 오픈 여부 수정 추가
+                category.setModifier(memberId);
                 CommonUtils.copyNotEmptyProperties(dto, category);
-                if (dto.getBranchId() != null) {
-                    Branch updateBranch = branchService.findById(dto.getBranchId());
-                    if (updateBranch == null) {
-                        log.error("Branch Not Found");
-                        continue;
-                    }
-                    if (!category.getBranch().getId().equals(dto.getBranchId())) {
-                        category.setBranch(updateBranch);
-                    }
-                }
+                //FIXME :: 주석처리 (소속 브랜치 카테고리만 수정 가능)
+//                if (dto.getBranchId() != null) {
+//                    Branch updateBranch = branchService.findById(dto.getBranchId());
+//                    if (updateBranch == null) {
+//                        log.error("Branch Not Found");
+//                        continue;
+//                    }
+//                    if (!category.getBranch().getId().equals(dto.getBranchId())) {
+//                        category.setBranch(updateBranch);
+//                    }
+//                }
             }
             categoryRepository.flush();
         }
 
-        if (guideCategorySettings.getDelete() != null) {
-            List<Long> deleteIds = new ArrayList<>();
+        if (!ObjectUtils.isEmpty(guideCategorySettings.getDelete())) {
+            List<Long> delete = guideCategorySettings.getDelete();
+            delete = delete.stream().sorted(Comparator.reverseOrder()).distinct().collect(Collectors.toList());
+//            List<Long> deleteIds = new ArrayList<>();
             for (Long categoryId : delete) {
-                GuideCategory guideCategory;
-                if(securityUtils.isHeadQuarters()){
-                    guideCategory = categoryRepository.findById(categoryId).orElse(null);
-                }else{
-                    guideCategory = categoryRepository.findByIdAndBranchId(categoryId, branch.getId()).orElse(null);
-                }
+                GuideCategory guideCategory = categoryRepository.findByIdAndBranchId(categoryId, branch.getId()).orElse(null);
+//                if(securityUtils.isHeadQuarters()){
+//                    guideCategory = categoryRepository.findById(categoryId).orElse(null);
+//                }else{
+//                    guideCategory = categoryRepository.findByIdAndBranchId(categoryId, branch.getId()).orElse(null);
+//                }
+
 
                 if (guideCategory != null) {
-                    guideCategory.setBranch(null);
-                    guideCategory.setParent(null);
-                    deleteIds.add(guideCategory.getId());
+                    guideCategory.setEnabled(false); //사용안함 처리
+//                    guideCategory.setBranch(null);
+//                    guideCategory.setParent(null);
+//                    deleteIds.add(guideCategory.getId());
 
                     if (!ObjectUtils.isEmpty(guideCategory.getChildren())) {
-                        recursiveDelete(guideCategory.getChildren(), branch.getId(), deleteIds);
+//                        recursiveDelete(guideCategory.getChildren(), branch.getId(), deleteIds);
+                        boolean childIsEnabled;
+                        if (!guideCategory.getEnabled()) {
+                            childIsEnabled = guideCategory.getChildren().stream()
+                                    .noneMatch(GuideCategory::getEnabled);
+                            Assert.isTrue(childIsEnabled, "children can not be enable true when category enabled is false");
+                        }
                     }
                 }
             }
-            deleteIds = deleteIds.stream().sorted(Comparator.reverseOrder()).distinct().collect(Collectors.toList());
-            categoryRepository.deleteAllByIdInBatch(deleteIds);
+//            deleteIds = deleteIds.stream().sorted(Comparator.reverseOrder()).distinct().collect(Collectors.toList());
+//            categoryRepository.deleteAllByIdInBatch(deleteIds); //FIXME :: 카테고리 삭제 불가 (enable false 처리) volka
         }
     }
 
@@ -358,6 +390,9 @@ public class GuideCategoryService {
             return;
 
         for (GuideCategoryDto dto : list) {
+            if (dto.getEnabled() == null) dto.setEnabled(parent.getEnabled());
+            if (!parent.getEnabled() && dto.getEnabled()) throw new BizException("children can not be enable true when parent enabled is false");
+
             GuideCategory category = categoryMapper.map(dto);
             if (category.getChildren() != null)
                 category.getChildren().clear();

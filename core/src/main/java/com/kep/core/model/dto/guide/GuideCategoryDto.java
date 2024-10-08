@@ -49,6 +49,10 @@ public class GuideCategoryDto {
     @Schema(description = "카테고리 뎁스")
     private Integer depth;
 
+    @Schema(description = "사용여부")
+    @NotNull
+    private Boolean enabled;
+
     @Positive
     @Schema(description = "생성자")
     private Long creator;

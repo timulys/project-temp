@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.kep.portal.model.converter.BooleanConverter;
 import com.kep.portal.model.entity.branch.Branch;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -62,6 +63,13 @@ public class GuideCategory {
     @Positive
     @Comment("카테고리 depth")
     private Integer depth;
+
+    @NotNull
+    @Column(length = 1)
+    @Convert(converter = BooleanConverter.class)
+    @ColumnDefault("'Y'")
+    @Comment("사용여부")
+    private Boolean enabled;
 
     @NotNull
     @Positive
