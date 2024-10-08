@@ -180,7 +180,7 @@ public class ChannelService {
 
 		//채널 환경 설정
 		ChannelEnvDto channelEnvDto = ChannelEnvDto.builder()
-				.customerConnection(SystemEnvEnum.CustomerConnection.basic)
+				.customerConnection(SystemEnvEnum.CustomerConnection.category)
 				.memberAssign(SystemEnvEnum.MemberAssign.category)
 				.memberDirectEnabled(true)
 				.requestBlockEnabled(false)
