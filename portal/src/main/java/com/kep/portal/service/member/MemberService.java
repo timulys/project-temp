@@ -883,7 +883,7 @@ public class MemberService {
 	 * @수정일자 / 수정자 / 수정내용
 	 * 2023.04.04 / philip.lee7 / 함수추가
 	 */
-	public Map<String,Object> changePassword(MemberPassDto dto) {
+	public Map<String,Object> changePassword(MemberPassDto dto) throws Exception {
 		Member member = memberRepository.findById(dto.getId()).orElse(null);
 		Map<String,Object> map = new HashMap<String,Object>();
 		if (member != null) {
@@ -900,8 +900,13 @@ public class MemberService {
 				map.put("result",false);
 				map.put("message",systemMessageProperty.getPortal().getPassword().getChangeMessage().getNotEqualConfirm());
 			}else  {
+				Member beforeMember = new Member();
+				BeanUtils.copyProperties(member , beforeMember );
 				member.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+				member.setModified(ZonedDateTime.now());
+				member.setModifier(securityUtils.getMemberId());
 				memberRepository.save(member);
+				this.systemEventStore(SystemEventHistoryActionType.member_password , beforeMember , member);
 				map.put("result", true);
 			}
 		}
