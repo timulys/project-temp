@@ -4,6 +4,7 @@ import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.legacy.LegacyBnkCategoryDto;
 import com.kep.core.model.dto.subject.IssueCategoryBasicDto;
+import com.kep.core.model.dto.subject.IssueCategoryDto;
 import com.kep.portal.model.dto.subject.*;
 import com.kep.portal.service.subject.IssueCategoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Positive;
 import java.util.List;
 
@@ -316,4 +316,15 @@ public class IssueCategoryController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	@Tag(name = "이슈 카테고리 API")
+	@Operation(summary = "카테고리의 최상단 소분류 값 API")
+	@GetMapping("/top-one")
+	public ResponseEntity<ApiResult<IssueCategoryDto>> getTopOne(@Parameter(description = "채널 아이디", required = true)
+																 @RequestParam(value = "channel_id") Long channelId) {
+		IssueCategoryDto issueCategoryDto = issueCategoryService.getIssueCategorDtoUseChannelId(channelId);
+		ApiResult<IssueCategoryDto> response = ApiResult.<IssueCategoryDto>builder().code(ApiResultCode.succeed)
+																					.payload(issueCategoryDto)
+																					.build();
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
 }
