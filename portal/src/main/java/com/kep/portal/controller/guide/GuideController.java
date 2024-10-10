@@ -93,11 +93,14 @@ public class GuideController {
     }
 
     /**
+     * FIXME :: 삭제? 현시점 프론트 연동 없음 (20241010 volka)
+     *
      * 가이드 검색
      * SB-FM-010
      *
      * @return
      */
+    @Deprecated
     @GetMapping("/m")
     @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
     @Tag(name = "가이드 API")
@@ -175,10 +178,10 @@ public class GuideController {
      * @return
      * @throws Exception
      */
-    @GetMapping("/search")
-    @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
     @Tag(name = "가이드 API")
     @Operation(summary = "가이드 검색", description = "가이드 검색 (SB-CP-T07)")
+    @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
+    @GetMapping("/search")
     public ResponseEntity<ApiResult<GuideSearchResponseDto>> search(
             @ParameterObject @QueryParam @Valid GuideSearchDto searchDto
     ) throws Exception {

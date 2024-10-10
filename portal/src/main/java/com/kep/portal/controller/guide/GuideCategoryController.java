@@ -56,6 +56,16 @@ public class GuideCategoryController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	@Tag(name = "가이드 카테고리 API")
+	@Operation(summary = "사용가능 가이드 카테고리 조회 (상담사용)", description = "상담사 호출용")
+	@GetMapping("/in-branch")
+	public ResponseEntity<ApiResult<List<GuideCategoryDto>>> getAllByOnlyMyBranch() {
+		List<GuideCategoryDto> results = categoryService.getAllByOnlyMyBranch();
+
+		ApiResult<List<GuideCategoryDto>> response = ApiResult.<List<GuideCategoryDto>>builder().code(ApiResultCode.succeed).payload(results).build();
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
 	/**
 	 * 카테고리 수정(SB-CA-P02)
 	 * 

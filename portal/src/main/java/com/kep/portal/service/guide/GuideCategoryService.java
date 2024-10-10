@@ -102,6 +102,21 @@ public class GuideCategoryService {
         list.remove(delete);
     }
 
+    private void recursiveGetAllOnlyBranch(List<GuideCategoryDto> list, Long branchId) {
+        if (list.isEmpty())
+            return;
+
+        GuideCategoryDto delete = null;
+        for (GuideCategoryDto dto : list) {
+            if (!dto.getBranch().getId().equals(branchId)) {
+                delete = dto;
+            } else {
+                recursiveGetAllAndIsOpenCategory(dto.getChildren(), branchId);
+            }
+        }
+        list.remove(delete);
+    }
+
     /**
      * 소속 브랜치 id와 미일치 시 반환목록에서 제거 -> isOpen 여부 상관없이 수행이므로 조회 쿼리 자체에 브랜치와 동일할경우로 넣어주면 됨
      *
@@ -260,6 +275,9 @@ public class GuideCategoryService {
     public List<Long> getAllSubCategory(Long categoryId, Long branchId) {
         List<GuideCategory> guideCategoryList = categoryRepository.findByIdAndBranchIdOrIsOpenTrue(categoryId, branchId);
         Assert.notEmpty(guideCategoryList, "Not Found GuideCategory");
+        guideCategoryList = guideCategoryList.stream()
+                .filter(GuideCategory::getEnabled)
+                .collect(Collectors.toList());
         return getChildrenIds(branchId, guideCategoryList);
     }
 
@@ -275,9 +293,13 @@ public class GuideCategoryService {
      * @return
      */
     public List<Long> getAllDepthCategory(Long branchId) {
+
         int maxDepth = getCategoryMaxDepth();
         List<GuideCategory> guideCategoryList = categoryRepository.findByBranchAndDepthCategory(branchId, maxDepth);
         List<Long> childrenIds = guideCategoryList.stream().filter(c -> {
+
+            if (!c.getEnabled()) return false;
+
             if (c.getBranch().getId().equals(branchId)) {
                 return true;
             }
@@ -308,12 +330,12 @@ public class GuideCategoryService {
             return;
 
         for (GuideCategoryDto dto : list) {
-            if (branchId.equals(0L)) {
+            if (branchId.equals(0L)) { //FIXME :: branchId 0 ??? 1이 본사인데
                 if (dto.getDepth() == getCategoryMaxDepth())
                     childrenIds.add(dto.getId());
                 recursiveGetAllSubCategory(dto.getChildren(), childrenIds, branchId);
             } else {
-                if (dto.getIsOpen() || dto.getBranchId().equals(branchId)) {
+                if ((dto.getIsOpen() || dto.getBranchId().equals(branchId)) && dto.getEnabled()) {
                     if (dto.getDepth() == getCategoryMaxDepth())
                         childrenIds.add(dto.getId());
                     recursiveGetAllSubCategory(dto.getChildren(), childrenIds, branchId);
@@ -413,12 +435,41 @@ public class GuideCategoryService {
     public List<Long> getHeadAllDepthCategory() {
         int maxDepth = getCategoryMaxDepth();
         List<GuideCategory> guideCategoryList = categoryRepository.findAllByDepthCategory(maxDepth);
-        return guideCategoryList.stream().map(GuideCategory::getId).collect(Collectors.toList());
+        Assert.notEmpty(guideCategoryList, "Not Found GuideCategory");
+
+        //사용여부 필터링 추가
+        return guideCategoryList.stream()
+                .filter(GuideCategory::getEnabled)
+                .map(GuideCategory::getId)
+                .collect(Collectors.toList())
+                ;
+
+//        return guideCategoryList.stream().map(GuideCategory::getId).collect(Collectors.toList());
     }
 
     public List<Long> getHeadAllSubCategory(Long categoryId) {
         List<GuideCategory> guideCategoryList = categoryRepository.findAllById(categoryId);
         Assert.notEmpty(guideCategoryList, "Not Found GuideCategory");
+
+        //사용여부 필터링 추가
+        guideCategoryList = guideCategoryList.stream().filter(GuideCategory::getEnabled).collect(Collectors.toList());
+
         return getChildrenIds(0L, guideCategoryList);
+    }
+
+    /**
+     * 가이드 추가 시 카테고리 조회용 API
+     * @return
+     */
+    public List<GuideCategoryDto> getAllByOnlyMyBranch() {
+        Long branchId = securityUtils.getBranchId();
+
+        //소속 브랜치 카테고리 + 사용가능
+        List<GuideCategory> guideCategories = categoryRepository.findAllOnlyMyBranch(branchId, 1);
+
+        List<GuideCategoryDto> dtos = categoryMapper.map(guideCategories);
+        recursiveGetAllOnlyBranch(dtos, branchId);
+
+        return dtos;
     }
 }
