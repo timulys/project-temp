@@ -3,9 +3,6 @@ package com.kep.portal.service.env;
 import com.kep.core.model.dto.env.CounselEnvDto;
 import com.kep.core.model.dto.env.CounselInflowEnvDto;
 import com.kep.core.model.dto.system.SystemEnvEnum;
-import com.kep.core.model.dto.system.SystemEnvEnum.FileMimeType;
-import com.kep.core.model.exception.BizException;
-import com.kep.portal.config.property.CoreProperty;
 import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.model.entity.env.CounselEnv;
 import com.kep.portal.model.entity.env.CounselEnvMapper;
@@ -16,18 +13,13 @@ import com.kep.portal.repository.env.CounselEnvRepository;
 import com.kep.portal.repository.env.CounselInflowEnvRepository;
 import com.kep.portal.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
-
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -42,8 +34,6 @@ public class CounselEnvService {
     private CounselEnvMapper counselEnvMapper;
     @Resource
     private CounselInflowEnvMapper counselInflowEnvMapper;
-	@Resource
-	private CoreProperty coreProperty;
 
     @Resource
     private SecurityUtils securityUtils;
@@ -82,8 +72,8 @@ public class CounselEnvService {
                             .minute(dto.getIssueDelay().getMinute())
                     .build());
             counselEnv.setIssueFileMimeType(SystemEnv.EnableFileMimeType.builder()
-                    .enabled(true)
-                    .fileMimeType(FileMimeType.image)
+                    .enabled(dto.getIssueFileMimeType().getEnabled())
+                    .fileMimeType(dto.getIssueFileMimeType().getFileMimeType())
             .build());
         }
 
@@ -110,8 +100,7 @@ public class CounselEnvService {
 
             counselInflowEnv = counselInflowEnvMapper.map(dto);
             // FIXME : jhchoi - 기존 BZM 송수신 알고리즘으로 변경
-            String newPath = PortalProperty.kakaoCounselTalkBaseUrl + "/open/{{channel_name}}?extra=path_" + dto.getParams();
-            System.out.println("newPath = " + newPath);
+            String newPath = portalProperty.kakaoCounselTalkBaseUrl + "/open/{{channel_name}}?extra=path_" + dto.getParams();
             // 새로운 카카오 싱크 URL을 사용하여 유입경로 설정
 //            String newPath = bnkKaKaoTalkUrl + "path_" + dto.getParams();
             counselInflowEnv.setValue(newPath);

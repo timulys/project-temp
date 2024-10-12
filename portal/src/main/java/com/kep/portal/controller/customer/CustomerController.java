@@ -4,7 +4,6 @@ import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.customer.CustomerDto;
 import com.kep.core.model.dto.customer.CustomerMemberDto;
-import com.kep.core.model.dto.customer.GuestDto;
 import com.kep.core.model.dto.legacy.LegacyCustomerDto;
 import com.kep.portal.model.dto.customer.GuestMemoDto;
 import com.kep.portal.service.customer.CustomerServiceImpl;
@@ -22,9 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.persistence.EntityNotFoundException;
 import javax.validation.constraints.NotNull;
-import java.util.Collection;
 import java.util.List;
 
 @Tag(name = "고객 API", description = "/api/v1/customer")

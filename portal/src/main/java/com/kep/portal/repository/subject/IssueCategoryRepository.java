@@ -1,7 +1,6 @@
 package com.kep.portal.repository.subject;
 
 import com.kep.portal.model.entity.subject.IssueCategory;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -72,4 +71,5 @@ public interface IssueCategoryRepository extends JpaRepository<IssueCategory, Lo
 	@Query("select ic, ic2 from IssueCategory ic left join fetch IssueCategory ic2 on ic.parent = ic2 where ic.channelId = :channelId")
 	List<IssueCategory> findAllByChannelIdWithParent(Long channelId);
 
+	IssueCategory findTopByChannelIdOrderByDepthDescParentIdAscIdAsc(Long channelId);
 }

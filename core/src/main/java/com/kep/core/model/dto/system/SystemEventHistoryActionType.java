@@ -13,4 +13,5 @@ public enum SystemEventHistoryActionType {
     , system_counsel_distribution //상담 배분 설정
     , system_counsel_off_duty //근무시간 예외
     , system_counsel_member_max //최대 상담 건수 개별 설정
+    , schedule_member_status_sync // 스케줄러를 활용한 사용자 온/오프라인 sync
 }

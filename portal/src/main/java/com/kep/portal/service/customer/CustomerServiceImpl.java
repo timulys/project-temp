@@ -17,6 +17,9 @@ import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
+import com.kep.core.model.dto.customer.*;
+import com.kep.portal.model.converter.FixedCryptoConverter;
+import org.apache.poi.ss.formula.functions.Fixed;
 import org.jasypt.encryption.StringEncryptor;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -26,11 +29,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import com.kep.core.model.dto.customer.CustomerAnniversaryDto;
-import com.kep.core.model.dto.customer.CustomerAuthorizedDto;
-import com.kep.core.model.dto.customer.CustomerContactDto;
-import com.kep.core.model.dto.customer.CustomerDto;
-import com.kep.core.model.dto.customer.CustomerMemberDto;
 import com.kep.core.model.dto.legacy.LegacyCustomerDto;
 import com.kep.core.model.dto.platform.AuthorizeType;
 import com.kep.portal.client.LegacyClient;
@@ -186,17 +184,17 @@ public class CustomerServiceImpl implements CustomerService {
 			}
 
 			// BNK 응답데이터 => custNo와 custNm 추출 및 customer_guest DB에 저장
-			LegacyCustomerDto legacyCustomerDto = legacyClient.getCustomerInfo(customerDto,sendFlag);
-			log.info("[알림요청정보: [{}]▶▶▶:::BNK Response Data : {}]", sendFlag, legacyCustomerDto);
+//			LegacyCustomerDto legacyCustomerDto = legacyClient.getCustomerInfo(customerDto,sendFlag);
+//			log.info("[알림요청정보: [{}]▶▶▶:::BNK Response Data : {}]", sendFlag, legacyCustomerDto);
 
-			String custNo = legacyCustomerDto.getCustNo();
-			String custName = legacyCustomerDto.getCustNm();
+//			String custNo = legacyCustomerDto.getCustNo();
+//			String custName = legacyCustomerDto.getCustNm();
 
 			// custNo가 비어있는 경우에 대한 처리
-			if (custNo == null || custNo.trim().isEmpty()) {
-				custNo = "9999999";
-				log.warn("CustNo가 null이거나 빈 문자열입니다. 임시 고객 ID: {} 가 할당되었습니다.", custNo);
-			}
+//			if (custNo == null || custNo.trim().isEmpty()) {
+//				custNo = "9999999";
+//				log.warn("CustNo가 null이거나 빈 문자열입니다. 임시 고객 ID: {} 가 할당되었습니다.", custNo);
+//			}
 
 			// 데이터베이스에서 해당 고객을 조회
 			Guest guest = guestRepository.findByCustomer(customer);
@@ -205,11 +203,11 @@ public class CustomerServiceImpl implements CustomerService {
 				guest.setCustomer(customer);
 			}
 
-			guest.setCustNo(custNo); // 고객 번호 저장
-			log.info("[API 통신 후 받아온 고객명]: {}", custName); // API 통신 후 받아온 고객명
-			customer.setName(custName); // 고객 이름 저장
+//			guest.setCustNo(custNo); // 고객 번호 저장
+//			log.info("[API 통신 후 받아온 고객명]: {}", custName); // API 통신 후 받아온 고객명
+//			customer.setName(custName); // 고객 이름 저장
 			guestRepository.save(guest); // 변경 사항을 DB에 저장
-			customerDto.setLegacyCustomerData(legacyCustomerDto);
+//			customerDto.setLegacyCustomerData(legacyCustomerDto);
 
 			// 고객 정보가 성공적으로 처리된 경우, sendFlag를 'N'으로 업데이트
 			updateIssueSendFlag(issueId, "N");
@@ -336,15 +334,16 @@ public class CustomerServiceImpl implements CustomerService {
 						Example.of(Customer.builder().identifier(dto.getIdentifier()).build()))
 				.orElse(null);
 		if(customer == null){
+			// 고객이 존재하지 않을 경우 신규 등록
 			customer = customerMapper.map(dto);
-		}else {
+		} else {
+			// 기존 identifier 고객이 존재할 경우 업데이트
+			Long existId = customer.getId();
+			customer = customerMapper.map(dto);
+			customer.setId(existId);
 			log.info("Customer ID: {}", customer.getId());
 		}
-		customer.setAge(dto.getAge());
-		customer.setName(dto.getName());
-
-		// 개인정보
-		customer = customerRepository.save(customer);
+		customerRepository.save(customer);
 		customerRepository.flush();
 
 		this.contactStore(customer, dto.getContacts());
@@ -478,7 +477,15 @@ public class CustomerServiceImpl implements CustomerService {
 
 		if (!ObjectUtils.isEmpty(subject) && !ObjectUtils.isEmpty(query)) {
 			if ("name".equals(subject)) {
+				// 이름 검색 시
 				return customerRepository.findAllByName(query);
+			} else {
+				// 전화번호 & 이메일 검색 시
+				CustomerContactType type = "phone".equals(subject) ? CustomerContactType.call : CustomerContactType.email;
+				List<CustomerContact> contactList = customerContactRepository.findCustomerContactsByType(type)
+						.stream().filter(contact -> contact.getPayload().contains(query)).collect(Collectors.toList());
+				return customerRepository.findAllByIdIn(contactList.stream()
+						.map(contact -> contact.getCustomerId()).collect(Collectors.toList()));
 			}
 		}
 

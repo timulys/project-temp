@@ -82,13 +82,9 @@ public class GuestService {
 	}
 
 	public List<Guest> search(String subject, String query) {
-
 		if (!ObjectUtils.isEmpty(subject) && !ObjectUtils.isEmpty(query)) {
-			if ("cust_no".equals(subject)) {
-				return guestRepository.findAllByCustNoContaining(query);
-			}
+			return guestRepository.findAllByNameContaining(query);
 		}
-
 		return Collections.emptyList();
 	}
 
@@ -131,17 +127,11 @@ public class GuestService {
 
 	/**
 	 * 식별 고객, 비식별 고객 검색
-	 * BNK 싱크없는 고객 검색 추가
 	 */
 	public List<Guest> searchGuestAndCustomer(String subject, String query) {
 		Set<Guest> guests = new HashSet<>();
 		guests.addAll(search(subject, query));
 		guests.addAll(searchByCustomer(subject, query));
-		
-		//BNK 싱크가 되지않은 고객 검색 추가
-//		if(subject == null || query == null) {
-//			guests.addAll(searchUnsyncedGuests(subject, query));
-//		}
 		log.info("GUEST: {}", guests.stream().map(Guest::getId).collect(Collectors.toList()));
 		return new ArrayList<>(guests);
 	}

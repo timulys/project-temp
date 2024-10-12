@@ -1,29 +1,27 @@
 package com.kep.portal.service.subject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.legacy.LegacyBnkCategoryDto;
 import com.kep.core.model.dto.subject.IssueCategoryBasicDto;
-import com.kep.portal.model.dto.subject.*;
+import com.kep.core.model.dto.subject.IssueCategoryDto;
 import com.kep.core.model.exception.BizException;
 import com.kep.portal.client.LegacyClient;
+import com.kep.portal.model.dto.subject.*;
 import com.kep.portal.model.entity.branch.BranchChannel;
 import com.kep.portal.model.entity.channel.Channel;
 import com.kep.portal.model.entity.channel.ChannelEnv;
 import com.kep.portal.model.entity.subject.IssueCategory;
 import com.kep.portal.model.entity.subject.IssueCategoryMapper;
 import com.kep.portal.repository.channel.ChannelEnvRepository;
-import com.kep.portal.repository.channel.ChannelRepository;
 import com.kep.portal.repository.subject.IssueCategoryRepository;
 import com.kep.portal.service.branch.BranchChannelService;
-import com.kep.portal.service.branch.BranchService;
 import com.kep.portal.service.channel.ChannelEnvService;
 import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -65,11 +63,7 @@ public class IssueCategoryService {
     // TODO: 채널 설정 완료시, 설정에서 가져옴
     private static final Integer MAX_DEPTH = 3;
     @Autowired
-    private BranchService branchService;
-    @Autowired
     private ChannelEnvRepository channelEnvRepository;
-    @Autowired
-    private ChannelRepository channelRepository;
 
     private Integer getCategoryMaxDepth(Long channelId){
         return channelEnvService.getByChannelId(channelId).getMaxIssueCategoryDepth();
@@ -587,5 +581,38 @@ public class IssueCategoryService {
 
     private boolean isInitDepth(@NotNull Integer maxDepth) {
         return maxDepth.equals(0);
+    }
+
+    public IssueCategoryDto getIssueCategorDtoUseChannelId(Long channelId){
+        IssueCategory issueCategory = this.getIssueCategorUseChannelId(channelId);
+        return this.issueCategoryEntityToDto(issueCategory);
+    }
+
+    public IssueCategory getIssueCategorUseChannelId(Long channelId){
+        return issueCategoryRepository.findTopByChannelIdOrderByDepthDescParentIdAscIdAsc(channelId);
+    }
+
+    private IssueCategoryDto issueCategoryEntityToDto(IssueCategory issueCategory){
+        IssueCategoryDto issueCategoryDto = new IssueCategoryDto();
+        issueCategoryDto.setId(issueCategory.getId());
+        issueCategoryDto.setName(issueCategory.getName());
+        issueCategoryDto.setBranchId(issueCategoryDto.getBranchId());
+        issueCategoryDto.setDepth(issueCategory.getDepth());
+        issueCategoryDto.setParent(this.issueCategoryEntityIssueCategoryBasicDto(issueCategory.getParent()));
+        issueCategoryDto.setExposed(issueCategory.getExposed());
+        issueCategoryDto.setBnkCode(issueCategory.getBnkCode());
+        return issueCategoryDto;
+    }
+
+    private IssueCategoryBasicDto issueCategoryEntityIssueCategoryBasicDto(IssueCategory issueCategory){
+        IssueCategoryBasicDto issueCategoryBasicDto = new IssueCategoryBasicDto();
+        issueCategoryBasicDto.setId(issueCategory.getId());
+        issueCategoryBasicDto.setName(issueCategory.getName());
+        issueCategoryBasicDto.setParentId(Objects.nonNull(issueCategory.getParent()) ?  issueCategory.getParent().getId() : null );
+        issueCategoryBasicDto.setDepth(issueCategory.getDepth());
+        issueCategoryBasicDto.setEnabled(issueCategory.getEnabled());
+        issueCategoryBasicDto.setExposed(issueCategory.getExposed());
+        issueCategoryBasicDto.setBnkCode(issueCategory.getBnkCode());
+        return issueCategoryBasicDto;
     }
 }

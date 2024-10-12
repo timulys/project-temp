@@ -53,4 +53,8 @@ public class MemberSearchCondition {
 	// levelType -> roleIds
 	@Schema(description = "레벨 타입 목록")
 	private Set<Long> roleIds;
+
+	@Schema(description = "유저 아이디")
+	private String username;
+
 }

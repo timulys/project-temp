@@ -96,6 +96,7 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
         conditions.add(nicknameContains(condition.getNickname()));
         conditions.add(managedEq(condition.getManaged()));
         conditions.add(hasRole(condition.getRoleIds()));
+        conditions.add(usernameContains(condition.getUsername()));
         return conditions.toArray(new Predicate[0]);
     }
 
@@ -156,5 +157,9 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
         }
 
         return orders.stream().toArray(OrderSpecifier[]::new);
+    }
+
+    private BooleanExpression usernameContains(String username) {
+        return !ObjectUtils.isEmpty(username) ? member.username.contains(username) : null;
     }
 }

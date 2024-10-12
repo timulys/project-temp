@@ -208,7 +208,7 @@ public class MemberController {
     @PostMapping
     @PreAuthorize("hasAnyAuthority('WRITE_ACCOUNT') or hasAnyRole('ROLE_MASTER')")
     public ResponseEntity<ApiResult<MemberDto>> post(
-            @RequestBody @Valid MemberDto dto)  {
+            @RequestBody @Valid MemberDto dto) throws Exception {
 
         log.info("MEMBER, POST, BODY: {}", dto);
         MemberDto result = memberService.store(dto);
@@ -251,7 +251,7 @@ public class MemberController {
     public ResponseEntity<ApiResult<MemberDto>> put(
             @Parameter(description = "사용자 계정 아이디")
             @PathVariable("id") Long memberId,
-            @RequestBody MemberDto dto) {
+            @RequestBody MemberDto dto) throws Exception {
 
         log.info("MEMBER, PUT, ID: {}, BODY: {}", memberId, dto);
         dto.setId(memberId);
@@ -278,7 +278,7 @@ public class MemberController {
     @PutMapping(value = "/{id}/password")
     public ResponseEntity<ApiResult<String>> put(
             @Parameter(description = "사용자 계정 아이디")
-            @PathVariable("id") Long memberId) {
+            @PathVariable("id") Long memberId) throws Exception {
 
         if(memberId == null){
             ApiResult<String> response = ApiResult.<String>builder()
@@ -363,10 +363,10 @@ public class MemberController {
     @Tag(name = "사용자(계정) 관리 API")
     @Operation(summary = "상담가능 상태 수정")
     @PutMapping("/{id}/status")
-    public ResponseEntity<ApiResult<String>> status(
+    public ResponseEntity<ApiResult<String>> status (
             @Parameter(description = "사용자(계정) 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable("id") Long memberId,
-            @RequestBody ProfileDto dto){
+            @RequestBody ProfileDto dto) throws Exception {
 
         log.info("MEMBER, SET STATUS, MEMBER: {}, BODY: {}", memberId, dto);
 
@@ -417,7 +417,7 @@ public class MemberController {
     public ResponseEntity<ApiResult<Map<String,Object>>> change(
             @Parameter(description = "사용자 아이디", in = ParameterIn.PATH, required = true)
             @PathVariable("id") Long memberId
-            ,@RequestBody MemberPassDto dto){
+            ,@RequestBody MemberPassDto dto) throws Exception {
 
         if(memberId == null){
             ApiResult<Map<String,Object>> response = ApiResult.<Map<String,Object>>builder()
@@ -441,7 +441,7 @@ public class MemberController {
 
     /**
      * 근무시간 일정 예외
-     * @param Long id (Pathvariable)
+     * @param id (Pathvariable)
      * @return ResponseEntity
      * @throws
      *
@@ -477,7 +477,7 @@ public class MemberController {
 
     /**
      * 상담 카테고리 변경
-     * @param Long id (Pathvariable)
+     * @param id (Pathvariable)
      * @return ResponseEntity
      * @throws
      *
