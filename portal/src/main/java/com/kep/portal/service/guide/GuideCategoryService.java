@@ -169,6 +169,7 @@ public class GuideCategoryService {
                     log.error("Create Depth Outbound");
                     throw new BizException("Create Depth Outbound");
                 } else {
+                    Assert.isTrue(parent.getBranch().equals(branch), "guide category is created only in my branch");
                     if (!parent.getEnabled()) Assert.isTrue(!entity.getEnabled(), "children can not be enable true when parent enabled is false");
                     if (!parent.getIsOpen()) Assert.isTrue(!entity.getIsOpen(), "children can not be isOpen true when parent isOpen is false");
                     entity.setDepth(parent.getDepth() + 1);
@@ -183,7 +184,7 @@ public class GuideCategoryService {
             categoryRepository.save(entity);
 
             if (!ObjectUtils.isEmpty(dto.getChildren())) {
-                recursiveSave(dto.getChildren(), entity, entity.getDepth() + 1);
+                recursiveSave(dto.getChildren(), entity, entity.getDepth() + 1, branch);
             }
         }
         categoryRepository.flush();
@@ -198,7 +199,7 @@ public class GuideCategoryService {
             if (headQuartersAdmin){
                 category = categoryRepository.findById(dto.getId())
                         .orElseThrow(() -> new BizException("Update Not Found Category"));
-
+                category.setIsOpen(dto.getIsOpen()); //카테고리 전체 오픈 여부는 본사 > 관리자만 가능
             } else {
                 if (dto.getIsOpen()) throw new BizException("open is only can headQuarters admin"); //전체오픈은 본사 관리자만 가능
                 category = categoryRepository.findByIdAndBranchId(dto.getId(), branch.getId())
@@ -218,7 +219,7 @@ public class GuideCategoryService {
                 category.setName(dto.getName()); //명칭 수정
             }
 
-            category.setIsOpen(headQuartersAdmin ? dto.getIsOpen() : false); //브랜치 오픈 여부 수정 추가
+
             category.setModifier(memberId);
             CommonUtils.copyNotEmptyProperties(dto, category);
         }
@@ -398,13 +399,13 @@ public class GuideCategoryService {
     }
 
     /**
-     * 카테고리 자식 저장
+     * 카테고리 자식 추가
      *
      * @param list
      * @param parent
      * @param depth
      */
-    private void recursiveSave(List<GuideCategoryDto> list, GuideCategory parent, int depth) {
+    private void recursiveSave(List<GuideCategoryDto> list, GuideCategory parent, int depth, Branch branch) {
         if (list == null || list.isEmpty())
             return;
 
@@ -413,14 +414,12 @@ public class GuideCategoryService {
             if (!parent.getEnabled() && dto.getEnabled()) throw new BizException("children can not be enable true when parent enabled is false");
 
             GuideCategory category = categoryMapper.map(dto);
-            if (category.getChildren() != null)
-                category.getChildren().clear();
+            if (category.getChildren() != null) category.getChildren().clear();
+            if (dto.getBranchId() != null && !parent.getBranch().getId().equals(dto.getBranchId())) throw new BizException("guide category is created only in my branch");
+            Assert.isTrue(parent.getBranch().equals(branch), "guide category is created only in my branch");
+
             category.setDepth(depth);
-            if (dto.getBranchId() != null) {
-                category.setBranch(branchService.findById(dto.getBranchId()));
-            } else {
-                category.setBranch(parent.getBranch());
-            }
+            category.setBranch(branch);
             category.setCreator(parent.getCreator());
             category.setModifier(parent.getModifier());
             category.setId(null);
@@ -429,7 +428,7 @@ public class GuideCategoryService {
             save.setChildren(new ArrayList<>());
             parent.getChildren().add(save);
             if (depth < getCategoryMaxDepth())
-                recursiveSave(dto.getChildren(), save, depth + 1);
+                recursiveSave(dto.getChildren(), save, depth + 1, branch);
         }
     }
 
