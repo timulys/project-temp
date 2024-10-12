@@ -39,6 +39,6 @@ public interface GuideCategoryRepository extends JpaRepository<GuideCategory, Lo
     @Query("select c from GuideCategory c where c.depth = :depth and c.enabled = true and (c.branch.id = :branchId or c.isOpen = true)")
     List<GuideCategory> findMyBranchEnabledCategory(Long branchId, Integer depth);
 
-    @Query("select c from GuideCategory c where c.depth = :depth and c.enabled = true and c.branch.id = :branchId")
-    List<GuideCategory> findAllOnlyMyBranch(Long branchId, Integer depth);
+//    @Query("select c from GuideCategory c where c.depth = :depth and c.enabled = true and c.branch.id = :branchId")
+//    List<GuideCategory> findAllOnlyMyBranch(Long branchId, Integer depth);
 }

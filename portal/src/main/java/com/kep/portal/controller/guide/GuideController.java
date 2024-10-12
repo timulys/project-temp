@@ -65,12 +65,7 @@ public class GuideController {
                     @SortDefault(sort = {"name"}, direction = Sort.Direction.ASC)}) Pageable pageable) {
 
         try {
-            Page<GuideDto> items;
-            if (categoryId == null) {
-                items = guideService.getAllSubCategory(pageable, null);
-            } else {
-                items = guideService.getAllSubCategory(pageable, categoryId);
-            }
+            Page<GuideDto> items = guideService.getAllSubCategory(pageable, categoryId);
 
             ApiResult<List<GuideDto>> response = ApiResult.<List<GuideDto>>builder()
                     .code(ApiResultCode.succeed)
@@ -144,7 +139,7 @@ public class GuideController {
     @PostMapping
     @PreAuthorize("hasAnyAuthority('WRITE_GUIDE')")
     @Tag(name = "가이드 API")
-    @Operation(summary = "상담가이드 저장", description = "상담가이드 저장(SB-CA-006)")
+    @Operation(summary = "상담가이드 저장", description = "상담가이드 저장(SB-CA-006) :: 저장 시 매니저는 team 선택 필수. 관리자일 경우 team = null 로 요청 시 팀 전체로 적용 됨.")
     public ResponseEntity<ApiResult<GuideDto>> create(
             @Valid @RequestBody GuidePayload guidePayload
             , @Parameter(description = "저장 여부 (임시저장 시 false)")
@@ -208,14 +203,17 @@ public class GuideController {
      * 가이드 검색
      * SB-CA-006
      *
+     * Deprecated :: 가이드 상담용, 가이드 관리용 API로 검색 사용.
+     *
      * @param searchDto
      * @param pageable
      * @return
      */
+    @Deprecated
     @GetMapping("/manage-search")
     @PreAuthorize("hasAnyAuthority('WRITE_GUIDE')")
     @Tag(name = "가이드 API")
-    @Operation(summary = "가이드 검색", description = "가이드 검색(SB-CA-006)")
+    @Operation(summary = "가이드 검색", description = "가이드 검색(SB-CA-006)", deprecated = true)
     public ResponseEntity<ApiResult<List<GuideDto>>> manageSearch(
             @ParameterObject @QueryParam @Valid GuideSearchDto searchDto,
             @ParameterObject @SortDefault.SortDefaults({
@@ -498,6 +496,76 @@ public class GuideController {
     @GetMapping("/download")
     public void download(HttpServletResponse res){
         guideService.download(res);
+    }
+
+
+
+    @Tag(name = "가이드 API")
+    @Operation(summary = "가이드 목록 조회 [상담시 사용] (신규)", description = "가이드 목록 조회 상담시 사용 (공개범위 기준)")
+    @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
+    @GetMapping("/list")
+    public ResponseEntity<ApiResult<List<GuideDto>>> getListForUser(
+            @Parameter(description = "카테고리 아이디")
+            @RequestParam(value = "category_id", required = false) Long categoryId,
+            @SortDefault.SortDefaults({
+                    @SortDefault(sort = {"name"}, direction = Sort.Direction.ASC)}) Pageable pageable
+    ) {
+
+        try {
+            Page<GuideDto> items = guideService.getGuidesWhenIssue(categoryId, pageable);
+
+            ApiResult<List<GuideDto>> response = ApiResult.<List<GuideDto>>builder()
+                    .code(ApiResultCode.succeed)
+                    .payload(items.getContent())
+                    .totalElement(items.getTotalElements())
+                    .totalPage(items.getTotalPages())
+                    .currentPage(items.getNumber())
+                    .build();
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            log.error(e.getLocalizedMessage());
+            ApiResult<List<GuideDto>> response = ApiResult.<List<GuideDto>>builder()
+                    .code(ApiResultCode.failed)
+                    .message(e.getLocalizedMessage())
+                    .build();
+            response.setError("<<SB-CP-T03>>");
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Tag(name = "가이드 API")
+    @Operation(summary = "가이드 관리 가이드 목록 조회 [매니저/관리자] (신규)", description = "가이드 목록 조회 매니저/관리자용")
+    @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
+    @GetMapping
+    public ResponseEntity<ApiResult<List<GuideDto>>> getListForManager(
+            @Parameter(description = "카테고리 아이디")
+            @RequestParam(value = "category_id", required = false) Long categoryId,
+            @SortDefault.SortDefaults({
+                    @SortDefault(sort = {"name"}, direction = Sort.Direction.ASC)}) Pageable pageable
+    ) {
+
+        try {
+            Page<GuideDto> items = guideService.getGuidesWhenManagement(categoryId, pageable);
+
+            ApiResult<List<GuideDto>> response = ApiResult.<List<GuideDto>>builder()
+                    .code(ApiResultCode.succeed)
+                    .payload(items.getContent())
+                    .totalElement(items.getTotalElements())
+                    .totalPage(items.getTotalPages())
+                    .currentPage(items.getNumber())
+                    .build();
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            log.error(e.getLocalizedMessage());
+            ApiResult<List<GuideDto>> response = ApiResult.<List<GuideDto>>builder()
+                    .code(ApiResultCode.failed)
+                    .message(e.getLocalizedMessage())
+                    .build();
+            response.setError("<<SB-CP-T03>>");
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 }

@@ -69,9 +69,14 @@ public class GuideCategoryService {
         return dtos;
     }
 
+    private boolean isHeadQuartersAdmin() {
+        return securityUtils.isHeadQuarters() && securityUtils.hasRole(Level.ROLE_ADMIN);
+    }
+
+
 
     public List<GuideCategoryDto> getMyBranchAll() {
-        if(securityUtils.isHeadQuarters() && securityUtils.hasRole(Level.ROLE_ADMIN)){
+        if(isHeadQuartersAdmin()){
             List<GuideCategory> guideCategories = categoryRepository.findAllByDepthCategory(1);
             return categoryMapper.map(guideCategories);
         }
@@ -142,7 +147,7 @@ public class GuideCategoryService {
 
     public void setCUD(GuideCategorySetting guideCategorySettings) {
         Branch branch = branchService.findById(securityUtils.getBranchId());
-//        Branch branch = branchService.findById(1L);//FIXME ::  테스트 후 제거
+        boolean headQuartersAdmin = isHeadQuartersAdmin(); //본사 관리자 여부
         Assert.notNull(branch, "Not Found Branch");
 
         if (branch.getMaxGuideCategoryDepth() == 0) throw new IllegalStateException("Guide category depth is not initialized");
@@ -154,16 +159,14 @@ public class GuideCategoryService {
 
             for (GuideCategoryDto dto : create) {
                 if (dto.getEnabled() == null) dto.setEnabled(true);
+                if (!headQuartersAdmin && dto.getIsOpen()) throw new BizException("open is only can headQuarters admin"); //전체오픈은 본사 관리자만 가능
+                dto.setIsOpen(headQuartersAdmin ? dto.getIsOpen() : false); //본사 > 관리자일 경우 전체 오픈 설정 가능. 아닐경우 브랜치오픈 고정
+
                 GuideCategory entity = categoryMapper.map(dto);
                 entity.setId(null);
                 entity.setCreator(memberId);
                 entity.setModifier(memberId);
                 entity.setBranch(branch);
-//                if (dto.getBranchId() != null) {
-//                    dto.setBranchId(dto.getBranchId());
-//                } else {
-//                    entity.setBranch(branch);
-//                }
 
                 if (dto.getParentId() != null) {
                     GuideCategory parent = categoryRepository.findById(dto.getParentId()).orElse(null);
@@ -201,11 +204,12 @@ public class GuideCategoryService {
                 GuideCategory category;
 
                 //본사 > 관리자일 경우엔 타브랜치 가이드 카테고리 전체오픈 여부만 수정 가능 -> 조회시 전체
-                if (securityUtils.isHeadQuarters() && securityUtils.hasRole(Level.ROLE_ADMIN)){
+                if (headQuartersAdmin){
                     category = categoryRepository.findById(dto.getId())
                             .orElseThrow(() -> new BizException("Update Not Found Category"));
-
                 } else {
+                    if (dto.getIsOpen()) throw new BizException("open is only can headQuarters admin"); //전체오픈은 본사 관리자만 가능
+
                     category = categoryRepository.findByIdAndBranchId(dto.getId(), branch.getId())
                             .orElseThrow(() -> new BizException("Update Not Found Category or this category is not in this branch"));
                 }
@@ -226,17 +230,6 @@ public class GuideCategoryService {
                 category.setIsOpen(dto.getIsOpen()); //브랜치 오픈 여부 수정 추가
                 category.setModifier(memberId);
                 CommonUtils.copyNotEmptyProperties(dto, category);
-                //FIXME :: 주석처리 (소속 브랜치 카테고리만 수정 가능)
-//                if (dto.getBranchId() != null) {
-//                    Branch updateBranch = branchService.findById(dto.getBranchId());
-//                    if (updateBranch == null) {
-//                        log.error("Branch Not Found");
-//                        continue;
-//                    }
-//                    if (!category.getBranch().getId().equals(dto.getBranchId())) {
-//                        category.setBranch(updateBranch);
-//                    }
-//                }
             }
             categoryRepository.flush();
         }
@@ -244,15 +237,9 @@ public class GuideCategoryService {
         if (!ObjectUtils.isEmpty(guideCategorySettings.getDelete())) {
             List<Long> delete = guideCategorySettings.getDelete();
             delete = delete.stream().sorted(Comparator.reverseOrder()).distinct().collect(Collectors.toList());
-//            List<Long> deleteIds = new ArrayList<>();
             for (Long categoryId : delete) {
                 GuideCategory guideCategory = categoryRepository.findByIdAndBranchId(categoryId, branch.getId())
                         .orElseThrow(() -> new BizException("Delete Not Found Category or this category is not in this branch"));
-//                if(securityUtils.isHeadQuarters()){
-//                    guideCategory = categoryRepository.findById(categoryId).orElse(null);
-//                }else{
-//                    guideCategory = categoryRepository.findByIdAndBranchId(categoryId, branch.getId()).orElse(null);
-//                }
 
                 guideCategory.setEnabled(false); //사용안함 처리
 
@@ -267,8 +254,6 @@ public class GuideCategoryService {
                     }
                 }
             }
-//            deleteIds = deleteIds.stream().sorted(Comparator.reverseOrder()).distinct().collect(Collectors.toList());
-//            categoryRepository.deleteAllByIdInBatch(deleteIds); //FIXME :: 카테고리 삭제 불가 (enable false 처리) volka
         }
     }
 
@@ -458,18 +443,18 @@ public class GuideCategoryService {
     }
 
     /**
-     * 가이드 추가 시 카테고리 조회용 API
+     * 가이드 추가 시 카테고리 조회용 API -> 필요없음 (타브랜치의 카테고리 설정 가능하다함)
      * @return
      */
-    public List<GuideCategoryDto> getAllByOnlyMyBranch() {
-        Long branchId = securityUtils.getBranchId();
-
-        //소속 브랜치 카테고리 + 사용가능
-        List<GuideCategory> guideCategories = categoryRepository.findAllOnlyMyBranch(branchId, 1);
-
-        List<GuideCategoryDto> dtos = categoryMapper.map(guideCategories);
-        recursiveGetAllOnlyBranch(dtos, branchId);
-
-        return dtos;
-    }
+//    public List<GuideCategoryDto> getAllByOnlyMyBranch() {
+//        Long branchId = securityUtils.getBranchId();
+//
+//        //소속 브랜치 카테고리 + 사용가능
+//        List<GuideCategory> guideCategories = categoryRepository.findAllOnlyMyBranch(branchId, 1);
+//
+//        List<GuideCategoryDto> dtos = categoryMapper.map(guideCategories);
+//        recursiveGetAllOnlyBranch(dtos, branchId);
+//
+//        return dtos;
+//    }
 }
