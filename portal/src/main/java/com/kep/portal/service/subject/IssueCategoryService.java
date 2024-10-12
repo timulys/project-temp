@@ -381,7 +381,15 @@ public class IssueCategoryService {
      */
     public void saveIssueCategories(Long channelId, List<IssueCategoryTreeDto> issueCategories) {
 
+        Long branchId = securityUtils.getBranchId();
+
         ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId).orElseThrow(() -> new BizException("not exist channel"));
+        Assert.isTrue(
+                channelEnv.getChannel().getBranchId().equals(branchId)
+                && securityUtils.isAdmin()
+                , "change category must main branch user"
+        ); //채널의 메인브랜치 관리자만 수정 가능
+
         Integer maxDepth = channelEnv.getMaxIssueCategoryDepth();
         //TODO :: IllegalArgumentException으로 수정
         if (isInitDepth(maxDepth)) throw new BizException("Issue Category is not initialized");

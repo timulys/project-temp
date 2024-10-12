@@ -50,14 +50,17 @@ public class GuideController {
      * 가이드 검색
      * SB-CP-T03
      *
+     * 대체 API 추가
+     *
      * @param categoryId
      * @param pageable
      * @return
      */
+    @Deprecated
     @GetMapping
     @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
     @Tag(name = "가이드 API")
-    @Operation(summary = "가이드 목록 조회", description = "가이드 목록 조회(SB-CP-T03)")
+    @Operation(summary = "가이드 목록 조회", description = "가이드 목록 조회(SB-CP-T03)", deprecated = true)
     public ResponseEntity<ApiResult<List<GuideDto>>> get(
             @Parameter(description = "카테고리 아이디")
             @RequestParam(value = "category_id", required = false) Long categoryId,
@@ -99,7 +102,7 @@ public class GuideController {
     @GetMapping("/m")
     @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
     @Tag(name = "가이드 API")
-    @Operation(summary = "가이드 검색", description = "가이드 검색(SB-FM-010)")
+    @Operation(summary = "가이드 검색", description = "가이드 검색(SB-FM-010)", deprecated = true)
     public ResponseEntity<ApiResult<List<GuideDto>>> get(
             @Parameter(description = "카테고리 아이디")
             @RequestParam(value = "category_id") Long categoryId
@@ -173,8 +176,9 @@ public class GuideController {
      * @return
      * @throws Exception
      */
+    @Deprecated
     @Tag(name = "가이드 API")
-    @Operation(summary = "가이드 검색", description = "가이드 검색 (SB-CP-T07)")
+    @Operation(summary = "가이드 검색", description = "가이드 검색 (SB-CP-T07)", deprecated = true)
     @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
     @GetMapping("/search")
     public ResponseEntity<ApiResult<GuideSearchResponseDto>> search(
@@ -361,12 +365,16 @@ public class GuideController {
     /**
      * 가이드 필수블록 전송했는지 확인
      *
+     * Deprecated (forRemoval=false)
+     * 추후 고도화 때 카테고리 선행블록 기획요건 재정의 후 부활 예정 20241012 volka
+     *
      * @param guideLogDto
      * @return
      */
+    @Deprecated
     @GetMapping("/check-require")
     @Tag(name = "가이드 API")
-    @Operation(summary = "가이드 필수요소 체크", description = "가이드 필수블록 전송했는지 확인")
+    @Operation(summary = "가이드 필수요소 체크", description = "가이드 필수블록 전송했는지 확인", deprecated = true)
     public ResponseEntity<ApiResult> checkRequire(
             @ParameterObject @QueryParam GuideLogDto guideLogDto
     ) {
