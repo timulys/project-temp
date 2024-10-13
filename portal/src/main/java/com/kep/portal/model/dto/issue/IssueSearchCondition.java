@@ -109,4 +109,8 @@ public class IssueSearchCondition {
 
 	@Schema(description = "")
 	private IssueType type;
+
+
+	@Schema(description = "채널 아이디")
+	private Long channelId;
 }
