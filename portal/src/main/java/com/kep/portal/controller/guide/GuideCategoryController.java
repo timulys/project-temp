@@ -6,9 +6,12 @@ import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,6 +33,9 @@ public class GuideCategoryController {
 
 	@Resource
 	private GuideCategoryService categoryService;
+    @Qualifier("objectMapper")
+    @Autowired
+    private ObjectMapper objectMapper;
 
 	/**
 	 * 카테고리 전체 조회(SB-CP-T03, SB-CA-006, SB-CA-P02)
@@ -79,6 +85,7 @@ public class GuideCategoryController {
 	public ResponseEntity<ApiResult<String>> save(@RequestBody GuideCategorySetting guideCategorySettings) {
 		try {
 			log.info("GUIDE CATEGORY SETTING : {}", guideCategorySettings);
+			log.info("input :: {}", objectMapper.writeValueAsString(guideCategorySettings));
 			categoryService.setCUD(guideCategorySettings);
 
 			ApiResult<String> response = ApiResult.<String>builder().code(ApiResultCode.succeed).build();

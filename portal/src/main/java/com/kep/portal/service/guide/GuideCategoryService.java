@@ -190,8 +190,32 @@ public class GuideCategoryService {
         categoryRepository.flush();
     }
 
+    private void validGuideCategoryIsOpen(Boolean parentCategoryIsOpen, Boolean childCategoryIsOpen) {
+        if (!parentCategoryIsOpen && childCategoryIsOpen) throw new BizException("can not be child isOpen true when parent isOpen is false");
+    }
+
+    private void validGuideCategoryEnabled(Boolean parentCategoryEnabled, Boolean childCategoryEnabled) {
+        if (!parentCategoryEnabled && childCategoryEnabled) throw new BizException("can not be child enabled true when parent enabled is false");
+    }
+
+    private void validGuideCategoryParent(GuideCategory parent, GuideCategoryDto input, Map<Long, GuideCategoryDto> dtoMap, Boolean categoryEnabled) {
+
+        GuideCategoryDto parentDto = dtoMap.get(parent.getId());
+        if (parentDto == null) {
+            validGuideCategoryIsOpen(parent.getIsOpen(), input.getIsOpen());
+            validGuideCategoryEnabled(parent.getEnabled(), categoryEnabled);
+        } else {
+            validGuideCategoryIsOpen(parentDto.getIsOpen(), input.getIsOpen());
+            validGuideCategoryEnabled(parentDto.getEnabled(), categoryEnabled);
+        }
+    }
+
     private void saveUpdateCategory(GuideCategorySetting guideCategorySettings, Branch branch, Long memberId, boolean headQuartersAdmin) {
         List<GuideCategoryDto> update = guideCategorySettings.getUpdate();
+
+        GuideCategory parent = null;
+        Boolean categoryEnabled = null;
+
         for (GuideCategoryDto dto : update) {
             GuideCategory category;
 
@@ -206,12 +230,33 @@ public class GuideCategoryService {
                         .orElseThrow(() -> new BizException("Update Not Found Category or this category is not in this branch"));
             }
 
-            //브랜치 오픈일 때 하위 노드 전체 오픈 탐색
-            if (!dto.getIsOpen() && !dto.getChildren().isEmpty()) {
-                Assert.isTrue(
-                        dto.getChildren().stream().noneMatch(GuideCategoryDto::getIsOpen) //자식 노드
-                        , "children can not be isOpen true when parent isOpen is false"
-                );
+            Map<Long, GuideCategoryDto> dtoMap = update.stream().collect(Collectors.toMap(GuideCategoryDto::getId, item -> item));
+
+            List<GuideCategory> children = category.getChildren();
+
+            parent = category.getParent();
+            GuideCategoryDto childDto = null;
+            categoryEnabled = dto.getEnabled() == null ? category.getEnabled() : dto.getEnabled();
+
+            if (parent != null) {
+                validGuideCategoryParent(parent, dto, dtoMap, categoryEnabled);
+            }
+
+            //카테고리 전체 오픈일 때 하위노드 전체오픈, 사용여부 검증
+            if (!ObjectUtils.isEmpty(children)) {
+                for (GuideCategory child : children) {
+                    childDto = dtoMap.get(child.getId());
+
+                    if (childDto == null) {
+                        //자식 노드가 입력에 없을 땐 레코드 기준. (입력받지 않은 데이터이므로)
+                        validGuideCategoryIsOpen(dto.getIsOpen(), child.getIsOpen());
+                        validGuideCategoryEnabled(categoryEnabled, child.getEnabled());
+                    } else {
+                        //자식 노드가 입력에 있을 땐 입력 기준 (DB 반영 전이므로)
+                        validGuideCategoryIsOpen(dto.getIsOpen(), childDto.getIsOpen());
+                        validGuideCategoryEnabled(categoryEnabled, childDto.getEnabled());
+                    }
+                }
             }
 
             //소속 브랜치 카테고리일 경우 수정 가능
