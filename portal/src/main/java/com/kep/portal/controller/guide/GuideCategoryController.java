@@ -85,7 +85,6 @@ public class GuideCategoryController {
 	public ResponseEntity<ApiResult<String>> save(@RequestBody GuideCategorySetting guideCategorySettings) {
 		try {
 			log.info("GUIDE CATEGORY SETTING : {}", guideCategorySettings);
-			log.info("input :: {}", objectMapper.writeValueAsString(guideCategorySettings));
 			categoryService.setCUD(guideCategorySettings);
 
 			ApiResult<String> response = ApiResult.<String>builder().code(ApiResultCode.succeed).build();
