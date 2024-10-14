@@ -446,7 +446,7 @@ public class GuideSearchRepositoryImpl implements GuideSearchRepository {
     }
 
 
-    private Predicate userGuideSearchCondition(QGuide qGuide, QGuideBlock qGuideBlock, GuideSearchDto searchDto) {
+    private Predicate keywordSearchCondition(QGuide qGuide, QGuideBlock qGuideBlock, GuideSearchDto searchDto) {
         return ExpressionUtils.or(
                 JPAExpressions.select(qGuideBlock.count())
                         .from(qGuideBlock)
@@ -480,7 +480,7 @@ public class GuideSearchRepositoryImpl implements GuideSearchRepository {
                                 qGuide.teamId.eq(searchDto.getTeamId()),
                                 qGuide.isTeamOpen.isTrue()
                         ),
-                        userGuideSearchCondition(qGuide, qGuideBlock, searchDto),
+                        keywordSearchCondition(qGuide, qGuideBlock, searchDto),
                         builder
                 )
                 .fetchFirst();
@@ -496,7 +496,7 @@ public class GuideSearchRepositoryImpl implements GuideSearchRepository {
                                 qGuide.teamId.eq(searchDto.getTeamId()),
                                 qGuide.isTeamOpen.isTrue()
                         ),
-                        userGuideSearchCondition(qGuide, qGuideBlock, searchDto),
+                        keywordSearchCondition(qGuide, qGuideBlock, searchDto),
                         builder
                 )
                 .orderBy(guideSort(pageable))
@@ -514,16 +514,16 @@ public class GuideSearchRepositoryImpl implements GuideSearchRepository {
         QGuide qGuide = new QGuide("guide");
         QGuideBlock qGuideBlock = new QGuideBlock("guideBlock");
 
-        BooleanBuilder builder = new BooleanBuilder();
-        if (categoryChildrenIds != null && !categoryChildrenIds.isEmpty()) builder.and(qGuide.guideCategory.id.in(categoryChildrenIds));
-        if (roleType.equals(Level.ROLE_MANAGER)) builder.and(qGuide.teamId.eq(searchDto.getTeamId())); //매니저일 경우 소속 팀 고정
+        BooleanBuilder condition = new BooleanBuilder();
+        if (categoryChildrenIds != null && !categoryChildrenIds.isEmpty()) condition.and(qGuide.guideCategory.id.in(categoryChildrenIds));
+        if (roleType.equals(Level.ROLE_MANAGER)) condition.and(qGuide.teamId.eq(searchDto.getTeamId())); //매니저일 경우 소속 팀 고정
 
         Long totalElement = queryFactory.select(qGuide.count())
                 .from(qGuide)
                 .where(
                         qGuide.branch.id.eq(searchDto.getBranchId())
-                        , userGuideSearchCondition(qGuide, qGuideBlock, searchDto)
-                        , builder
+                        , keywordSearchCondition(qGuide, qGuideBlock, searchDto)
+                        , condition
                 )
                 .fetchFirst();
 
@@ -533,8 +533,8 @@ public class GuideSearchRepositoryImpl implements GuideSearchRepository {
                 .leftJoin(qGuide.guideCategory, QGuideCategory.guideCategory).fetchJoin()
                 .where(
                         qGuide.branch.id.eq(searchDto.getBranchId())
-                        , userGuideSearchCondition(qGuide, qGuideBlock, searchDto)
-                        , builder
+                        , keywordSearchCondition(qGuide, qGuideBlock, searchDto)
+                        , condition
                 )
                 .orderBy(guideSort(pageable))
                 .offset(pageable.getOffset())

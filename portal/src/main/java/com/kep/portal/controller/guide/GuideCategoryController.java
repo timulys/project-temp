@@ -1,29 +1,22 @@
 package com.kep.portal.controller.guide;
 
-import java.util.List;
-
-import javax.annotation.Resource;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.guide.GuideCategoryDto;
 import com.kep.portal.model.dto.guide.GuideCategorySetting;
 import com.kep.portal.service.guide.GuideCategoryService;
-
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Tag(name = "가이드 카테고리 API", description = "/api/v1/guide/category")
 @Slf4j
@@ -40,7 +33,7 @@ public class GuideCategoryController {
 	 * @return
 	 */
 	@Tag(name = "가이드 카테고리 API")
-	@Operation(summary = "사용가능 가이드 카테고리 조회 (상담사용)", description = "상담사 호출용")
+	@Operation(summary = "사용가능 가이드 카테고리 조회 (상담사용)", description = "상담사 호출 / 상담가이드 관리 조회조건용")
 	@GetMapping
 	public ResponseEntity<ApiResult<List<GuideCategoryDto>>> get() {
 		List<GuideCategoryDto> item = categoryService.getAll(null);
@@ -50,7 +43,7 @@ public class GuideCategoryController {
 	}
 
 	@Tag(name = "가이드 카테고리 API")
-	@Operation(summary = "가이드 카테고리 조회 (관리자용)", description = "계정 소속 브랜치가 본사고 권한이 ADMIN일 경우, 1뎁스(대분류) 카테고리 전체 조회 / 아닐 경우 소속 브랜치 내 1뎁스(대분류) 및 open == Y 인 카테고리 조회")
+	@Operation(summary = "가이드 카테고리 조회 (카테고리 관리용)", description = "계정 소속 브랜치가 본사고 권한이 ADMIN일 경우, 1뎁스(대분류) 카테고리 전체 조회 / 아닐 경우 소속 브랜치 내 1뎁스(대분류) 및 open == Y 인 카테고리 조회")
 	@GetMapping("/manager")
 	public ResponseEntity<ApiResult<List<GuideCategoryDto>>> getMyBranch() {
 		List<GuideCategoryDto> item = categoryService.getMyBranchAll();
@@ -59,15 +52,6 @@ public class GuideCategoryController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
-//	@Tag(name = "가이드 카테고리 API")
-//	@Operation(summary = "사용가능 가이드 카테고리 조회 (상담사용)", description = "상담사 호출용")
-//	@GetMapping("/in-branch")
-//	public ResponseEntity<ApiResult<List<GuideCategoryDto>>> getAllByOnlyMyBranch() {
-//		List<GuideCategoryDto> results = categoryService.getAllByOnlyMyBranch();
-//
-//		ApiResult<List<GuideCategoryDto>> response = ApiResult.<List<GuideCategoryDto>>builder().code(ApiResultCode.succeed).payload(results).build();
-//		return new ResponseEntity<>(response, HttpStatus.OK);
-//	}
 
 	/**
 	 * 카테고리 수정(SB-CA-P02)

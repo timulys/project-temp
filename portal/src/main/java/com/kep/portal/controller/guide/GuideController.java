@@ -513,14 +513,15 @@ public class GuideController {
     @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
     @GetMapping("/list")
     public ResponseEntity<ApiResult<List<GuideDto>>> getListForUser(
-            @Parameter(description = "카테고리 아이디")
-            @RequestParam(value = "category_id", required = false) Long categoryId,
+            @ParameterObject GuideSearchDto searchDto,
             @SortDefault.SortDefaults({
                     @SortDefault(sort = {"name"}, direction = Sort.Direction.ASC)}) Pageable pageable
     ) {
 
+        log.info("GUIDE LIST SEARCH :: {}", searchDto);
+
         try {
-            Page<GuideDto> items = guideService.getGuidesWhenIssue(categoryId, pageable);
+            Page<GuideDto> items = guideService.getGuidesWhenIssue(searchDto, pageable);
 
             ApiResult<List<GuideDto>> response = ApiResult.<List<GuideDto>>builder()
                     .code(ApiResultCode.succeed)
@@ -547,14 +548,16 @@ public class GuideController {
     @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
     @GetMapping("/list/management")
     public ResponseEntity<ApiResult<List<GuideDto>>> getListForManager(
-            @Parameter(description = "카테고리 아이디")
-            @RequestParam(value = "category_id", required = false) Long categoryId,
+            @ParameterObject GuideSearchDto searchDto,
             @SortDefault.SortDefaults({
                     @SortDefault(sort = {"name"}, direction = Sort.Direction.ASC)}) Pageable pageable
     ) {
 
         try {
-            Page<GuideDto> items = guideService.getGuidesWhenManagement(categoryId, pageable);
+
+            log.info("GUIDE LIST MANAGEMENT SEARCH :: {}", searchDto);
+
+            Page<GuideDto> items = guideService.getGuidesWhenManagement(searchDto, pageable);
 
             ApiResult<List<GuideDto>> response = ApiResult.<List<GuideDto>>builder()
                     .code(ApiResultCode.succeed)

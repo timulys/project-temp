@@ -8,21 +8,19 @@ package com.kep.portal.service.hotkey;
 
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 
+import com.kep.core.model.exception.BizException;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
 import com.kep.portal.model.dto.hotkey.HotkeyDto;
 import com.kep.portal.model.entity.hotkey.Hotkey;
 import com.kep.portal.model.entity.hotkey.HotkeyMapper;
 import com.kep.portal.repository.hotkey.HotkeyRepository;
 import com.kep.portal.util.SecurityUtils;
+import org.springframework.util.ObjectUtils;
 
 @Service
 @Transactional
@@ -32,7 +30,7 @@ public class HotkeyService {
 	private SecurityUtils securityUtils;
 	
     @Resource
-    private HotkeyRepository hotkeyrepository;
+    private HotkeyRepository hotkeyRepository;
 
     @Resource
     private HotkeyMapper hotkeyMapper;	
@@ -41,12 +39,12 @@ public class HotkeyService {
      * [2023.03.28 / asher.shin / 자주사용하는 리스트 추가]
      */
     public List<HotkeyDto> getListHotkeyByMember(Long memberId) {
-        
-         List<Hotkey> hotkeyList = hotkeyrepository.findByMemberIdOrderBySortAsc(memberId);
+
+		if (memberId == null) memberId = securityUtils.getMemberId();
+
+		List<Hotkey> hotkeyList = hotkeyRepository.findByMemberIdOrderBySortAsc(memberId);
 
 		return hotkeyMapper.map(hotkeyList);
-         
-        
     }
     
     /**
@@ -54,44 +52,43 @@ public class HotkeyService {
      *[2023.03.28 / asher.shin / 자주사용하는 문구 저장/수정] 
      * @return
      */
-    public List<HotkeyDto> store(HotkeyDto hotkeysDto,Long memberId) {
-        
-    	 Assert.notNull(hotkeysDto.getHotkeyList(), "List is null");
-		 Assert.isTrue(memberId.equals(securityUtils.getMemberId()),"request MemberId not equal loginId");
+    public List<HotkeyDto> store(HotkeyDto hotkeysDto) {
 
+		Long memberId = securityUtils.getMemberId();
 
-    	 Hotkey entity = null;
-		 Long index = 0L;
-    	 for(HotkeyDto dto : hotkeysDto.getHotkeyList()) {
-    		 
-    		 if(dto.getId() == null) {
-    			entity = Hotkey.builder()
-				 		.firstHotKey(dto.getFirstHotKey())
-				 		.secondHotKey(dto.getSecondHotKey())
-				 		.hotkeyCode(dto.getHotkeyCode())
-				 		.content(dto.getContent())
-				 		.memberId(securityUtils.getMemberId())
-				 		.modified(ZonedDateTime.now())
-				 		.enabled(true)
-						.sort(++index)
-				 		.created(ZonedDateTime.now())
-				 		.build();
-    		 } else {
-    			 entity = hotkeyrepository.findById(dto.getId()).orElse(null);
-    			 Assert.notNull(entity,"hotkeyEntity is null");
-    			 Assert.isTrue(entity.getMemberId().equals(memberId),"different MemberId");
-				 entity.setSort(++index);
-    			 entity.setContent(dto.getContent());
-    			 entity.setModified(ZonedDateTime.now());
-    			 entity.setEnabled(dto.isEnabled());
-    		 }
-    		   
-    		 hotkeyrepository.save(entity);
-    	 }
-    	 
-    	 return this.getListHotkeyByMember(securityUtils.getMemberId());
+		hotkeyRepository.deleteByMemberId(memberId);
+		hotkeyRepository.flush();
 
-        
+		if (!ObjectUtils.isEmpty(hotkeysDto.getHotkeyList())) {
+			Hotkey entity = null;
+			Long index = 0L;
+			for(HotkeyDto dto : hotkeysDto.getHotkeyList()) {
+
+				if(dto.getId() == null) {
+					entity = Hotkey.builder()
+							.firstHotKey(dto.getFirstHotKey())
+							.secondHotKey(dto.getSecondHotKey())
+							.hotkeyCode(dto.getHotkeyCode())
+							.content(dto.getContent())
+							.memberId(memberId)
+							.modified(ZonedDateTime.now())
+							.enabled(true)
+							.sort(++index)
+							.created(ZonedDateTime.now())
+							.build();
+				} else {
+					entity = hotkeyRepository.findByIdAndMemberId(dto.getId(), memberId).orElseThrow(() -> new BizException("hotkey not found"));
+					entity.setSort(++index);
+					entity.setContent(dto.getContent());
+					entity.setModified(ZonedDateTime.now());
+					entity.setEnabled(dto.isEnabled());
+				}
+
+				hotkeyRepository.save(entity);
+			}
+		}
+
+    	return this.getListHotkeyByMember(memberId);
     }
     
 }

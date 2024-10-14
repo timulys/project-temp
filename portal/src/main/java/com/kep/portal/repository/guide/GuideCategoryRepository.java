@@ -24,11 +24,6 @@ public interface GuideCategoryRepository extends JpaRepository<GuideCategory, Lo
 
     Optional<GuideCategory> findByIdAndBranchId(Long id, Long branchId);
 
-    //FIXME :: this.findByBranchAndDepthCategory()과 동일 쿼리 -> 삭제 필요 volka
-    @Deprecated
-    @Query("select c from GuideCategory c where c.depth = :depth and (c.branch.id = :branchId or c.isOpen = true)")
-    List<GuideCategory> findByMyBranchDepthCategory(@Param("branchId") Long branchId, @Param("depth") Integer depth);
-
 
     /**
      * 소속 브랜치 + 전체 오픈 + 사용여부 Y
