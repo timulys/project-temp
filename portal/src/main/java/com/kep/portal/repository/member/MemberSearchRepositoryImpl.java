@@ -95,6 +95,7 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
         conditions.add(enabledEq(condition.getEnabled()));
         conditions.add(nicknameContains(condition.getNickname()));
         conditions.add(managedEq(condition.getManaged()));
+        conditions.add(memberIdNeq(condition.getMemberId()));
         conditions.add(hasRole(condition.getRoleIds()));
         conditions.add(usernameContains(condition.getUsername()));
         return conditions.toArray(new Predicate[0]);
@@ -138,6 +139,10 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
 
     private BooleanExpression managedEq(Boolean managed) {
         return managed != null ? member.managed.eq(managed) : null;
+    }
+
+    private BooleanExpression memberIdNeq(String memberId) {
+        return memberId != null ? member.id.ne(Long.parseLong(memberId)) : null;
     }
 
     private BooleanExpression teamIdEq(Long teamId) {

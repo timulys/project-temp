@@ -280,7 +280,7 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
                 for( Tuple issueSupportAndMember : issueSupportAndMemberList ){
                     IssueSupport resultIssueSupport= issueSupportAndMember.get(issueSupport);
                     Member resultMember = issueSupportAndMember.get(member);
-                    if ( resultIssue.getId() == resultIssueSupport.getIssue().getId() ) {
+                    if ( resultIssue.getId().equals(resultIssueSupport.getIssue().getId()) ) {
                         supportMembers.add(resultMember);
                     }
                 }
