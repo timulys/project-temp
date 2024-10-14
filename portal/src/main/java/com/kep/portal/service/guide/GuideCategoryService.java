@@ -272,6 +272,9 @@ public class GuideCategoryService {
     }
 
     private void saveDeleteCategory(GuideCategorySetting guideCategorySettings, Branch branch, Long memberId) {
+
+        if (!securityUtils.isAdmin()) throw new BizException("delete only can admin");
+
         List<Long> delete = guideCategorySettings.getDelete();
         delete = delete.stream().sorted(Comparator.reverseOrder()).distinct().collect(Collectors.toList());
         for (Long categoryId : delete) {
