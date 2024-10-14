@@ -35,6 +35,9 @@ public class MemberSearchCondition {
 	@Schema(description = "전화번호")
 	private String phone;
 
+	@Schema(description = "상담원 ID")
+	private String memberId;
+
 	@Email
 	@Schema(description = "메일주소")
 	private String email;

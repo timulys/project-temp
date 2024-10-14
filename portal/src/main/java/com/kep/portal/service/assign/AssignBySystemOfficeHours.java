@@ -126,7 +126,7 @@ public class AssignBySystemOfficeHours implements Assignable {
         BranchOfficeHours branchOfficeHours = branchOfficeHoursRepository
                 .findByBranchId(issue.getBranchId());
 
-        if(branchOfficeHours.getBranchId() != null
+            if(branchOfficeHours.getBranchId() != null
                 && branch.getEnabled()
                 && branch.getStatus().equals(WorkType.OfficeHoursStatusType.on)
         ){
