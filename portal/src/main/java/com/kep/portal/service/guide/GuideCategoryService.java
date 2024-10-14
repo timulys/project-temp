@@ -73,8 +73,10 @@ public class GuideCategoryService {
         return securityUtils.isHeadQuarters() && securityUtils.hasRole(Level.ROLE_ADMIN);
     }
 
-
-
+    /**
+     * 카테고리 관리 카테고리 조회
+     * @return
+     */
     public List<GuideCategoryDto> getMyBranchAll() {
         if(isHeadQuartersAdmin()){
             List<GuideCategory> guideCategories = categoryRepository.findAllByDepthCategory(1);
@@ -385,7 +387,7 @@ public class GuideCategoryService {
                     childrenIds.add(dto.getId());
                 recursiveGetAllSubCategory(dto.getChildren(), childrenIds, branchId);
             } else {
-                if ((dto.getIsOpen() || dto.getBranchId().equals(branchId)) && dto.getEnabled()) {
+                if ((dto.getIsOpen() || branchId.equals(dto.getBranchId()) || branchId.equals(dto.getBranch().getId())) && dto.getEnabled()) {
                     if (dto.getDepth() == getCategoryMaxDepth())
                         childrenIds.add(dto.getId());
                     recursiveGetAllSubCategory(dto.getChildren(), childrenIds, branchId);
@@ -413,7 +415,7 @@ public class GuideCategoryService {
                 recursiveGetAllSubCategory(dto.getChildren(), childrenIds, branchId);
 
             } else {
-                if (dto.getIsOpen() || dto.getBranchId().equals(branchId)) {
+                if (dto.getIsOpen() || branchId.equals(dto.getBranchId()) || branchId.equals(dto.getBranch().getId())) {
                     if (dto.getDepth() == getCategoryMaxDepth())
                         childrenIds.add(dto.getId());
                     recursiveGetAllSubCategory(dto.getChildren(), childrenIds, branchId);
@@ -505,19 +507,4 @@ public class GuideCategoryService {
         return getChildrenIds(0L, guideCategoryList);
     }
 
-    /**
-     * 가이드 추가 시 카테고리 조회용 API -> 필요없음 (타브랜치의 카테고리 설정 가능하다함)
-     * @return
-     */
-//    public List<GuideCategoryDto> getAllByOnlyMyBranch() {
-//        Long branchId = securityUtils.getBranchId();
-//
-//        //소속 브랜치 카테고리 + 사용가능
-//        List<GuideCategory> guideCategories = categoryRepository.findAllOnlyMyBranch(branchId, 1);
-//
-//        List<GuideCategoryDto> dtos = categoryMapper.map(guideCategories);
-//        recursiveGetAllOnlyBranch(dtos, branchId);
-//
-//        return dtos;
-//    }
 }

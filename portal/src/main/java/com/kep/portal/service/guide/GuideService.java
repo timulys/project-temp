@@ -95,13 +95,13 @@ public class GuideService {
 
     /**
      * 상담사 상담 시 가이드 탭 내 가이드 조회
-     * @param categoryId
+     * @param searchDto
      * @param pageable
      * @return
      */
-    public Page<GuideDto> getGuidesWhenIssue(Long categoryId, Pageable pageable) {
+    public Page<GuideDto> getGuidesWhenIssue(GuideSearchDto searchDto, Pageable pageable) {
 
-        GuideSearchDto searchDto = new GuideSearchDto();
+//        GuideSearchDto searchDto = new GuideSearchDto();
         searchDto.setBranchId(securityUtils.getBranchId());
         searchDto.setTeamId(securityUtils.getTeamId());
 //        searchDto.setBranchId(1L); //FIXME :: 테스트 후 삭제
@@ -110,8 +110,8 @@ public class GuideService {
 
         List<Long> categoryChildrenIds = null;
 
-        if (categoryId != null) {
-            categoryChildrenIds = guideCategoryService.getAllSubCategory(categoryId, searchDto.getBranchId());
+        if (searchDto.getCategoryId() != null) {
+            categoryChildrenIds = guideCategoryService.getAllSubCategory(searchDto.getCategoryId(), searchDto.getBranchId());
         }
 
         Page<Guide> guides = guideRepository.findByGuideSearchForUser(searchDto, categoryChildrenIds, pageable);
@@ -127,13 +127,12 @@ public class GuideService {
 
     /**
      * 상담 가이드 관리 조회
-     * @param categoryId
+     * @param searchDto
      * @param pageable
      * @return
      */
-    public Page<GuideDto> getGuidesWhenManagement(Long categoryId, Pageable pageable) {
+    public Page<GuideDto> getGuidesWhenManagement(GuideSearchDto searchDto, Pageable pageable) {
 
-        GuideSearchDto searchDto = new GuideSearchDto();
         searchDto.setBranchId(securityUtils.getBranchId());
         searchDto.setTeamId(securityUtils.getTeamId());
 //        searchDto.setBranchId(1L); //FIXME :: 테스트 후 삭제
@@ -142,8 +141,8 @@ public class GuideService {
 
         List<Long> categoryChildrenIds = null;
 
-        if (categoryId != null) {
-            categoryChildrenIds = guideCategoryService.getAllSubCategory(categoryId, searchDto.getBranchId());
+        if (searchDto.getCategoryId() != null) {
+            categoryChildrenIds = guideCategoryService.getAllSubCategory(searchDto.getCategoryId(), searchDto.getBranchId());
         }
 
         String roleType = null;
