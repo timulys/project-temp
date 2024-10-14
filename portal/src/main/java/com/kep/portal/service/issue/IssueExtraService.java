@@ -1,13 +1,14 @@
 package com.kep.portal.service.issue;
 
-import com.kep.core.model.dto.issue.IssueDto;
 import com.kep.core.model.dto.issue.IssueExtraDto;
-import com.kep.core.model.dto.issue.IssueStatus;
+import com.kep.core.model.exception.BizException;
 import com.kep.portal.client.LegacyClient;
 import com.kep.portal.config.property.SocketProperty;
 import com.kep.portal.model.dto.subject.IssueCategoryChildrenDto;
+import com.kep.portal.model.dto.summary.IssueSummaryDto;
 import com.kep.portal.model.entity.issue.*;
 import com.kep.portal.model.entity.subject.IssueCategory;
+import com.kep.portal.repository.channel.ChannelEnvRepository;
 import com.kep.portal.repository.issue.IssueExtraRepository;
 import com.kep.portal.repository.issue.IssueRepository;
 import com.kep.portal.repository.subject.IssueCategoryRepository;
@@ -68,6 +69,9 @@ public class IssueExtraService {
 
 	@Resource
 	private LegacyClient legacyClient;
+
+	@Resource
+    private ChannelEnvRepository channelEnvRepository;
 
 	public IssueExtraDto getByIssueId(@NotNull @Positive Long issueId) {
 
@@ -204,5 +208,53 @@ public class IssueExtraService {
 				log.error("BNK API 호출 실패", "이슈 ID " + issueId + " 에 대한 BNK API 호출 중 오류 발생: " + e.getMessage());
 			}
 		return issueExtraMapper.map(issueExtra);
+	}
+
+	/**
+	 * 요약 저장
+	 * @param issueSummaryDto
+	 * @return
+	 */
+	public void saveSummary(IssueSummaryDto issueSummaryDto) {
+		Issue issue = issueRepository.findById(issueSummaryDto.getIssueId())
+				.orElseThrow(() -> new BizException("Not found issue"));
+
+		Integer issueCategoryMaxDepth = channelEnvRepository.findByChannel(issue.getChannel()).getMaxIssueCategoryDepth();
+
+		IssueCategory category = issueCategoryRepository.findById(issue.getIssueCategory().getId())
+				.orElseThrow(() -> new BizException("Not found issueCategory"));
+		Assert.isTrue(category.getDepth().equals(issueCategoryMaxDepth), "issue category only can be max depth category");
+
+		String summary = issueSummaryDto.getSummary();
+		IssueExtra issueExtra = null;
+
+		if (issue.getIssueExtra() == null) {
+
+			issueExtra = IssueExtra.builder()
+					.guestId(issue.getGuest().getId())
+					.summary(summary == null || summary.isEmpty() ? "empty" : summary)
+					.summaryModified(ZonedDateTime.now())
+					.summaryCompleted(true)
+					.issueCategoryId(category.getId())
+					.build();
+
+		} else {
+			issueExtra = issue.getIssueExtra();
+		}
+
+		if (issueSummaryDto.getMemo() != null && !issueSummaryDto.getMemo().isEmpty()) {
+			issueExtra.setMemo(issueSummaryDto.getMemo());
+			issueExtra.setMemoModified(ZonedDateTime.now());
+		}
+
+		if (issueSummaryDto.getInflow() != null && !issueSummaryDto.getInflow().isEmpty()) {
+			issueExtra.setInflowModified(ZonedDateTime.now());
+		}
+
+		issueExtra = issueExtraRepository.save(issueExtra);
+		issue.setIssueExtra(issueExtra);
+
+		issueService.joinIssueSupport(issue);
+		simpMessagingTemplate.convertAndSend(socketProperty.getIssuePath(), issueMapper.map(issue));
 	}
 }

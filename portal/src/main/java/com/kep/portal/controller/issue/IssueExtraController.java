@@ -2,11 +2,8 @@ package com.kep.portal.controller.issue;
 
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
-import com.kep.core.model.dto.issue.IssueDto;
 import com.kep.core.model.dto.issue.IssueExtraDto;
-import com.kep.core.model.dto.legacy.LegacyBnkCategoryDto;
-import com.kep.core.model.dto.subject.IssueCategoryDto;
-import com.kep.portal.client.LegacyClient;
+import com.kep.portal.model.dto.summary.IssueSummaryDto;
 import com.kep.portal.service.issue.IssueExtraService;
 import com.kep.portal.service.subject.IssueCategoryService;
 
@@ -26,6 +23,7 @@ import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -166,6 +164,7 @@ public class IssueExtraController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+
 	/**
 	 * 상담 포탈 > 상담창 > 메모 생성 및 수정
 	 * @param issueId
@@ -193,5 +192,19 @@ public class IssueExtraController {
 				.build();
 
 		return new ResponseEntity<>(response, HttpStatus.CREATED);
+	}
+
+	@Tag(name = "이슈 상세정보 API")
+	@Operation(summary = "상담 요약 처리 생성 및 수정 [상담종료 버튼 액션] (신규)", description = "상담 포탈 > 상담창 > 상담 요약 처리 생성 및 수정(상담종료 버튼)")
+	@PostMapping("/summary")
+	@PreAuthorize("hasAnyAuthority('READ_ISSUE', 'WRITE_ISSUE', 'WRITE_ISSUE_HISTORY')")
+	public ResponseEntity<ApiResult<IssueSummaryDto>> saveSummary(@Valid @RequestBody IssueSummaryDto issueSummaryDto)  {
+		issueExtraService.saveSummary(issueSummaryDto);
+		ApiResult<IssueSummaryDto> response = ApiResult.<IssueSummaryDto>builder()
+				.code(ApiResultCode.succeed)
+				.payload(issueSummaryDto)
+				.build();
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 }
