@@ -1,13 +1,10 @@
 package com.kep.portal.model.entity.guide;
 
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.kep.core.model.dto.guide.GuideType;
 import com.kep.portal.model.converter.BooleanConverter;
 import com.kep.portal.model.converter.ListOfLongConverter;
 import com.kep.portal.model.entity.branch.Branch;
-import com.kep.portal.model.entity.member.Member;
-import com.kep.portal.model.entity.team.Team;
 import lombok.*;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.DynamicInsert;
@@ -18,7 +15,6 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity

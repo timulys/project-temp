@@ -993,19 +993,44 @@ public class MemberService {
 //			condition.setIds(teamMembers.stream().map(TeamMember::getMemberId).collect(Collectors.toSet()));
 //		}
 
-		if (!ObjectUtils.isEmpty(condition.getLevelType())) {
-			List<Role> roles = roleService.findAllByLevelTypeIn(condition.getLevelType());
-			if (!roles.isEmpty()) {
-				List<MemberRole> memberRoles = memberRoleRepository.findAllByRoleIdIn(roles.stream().map(Role::getId).collect(Collectors.toSet()));
-				Set<Long> memberIds = memberRoles.stream().map(MemberRole::getMemberId).collect(Collectors.toSet());
-				condition.setIds(memberIds);
-			}
+		if (securityUtils.isManager()) {
+			List<TeamMember> teamMembers = teamMemberRepository.findAllByTeamId(securityUtils.getTeamId());
+			condition.setIds(teamMembers.stream().map(TeamMember::getMemberId).collect(Collectors.toSet()));
 		} else {
-			if (securityUtils.hasRole("ROLE_MANAGER")) {
-				List<TeamMember> teamMembers = teamMemberRepository.findAllByTeamId(securityUtils.getTeamId());
-				condition.setIds(teamMembers.stream().map(TeamMember::getMemberId).collect(Collectors.toSet()));
+			condition.getLevelType().clear();
+			condition.getLevelType().add("MANAGER"); //첫 조회 시 매니저 고정
+			List<Role> roles = roleService.findAllByLevelTypeIn(condition.getLevelType());
+			List<MemberRole> memberRoles = memberRoleRepository.findAllByRoleIdIn(roles.stream().map(Role::getId).collect(Collectors.toSet()));
+
+			if (memberRoles == null || memberRoles.isEmpty()) {
+				condition.getLevelType().clear();
+				condition.getLevelType().add("ADMIN"); //매니저 미존재 시 어드민 조회
+				roles = roleService.findAllByLevelTypeIn(condition.getLevelType());
+				memberRoles = memberRoleRepository.findAllByRoleIdIn(roles.stream().map(Role::getId).collect(Collectors.toSet()));
+
+				if (memberRoles == null || memberRoles.isEmpty()) return Page.empty();
 			}
+
+			Set<Long> memberIds = memberRoles.stream().map(MemberRole::getMemberId).collect(Collectors.toSet());
+			condition.setIds(memberIds);
 		}
+
+
+
+		//기본 조회 매니저 -> 없을 때 어드민 조회
+//		if (!ObjectUtils.isEmpty(condition.getLevelType())) {
+//			List<Role> roles = roleService.findAllByLevelTypeIn(condition.getLevelType());
+//			if (!roles.isEmpty()) {
+//				List<MemberRole> memberRoles = memberRoleRepository.findAllByRoleIdIn(roles.stream().map(Role::getId).collect(Collectors.toSet()));
+//				Set<Long> memberIds = memberRoles.stream().map(MemberRole::getMemberId).collect(Collectors.toSet());
+//				condition.setIds(memberIds);
+//			}
+//		} else {
+//			if (securityUtils.hasRole("ROLE_MANAGER")) {
+//				List<TeamMember> teamMembers = teamMemberRepository.findAllByTeamId(securityUtils.getTeamId());
+//				condition.setIds(teamMembers.stream().map(TeamMember::getMemberId).collect(Collectors.toSet()));
+//			}
+//		}
 		if (condition.getBranchId() == null) {
 			if (!securityUtils.hasRole(Level.ROLE_MASTER)) {
 				condition.setBranchId(securityUtils.getBranchId());

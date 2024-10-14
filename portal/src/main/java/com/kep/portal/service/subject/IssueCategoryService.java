@@ -375,10 +375,15 @@ public class IssueCategoryService {
      */
     public void saveIssueCategories(Long channelId, List<IssueCategoryTreeDto> issueCategories) {
 
-        ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId).orElseThrow(() -> new BizException("not exist channel"));
-        Integer maxDepth = channelEnv.getMaxIssueCategoryDepth();
+        Long branchId = securityUtils.getBranchId();
 
-        if (isInitDepth(maxDepth)) throw new IllegalStateException("Issue Category is not initialized");
+        ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId).orElseThrow(() -> new BizException("not exist channel"));
+
+        boolean channelMainBranchAdmin = channelEnv.getChannel().getBranchId().equals(branchId) && securityUtils.isAdmin();
+        boolean headQuartersAdmin = securityUtils.isHeadQuarters() && securityUtils.isAdmin();
+        Integer maxDepth = channelEnv.getMaxIssueCategoryDepth();
+        //TODO :: IllegalArgumentException으로 수정
+        if (isInitDepth(maxDepth)) throw new BizException("Issue Category is not initialized");
 
         Long memberId = securityUtils.getMemberId();
 
@@ -386,9 +391,9 @@ public class IssueCategoryService {
                 .collect(Collectors.toMap(IssueCategory::getId, entity -> entity));
 
         //입력 검증
-        validIssueCategory(issueCategories, maxDepth, entityMap);
+        validIssueCategory(issueCategories, maxDepth, entityMap, channelMainBranchAdmin, headQuartersAdmin, channelId);
 
-        recursiveSaveIssueCategory(memberId, channelId, null, issueCategories, entityMap);
+        recursiveSaveIssueCategory(memberId, channelId, null, issueCategories, entityMap, channelMainBranchAdmin, headQuartersAdmin);
 
     }
 
@@ -403,6 +408,22 @@ public class IssueCategoryService {
         record.setModifier(memberId);
     }
 
+    private void modifyIssueCategoryOnlyExposed(Long memberId, IssueCategory record, IssueCategoryTreeDto dto) {
+        record.setExposed(dto.getExposed());
+        record.setModifier(memberId);
+    }
+
+    //본사 관리자가 메인브랜치가 아닌 채널의 카테고리 전체오픈 여부 수정 시 검증
+    private void compareIssueCategoryExcludeExposed(IssueCategory record, IssueCategoryTreeDto dto, Long channelId) {
+        if (
+                !record.getName().equals(dto.getName())
+                || !record.getEnabled().equals(dto.getEnabled())
+                || !record.getDepth().equals(dto.getDepth())
+                || !record.getChannelId().equals(channelId)
+                || !record.getSort().equals(dto.getSort())
+        ) throw new BizException("only change exposed when request user is not main branch admin and headquarters admin");
+    }
+
     /**
      * IssueCategory 입력 검증
      *
@@ -411,22 +432,29 @@ public class IssueCategoryService {
      * @param maxDepth
      * @param recordMap
      */
-    private void validIssueCategory(List<IssueCategoryTreeDto> issueCategories, int maxDepth, Map<Long, IssueCategory> recordMap) {
+    private void validIssueCategory(List<IssueCategoryTreeDto> issueCategories, int maxDepth, Map<Long, IssueCategory> recordMap, boolean channelMainBranchAdmin, boolean headQuartersAdmin, Long channelId) {
 
         List<IssueCategoryTreeDto> flattenTargets = new ArrayList<>(issueCategories);
         List<IssueCategoryTreeDto> nextFlattenTargets = new ArrayList<>();
-        Set<Integer> sortSet = new HashSet<>();
         int totalCount = 0;
 
+        if (!headQuartersAdmin && !channelMainBranchAdmin) throw new BizException("saving category only main branch admin"); //본사 관리자가 아닐 경우 본인 소속 브랜치가 채널의 메인 브랜치일 경우에만 카테고리 저장 가능
         if (isDuplicatedSort(flattenTargets)) throw new BizException("not duplicated sort"); //정렬 중복
 
         for (int i = 1; i <= maxDepth; i++) {
 
             totalCount += flattenTargets.size();
+            IssueCategory record = null;
 
             for (IssueCategoryTreeDto dto : flattenTargets) {
                 if (dto.getDepth() != i) throw new BizException("not correct depth variables"); //valid depth
-                if (dto.getIssueCategoryId() != null && !recordMap.containsKey(dto.getIssueCategoryId())) throw new BizException("issue category is not found"); //수정일 때 미존재 entity일경우
+                if (dto.getIssueCategoryId() != null) {
+                    record = recordMap.get(dto.getIssueCategoryId());
+                    if (record == null) throw new BizException("issue category is not found");
+                    if (!channelMainBranchAdmin && headQuartersAdmin) compareIssueCategoryExcludeExposed(record, dto, channelId); //본사 브랜치 관리자가 타 브랜치의 상담 카테고리 전체오픈여부만 수정가능
+                }
+
+                if (!headQuartersAdmin && !dto.getExposed()) throw new BizException("exposed true is only headQuarters Admin"); //본사 관리자가 아닐 때 카테고리 전체오픈 불가
 
                 //최하위 노드, 최대 뎁스 1일 때 제외
                 if (i < maxDepth && maxDepth > 1) {
@@ -455,7 +483,14 @@ public class IssueCategoryService {
         if (parent.getChildren() == null || parent.getChildren().isEmpty()) throw new BizException("must having children");
 
         Boolean parentEnabled = parent.getEnabled();
-        if (parent.getChildren().stream().anyMatch(child -> parentEnabled.equals(false) && child.getEnabled().equals(true))) throw new BizException("can not enabled true when parent enabled false");
+        Boolean parentExposed = parent.getExposed();
+        boolean validEnabledAndExposed = parent.getChildren().stream()
+                .anyMatch(
+                        child ->
+                                (parentEnabled.equals(false) && child.getEnabled().equals(true))
+                                && (parentExposed.equals(false) && child.getExposed().equals(true))
+                );
+        if (validEnabledAndExposed) throw new BizException("can not enabled or exposed true when parent false");
         if (isDuplicatedSort(parent.getChildren())) throw new BizException("not duplicated sort");
     }
 
@@ -483,7 +518,7 @@ public class IssueCategoryService {
      * @param dtoChildren
      * @param recordMap
      */
-    private void recursiveSaveIssueCategory(Long memberId, Long channelId, IssueCategory parent, List<IssueCategoryTreeDto> dtoChildren, Map<Long, IssueCategory> recordMap) {
+    private void recursiveSaveIssueCategory(Long memberId, Long channelId, IssueCategory parent, List<IssueCategoryTreeDto> dtoChildren, Map<Long, IssueCategory> recordMap, boolean channelMainBranchAdmin, boolean headQuartersAdmin) {
         IssueCategory record = null;
 
         for (IssueCategoryTreeDto child : dtoChildren) {
@@ -491,11 +526,15 @@ public class IssueCategoryService {
                 record = issueCategoryRepository.save(child.toEntity(memberId, channelId, parent));
             } else {
                 record = recordMap.get(child.getIssueCategoryId());
-                modifyIssueCategory(memberId, channelId, record, child);
+                if (!channelMainBranchAdmin && headQuartersAdmin) {
+                    modifyIssueCategoryOnlyExposed(memberId, record, child); //메인브랜치 관리자가 아닌 본사 관리자가 전체오픈여부 수정 시
+                } else {
+                    modifyIssueCategory(memberId, channelId, record, child);
+                }
             }
 
             if (!ObjectUtils.isEmpty(child.getChildren())) {
-                recursiveSaveIssueCategory(memberId, channelId, record, child.getChildren(), recordMap);
+                recursiveSaveIssueCategory(memberId, channelId, record, child.getChildren(), recordMap, channelMainBranchAdmin, headQuartersAdmin);
             }
         }
     }

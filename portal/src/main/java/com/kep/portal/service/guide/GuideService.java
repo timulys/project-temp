@@ -21,6 +21,7 @@ import com.kep.portal.model.entity.team.Team;
 import com.kep.portal.model.entity.team.TeamMapper;
 import com.kep.portal.repository.branch.BranchRepository;
 import com.kep.portal.repository.guide.GuideBlockRepository;
+import com.kep.portal.repository.guide.GuideCategoryRepository;
 import com.kep.portal.repository.guide.GuideRepository;
 import com.kep.portal.repository.member.MemberRepository;
 import com.kep.portal.repository.member.MemberRoleRepository;
@@ -35,6 +36,7 @@ import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -87,6 +89,82 @@ public class GuideService {
     private MemberRoleRepository memberRoleRepository;
     @Resource
     private RoleRepository roleRepository;
+    @Autowired
+    private GuideCategoryRepository guideCategoryRepository;
+
+
+    /**
+     * 상담사 상담 시 가이드 탭 내 가이드 조회
+     * @param categoryId
+     * @param pageable
+     * @return
+     */
+    public Page<GuideDto> getGuidesWhenIssue(Long categoryId, Pageable pageable) {
+
+        GuideSearchDto searchDto = new GuideSearchDto();
+        searchDto.setBranchId(securityUtils.getBranchId());
+        searchDto.setTeamId(securityUtils.getTeamId());
+//        searchDto.setBranchId(1L); //FIXME :: 테스트 후 삭제
+//        searchDto.setTeamId(1L); //FIXME :: 테스트 후 삭제
+//        searchDto.setCategoryId(2001L);
+
+        List<Long> categoryChildrenIds = null;
+
+        if (categoryId != null) {
+            categoryChildrenIds = guideCategoryService.getAllSubCategory(categoryId, searchDto.getBranchId());
+        }
+
+        Page<Guide> guides = guideRepository.findByGuideSearchForUser(searchDto, categoryChildrenIds, pageable);
+
+        List<GuideDto> guideDtos = new ArrayList<>();
+
+        // 가이드 블록, 생성자, 수정자 세팅
+        settingGuideBlock(guides.getContent(), guideDtos);
+        orderGuideBlock(guideDtos);
+
+        return new PageImpl<>(guideDtos, guides.getPageable(), guides.getTotalElements());
+    }
+
+    /**
+     * 상담 가이드 관리 조회
+     * @param categoryId
+     * @param pageable
+     * @return
+     */
+    public Page<GuideDto> getGuidesWhenManagement(Long categoryId, Pageable pageable) {
+
+        GuideSearchDto searchDto = new GuideSearchDto();
+        searchDto.setBranchId(securityUtils.getBranchId());
+        searchDto.setTeamId(securityUtils.getTeamId());
+//        searchDto.setBranchId(1L); //FIXME :: 테스트 후 삭제
+//        searchDto.setTeamId(1L); //FIXME :: 테스트 후 삭제
+//        searchDto.setCategoryId(2001L);
+
+        List<Long> categoryChildrenIds = null;
+
+        if (categoryId != null) {
+            categoryChildrenIds = guideCategoryService.getAllSubCategory(categoryId, searchDto.getBranchId());
+        }
+
+        String roleType = null;
+        if (securityUtils.isAdmin()) {
+            roleType = Level.ROLE_ADMIN;
+        } else if (securityUtils.isManager()) {
+            roleType = Level.ROLE_MANAGER;
+        } else {
+            throw new BizException("No Authority");
+        }
+
+        Page<Guide> guides = guideRepository.findByGuideSearchForManagement(searchDto, categoryChildrenIds, roleType, pageable);
+
+        List<GuideDto> guideDtos = new ArrayList<>();
+
+        // 가이드 블록, 생성자, 수정자 세팅
+        settingGuideBlock(guides.getContent(), guideDtos);
+        orderGuideBlock(guideDtos);
+
+        return new PageImpl<>(guideDtos, guides.getPageable(), guides.getTotalElements());
+    }
 
     //가이드 검색(SB-CP-T03)
     public Page<GuideDto> getAllSubCategory(Pageable pageable, Long categoryId) throws JsonProcessingException {
@@ -152,28 +230,6 @@ public class GuideService {
     private void settingGuideBlock(List<Guide> guides, List<GuideDto> guideDtos) {
         try {
             for (Guide guide : guides) {
-//                GuideDto guideDto = guideMapper.map(guide);
-//                List<Long> blockIds = objectMapper.readValue(guide.getBlockIds().toString(), new TypeReference<List<Long>>() {
-//                });
-//
-//                List<GuideBlock> guideBlockList = guideBlockRepository.findAllByIdIn(blockIds);
-//                List<GuideBlockDto> guideBlockDtos = guideBlockMapper.map(guideBlockList);
-//
-//                guideDto.setBlocks(guideBlockDtos);
-//
-//                if (guide.getTeamId() != null) {
-//                    Team team = teamRepository.findById(guide.getTeamId()).orElse(null);
-//                    guideDto.setTeam(teamMapper.map(team));
-//                }
-//                if (guide.getCreatorId() != null) {
-//                    Member creator = memberRepository.findById(guide.getCreatorId()).orElse(null);
-//                    guideDto.setCreator(memberMapper.map(creator));
-//                }
-//                if (guide.getModifierId() != null) {
-//                    Member modifier = memberRepository.findById(guide.getModifierId()).orElse(null);
-//                    guideDto.setModifier(memberMapper.map(modifier));
-//                }
-
                 guideDtos.add(convertGuideToDto(guide));
             }
         } catch (Exception e) {
@@ -182,7 +238,100 @@ public class GuideService {
     }
 
     /**
-     * TODO 유효성 검사 (최대 자리수 요건 정의 필요, 임시 저장 시 검증 적용 필요) 20240717 volka
+     * 가이드 신규 추가
+     * @param guidePayload
+     * @param enabled
+     * @param category
+     * @param branch
+     * @param team
+     * @param member
+     * @return
+     * @throws JsonProcessingException
+     */
+    private Guide addGuide(GuidePayload guidePayload, boolean enabled, GuideCategory category, Branch branch, Team team, Member member) throws JsonProcessingException {
+        List<Guide> guideList = guideRepository.findAllByName(guidePayload.getName());
+        if (!guideList.isEmpty()) throw new IllegalArgumentException("Already guide name");
+
+
+         Guide.GuideBuilder guideBuilder = Guide.builder()
+                .name(guidePayload.getName())
+//                .teamId(team == null ? null : team.getId())
+                .branch(branch)
+//                    .isBranchOpen(guidePayload.getIsBranchOpen()) //가이드 추가 시 브랜치는 무조건 등록 계정의 소속 브랜치로 저장. 브랜치 전체 오픈 없음 20241011 기준 따라 주석처리
+                .isBranchOpen(false) //가이드 추가 시 브랜치는 무조건 등록 계정의 소속 브랜치로 저장. 브랜치 전체 오픈 없음 20241011 기준
+                .isTeamOpen(team == null) //team 입력이 null 일 때 전체 오픈.
+                .creatorId(member.getId())
+                .modifierId(member.getId())
+                .guideCategory(category)
+                .blockIds(new ArrayList<>())
+                .enabled(enabled)
+                .type(guidePayload.getType())
+                 ;
+
+         if (securityUtils.isManager()) {
+             guideBuilder.teamId(team.getId());
+         } else if (securityUtils.isAdmin()) {
+             guideBuilder.teamId(team == null ? null : team.getId());
+         }
+
+         Guide guide = guideBuilder.build();
+
+        //team open은 셀렉트 박스 '전체' 선택하여 여부 저장. branchOpen은 카테고리의 전체 오픈 여부 따라 지정. 전체 오픈이되 팀 지정 가능
+        //따라서 주석 처리
+
+        guide = guideRepository.save(guide);
+        if (!guidePayload.getContents().isEmpty()) createBlock(guidePayload, guide);
+
+        return guide;
+    }
+
+
+    private Guide modifyGuide(GuidePayload guidePayload, boolean enabled, GuideCategory category, Branch branch, Team team, Member member) throws JsonProcessingException {
+        if (guideRepository.findAllByName(guidePayload.getName()).size() > 1) {
+            throw new IllegalArgumentException("Already guide name");
+        }
+
+        Guide guide = guideRepository.findById(guidePayload.getId()).orElseThrow(() -> new IllegalArgumentException("Not Found Guide"));
+
+        // FIXME :: 권한 수정됨 20241010
+        // 수정시 자신이나, 같은 브랜치의 관리자만이 수정 가능
+        // 자신, 매니저일 경우 본인 팀만, 관리자일 경우 소속 브랜치
+//        Member guideCreator = memberRepository.findById(guide.getCreatorId()).orElse(null);
+
+        Long memberId = member.getId();
+
+        CommonUtils.copyNotEmptyProperties(guidePayload, guide);
+
+        if (securityUtils.isManager()) {
+            if (!guide.getCreatorId().equals(memberId)) throw new BizException("No Authority");
+            guide.setTeamId(team.getId());
+
+        } else if (securityUtils.isAdmin()) {
+            if (!guide.getBranch().getId().equals(branch.getId()) && !guide.getCreatorId().equals(member.getId())) throw new BizException("No Authority");
+
+            //팀 전체 공개일 땐 null 어드민만 가능
+            guide.setTeamId(team == null ? null : team.getId());
+            guide.setIsTeamOpen(team == null);
+
+        } else {
+            throw new BizException("No Authority");
+        }
+
+        guide.setGuideCategory(category);
+        guide.setModifierId(member.getId());
+        guide.setEnabled(enabled);
+
+        List<Long> originBlockIds = objectMapper.readValue(guide.getBlockIds().toString(), new TypeReference<List<Long>>() {});
+        guideBlockRepository.deleteAllById(originBlockIds);
+        if (!guidePayload.getContents().isEmpty()) createBlock(guidePayload, guide);
+
+
+        return guide;
+
+    }
+
+    /**
+     * TODO :: BizException -> IllegalArgumentException으로 변환 (현재 예외처리 핸들러가 IllegalArgumentException의 경우 예외 메시지를 응답 메시지에 내려주지 않음. 따라서 임시 BizException 사용
      *
      * @param guidePayload
      * @param enabled
@@ -195,116 +344,55 @@ public class GuideService {
         Assert.notNull(guidePayload.getCategoryId(), "category_id must not be null");
         Assert.notNull(guidePayload.getName(), "name must not be null");
         Assert.notNull(guidePayload.getType(), "type must not be null");
-        Assert.isTrue(guidePayload.getContents().size() <= 10, "guide blocks are under 10 size");
+        Assert.isTrue(guidePayload.getContents().size() <= 20, "guide blocks are under 20 size");
+        Assert.isTrue(guidePayload.getContents().stream().anyMatch(item -> item.getPayload().getChapters().size() <= 10), "messages can not be over 10 in guide block");
 
         if (enabled) {
             Assert.notEmpty(guidePayload.getContents(), "content must not be empty");
         }
 
-        Long branchId = guidePayload.getBranchId() == null ? securityUtils.getBranchId() : guidePayload.getBranchId();
+//        Long branchId = guidePayload.getBranchId() == null ? securityUtils.getBranchId() : guidePayload.getBranchId();
+        Long branchId = securityUtils.getBranchId(); // 저장시 소속 브랜치로만 저장 가능 20241010 기준 요건
         Team team = null;
 
-        Branch branch = branchRepository.findById(branchId)
-                .orElse(null);
-        Assert.notNull(branch, "Not Found Branch");
+        Branch branch = branchRepository.findById(branchId).orElseThrow(() -> new BizException("Not Found Branch"));
 
-        if (guidePayload.getTeamId() != null || securityUtils.getTeamId() != null) {
-            team = teamRepository.findById(guidePayload.getTeamId() == null ? securityUtils.getTeamId() : guidePayload.getTeamId())
-                    .orElse(null);
-            Assert.notNull(team, "Not Found Team");
+//        if (guidePayload.getTeamId() != null || securityUtils.getTeamId() != null) { //공개범위 팀 선택에 따라 입력된 팀으로만 저장
+
+        if (securityUtils.isManager()) {
+            List<Long> teamIds = securityUtils.getAuthMember().getTeamIds();
+            if (guidePayload.getTeamId() == null) throw new BizException("manager must required teamId");
+            if (!teamIds.contains(guidePayload.getTeamId())) throw new BizException("No Authority"); //매니저는 본인 관리 그룹만 가능
+
+            team = teamRepository.findById(guidePayload.getTeamId()).orElseThrow(() -> new BizException("Not Found Team"));
+        }
+
+        if (securityUtils.isAdmin() && guidePayload.getTeamId() != null) {
+            team = teamRepository.findById(guidePayload.getTeamId()).orElseThrow(() -> new BizException("Not Found Team"));
         }
 
         Member member = memberRepository.findById(securityUtils.getMemberId()).orElse(null);
         Assert.notNull(member, "Not Found Member");
 
-        GuideCategory category = guideCategoryService.findById(guidePayload.getCategoryId());
-        Assert.notNull(category, "Not Found GuideCategory");
+        //입력 가능 카테고리는 전체오픈 또는 본인 소속 브랜치 + 사용 가능 상태
+//        GuideCategory category = guideCategoryService.findById(guidePayload.getCategoryId());
+        GuideCategory category = guideCategoryRepository.findById(guidePayload.getCategoryId())
+                        .orElseThrow(() -> new BizException("Not Found GuideCategory"));
+        //현재 카테고리 설정이 최대 뎁스 카테고리 까지 무조건 채우는 조건 (중간 뎁스 카테고리 선택 못함)이므로 입력 가능 카테고리 역시 최대 뎁스의 카테고리만 입력 가능하다. 20241010 volka
+        Assert.isTrue(category.getDepth().equals(branch.getMaxGuideCategoryDepth()), "input category only equals max depth level");
+
+        //카테고리 사용 가능 조건 : 사용중 + (소속 브랜치 카테고리 or 카테고리 전체 오픈)
+        Assert.isTrue(category.getEnabled() && (category.getBranch().getId().equals(branchId) || category.getIsOpen()), "Can not use this Category");
 
         Guide guide = null;
 
-        // id가 없으면 생성
+        // id가 없으면 생성 있으면 수정
         if (guidePayload.getId() == null) {
-            List<Guide> guideList = guideRepository.findAllByName(guidePayload.getName());
-            if (guideList.size() > 0) {
-                throw new IllegalArgumentException("Already guide name");
-            }
-
-            guide = Guide.builder()
-                    .name(guidePayload.getName())
-                    .teamId(team == null ? null : team.getId())
-                    .branch(branch)
-                    .isBranchOpen(guidePayload.getIsBranchOpen())
-                    .isTeamOpen(guidePayload.getIsTeamOpen())
-                    .creatorId(member.getId())
-                    .modifierId(member.getId())
-                    .guideCategory(category)
-                    .blockIds(new ArrayList<>())
-                    .type(guidePayload.getType())
-                    .build();
-
-            if (securityUtils.hasRole(Level.ROLE_ADMIN)) {
-                guide.setIsTeamOpen(true);
-            }
-
-            if (category.getIsOpen()) {
-                guide.setIsBranchOpen(true);
-                guide.setIsTeamOpen(true);
-            }
-
-            guide = guideRepository.save(guide);
-            if (!guidePayload.getContents().isEmpty()) createBlock(guidePayload, guide);
+            guide = addGuide(guidePayload, enabled, category, branch, team, member);
+        } else {
+            guide = modifyGuide(guidePayload, enabled, category, branch, team, member);
         }
-        // id가 있으면 수정
-        else {
-            List<Guide> guideList = guideRepository.findAllByName(guidePayload.getName());
-            if (guideList.size() > 1) {
-                throw new IllegalArgumentException("Already guide name");
-            }
 
-            guide = guideRepository.findById(guidePayload.getId()).orElse(null);
-            Assert.notNull(guide, "Not Found Guide");
-
-
-            // 수정시 자신이나, 같은 브랜치의 관리자만이 수정 가능
-
-            Member guideCreator = memberRepository.findById(guide.getCreatorId()).orElse(null);
-
-            Assert.isTrue(guide.getCreatorId().equals(securityUtils.getMemberId()) ||
-                    (Objects.requireNonNull(guideCreator).getBranchId().equals(securityUtils.getBranchId()) && securityUtils.hasRole(Level.ROLE_ADMIN)), "No Authority");
-            CommonUtils.copyNotEmptyProperties(guidePayload, guide);
-
-
-            guide.setModifierId(member.getId());
-
-            List<Long> originBlockIds = objectMapper.readValue(guide.getBlockIds().toString(), new TypeReference<List<Long>>() {
-            });
-            guideBlockRepository.deleteAllById(originBlockIds);
-            if (!guidePayload.getContents().isEmpty()) createBlock(guidePayload, guide);
-
-
-            if (!guide.getBranch().getId().equals(branch.getId())) {
-                guide.setBranch(branch);
-            }
-
-            if (team != null) {
-                if (!guide.getTeamId().equals(team.getId())) {
-                    guide.setTeamId(team.getId());
-                }
-            }
-
-            if (securityUtils.hasRole(Level.ROLE_ADMIN)) {
-                guide.setIsTeamOpen(true);
-            }
-
-            if (!guide.getGuideCategory().getId().equals(category.getId())) {
-                guide.setGuideCategory(category);
-                if (category.getIsOpen()) {
-                    guide.setIsBranchOpen(true);
-                    guide.setIsTeamOpen(true);
-                }
-            }
-        }
-        guide.setEnabled(enabled);
         return guideMapper.map(guide);
     }
 
@@ -324,7 +412,7 @@ public class GuideService {
 
             //중복 체크
             if (!required.stream().filter(v -> Collections.frequency(required, v) > 1).collect(Collectors.toSet()).isEmpty()) {
-                throw new IllegalArgumentException("requiredIds are not duplicated");
+                throw new IllegalArgumentException("requiredIds has duplicated");
             }
 
             Integer val = null;
@@ -478,8 +566,8 @@ public class GuideService {
 
         List<Long> childrenIds = null;
 
-        // categoryId가 없으면 3depth 카테고리를 전부 가져옴
-        // categoryId가 있으면 하위 카테고리 까지 전부 가져옴
+        // categoryId가 없으면 3depth 카테고리를 전부 가져옴 + enabled true
+        // categoryId가 있으면 하위 카테고리 까지 전부 가져옴 + enabled true
         if (searchDto.getCategoryId() == null) {
             childrenIds = guideCategoryService.getAllDepthCategory(searchDto.getBranchId());
         } else {
@@ -521,14 +609,16 @@ public class GuideService {
      * @throws Exception
      */
     public GuideDto getGuide(Long guideId) throws Exception {
-        Guide guide = null;
+        Guide guide = guideRepository.findByIdForManager(guideId, securityUtils.getBranchId(), securityUtils.getTeamId())
+                .orElseThrow(() -> new BizException("Guide Not Found"));
 
-        if (securityUtils.hasRole(Level.ROLE_ADMIN)) {
-            guide = guideRepository.findById(guideId).orElseThrow(() -> new BizException("Guide Not Found"));
-        } else {
-            guide = guideRepository.findByIdForManager(guideId, securityUtils.getBranchId(), securityUtils.getTeamId())
-                    .orElseThrow(() -> new BizException("Guide Not Found"));
-        }
+        //소속 브랜치 or 전체 오픈 조건으로 아래 주석처리
+//        if (securityUtils.hasRole(Level.ROLE_ADMIN)) {
+//            guide = guideRepository.findById(guideId).orElseThrow(() -> new BizException("Guide Not Found"));
+//        } else {
+//            guide = guideRepository.findByIdForManager(guideId, securityUtils.getBranchId(), securityUtils.getTeamId())
+//                    .orElseThrow(() -> new BizException("Guide Not Found"));
+//        }
 
         return convertGuideToDto(guide);
     }
@@ -546,7 +636,7 @@ public class GuideService {
         List<GuideDto> guideDtoList = new ArrayList<>();
 
 
-        // 본사일경우 모든 카테고리와 모든 브랜치
+        // 본사일경우 모든 카테고리와 모든 브랜치 + 사용여부
         if(branch.getHeadQuarters() && securityUtils.hasRole(Level.ROLE_ADMIN)){
             // categoryId가 없으면 3depth 카테고리를 전부 가져옴
             // categoryId가 있으면 하위 카테고리 까지 전부 가져옴
@@ -573,20 +663,13 @@ public class GuideService {
 
             // 역할이 ADMIN이면 브랜치 전체 조회
             // 역할이 ADMIN이 아니면 브랜치 + 팀 조회
-            if (securityUtils.hasRole(Level.ROLE_ADMIN)) {
+            // 본사 + 관리자일 때 브랜치 전체 조회 20241010
+            if (securityUtils.isHeadQuarters() && securityUtils.hasRole(Level.ROLE_ADMIN)) {
                 entities = guideRepository.findByGuideSearchForAdmin(childrenIds, searchDto, pageable);
             } else {
                 entities = guideRepository.findByGuideSearchForManager(childrenIds, searchDto, pageable);
             }
         }
-
-
-
-
-
-
-
-
 
 
         settingGuideBlock(entities.getContent(), guideDtoList);

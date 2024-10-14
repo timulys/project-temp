@@ -30,7 +30,7 @@ public class GuideDto {
     private Long id;
 
     @NotEmpty
-    @Schema(description = "")
+    @Schema(description = "가이드명")
     private String name;
 
     @NotNull
@@ -57,27 +57,27 @@ public class GuideDto {
     @Schema(description = "사용여부")
     private Boolean enabled;
 
-    @Schema(description = "")
+    @Schema(description = "가이드 블록 목록")
     private List<GuideBlockDto> blocks;
 
     @NotNull
     @JsonIncludeProperties({"id","username","nickname"})
-    @Schema(description = "")
+    @Schema(description = "생성자")
     private MemberDto creator;
 
     @NotNull
-    @Schema(description = "")
+    @Schema(description = "생성일시")
     private ZonedDateTime created;
 
     @NotNull
     @JsonIncludeProperties({"id","username","nickname"})
-    @Schema(description = "")
+    @Schema(description = "수정자")
     private MemberDto modifier;
 
     @NotNull
-    @Schema(description = "")
+    @Schema(description = "수정일시")
     private ZonedDateTime modified;
 
-    @Schema(description = "")
+    @Schema(description = "가이드 카테고리 아이디")
     private Long categoryId;
 }

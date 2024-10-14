@@ -1,13 +1,13 @@
 package com.kep.portal.service.guide;
 
 import com.kep.core.model.dto.guide.GuideCategoryDto;
+import com.kep.core.model.exception.BizException;
 import com.kep.portal.model.dto.guide.GuideCategorySetting;
 import com.kep.portal.model.entity.branch.Branch;
 import com.kep.portal.model.entity.guide.GuideCategory;
 import com.kep.portal.model.entity.guide.GuideCategoryMapper;
 import com.kep.portal.model.entity.privilege.Level;
 import com.kep.portal.repository.guide.GuideCategoryRepository;
-import com.kep.portal.repository.guide.GuideRepository;
 import com.kep.portal.service.branch.BranchService;
 import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.SecurityUtils;
@@ -57,32 +57,36 @@ public class GuideCategoryService {
     public List<GuideCategoryDto> getAll(Long branchId) {
         if (branchId == null)
             branchId = securityUtils.getBranchId();
+//        branchId = 1L; FIXME :: 테스트 후 삭제
 
-        List<GuideCategory> guideCategories = categoryRepository.findByBranchAndDepthCategory(branchId, 1);
+        List<GuideCategory> guideCategories = categoryRepository.findMyBranchEnabledCategory(branchId, 1);
+        if (guideCategories.isEmpty()) return Collections.emptyList();
 
         List<GuideCategoryDto> dtos = categoryMapper.map(guideCategories);
 
-        for (GuideCategoryDto dto : dtos) {
-            recursiveGetAllAndIsOpenCategory(dto.getChildren(), branchId);
-        }
+        recursiveGetAllAndIsOpenCategory(dtos, branchId);
 
         return dtos;
     }
 
+    private boolean isHeadQuartersAdmin() {
+        return securityUtils.isHeadQuarters() && securityUtils.hasRole(Level.ROLE_ADMIN);
+    }
+
+
+
     public List<GuideCategoryDto> getMyBranchAll() {
-        if(securityUtils.isHeadQuarters() && securityUtils.hasRole(Level.ROLE_ADMIN)){
+        if(isHeadQuartersAdmin()){
             List<GuideCategory> guideCategories = categoryRepository.findAllByDepthCategory(1);
             return categoryMapper.map(guideCategories);
         }
 
         Long branchId = securityUtils.getBranchId();
 
-        List<GuideCategory> guideCategories = categoryRepository.findByBranchIdAndDepth(branchId, 1);
+        List<GuideCategory> guideCategories = categoryRepository.findByBranchAndDepthCategory(branchId, 1);
 
         List<GuideCategoryDto> dtos = categoryMapper.map(guideCategories);
-//        for (GuideCategoryDto dto : dtos) {
-//            recursiveGetAllCategory(dto.getChildren(), branchId);
-//        }
+        recursiveGetAllAndIsOpenCategory(dtos, branchId);
 
         return dtos;
     }
@@ -94,7 +98,22 @@ public class GuideCategoryService {
 
         GuideCategoryDto delete = null;
         for (GuideCategoryDto dto : list) {
-            if (!dto.getIsOpen() && !dto.getBranchId().equals(branchId)) {
+            if (!dto.getIsOpen() && !dto.getBranch().getId().equals(branchId)) {
+                delete = dto;
+            } else {
+                recursiveGetAllAndIsOpenCategory(dto.getChildren(), branchId);
+            }
+        }
+        list.remove(delete);
+    }
+
+    private void recursiveGetAllOnlyBranch(List<GuideCategoryDto> list, Long branchId) {
+        if (list.isEmpty())
+            return;
+
+        GuideCategoryDto delete = null;
+        for (GuideCategoryDto dto : list) {
+            if (!dto.getBranch().getId().equals(branchId)) {
                 delete = dto;
             } else {
                 recursiveGetAllAndIsOpenCategory(dto.getChildren(), branchId);
@@ -125,113 +144,187 @@ public class GuideCategoryService {
         list.remove(delete);
     }
 
-    public void setCUD(GuideCategorySetting guideCategorySettings) {
-        List<GuideCategoryDto> update = guideCategorySettings.getUpdate();
-        List<Long> delete = guideCategorySettings.getDelete();
 
+    public void saveCreateCategory(GuideCategorySetting guideCategorySettings, Branch branch, Long memberId, boolean headQuartersAdmin) {
+        List<GuideCategoryDto> create = guideCategorySettings.getCreate();
+
+        for (GuideCategoryDto dto : create) {
+            if (dto.getEnabled() == null) dto.setEnabled(true);
+            if (!headQuartersAdmin && dto.getIsOpen()) throw new BizException("open is only can headQuarters admin"); //전체오픈은 본사 관리자만 가능
+            dto.setIsOpen(headQuartersAdmin ? dto.getIsOpen() : false); //본사 > 관리자일 경우 전체 오픈 설정 가능. 아닐경우 브랜치오픈 고정
+
+            GuideCategory entity = categoryMapper.map(dto);
+            entity.setId(null);
+            entity.setCreator(memberId);
+            entity.setModifier(memberId);
+            entity.setBranch(branch);
+
+            if (dto.getParentId() != null) {
+                GuideCategory parent = categoryRepository.findById(dto.getParentId()).orElse(null);
+                if (parent == null) {
+                    log.error("Create Not Found Parent Category");
+                    throw new BizException("Create Not Found Parent Category");
+                }
+                if (parent.getDepth() >= getCategoryMaxDepth()) {
+                    log.error("Create Depth Outbound");
+                    throw new BizException("Create Depth Outbound");
+                } else {
+                    Assert.isTrue(parent.getBranch().equals(branch), "guide category is created only in my branch");
+                    if (!parent.getEnabled()) Assert.isTrue(!entity.getEnabled(), "children can not be enable true when parent enabled is false");
+                    if (!parent.getIsOpen()) Assert.isTrue(!entity.getIsOpen(), "children can not be isOpen true when parent isOpen is false");
+                    entity.setDepth(parent.getDepth() + 1);
+                    entity.setParent(parent);
+                    entity.setChildren(new ArrayList<>());
+                    parent.getChildren().add(entity);
+                }
+            } else {
+                entity.setDepth(1);
+                entity.setChildren(new ArrayList<>());
+            }
+            categoryRepository.save(entity);
+
+            if (!ObjectUtils.isEmpty(dto.getChildren())) {
+                recursiveSave(dto.getChildren(), entity, entity.getDepth() + 1, branch);
+            }
+        }
+        categoryRepository.flush();
+    }
+
+    private void validGuideCategoryIsOpen(Boolean parentCategoryIsOpen, Boolean childCategoryIsOpen) {
+        if (!parentCategoryIsOpen && childCategoryIsOpen) throw new BizException("can not be child isOpen true when parent isOpen is false");
+    }
+
+    private void validGuideCategoryEnabled(Boolean parentCategoryEnabled, Boolean childCategoryEnabled) {
+        if (!parentCategoryEnabled && childCategoryEnabled) throw new BizException("can not be child enabled true when parent enabled is false");
+    }
+
+    private void validGuideCategoryParent(GuideCategory parent, GuideCategoryDto input, Map<Long, GuideCategoryDto> dtoMap, Boolean categoryEnabled) {
+
+        GuideCategoryDto parentDto = dtoMap.get(parent.getId());
+        if (parentDto == null) {
+            validGuideCategoryIsOpen(parent.getIsOpen(), input.getIsOpen());
+            validGuideCategoryEnabled(parent.getEnabled(), categoryEnabled);
+        } else {
+            validGuideCategoryIsOpen(parentDto.getIsOpen(), input.getIsOpen());
+            validGuideCategoryEnabled(parentDto.getEnabled(), categoryEnabled);
+        }
+    }
+
+    private void saveUpdateCategory(GuideCategorySetting guideCategorySettings, Branch branch, Long memberId, boolean headQuartersAdmin) {
+        List<GuideCategoryDto> update = guideCategorySettings.getUpdate();
+
+        GuideCategory parent = null;
+        Boolean categoryEnabled = null;
+
+        for (GuideCategoryDto dto : update) {
+            GuideCategory category;
+
+            //본사 > 관리자일 경우엔 타브랜치 가이드 카테고리 전체오픈 여부만 수정 가능 -> 조회시 전체
+            if (headQuartersAdmin){
+                category = categoryRepository.findById(dto.getId())
+                        .orElseThrow(() -> new BizException("Update Not Found Category"));
+                category.setIsOpen(dto.getIsOpen()); //카테고리 전체 오픈 여부는 본사 > 관리자만 가능
+            } else {
+                if (dto.getIsOpen()) throw new BizException("open is only can headQuarters admin"); //전체오픈은 본사 관리자만 가능
+                category = categoryRepository.findByIdAndBranchId(dto.getId(), branch.getId())
+                        .orElseThrow(() -> new BizException("Update Not Found Category or this category is not in this branch"));
+            }
+
+            Map<Long, GuideCategoryDto> dtoMap = update.stream().collect(Collectors.toMap(GuideCategoryDto::getId, item -> item));
+
+            List<GuideCategory> children = category.getChildren();
+
+            parent = category.getParent();
+            GuideCategoryDto childDto = null;
+            categoryEnabled = dto.getEnabled() == null ? category.getEnabled() : dto.getEnabled();
+
+            if (parent != null) {
+                validGuideCategoryParent(parent, dto, dtoMap, categoryEnabled);
+            }
+
+            //카테고리 전체 오픈일 때 하위노드 전체오픈, 사용여부 검증
+            if (!ObjectUtils.isEmpty(children)) {
+                for (GuideCategory child : children) {
+                    childDto = dtoMap.get(child.getId());
+
+                    if (childDto == null) {
+                        //자식 노드가 입력에 없을 땐 레코드 기준. (입력받지 않은 데이터이므로)
+                        validGuideCategoryIsOpen(dto.getIsOpen(), child.getIsOpen());
+                        validGuideCategoryEnabled(categoryEnabled, child.getEnabled());
+                    } else {
+                        //자식 노드가 입력에 있을 땐 입력 기준 (DB 반영 전이므로)
+                        validGuideCategoryIsOpen(dto.getIsOpen(), childDto.getIsOpen());
+                        validGuideCategoryEnabled(categoryEnabled, childDto.getEnabled());
+                    }
+                }
+            }
+
+            //소속 브랜치 카테고리일 경우 수정 가능
+            if (category.getBranch().equals(branch)) {
+                category.setName(dto.getName()); //명칭 수정
+            }
+
+
+            category.setModifier(memberId);
+            CommonUtils.copyNotEmptyProperties(dto, category);
+        }
+        categoryRepository.flush();
+    }
+
+    private void saveDeleteCategory(GuideCategorySetting guideCategorySettings, Branch branch, Long memberId) {
+        List<Long> delete = guideCategorySettings.getDelete();
+        delete = delete.stream().sorted(Comparator.reverseOrder()).distinct().collect(Collectors.toList());
+        for (Long categoryId : delete) {
+            //수정 / 삭제는 본인 소속 브랜치 관리자만 가능
+            GuideCategory guideCategory = categoryRepository.findByIdAndBranchId(categoryId, branch.getId())
+                    .orElseThrow(() -> new BizException("Delete Not Found Category or this category is not in this branch"));
+
+            guideCategory.setEnabled(false); //사용안함 처리
+            guideCategory.setModifier(memberId);
+            //사용 불가일 때 하위 노드 사용 가능 탐색
+            if (!ObjectUtils.isEmpty(guideCategory.getChildren())) {
+//                        recursiveDelete(guideCategory.getChildren(), branch.getId(), deleteIds);
+                boolean childIsEnabled;
+                if (!guideCategory.getEnabled()) {
+                    childIsEnabled = guideCategory.getChildren().stream()
+                            .noneMatch(GuideCategory::getEnabled);
+                    Assert.isTrue(childIsEnabled, "children can not be enable true when category enabled is false");
+                }
+            }
+        }
+    }
+
+
+
+
+    public void setCUD(GuideCategorySetting guideCategorySettings) {
         Branch branch = branchService.findById(securityUtils.getBranchId());
+        boolean headQuartersAdmin = isHeadQuartersAdmin(); //본사 관리자 여부
         Assert.notNull(branch, "Not Found Branch");
 
         if (branch.getMaxGuideCategoryDepth() == 0) throw new IllegalStateException("Guide category depth is not initialized");
+        Long memberId = securityUtils.getMemberId();
+//        Long memberId = 1L;//FIXME ::  테스트 후 제거
 
-        if (guideCategorySettings.getCreate() != null) {
-            List<GuideCategoryDto> create = guideCategorySettings.getCreate();
-            for (GuideCategoryDto dto : create) {
-                GuideCategory entity = categoryMapper.map(dto);
-                entity.setId(null);
-                entity.setCreator(securityUtils.getMemberId());
-                entity.setModifier(securityUtils.getMemberId());
-
-                if (dto.getBranchId() != null) {
-                    dto.setBranchId(dto.getBranchId());
-                } else {
-                    entity.setBranch(branch);
-                }
-
-                if (dto.getParentId() != null) {
-                    GuideCategory parent = categoryRepository.findById(dto.getParentId()).orElse(null);
-                    if (parent == null) {
-                        log.error("Not Found Parent Category");
-                        continue;
-                    }
-                    if (parent.getDepth() >= getCategoryMaxDepth()) {
-                        log.error("Depth Outbound");
-                        continue;
-                    } else {
-                        entity.setDepth(parent.getDepth() + 1);
-                        entity.setParent(parent);
-                        entity.setChildren(new ArrayList<>());
-                        parent.getChildren().add(entity);
-                    }
-                } else {
-                    entity.setDepth(1);
-                    entity.setChildren(new ArrayList<>());
-                }
-                categoryRepository.save(entity);
-                if (dto.getChildren() != null) {
-                    recursiveSave(dto.getChildren(), entity, entity.getDepth() + 1);
-                }
-            }
-            categoryRepository.flush();
+        if (!ObjectUtils.isEmpty(guideCategorySettings.getCreate())) {
+            saveCreateCategory(guideCategorySettings, branch, memberId, headQuartersAdmin);
         }
 
-        if (guideCategorySettings.getUpdate() != null) {
-            for (GuideCategoryDto dto : update) {
-                GuideCategory category = null;
-                if(securityUtils.isHeadQuarters()){
-                    category = categoryRepository.findById(dto.getId()).orElse(null);
-                }else{
-                    category = categoryRepository.findByIdAndBranchId(dto.getId(), branch.getId()).orElse(null);
-                }
-
-                if (category == null) {
-                    log.error("Not Found Category");
-                    continue;
-                }
-                category.setModifier(securityUtils.getMemberId());
-                CommonUtils.copyNotEmptyProperties(dto, category);
-                if (dto.getBranchId() != null) {
-                    Branch updateBranch = branchService.findById(dto.getBranchId());
-                    if (updateBranch == null) {
-                        log.error("Branch Not Found");
-                        continue;
-                    }
-                    if (!category.getBranch().getId().equals(dto.getBranchId())) {
-                        category.setBranch(updateBranch);
-                    }
-                }
-            }
-            categoryRepository.flush();
+        if (!ObjectUtils.isEmpty(guideCategorySettings.getUpdate())) {
+            saveUpdateCategory(guideCategorySettings, branch, memberId, headQuartersAdmin);
         }
 
-        if (guideCategorySettings.getDelete() != null) {
-            List<Long> deleteIds = new ArrayList<>();
-            for (Long categoryId : delete) {
-                GuideCategory guideCategory;
-                if(securityUtils.isHeadQuarters()){
-                    guideCategory = categoryRepository.findById(categoryId).orElse(null);
-                }else{
-                    guideCategory = categoryRepository.findByIdAndBranchId(categoryId, branch.getId()).orElse(null);
-                }
-
-                if (guideCategory != null) {
-                    guideCategory.setBranch(null);
-                    guideCategory.setParent(null);
-                    deleteIds.add(guideCategory.getId());
-
-                    if (!ObjectUtils.isEmpty(guideCategory.getChildren())) {
-                        recursiveDelete(guideCategory.getChildren(), branch.getId(), deleteIds);
-                    }
-                }
-            }
-            deleteIds = deleteIds.stream().sorted(Comparator.reverseOrder()).distinct().collect(Collectors.toList());
-            categoryRepository.deleteAllByIdInBatch(deleteIds);
+        if (!ObjectUtils.isEmpty(guideCategorySettings.getDelete())) {
+            saveDeleteCategory(guideCategorySettings, branch, memberId);
         }
     }
 
     public List<Long> getAllSubCategory(Long categoryId, Long branchId) {
         List<GuideCategory> guideCategoryList = categoryRepository.findByIdAndBranchIdOrIsOpenTrue(categoryId, branchId);
         Assert.notEmpty(guideCategoryList, "Not Found GuideCategory");
+        guideCategoryList = guideCategoryList.stream()
+                .filter(GuideCategory::getEnabled)
+                .collect(Collectors.toList());
         return getChildrenIds(branchId, guideCategoryList);
     }
 
@@ -247,9 +340,13 @@ public class GuideCategoryService {
      * @return
      */
     public List<Long> getAllDepthCategory(Long branchId) {
+
         int maxDepth = getCategoryMaxDepth();
         List<GuideCategory> guideCategoryList = categoryRepository.findByBranchAndDepthCategory(branchId, maxDepth);
         List<Long> childrenIds = guideCategoryList.stream().filter(c -> {
+
+            if (!c.getEnabled()) return false;
+
             if (c.getBranch().getId().equals(branchId)) {
                 return true;
             }
@@ -280,12 +377,12 @@ public class GuideCategoryService {
             return;
 
         for (GuideCategoryDto dto : list) {
-            if (branchId.equals(0L)) {
+            if (branchId.equals(0L)) { //FIXME :: branchId 0 ??? 1이 본사인데
                 if (dto.getDepth() == getCategoryMaxDepth())
                     childrenIds.add(dto.getId());
                 recursiveGetAllSubCategory(dto.getChildren(), childrenIds, branchId);
             } else {
-                if (dto.getIsOpen() || dto.getBranchId().equals(branchId)) {
+                if ((dto.getIsOpen() || dto.getBranchId().equals(branchId)) && dto.getEnabled()) {
                     if (dto.getDepth() == getCategoryMaxDepth())
                         childrenIds.add(dto.getId());
                     recursiveGetAllSubCategory(dto.getChildren(), childrenIds, branchId);
@@ -347,26 +444,27 @@ public class GuideCategoryService {
     }
 
     /**
-     * 카테고리 자식 저장
+     * 카테고리 자식 추가
      *
      * @param list
      * @param parent
      * @param depth
      */
-    private void recursiveSave(List<GuideCategoryDto> list, GuideCategory parent, int depth) {
+    private void recursiveSave(List<GuideCategoryDto> list, GuideCategory parent, int depth, Branch branch) {
         if (list == null || list.isEmpty())
             return;
 
         for (GuideCategoryDto dto : list) {
+            if (dto.getEnabled() == null) dto.setEnabled(parent.getEnabled());
+            if (!parent.getEnabled() && dto.getEnabled()) throw new BizException("children can not be enable true when parent enabled is false");
+
             GuideCategory category = categoryMapper.map(dto);
-            if (category.getChildren() != null)
-                category.getChildren().clear();
+            if (category.getChildren() != null) category.getChildren().clear();
+            if (dto.getBranchId() != null && !parent.getBranch().getId().equals(dto.getBranchId())) throw new BizException("guide category is created only in my branch");
+            Assert.isTrue(parent.getBranch().equals(branch), "guide category is created only in my branch");
+
             category.setDepth(depth);
-            if (dto.getBranchId() != null) {
-                category.setBranch(branchService.findById(dto.getBranchId()));
-            } else {
-                category.setBranch(parent.getBranch());
-            }
+            category.setBranch(branch);
             category.setCreator(parent.getCreator());
             category.setModifier(parent.getModifier());
             category.setId(null);
@@ -375,19 +473,48 @@ public class GuideCategoryService {
             save.setChildren(new ArrayList<>());
             parent.getChildren().add(save);
             if (depth < getCategoryMaxDepth())
-                recursiveSave(dto.getChildren(), save, depth + 1);
+                recursiveSave(dto.getChildren(), save, depth + 1, branch);
         }
     }
 
     public List<Long> getHeadAllDepthCategory() {
         int maxDepth = getCategoryMaxDepth();
         List<GuideCategory> guideCategoryList = categoryRepository.findAllByDepthCategory(maxDepth);
-        return guideCategoryList.stream().map(GuideCategory::getId).collect(Collectors.toList());
+        Assert.notEmpty(guideCategoryList, "Not Found GuideCategory");
+
+        //사용여부 필터링 추가
+        return guideCategoryList.stream()
+                .filter(GuideCategory::getEnabled)
+                .map(GuideCategory::getId)
+                .collect(Collectors.toList())
+                ;
+
+//        return guideCategoryList.stream().map(GuideCategory::getId).collect(Collectors.toList());
     }
 
     public List<Long> getHeadAllSubCategory(Long categoryId) {
         List<GuideCategory> guideCategoryList = categoryRepository.findAllById(categoryId);
         Assert.notEmpty(guideCategoryList, "Not Found GuideCategory");
+
+        //사용여부 필터링 추가
+        guideCategoryList = guideCategoryList.stream().filter(GuideCategory::getEnabled).collect(Collectors.toList());
+
         return getChildrenIds(0L, guideCategoryList);
     }
+
+    /**
+     * 가이드 추가 시 카테고리 조회용 API -> 필요없음 (타브랜치의 카테고리 설정 가능하다함)
+     * @return
+     */
+//    public List<GuideCategoryDto> getAllByOnlyMyBranch() {
+//        Long branchId = securityUtils.getBranchId();
+//
+//        //소속 브랜치 카테고리 + 사용가능
+//        List<GuideCategory> guideCategories = categoryRepository.findAllOnlyMyBranch(branchId, 1);
+//
+//        List<GuideCategoryDto> dtos = categoryMapper.map(guideCategories);
+//        recursiveGetAllOnlyBranch(dtos, branchId);
+//
+//        return dtos;
+//    }
 }

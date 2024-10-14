@@ -6,6 +6,9 @@ import static com.kep.portal.model.entity.guide.QGuide.guide;
 import java.util.List;
 import java.util.Optional;
 
+import com.kep.portal.model.entity.guide.QGuideCategory;
+import com.kep.portal.model.entity.privilege.Level;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -234,6 +237,7 @@ public class GuideSearchRepositoryImpl implements GuideSearchRepository {
     @Override
     public Page<Guide> findByGuideSearchForAdmin(List<Long> childrenIds, GuideSearchDto searchDto, Pageable pageable) {
         QGuide qGuide = new QGuide("guide");
+        QGuideCategory qGuideCategory = new QGuideCategory("guideCategory");
         QGuideBlock qGuideBlock = new QGuideBlock("guideBlock");
 
         Long totalElement = queryFactory.select(qGuide.count())
@@ -250,6 +254,7 @@ public class GuideSearchRepositoryImpl implements GuideSearchRepository {
         List<Guide> guides = queryFactory.select(qGuide)
                 .from(qGuide)
                 .leftJoin(qGuide.branch, QBranch.branch).fetchJoin()
+                .leftJoin(qGuide.guideCategory, QGuideCategory.guideCategory).fetchJoin()
                 .where(
                         qGuide.guideCategory.id.in(childrenIds),
                         ExpressionUtils.or(
@@ -314,6 +319,8 @@ public class GuideSearchRepositoryImpl implements GuideSearchRepository {
                 .fetchOne());
 
     }
+
+
 
     @Override
     public Page<Guide> findByGuideSearchForManager(List<Long> childrenIds, GuideSearchDto searchDto, Pageable pageable) {
@@ -438,5 +445,103 @@ public class GuideSearchRepositoryImpl implements GuideSearchRepository {
         return new OrderSpecifier<>(Order.ASC, guide.id);
     }
 
+
+    private Predicate userGuideSearchCondition(QGuide qGuide, QGuideBlock qGuideBlock, GuideSearchDto searchDto) {
+        return ExpressionUtils.or(
+                JPAExpressions.select(qGuideBlock.count())
+                        .from(qGuideBlock)
+                        .where(
+                                qGuide.id.eq(qGuideBlock.guideId),
+                                ExpressionUtils.or(
+                                        (searchDto.getKeyword() == null ? null : qGuideBlock.messageCondition.contains(searchDto.getKeyword())),
+                                        (searchDto.getKeyword() == null ? null : qGuideBlock.fileCondition.contains(searchDto.getKeyword())))
+                        ).gt(0L),
+                searchDto.getKeyword() == null ? null : qGuide.name.containsIgnoreCase(searchDto.getKeyword())
+        );
+    }
+
+
+    @Override
+    public Page<Guide> findByGuideSearchForUser(GuideSearchDto searchDto, List<Long> categoryChildrenIds, Pageable pageable) {
+        QGuide qGuide = new QGuide("guide");
+        QGuideBlock qGuideBlock = new QGuideBlock("guideBlock");
+
+        BooleanBuilder builder = new BooleanBuilder();
+        if (categoryChildrenIds != null && !categoryChildrenIds.isEmpty()) {
+            builder.and(qGuide.guideCategory.id.in(categoryChildrenIds));
+        }
+
+        Long totalElement = queryFactory.select(qGuide.count())
+                .from(qGuide)
+                .where(
+                        qGuide.branch.id.eq(searchDto.getBranchId()),
+                        qGuide.enabled.isTrue(), //임시저장 제외
+                        ExpressionUtils.or(
+                                qGuide.teamId.eq(searchDto.getTeamId()),
+                                qGuide.isTeamOpen.isTrue()
+                        ),
+                        userGuideSearchCondition(qGuide, qGuideBlock, searchDto),
+                        builder
+                )
+                .fetchFirst();
+
+        List<Guide> guides = queryFactory.select(qGuide)
+                .from(qGuide)
+                .leftJoin(qGuide.branch, QBranch.branch).fetchJoin()
+                .leftJoin(qGuide.guideCategory, QGuideCategory.guideCategory).fetchJoin()
+                .where(
+                        qGuide.branch.id.eq(searchDto.getBranchId()),
+                        qGuide.enabled.isTrue(), //임시저장 제외
+                        ExpressionUtils.or(
+                                qGuide.teamId.eq(searchDto.getTeamId()),
+                                qGuide.isTeamOpen.isTrue()
+                        ),
+                        userGuideSearchCondition(qGuide, qGuideBlock, searchDto),
+                        builder
+                )
+                .orderBy(guideSort(pageable))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(guides, pageable, totalElement);
+    }
+
+
+
+    @Override
+    public Page<Guide> findByGuideSearchForManagement(GuideSearchDto searchDto, List<Long> categoryChildrenIds, String roleType, Pageable pageable) {
+        QGuide qGuide = new QGuide("guide");
+        QGuideBlock qGuideBlock = new QGuideBlock("guideBlock");
+
+        BooleanBuilder builder = new BooleanBuilder();
+        if (categoryChildrenIds != null && !categoryChildrenIds.isEmpty()) builder.and(qGuide.guideCategory.id.in(categoryChildrenIds));
+        if (roleType.equals(Level.ROLE_MANAGER)) builder.and(qGuide.teamId.eq(searchDto.getTeamId())); //매니저일 경우 소속 팀 고정
+
+        Long totalElement = queryFactory.select(qGuide.count())
+                .from(qGuide)
+                .where(
+                        qGuide.branch.id.eq(searchDto.getBranchId())
+                        , userGuideSearchCondition(qGuide, qGuideBlock, searchDto)
+                        , builder
+                )
+                .fetchFirst();
+
+        List<Guide> guides = queryFactory.select(qGuide)
+                .from(qGuide)
+                .leftJoin(qGuide.branch, QBranch.branch).fetchJoin()
+                .leftJoin(qGuide.guideCategory, QGuideCategory.guideCategory).fetchJoin()
+                .where(
+                        qGuide.branch.id.eq(searchDto.getBranchId())
+                        , userGuideSearchCondition(qGuide, qGuideBlock, searchDto)
+                        , builder
+                )
+                .orderBy(guideSort(pageable))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(guides, pageable, totalElement);
+    }
 
 }

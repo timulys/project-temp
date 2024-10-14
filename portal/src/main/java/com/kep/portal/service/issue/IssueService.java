@@ -291,7 +291,14 @@ public class IssueService {
          * Admin : 브랜치 기준
          * Manager : 팀 기준
          */
-        setConditionByRole(condition, securityUtils.getRoles());
+        setConditionByRole(condition);
+
+
+        if (condition.getChannelId() != null) {
+            Channel channel = channelService.findById(condition.getChannelId());
+            Assert.notNull(channel, "Not found Channel");
+            condition.setChannels(Arrays.asList(channel));
+        }
 
         Page<Issue> issuePage = issueRepository.search(condition, pageable);
 
@@ -392,12 +399,12 @@ public class IssueService {
     /**
      * 역할별 조건 추가
      */
-    private void setConditionByRole(@NotNull IssueSearchCondition condition, List<String> roles) {
+    private void setConditionByRole(@NotNull IssueSearchCondition condition) {
 
         // 역할별(레벨) 조건 추가
-        if (roles.contains(Level.ROLE_ADMIN)) {
+        if (securityUtils.isAdmin()) {
             condition.setBranchId(securityUtils.getBranchId());
-        } else if (roles.contains(Level.ROLE_MANAGER)) {
+        } else if (securityUtils.isManager()) {
             condition.setTeamId(securityUtils.getTeamId());
         }
     }
