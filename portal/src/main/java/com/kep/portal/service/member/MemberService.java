@@ -1007,6 +1007,8 @@ public class MemberService {
 				condition.getLevelType().add("ADMIN"); //매니저 미존재 시 어드민 조회
 				roles = roleService.findAllByLevelTypeIn(condition.getLevelType());
 				memberRoles = memberRoleRepository.findAllByRoleIdIn(roles.stream().map(Role::getId).collect(Collectors.toSet()));
+
+				if (memberRoles == null || memberRoles.isEmpty()) return Page.empty();
 			}
 
 			Set<Long> memberIds = memberRoles.stream().map(MemberRole::getMemberId).collect(Collectors.toSet());
