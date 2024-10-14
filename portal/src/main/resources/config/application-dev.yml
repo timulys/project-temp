@@ -104,3 +104,8 @@ springdoc:
   model-and-view-allowed: true
   paths-to-match:
     - /api/v1/**
+
+# 파일 업로드 제한 ( Request Entity Too Large ) error fix Test
+server:
+  tomcat:
+    max-http-form-post-size: 104857600 #100MB
