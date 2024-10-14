@@ -33,9 +33,6 @@ public class GuideCategoryController {
 
 	@Resource
 	private GuideCategoryService categoryService;
-    @Qualifier("objectMapper")
-    @Autowired
-    private ObjectMapper objectMapper;
 
 	/**
 	 * 카테고리 전체 조회(SB-CP-T03, SB-CA-006, SB-CA-P02)
