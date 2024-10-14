@@ -545,7 +545,7 @@ public class GuideController {
 
     @Tag(name = "가이드 API")
     @Operation(summary = "가이드 관리 가이드 목록 조회 [매니저/관리자] (신규)", description = "가이드 목록 조회 매니저/관리자용")
-    @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
+    @PreAuthorize("hasAnyAuthority('WRITE_GUIDE')")
     @GetMapping("/list/management")
     public ResponseEntity<ApiResult<List<GuideDto>>> getListForManager(
             @ParameterObject GuideSearchDto searchDto,
