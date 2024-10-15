@@ -372,8 +372,10 @@ public class GuideService {
 //        GuideCategory category = guideCategoryService.findById(guidePayload.getCategoryId());
         GuideCategory category = guideCategoryRepository.findById(guidePayload.getCategoryId())
                         .orElseThrow(() -> new BizException("Not Found GuideCategory"));
+
         //현재 카테고리 설정이 최대 뎁스 카테고리 까지 무조건 채우는 조건 (중간 뎁스 카테고리 선택 못함)이므로 입력 가능 카테고리 역시 최대 뎁스의 카테고리만 입력 가능하다. 20241010 volka
-        Assert.isTrue(category.getDepth().equals(branch.getMaxGuideCategoryDepth()), "input category only equals max depth level");
+        //가이드 추가 시 타브랜치 가이드 카테고리 (전체오픈)을 선택하여 저장 가능하므로, 입력 카테고리의 주인 브랜치의 최대 설정 뎁스로 검증해야한다.
+        Assert.isTrue(category.getDepth().equals(category.getBranch().getMaxGuideCategoryDepth()), "input category only equals max depth level");
 
         //카테고리 사용 가능 조건 : 사용중 + (소속 브랜치 카테고리 or 카테고리 전체 오픈)
         Assert.isTrue(category.getEnabled() && (category.getBranch().getId().equals(branchId) || category.getIsOpen()), "Can not use this Category");
