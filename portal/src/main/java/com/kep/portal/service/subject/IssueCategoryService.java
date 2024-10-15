@@ -636,6 +636,9 @@ public class IssueCategoryService {
 
     private IssueCategoryDto issueCategoryEntityToDto(IssueCategory issueCategory){
         IssueCategoryDto issueCategoryDto = new IssueCategoryDto();
+        if(Objects.isNull(issueCategory)){
+            return issueCategoryDto;
+        }
         issueCategoryDto.setId(issueCategory.getId());
         issueCategoryDto.setName(issueCategory.getName());
         issueCategoryDto.setBranchId(issueCategoryDto.getBranchId());
