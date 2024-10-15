@@ -599,7 +599,7 @@ public class IssueCategoryService {
      * @param channelId
      * @return
      */
-    public IssueCategoryResponse getAllCategoriesByChannelId(Long channelId) {
+    public IssueCategoryResponse getAllIssueCategories(Long channelId) {
         ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId).orElseThrow(() -> new BizException("not exist channel"));
         if (isInitDepth(channelEnv.getMaxIssueCategoryDepth())) return null;
 
@@ -607,6 +607,17 @@ public class IssueCategoryService {
         if (issueCategories.isEmpty()) return null;
 
         return new IssueCategoryResponse(channelEnv.getMaxIssueCategoryDepth(), createCategoryTree(issueCategories, channelEnv.getMaxIssueCategoryDepth()));
+    }
+
+
+    public IssueCategoryTreeDto getIssueCategoryTreeByLowestOne(Long channelId, Long issueCategoryId) {
+        ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId).orElseThrow(() -> new BizException("not exist channel"));
+        if (isInitDepth(channelEnv.getMaxIssueCategoryDepth())) return null;
+
+        List<IssueCategory> issueCategories = issueCategoryRepository.findAllByIdAndChannelIdWithParent(channelId, issueCategoryId);
+        if (issueCategories.isEmpty()) return null;
+
+        return createCategoryTree(issueCategories, channelEnv.getMaxIssueCategoryDepth()).get(0);
     }
 
 
