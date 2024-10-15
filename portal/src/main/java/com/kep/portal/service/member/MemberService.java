@@ -10,6 +10,7 @@ import com.kep.core.model.dto.system.SystemEventHistoryActionType;
 import com.kep.core.model.dto.work.OfficeHoursDto;
 import com.kep.core.model.dto.work.OfficeWorkDto;
 import com.kep.core.model.dto.work.WorkType;
+import com.kep.core.model.exception.BizException;
 import com.kep.portal.config.property.CoreProperty;
 import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.config.property.SystemMessageProperty;
@@ -256,6 +257,9 @@ public class MemberService {
 	 * @return
 	 */
 	public MemberDto store(@NotNull MemberDto dto) throws Exception {
+
+		if (dto.getNickname().contains(" ")) throw new IllegalArgumentException("nickname must not contain space");
+
 		// Member 저장
 		Member member;
 		Member beforeMember = new Member();
