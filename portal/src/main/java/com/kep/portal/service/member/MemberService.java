@@ -147,6 +147,8 @@ public class MemberService {
 
 	@Resource
 	private PortalProperty portalProperty;
+
+	private static final Pattern pattern = Pattern.compile("\\s+");
 	
 	public Member findById(@NotNull @Positive Long id) {
 		return memberRepository.findById(id).orElse(null);
@@ -258,7 +260,8 @@ public class MemberService {
 	 */
 	public MemberDto store(@NotNull MemberDto dto) throws Exception {
 
-		if (dto.getNickname().contains(" ")) throw new IllegalArgumentException("nickname must not contain space");
+
+		if (pattern.matcher(dto.getUsername()).matches() || dto.getUsername().contains(" ")) throw new IllegalArgumentException("username must not contain space");
 
 		// Member 저장
 		Member member;
