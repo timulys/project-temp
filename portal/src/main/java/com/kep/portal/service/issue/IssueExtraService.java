@@ -5,7 +5,7 @@ import com.kep.core.model.exception.BizException;
 import com.kep.portal.client.LegacyClient;
 import com.kep.portal.config.property.SocketProperty;
 import com.kep.portal.model.dto.subject.IssueCategoryChildrenDto;
-import com.kep.portal.model.dto.summary.IssueSummaryDto;
+import com.kep.portal.model.dto.summary.IssueExtraSummaryDto;
 import com.kep.portal.model.entity.issue.*;
 import com.kep.portal.model.entity.subject.IssueCategory;
 import com.kep.portal.repository.channel.ChannelEnvRepository;
@@ -212,20 +212,20 @@ public class IssueExtraService {
 
 	/**
 	 * 요약 저장
-	 * @param issueSummaryDto
+	 * @param issueExtraSummaryDto
 	 * @return
 	 */
-	public void saveSummary(IssueSummaryDto issueSummaryDto) {
-		Issue issue = issueRepository.findById(issueSummaryDto.getIssueId())
+	public void saveSummary(IssueExtraSummaryDto issueExtraSummaryDto) {
+		Issue issue = issueRepository.findById(issueExtraSummaryDto.getIssueId())
 				.orElseThrow(() -> new BizException("Not found issue"));
 
 		Integer issueCategoryMaxDepth = channelEnvRepository.findByChannel(issue.getChannel()).getMaxIssueCategoryDepth();
 
-		IssueCategory category = issueCategoryRepository.findById(issue.getIssueCategory().getId())
+		IssueCategory category = issueCategoryRepository.findById(issueExtraSummaryDto.getIssueCategoryId())
 				.orElseThrow(() -> new BizException("Not found issueCategory"));
 		Assert.isTrue(category.getDepth().equals(issueCategoryMaxDepth), "issue category only can be max depth category");
 
-		String summary = issueSummaryDto.getSummary();
+		String summary = issueExtraSummaryDto.getSummary();
 		IssueExtra issueExtra = null;
 
 		if (issue.getIssueExtra() == null) {
@@ -234,7 +234,7 @@ public class IssueExtraService {
 					.guestId(issue.getGuest().getId())
 					.summary(summary == null || summary.isEmpty() ? "empty" : summary)
 					.summaryModified(ZonedDateTime.now())
-					.summaryCompleted(true)
+					.summaryCompleted(issueExtraSummaryDto.getSummaryCompleted())
 					.issueCategoryId(category.getId())
 					.build();
 
@@ -242,12 +242,12 @@ public class IssueExtraService {
 			issueExtra = issue.getIssueExtra();
 		}
 
-		if (issueSummaryDto.getMemo() != null && !issueSummaryDto.getMemo().isEmpty()) {
-			issueExtra.setMemo(issueSummaryDto.getMemo());
+		if (issueExtraSummaryDto.getMemo() != null && !issueExtraSummaryDto.getMemo().isEmpty()) {
+			issueExtra.setMemo(issueExtraSummaryDto.getMemo());
 			issueExtra.setMemoModified(ZonedDateTime.now());
 		}
 
-		if (issueSummaryDto.getInflow() != null && !issueSummaryDto.getInflow().isEmpty()) {
+		if (issueExtraSummaryDto.getInflow() != null && !issueExtraSummaryDto.getInflow().isEmpty()) {
 			issueExtra.setInflowModified(ZonedDateTime.now());
 		}
 
