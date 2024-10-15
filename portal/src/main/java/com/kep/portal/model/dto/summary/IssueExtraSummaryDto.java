@@ -11,7 +11,7 @@ import java.time.ZonedDateTime;
 @Schema(description = "상담 요약 저장 DTO")
 @NoArgsConstructor
 @Data
-public class IssueSummaryDto {
+public class IssueExtraSummaryDto {
 
     @Schema(description = "상담 아이디")
     @NotNull

@@ -101,12 +101,8 @@ public class GuideService {
      */
     public Page<GuideDto> getGuidesWhenIssue(GuideSearchDto searchDto, Pageable pageable) {
 
-//        GuideSearchDto searchDto = new GuideSearchDto();
         searchDto.setBranchId(securityUtils.getBranchId());
         searchDto.setTeamId(securityUtils.getTeamId());
-//        searchDto.setBranchId(1L); //FIXME :: 테스트 후 삭제
-//        searchDto.setTeamId(1L); //FIXME :: 테스트 후 삭제
-//        searchDto.setCategoryId(2001L);
 
         List<Long> categoryChildrenIds = null;
 
@@ -115,6 +111,7 @@ public class GuideService {
         }
 
         Page<Guide> guides = guideRepository.findByGuideSearchForUser(searchDto, categoryChildrenIds, pageable);
+        if (guides.getContent().isEmpty()) return Page.empty();
 
         List<GuideDto> guideDtos = new ArrayList<>();
 
@@ -135,9 +132,6 @@ public class GuideService {
 
         searchDto.setBranchId(securityUtils.getBranchId());
         searchDto.setTeamId(securityUtils.getTeamId());
-//        searchDto.setBranchId(1L); //FIXME :: 테스트 후 삭제
-//        searchDto.setTeamId(1L); //FIXME :: 테스트 후 삭제
-//        searchDto.setCategoryId(2001L);
 
         List<Long> categoryChildrenIds = null;
 
@@ -155,6 +149,7 @@ public class GuideService {
         }
 
         Page<Guide> guides = guideRepository.findByGuideSearchForManagement(searchDto, categoryChildrenIds, roleType, pageable);
+        if (guides.getContent().isEmpty()) return Page.empty();
 
         List<GuideDto> guideDtos = new ArrayList<>();
 
@@ -663,7 +658,7 @@ public class GuideService {
             // 역할이 ADMIN이면 브랜치 전체 조회
             // 역할이 ADMIN이 아니면 브랜치 + 팀 조회
             // 본사 + 관리자일 때 브랜치 전체 조회 20241010
-            if (securityUtils.isHeadQuarters() && securityUtils.hasRole(Level.ROLE_ADMIN)) {
+            if (securityUtils.isHeadQuarters() && securityUtils.isAdmin()) {
                 entities = guideRepository.findByGuideSearchForAdmin(childrenIds, searchDto, pageable);
             } else {
                 entities = guideRepository.findByGuideSearchForManager(childrenIds, searchDto, pageable);
@@ -873,7 +868,6 @@ public class GuideService {
         Long teamId = securityUtils.getTeamId();
 
         List<Long> childrenIds = guideCategoryService.getAllSubCategory(categoryId, branchId);
-
 
         List<Guide> guides = guideRepository.findByGuideCategoryIdIn(childrenIds, teamId, branchId);
 
