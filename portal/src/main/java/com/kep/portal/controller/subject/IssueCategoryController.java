@@ -284,7 +284,7 @@ public class IssueCategoryController {
 	) {
 		log.info("ISSUE CATEGORY, GET, CHANNEL: {}", channelId);
 
-		IssueCategoryResponse result = issueCategoryService.getAllCategoriesByChannelId(channelId);
+		IssueCategoryResponse result = issueCategoryService.getAllIssueCategories(channelId);
 
 		ApiResult<IssueCategoryResponse> response = ApiResult.<IssueCategoryResponse>builder()
 				.code(ApiResultCode.succeed)
@@ -292,6 +292,25 @@ public class IssueCategoryController {
 				.build();
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+
+//	@Tag(name = "이슈 카테고리 API")
+//	@Operation(summary = "이슈 카테고리 관리 > 이슈 카테고리 목록 조회 [관리자용] (신규)", description = "트리구조 조회")
+//	@GetMapping("/management/{channel_id}")
+//	public ResponseEntity<ApiResult<IssueCategoryResponse>> getCategoryTreeByManagement(
+//			@Parameter(description = "채널 아이디", required = true, in = ParameterIn.PATH)
+//			@Positive
+//			@PathVariable("channel_id") Long channelId
+//	) {
+//		log.info("ISSUE CATEGORY, GET, CHANNEL: {}", channelId);
+//
+//		IssueCategoryResponse result = issueCategoryService.getIssueCategoriesByManagement(channelId);
+//
+//		ApiResult<IssueCategoryResponse> response = ApiResult.<IssueCategoryResponse>builder()
+//				.code(ApiResultCode.succeed)
+//				.payload(result)
+//				.build();
+//		return new ResponseEntity<>(response, HttpStatus.OK);
+//	}
 
 	@Tag(name = "이슈 카테고리 API")
 	@Operation(summary = "이슈 카테고리 저장(신규)", description = "요청 시 조회 트리 전체 전송")

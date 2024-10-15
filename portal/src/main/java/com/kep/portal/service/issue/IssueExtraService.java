@@ -5,7 +5,10 @@ import com.kep.core.model.exception.BizException;
 import com.kep.portal.client.LegacyClient;
 import com.kep.portal.config.property.SocketProperty;
 import com.kep.portal.model.dto.subject.IssueCategoryChildrenDto;
+import com.kep.portal.model.dto.summary.IssueExtraSummaryDetailDto;
 import com.kep.portal.model.dto.summary.IssueExtraSummaryDto;
+import com.kep.portal.model.entity.channel.Channel;
+import com.kep.portal.model.entity.channel.ChannelEnv;
 import com.kep.portal.model.entity.issue.*;
 import com.kep.portal.model.entity.subject.IssueCategory;
 import com.kep.portal.repository.channel.ChannelEnvRepository;
@@ -215,7 +218,7 @@ public class IssueExtraService {
 	 * @param issueExtraSummaryDto
 	 * @return
 	 */
-	public void saveSummary(IssueExtraSummaryDto issueExtraSummaryDto) {
+	public void saveExtraSummary(IssueExtraSummaryDto issueExtraSummaryDto) {
 		Issue issue = issueRepository.findById(issueExtraSummaryDto.getIssueId())
 				.orElseThrow(() -> new BizException("Not found issue"));
 
@@ -256,5 +259,24 @@ public class IssueExtraService {
 
 		issueService.joinIssueSupport(issue);
 		simpMessagingTemplate.convertAndSend(socketProperty.getIssuePath(), issueMapper.map(issue));
+	}
+
+	public IssueExtraSummaryDetailDto getExtraSummary(Long issueId) {
+		Issue issue = issueRepository.findById(issueId).orElseThrow(() -> new BizException("Not found issue"));
+		IssueExtra issueExtra = issue.getIssueExtra();
+
+		if (issueExtra == null) return null;
+
+		IssueExtraSummaryDetailDto result = new IssueExtraSummaryDetailDto();
+		Channel channel = issue.getChannel();
+		ChannelEnv channelEnv = channelEnvRepository.findByChannel(channel);
+
+		result.setChannelId(channel.getId());
+		result.setChannelName(channel.getName());
+		result.setMaxIssueCategoryDepth(channelEnv.getMaxIssueCategoryDepth());
+		result.setIssueCategory(issueCategoryService.getIssueCategoryTreeByLowestOne(channel.getId(), issueExtra.getIssueCategoryId()));
+		result.setIssueExtraSummary(IssueExtraSummaryDto.of(issueExtra));
+
+		return result;
 	}
 }

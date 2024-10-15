@@ -71,5 +71,9 @@ public interface IssueCategoryRepository extends JpaRepository<IssueCategory, Lo
 	@Query("select ic, ic2 from IssueCategory ic left join fetch IssueCategory ic2 on ic.parent = ic2 where ic.channelId = :channelId")
 	List<IssueCategory> findAllByChannelIdWithParent(Long channelId);
 
+
+	@Query("select ic, ic2 from IssueCategory ic left join fetch IssueCategory ic2 on ic.parent = ic2 where ic.channelId = :channelId and ic.id = :issueCategoryId")
+	List<IssueCategory> findAllByIdAndChannelIdWithParent(Long channelId, Long issueCategoryId);
+
 	IssueCategory findTopByChannelIdOrderByDepthDescParentIdAscIdAsc(Long channelId);
 }

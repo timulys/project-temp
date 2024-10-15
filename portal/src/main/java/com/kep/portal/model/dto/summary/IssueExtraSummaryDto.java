@@ -1,8 +1,10 @@
 package com.kep.portal.model.dto.summary;
 
+import com.kep.portal.model.entity.issue.IssueExtra;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.util.ObjectUtils;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
@@ -38,4 +40,18 @@ public class IssueExtraSummaryDto {
     @NotNull
     private Boolean summaryCompleted;
 
+
+    private IssueExtraSummaryDto(IssueExtra issueExtra) {
+        this.issueId = issueExtra.getId();
+        this.summary = issueExtra.getSummary();
+        this.issueCategoryId = issueExtra.getIssueCategoryId();
+        this.inflow = issueExtra.getInflow();
+        this.memo = issueExtra.getMemo();
+        this.memoModified = issueExtra.getMemoModified();
+        this.summaryCompleted = ObjectUtils.isEmpty(issueExtra.getSummary()) || issueExtra.getSummary().equals("empty") ? Boolean.FALSE : Boolean.TRUE;
+    }
+
+    public static IssueExtraSummaryDto of(IssueExtra issueExtra) {
+        return new IssueExtraSummaryDto(issueExtra);
+    }
 }

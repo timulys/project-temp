@@ -3,6 +3,7 @@ package com.kep.portal.controller.issue;
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.issue.IssueExtraDto;
+import com.kep.portal.model.dto.summary.IssueExtraSummaryDetailDto;
 import com.kep.portal.model.dto.summary.IssueExtraSummaryDto;
 import com.kep.portal.service.issue.IssueExtraService;
 import com.kep.portal.service.subject.IssueCategoryService;
@@ -49,7 +50,7 @@ public class IssueExtraController {
 	 */
 	@Tag(name = "이슈 상세정보 API")
 	@Operation(summary = "이슈 상세 조회", description = "상담 포탈 > 상담창 > 상담 요약 조회 / 메모 조회")
-	@GetMapping({"/{issueId}", "/summary/{issueId}", "/memo/{issueId}"})
+	@GetMapping({"/{issueId}", "/memo/{issueId}"})
 	@PreAuthorize("hasAnyAuthority('READ_ISSUE', 'WRITE_ISSUE', 'WRITE_ISSUE_HISTORY')")
 	public ResponseEntity<ApiResult<IssueExtraDto>> get(
 			@Parameter(description = "이슈 아이디", in = ParameterIn.PATH, required = true)
@@ -198,8 +199,8 @@ public class IssueExtraController {
 	@Operation(summary = "상담 요약 처리 생성 및 수정 [상담종료 버튼 액션] (신규)", description = "상담 포탈 > 상담창 > 상담 요약 처리 생성 및 수정(상담종료 버튼)")
 	@PostMapping("/summary")
 	@PreAuthorize("hasAnyAuthority('READ_ISSUE', 'WRITE_ISSUE', 'WRITE_ISSUE_HISTORY')")
-	public ResponseEntity<ApiResult<IssueExtraSummaryDto>> saveSummary(@Valid @RequestBody IssueExtraSummaryDto issueExtraSummaryDto)  {
-		issueExtraService.saveSummary(issueExtraSummaryDto);
+	public ResponseEntity<ApiResult<IssueExtraSummaryDto>> saveExtraSummary(@Valid @RequestBody IssueExtraSummaryDto issueExtraSummaryDto)  {
+		issueExtraService.saveExtraSummary(issueExtraSummaryDto);
 		ApiResult<IssueExtraSummaryDto> response = ApiResult.<IssueExtraSummaryDto>builder()
 				.code(ApiResultCode.succeed)
 				.payload(issueExtraSummaryDto)
@@ -207,4 +208,24 @@ public class IssueExtraController {
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+
+	@Tag(name = "이슈 상세정보 API")
+	@Operation(summary = "상담 요약 상세 조회 (신규)", description = "상담 요약 상세 조회")
+	@GetMapping("/summary/{issueId}")
+	@PreAuthorize("hasAnyAuthority('READ_ISSUE', 'WRITE_ISSUE', 'WRITE_ISSUE_HISTORY')")
+	public ResponseEntity<ApiResult<IssueExtraSummaryDetailDto>> getSummaryDetail(
+			@Parameter(description = "상담 아이디", in = ParameterIn.PATH, required = true)
+			@PathVariable("issueId") Long issueId
+	) {
+		IssueExtraSummaryDetailDto result = issueExtraService.getExtraSummary(issueId);
+
+		ApiResult<IssueExtraSummaryDetailDto> response = ApiResult.<IssueExtraSummaryDetailDto>builder()
+				.code(ApiResultCode.succeed)
+				.payload(result)
+				.build();
+
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+
 }
