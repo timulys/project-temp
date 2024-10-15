@@ -59,33 +59,19 @@ public class HotkeyService {
 		hotkeyRepository.deleteByMemberId(memberId);
 		hotkeyRepository.flush();
 
-		if (!ObjectUtils.isEmpty(hotkeysDto.getHotkeyList())) {
-			Hotkey entity = null;
-			Long index = 0L;
-			for(HotkeyDto dto : hotkeysDto.getHotkeyList()) {
-
-				if(dto.getId() == null) {
-					entity = Hotkey.builder()
-							.firstHotKey(dto.getFirstHotKey())
-							.secondHotKey(dto.getSecondHotKey())
-							.hotkeyCode(dto.getHotkeyCode())
-							.content(dto.getContent())
-							.memberId(memberId)
-							.modified(ZonedDateTime.now())
-							.enabled(true)
-							.sort(++index)
-							.created(ZonedDateTime.now())
-							.build();
-				} else {
-					entity = hotkeyRepository.findByIdAndMemberId(dto.getId(), memberId).orElseThrow(() -> new BizException("hotkey not found"));
-					entity.setSort(++index);
-					entity.setContent(dto.getContent());
-					entity.setModified(ZonedDateTime.now());
-					entity.setEnabled(dto.isEnabled());
-				}
-
+		Long index = 0L;
+		for(HotkeyDto dto : hotkeysDto.getHotkeyList()) {
+				Hotkey entity  = Hotkey.builder().firstHotKey(dto.getFirstHotKey())
+												 .secondHotKey(dto.getSecondHotKey())
+												 .hotkeyCode(dto.getHotkeyCode())
+												 .content(dto.getContent())
+												 .memberId(memberId)
+												 .modified(ZonedDateTime.now())
+												 .enabled(true)
+												 .sort(++index)
+												 .created(ZonedDateTime.now())
+												 .build();
 				hotkeyRepository.save(entity);
-			}
 		}
 
     	return this.getListHotkeyByMember(memberId);
