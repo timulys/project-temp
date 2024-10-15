@@ -14,6 +14,6 @@
 		<module>core</module>
 		<module>portal</module>
 		<module>platform</module>
-		<!--/* <module>legacy</module> */-->
+		<module>legacy</module>
 	</modules>
 </project>
