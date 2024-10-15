@@ -22,6 +22,7 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 상담 배분 설정, SB-SA-006
@@ -236,8 +237,8 @@ public class IssueCategoryController {
      * - 현업이관부서 (S): 조회구분에서 선택된 값(value)을 fld_cd로, 현업이관업무에서 선택된 값(value)을 wrk_seq로 설정하여 API 호출합니다.
      *
      * @param gubun 조회 구분값 (L, M, S 중 하나)
-     * @param fld_cd 현업 이관 업무 코드값 (조회구분에서 반환된 value 값)
-     * @param wrk_seq 현업 이관 부서 코드값 (조회구분, 현업이관업무에서 반환된 value 값)
+     * @param fldCd 현업 이관 업무 코드값 (조회구분에서 반환된 value 값)
+     * @param wrkSeq 현업 이관 부서 코드값 (조회구분, 현업이관업무에서 반환된 value 값)
      */
 	// 조회구분 (gubun = L) 요청
 	@Tag(name = "이슈 카테고리 API")
@@ -341,7 +342,8 @@ public class IssueCategoryController {
 	public ResponseEntity<ApiResult<IssueCategoryDto>> getTopOne(@Parameter(description = "채널 아이디", required = true)
 																 @RequestParam(value = "channel_id") Long channelId) {
 		IssueCategoryDto issueCategoryDto = issueCategoryService.getIssueCategorDtoUseChannelId(channelId);
-		ApiResult<IssueCategoryDto> response = ApiResult.<IssueCategoryDto>builder().code(ApiResultCode.succeed)
+		ApiResultCode apiResultCode = Objects.isNull(issueCategoryDto.getId()) ? ApiResultCode.failed : ApiResultCode.succeed;
+		ApiResult<IssueCategoryDto> response = ApiResult.<IssueCategoryDto>builder().code(apiResultCode)
 																					.payload(issueCategoryDto)
 																					.build();
 		return new ResponseEntity<>(response, HttpStatus.OK);

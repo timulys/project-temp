@@ -331,16 +331,6 @@ public class MemberService {
 			member.setFirstMessage(dto.getFirstMessage());
 		}
 
-		// 근무시간
-		if (!ObjectUtils.isEmpty(dto.getOfficeHours())) {
-			OfficeHours officeHours = officeHoursService.member(dto.getOfficeHours(), member.getId());
-			member.setOfficeHours(officeHours);
-
-			boolean isOfficeHour = officeHoursService.isOfficeHours(officeHours.getStartCounselTime(), officeHours.getEndCounselTime(), officeHours.getDayOfWeek() );
-			WorkType.OfficeHoursStatusType status = isOfficeHour ? WorkType.OfficeHoursStatusType.on : WorkType.OfficeHoursStatusType.off;
-			member.setStatus(status);
-		}
-
 		member = memberRepository.save(member);
 
 		// Member Role 매칭 저장
@@ -383,7 +373,17 @@ public class MemberService {
 		}
 
 
+		// 근무시간
+		if (!ObjectUtils.isEmpty(dto.getOfficeHours())) {
+			OfficeHours officeHours = officeHoursService.member(dto.getOfficeHours(), member.getId());
+			member.setOfficeHours(officeHours);
+
+			boolean isOfficeHour = officeHoursService.isOfficeHours(officeHours.getStartCounselTime(), officeHours.getEndCounselTime(), officeHours.getDayOfWeek() );
+			WorkType.OfficeHoursStatusType status = isOfficeHour ? WorkType.OfficeHoursStatusType.on : WorkType.OfficeHoursStatusType.off;
+			member.setStatus(status);
+		}
 		member.setBranch(branch);
+		memberRepository.save(member);
 		// SystemEventHistory 저장 (update의 경우 MemberEventListener 사용 X )
 		if(Objects.nonNull(dto.getId())){
 			this.systemEventStore(SystemEventHistoryActionType.member_update , beforeMember , member);
