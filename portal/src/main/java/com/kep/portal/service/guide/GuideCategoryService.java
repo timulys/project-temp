@@ -269,7 +269,7 @@ public class GuideCategoryService {
 
             category.setModifier(memberId);
             CommonUtils.copyNotEmptyProperties(dto, category);
-            categoryRepository.save(category);
+
         }
         categoryRepository.flush();
     }
