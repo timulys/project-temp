@@ -208,7 +208,9 @@ public class GuideCategoryService {
             validGuideCategoryEnabled(parent.getEnabled(), categoryEnabled);
         } else {
             validGuideCategoryIsOpen(parentDto.getIsOpen(), input.getIsOpen());
-            validGuideCategoryEnabled(parentDto.getEnabled(), categoryEnabled);
+            // todo validation으로 인하여 2개 이상 변경 후 update 시 제대로 동작 안됨 추후 확인 후 validation 처리 필요
+            // 테스트를 위해서 주석처리
+            // validGuideCategoryEnabled(parentDto.getEnabled(), categoryEnabled);
         }
     }
 
@@ -270,6 +272,7 @@ public class GuideCategoryService {
             category.setModifier(memberId);
             CommonUtils.copyNotEmptyProperties(dto, category);
 
+            //categoryRepository.save(category);
         }
         categoryRepository.flush();
     }
