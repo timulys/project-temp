@@ -22,6 +22,8 @@ import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.*;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -219,8 +221,8 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
                                                               issue.firstAsked,
                                                               issue.closed,
                                                               issue.memberFirstAsked,
-                                                              issue.sendFlag
-                                                             )
+                                                              issue.sendFlag,
+                                                              Expressions.as( this.getIssueSupportCount(), "issueSupportCount" ) )
                                          )
                                         .from(issue)
                                         .leftJoin(issueExtra)
@@ -510,6 +512,12 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
 
     private BooleanExpression issueSupportStatusIn(List<IssueSupportStatus> issueSupportStatusList) {
         return issueSupport.status.in(issueSupportStatusList);
+    }
+
+    private JPQLQuery<Long> getIssueSupportCount() {
+        return JPAExpressions.select(issueSupport.count())
+                .from(issueSupport)
+                .where(issueSupport.issue.eq(issue));
     }
 
 }

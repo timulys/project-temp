@@ -96,4 +96,6 @@ public class IssueDto {
 
 	@JsonIncludeProperties({"id","username","nickname"})
 	private List<MemberDto> supportMembers;
+
+	private Long issueSupportCount;
 }
