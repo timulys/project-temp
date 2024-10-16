@@ -260,8 +260,8 @@ public class MemberService {
 	 */
 	public MemberDto store(@NotNull MemberDto dto) throws Exception {
 
-
-		if (pattern.matcher(dto.getUsername()).matches() || dto.getUsername().contains(" ")) throw new IllegalArgumentException("username must not contain space");
+		// todo 고도화로.. 계정 수정 버그로 인하여 주석처리 validation 체크는
+		// if (pattern.matcher(dto.getUsername()).matches() || dto.getUsername().contains(" ")) throw new IllegalArgumentException("username must not contain space");
 
 		// Member 저장
 		Member member;
