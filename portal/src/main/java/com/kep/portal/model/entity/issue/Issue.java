@@ -272,6 +272,10 @@ public class Issue {
 	@Transient
 	private Long chatCount;
 
+	// todo 다 팩토링 할 부분 ( 급하여서 @Transient 추가... dto로 변경 후 제거 예정....)
+	@Transient
+	private Long issueSupportCount;
+
 
 	@PrePersist
 	@PreUpdate
