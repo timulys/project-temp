@@ -295,7 +295,7 @@ public class BranchService {
 				.build();
 		officeHoursService.branch(workDto , branch.getId());
 		//채널 목록
-		branchChannelService.headQuartersClone(headQuarters , branch);
+//		branchChannelService.headQuartersClone(headQuarters , branch);
 	}
 
 	/**
