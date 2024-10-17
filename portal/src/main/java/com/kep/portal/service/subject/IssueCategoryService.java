@@ -488,7 +488,7 @@ public class IssueCategoryService {
                 .anyMatch(
                         child ->
                                 (parentEnabled.equals(false) && child.getEnabled().equals(true))
-                                && (parentExposed.equals(false) && child.getExposed().equals(true))
+                                || (parentExposed.equals(false) && child.getExposed().equals(true))
                 );
         if (validEnabledAndExposed) throw new BizException("can not enabled or exposed true when parent false");
         if (isDuplicatedSort(parent.getChildren())) throw new BizException("not duplicated sort");
@@ -614,10 +614,26 @@ public class IssueCategoryService {
         ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId).orElseThrow(() -> new BizException("not exist channel"));
         if (isInitDepth(channelEnv.getMaxIssueCategoryDepth())) return null;
 
-        List<IssueCategory> issueCategories = issueCategoryRepository.findAllByIdAndChannelIdWithParent(channelId, issueCategoryId);
+        List<IssueCategory> issueCategories = issueCategoryRepository.findAllByChannelIdWithParent(channelId);
         if (issueCategories.isEmpty()) return null;
 
-        return createCategoryTree(issueCategories, channelEnv.getMaxIssueCategoryDepth()).get(0);
+        Map<Long, IssueCategory> entityMap = issueCategories.stream().collect(Collectors.toMap(IssueCategory::getId, item -> item));
+
+
+        return createCategoryTreeByLowest(IssueCategoryTreeDto.of(entityMap.get(issueCategoryId)), entityMap);
+    }
+
+
+    private IssueCategoryTreeDto createCategoryTreeByLowest(IssueCategoryTreeDto target, Map<Long, IssueCategory> entityMap) {
+
+        if (target.getParentId() != null) {
+            IssueCategoryTreeDto parent = IssueCategoryTreeDto.of(entityMap.get(target.getParentId()));
+            parent.getChildren().add(target);
+
+            target = createCategoryTreeByLowest(parent, entityMap);
+        }
+
+        return target;
     }
 
 
