@@ -2,6 +2,7 @@ package com.kep.core.model.dto.issue.payload;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import org.springframework.util.ObjectUtils;
@@ -144,6 +145,9 @@ public class IssuePayload {
 		private String data;
 		@Schema(description = "기기 유형 [all, web, pc, mobile, app, android, ios]")
 		private DeviceType deviceType;
+		@Schema(description = "업로드 파일명")
+		@JsonProperty(value = "_file_name")
+		private String fileName;
 		@Schema(description = "")
 		private String extra;
 		@Schema(description = "")
