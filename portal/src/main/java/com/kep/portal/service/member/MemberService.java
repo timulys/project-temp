@@ -291,12 +291,17 @@ public class MemberService {
 			 * FIXME :: vndrCustNo BNK 로직 volka
 			 */
 			//신규 멤버 등록 시 vndrCustNo 중복체크
-			Optional<Member> checkVndrCustNo = memberRepository.findByVndrCustNo(dto.getVndrCustNo());
-			log.info("#####상담직원번호: {}", checkVndrCustNo);
-			if (checkVndrCustNo.isPresent()) {
-				// 'vndrCustNo'이 이미 사용중인 경우 예외처리
-				log.error("VndrCustNo '" + dto.getVndrCustNo() + "' is already in use.");
-			}
+//			Optional<Member> checkVndrCustNo = memberRepository.findByVndrCustNo(dto.getVndrCustNo());
+//			log.info("#####상담직원번호: {}", checkVndrCustNo);
+//			if (checkVndrCustNo.isPresent()) {
+//				// 'vndrCustNo'이 이미 사용중인 경우 예외처리
+//				log.error("VndrCustNo '" + dto.getVndrCustNo() + "' is already in use.");
+//			}
+
+			//vndrCustNo == userName으로 수정 (Member.getVndrCustNo() :: username 리턴으로 되어있음 20241017 기준)
+			Optional<Member> checkUsername = Optional.ofNullable(memberRepository.findByUsername(dto.getUsername()));
+			if (checkUsername.isPresent()) throw new BizException("this username already exists");
+
 			member = memberMapper.map(dto);
 			member.setPassword(passwordEncoder.encode(dto.getUsername()));
 			member.setCreator(securityUtils.getMemberId());
