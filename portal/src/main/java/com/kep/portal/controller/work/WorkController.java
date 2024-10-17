@@ -52,7 +52,7 @@ public class WorkController {
             , @RequestBody @Validated MemberMaxCounselDto dto, @SortDefault.SortDefaults({
             @SortDefault(sort = {"id"}, direction = Sort.Direction.ASC)}) Pageable pageable) {
 
-        branchService.maxMemberCounsel(branchId , dto.getMaxMemberCounsel());
+        branchService.maxMemberCounsel(branchId , dto);
         log.info("MEMBER MAX COUNSEL:{}",dto.getMemberCounsels());
 
 

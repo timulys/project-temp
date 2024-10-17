@@ -7,12 +7,12 @@ import com.kep.core.model.dto.env.CounselEnvDto;
 import com.kep.core.model.dto.privilege.RoleDto;
 import com.kep.core.model.dto.system.SystemEnvDto;
 import com.kep.core.model.dto.system.SystemEnvEnum;
+import com.kep.core.model.dto.work.MemberMaxCounselDto;
 import com.kep.core.model.dto.work.OfficeHoursDto;
 import com.kep.core.model.dto.work.OfficeWorkDto;
 import com.kep.core.model.dto.work.WorkType;
 import com.kep.portal.model.dto.branch.BranchDtoWithRole;
 import com.kep.portal.model.entity.branch.*;
-import com.kep.portal.model.entity.channel.Channel;
 import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.model.entity.privilege.Role;
 import com.kep.portal.model.entity.privilege.RoleMapper;
@@ -23,7 +23,6 @@ import com.kep.portal.repository.branch.BranchRoleRepository;
 import com.kep.portal.repository.branch.BranchTeamRepository;
 import com.kep.portal.repository.member.MemberRepository;
 import com.kep.portal.repository.team.TeamRepository;
-import com.kep.portal.service.channel.ChannelService;
 import com.kep.portal.service.env.CounselEnvService;
 import com.kep.portal.service.privilege.RoleService;
 import com.kep.portal.service.work.OfficeHoursService;
@@ -39,7 +38,10 @@ import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -98,13 +100,14 @@ public class BranchService {
 	/**
 	 * 신규직원 최대상담 건수 default
 	 * @param id
-	 * @param maxMemberCounsel
+	 * @param memberMaxCounselDto
 	 * @return
 	 */
-	public Branch maxMemberCounsel(Long id , Integer maxMemberCounsel){
+	public Branch maxMemberCounsel(Long id , MemberMaxCounselDto memberMaxCounselDto){
 		Branch branch = this.findById(id);
 		Assert.notNull(branch,"not found branch , id:"+id);
-		branch.setMaxMemberCounsel(maxMemberCounsel);
+		branch.setMaxMemberCounsel(memberMaxCounselDto.getMaxMemberCounsel());
+		branch.setMaxCounselType(memberMaxCounselDto.getMaxCounselType());
 		branch.setModifier(securityUtils.getMemberId());
 		branch.setModified(ZonedDateTime.now());
 		return branchRepository.save(branch);
@@ -367,13 +370,9 @@ public class BranchService {
 	 * @return
 	 */
 	public BranchDto updateBranchMaxCounsel(BranchDto branchDto) {
-		Branch branch = branchRepository.findById(branchDto.getId()).orElse(null);
-		if(Objects.nonNull(branch)){
-			branch.setMaxCounsel(branchDto.getMaxCounsel());
-			branch.setMaxCounselType(branchDto.getMaxCounselType());
-			branchRepository.save(branch);
-		}
-		return branchMapper.map(branch);
+		Branch branch = branchMapper.map(branchDto);
+		branchRepository.save(branch);
+		return branchDto;
 	}
 
 }
