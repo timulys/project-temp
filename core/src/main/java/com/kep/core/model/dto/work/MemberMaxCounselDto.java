@@ -60,4 +60,7 @@ public class MemberMaxCounselDto {
     @Schema(description = "최대 상담 건수")
     private Integer maxCounsel;
 
+    @Schema(description = "최대 상담건수 타입 batch : 일괄 , individual : 개별")
+    private WorkType.MaxCounselType maxCounselType;
+
 }
