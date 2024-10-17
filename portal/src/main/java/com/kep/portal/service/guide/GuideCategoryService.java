@@ -40,14 +40,17 @@ public class GuideCategoryService {
     public Integer setCategoryMaxDepth(Integer maxDepth) {
 
         Branch branch = branchService.findById(securityUtils.getBranchId());
-
-        Assert.isTrue(branch.getHeadQuarters(), "Branch is not headquarters");
+        //각 브랜치별로 가이드 카테고리 설정 가능.
+//        Assert.isTrue(branch.getHeadQuarters(), "Branch is not headquarters");
+        Assert.notNull(branch, "not found branch");
         Assert.isTrue(branch.getMaxGuideCategoryDepth().equals(0), "Already set up");
         Assert.isTrue(maxDepth > 0, "Max depth must be greater than 0");
 
-        Branch headQuarters = branchService.findHeadQuarters();
-        headQuarters.setMaxGuideCategoryDepth(maxDepth);
-        return headQuarters.getMaxGuideCategoryDepth();
+        branch.setMaxGuideCategoryDepth(maxDepth);
+
+//        Branch headQuarters = branchService.findHeadQuarters();
+//        headQuarters.setMaxGuideCategoryDepth(maxDepth);
+        return branch.getMaxGuideCategoryDepth();
     }
 
     public int getCategoryMaxDepth() {
