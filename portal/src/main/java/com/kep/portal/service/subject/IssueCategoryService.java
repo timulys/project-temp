@@ -488,7 +488,7 @@ public class IssueCategoryService {
                 .anyMatch(
                         child ->
                                 (parentEnabled.equals(false) && child.getEnabled().equals(true))
-                                && (parentExposed.equals(false) && child.getExposed().equals(true))
+                                || (parentExposed.equals(false) && child.getExposed().equals(true))
                 );
         if (validEnabledAndExposed) throw new BizException("can not enabled or exposed true when parent false");
         if (isDuplicatedSort(parent.getChildren())) throw new BizException("not duplicated sort");
