@@ -614,10 +614,26 @@ public class IssueCategoryService {
         ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId).orElseThrow(() -> new BizException("not exist channel"));
         if (isInitDepth(channelEnv.getMaxIssueCategoryDepth())) return null;
 
-        List<IssueCategory> issueCategories = issueCategoryRepository.findAllByIdAndChannelIdWithParent(channelId, issueCategoryId);
+        List<IssueCategory> issueCategories = issueCategoryRepository.findAllByChannelIdWithParent(channelId);
         if (issueCategories.isEmpty()) return null;
 
-        return createCategoryTree(issueCategories, channelEnv.getMaxIssueCategoryDepth()).get(0);
+        Map<Long, IssueCategory> entityMap = issueCategories.stream().collect(Collectors.toMap(IssueCategory::getId, item -> item));
+
+
+        return createCategoryTreeByLowest(IssueCategoryTreeDto.of(entityMap.get(issueCategoryId)), entityMap);
+    }
+
+
+    private IssueCategoryTreeDto createCategoryTreeByLowest(IssueCategoryTreeDto target, Map<Long, IssueCategory> entityMap) {
+
+        if (target.getParentId() != null) {
+            IssueCategoryTreeDto parent = IssueCategoryTreeDto.of(entityMap.get(target.getParentId()));
+            parent.getChildren().add(target);
+
+            target = createCategoryTreeByLowest(parent, entityMap);
+        }
+
+        return target;
     }
 
 
