@@ -51,7 +51,11 @@ public class GuideCategoryService {
     }
 
     public int getCategoryMaxDepth() {
-        return branchService.findHeadQuarters().getMaxGuideCategoryDepth();
+
+        Branch branch = branchService.findById(securityUtils.getBranchId());
+        if (branch == null) throw new BizException("Not found Branch");
+
+        return branch.getMaxGuideCategoryDepth();
     }
 
     public List<GuideCategoryDto> getAll(Long branchId) {
