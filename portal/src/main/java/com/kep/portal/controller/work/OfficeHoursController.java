@@ -143,6 +143,27 @@ public class OfficeHoursController {
             log.error("ERROR MESSAGE : {}", e.getMessage() , e);
             return new ResponseEntity<>(null , HttpStatus.ACCEPTED);
         }
-
+    }
+    /**
+     * 브랜치 근무 조건 설정
+     * 브랜치별 최대 상담 건수 수정
+     * @param branchId
+     * @param branchDto
+     * @return
+     */
+    @Tag(name = "근무시간 설정 API")
+    @Operation(summary = "브랜치별 최대 상담 건수")
+    @PostMapping(value = "/branch/max_counsel/{id}")
+    public ResponseEntity<ApiResult<BranchDto>> branch_max_counsel(
+            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH, required = true)
+            @PathVariable(name = "id") @NotNull Long branchId
+            ,@RequestBody @Valid BranchDto branchDto) {
+        log.info("최대 상담 건수 개별 설정: Branch ID - {}, branchDto - {}", branchId, branchDto);
+        BranchDto branchDtoResult = branchService.updateBranchMaxCounsel(branchDto);
+        ApiResult<BranchDto> response = ApiResult.<BranchDto>builder()
+                .code(ApiResultCode.succeed)
+                .payload(branchDtoResult)
+                .build();
+        return new ResponseEntity<>(response , HttpStatus.CREATED);
     }
 }

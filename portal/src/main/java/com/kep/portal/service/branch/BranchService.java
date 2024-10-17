@@ -361,4 +361,19 @@ public class BranchService {
 		}
 		return null;
 	}
+	/**
+	 * todo 리팩토링 필요
+	 * @param branchDto
+	 * @return
+	 */
+	public BranchDto updateBranchMaxCounsel(BranchDto branchDto) {
+		Branch branch = branchRepository.findById(branchDto.getId()).orElse(null);
+		if(Objects.nonNull(branch)){
+			branch.setMaxCounsel(branchDto.getMaxCounsel());
+			branch.setMaxCounselType(branchDto.getMaxCounselType());
+			branchRepository.save(branch);
+		}
+		return branchMapper.map(branch);
+	}
+
 }

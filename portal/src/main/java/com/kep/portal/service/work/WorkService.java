@@ -258,8 +258,10 @@ public class WorkService {
         Branch branch = branchService.findById(branchId);
         Page<TeamDto> teamDtos = teamService.getAllWithMembers(pageable , branchId);
         List<TeamDto> teams = this.teamsHasManyMaxCounsel(teamDtos);
+        // todo 리팩토링 필요.. 현재 최대 상담 건수가 잘못 매핑 되고 있어서 임시로 수정
         return MemberMaxCounselDto.builder()
                 .maxMemberCounsel(branch.getMaxMemberCounsel())
+                .maxCounsel(branch.getMaxCounsel())
                 .teams(teams)
                 .build();
     }
