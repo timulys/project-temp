@@ -20,7 +20,7 @@ import java.util.List;
 public class MemberMaxCounselDto {
 
     @PositiveOrZero
-    @Schema(description = "최대 상담수", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "신규직원 기본 세팅 최대 상담 건수", requiredMode = Schema.RequiredMode.REQUIRED)
     private Integer maxMemberCounsel;
 
     @Positive
@@ -55,5 +55,9 @@ public class MemberMaxCounselDto {
 
     @Schema(description = "팀 목록")
     private List<TeamDto> teams;
+
+    @PositiveOrZero
+    @Schema(description = "최대 상담 건수")
+    private Integer maxCounsel;
 
 }
