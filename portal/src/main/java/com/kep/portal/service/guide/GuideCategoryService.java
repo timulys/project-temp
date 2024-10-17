@@ -85,7 +85,7 @@ public class GuideCategoryService {
 
         Long branchId = securityUtils.getBranchId();
 
-        List<GuideCategory> guideCategories = categoryRepository.findByBranchAndDepthCategory(branchId, 1);
+        List<GuideCategory> guideCategories = categoryRepository.findAllByBranchIdAndDepth(branchId, 1);
 
         List<GuideCategoryDto> dtos = categoryMapper.map(guideCategories);
         recursiveGetAllAndIsOpenCategory(dtos, branchId);
