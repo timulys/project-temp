@@ -274,7 +274,7 @@ public class IssueExtraService {
 		result.setChannelId(channel.getId());
 		result.setChannelName(channel.getName());
 		result.setMaxIssueCategoryDepth(channelEnv.getMaxIssueCategoryDepth());
-		result.setIssueCategory(issueCategoryService.getIssueCategoryTreeByLowestOne(channel.getId(), issueExtra.getIssueCategoryId()));
+		result.setIssueCategory(issueExtra.getIssueCategoryId() == null ? null : issueCategoryService.getIssueCategoryTreeByLowestOne(channel.getId(), issueExtra.getIssueCategoryId()));
 		result.setIssueExtraSummary(IssueExtraSummaryDto.of(issueExtra));
 
 		return result;
