@@ -196,8 +196,10 @@ public class GuideService {
     private GuideDto convertGuideToDto(Guide guide) throws Exception {
 
         GuideDto guideDto = guideMapper.map(guide);
-        List<Long> blockIds = objectMapper.readValue(guide.getBlockIds().toString(), new TypeReference<List<Long>>() {
-        });
+        List<Long> blockIds = new ArrayList<>();
+        if (guide.getBlockIds() != null) {
+            blockIds = objectMapper.readValue(guide.getBlockIds().toString(), new TypeReference<List<Long>>() {});
+        }
 
         List<GuideBlock> guideBlockList = guideBlockRepository.findAllByIdIn(blockIds);
         List<GuideBlockDto> guideBlockDtos = guideBlockMapper.map(guideBlockList);
