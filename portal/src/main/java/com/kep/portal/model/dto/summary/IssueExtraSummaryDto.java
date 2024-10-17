@@ -48,7 +48,7 @@ public class IssueExtraSummaryDto {
         this.inflow = issueExtra.getInflow();
         this.memo = issueExtra.getMemo();
         this.memoModified = issueExtra.getMemoModified();
-        this.summaryCompleted = ObjectUtils.isEmpty(issueExtra.getSummary()) || issueExtra.getSummary().equals("empty") ? Boolean.FALSE : Boolean.TRUE;
+        this.summaryCompleted = issueExtra.isSummaryCompleted();
     }
 
     public static IssueExtraSummaryDto of(IssueExtra issueExtra) {
