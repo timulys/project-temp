@@ -390,5 +390,18 @@ public class ChannelService {
 		List<BranchChannel> branchChannels = branchChannelService.findAllByBranchId(branchId);
 		return branchChannelMapper.map(branchChannels);
 	}
+
+	/**
+	 * @param channelDtoList
+	 * @return
+	 * todo 리팩토링 필요.. 현재 기존 로직 그대로 활용
+	 */
+	public List<ChannelDto> storeChannelList(List<ChannelDto> channelDtoList) {
+		List<ChannelDto> channelList = new ArrayList<>();
+		for(ChannelDto channelDto : channelDtoList){
+			channelList.add(this.store(channelDto));
+		}
+		return channelList;
+	}
 }
 
