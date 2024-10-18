@@ -608,7 +608,7 @@ public class GuideService {
      * @throws Exception
      */
     public GuideDto getGuide(Long guideId) throws Exception {
-        Guide guide = guideRepository.findByIdForManager(guideId, securityUtils.getBranchId(), securityUtils.getTeamId())
+        Guide guide = guideRepository.findByIdForManager(guideId, securityUtils.getBranchId())
                 .orElseThrow(() -> new BizException("Guide Not Found"));
 
         //소속 브랜치 or 전체 오픈 조건으로 아래 주석처리

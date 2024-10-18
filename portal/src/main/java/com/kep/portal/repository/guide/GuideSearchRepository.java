@@ -40,7 +40,7 @@ public interface GuideSearchRepository {
 
     Page<Guide> findByMessageSearch(GuideSearchDto searchDto, List<Long> childrenIds, Pageable pageable);
 
-    Optional<Guide> findByIdForManager(Long guideId, Long branchId, Long teamId);
+    Optional<Guide> findByIdForManager(Long guideId, Long branchId);
 
     //상담사 대화 > 가이드 탭 > 가이드 조회
     Page<Guide> findByGuideSearchForUser(GuideSearchDto searchDto, List<Long> categoryChildrenIds, Pageable pageable);
