@@ -6,13 +6,10 @@ import com.kep.core.model.dto.branch.BranchChannelDto;
 import com.kep.core.model.dto.channel.ChannelAssignDto;
 import com.kep.core.model.dto.channel.ChannelDto;
 import com.kep.core.model.dto.channel.ChannelEnvDto;
-import com.kep.core.model.dto.issue.payload.IssuePayload;
 import com.kep.core.model.dto.platform.PlatformType;
-import com.kep.core.model.type.QueryParam;
 import com.kep.portal.model.entity.channel.Channel;
 import com.kep.portal.service.channel.ChannelEnvService;
 import com.kep.portal.service.channel.ChannelService;
-import com.kep.portal.service.sm.SystemMessageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -387,4 +384,18 @@ public class ChannelController {
 				.build();
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+
+	@Tag(name = "채널 API")
+	@Operation(summary = "추가 채널 다건 생성", description = "채널 다건 생성")
+	@PostMapping(value = "/all")
+	@PreAuthorize("hasAnyRole('ROLE_MASTER')")
+	public ResponseEntity<ApiResult<List<ChannelDto>>> createChannels(@RequestBody List<ChannelDto> channelDtoList) {
+		log.info("CHANNEL, CREATE CHANNELS , BODY: {}", channelDtoList);
+		List<ChannelDto> channelDtoListResult = channelService.storeChannelList(channelDtoList);
+		ApiResult<List<ChannelDto>> response = ApiResult.<List<ChannelDto>>builder().code(ApiResultCode.succeed)
+																					.payload(channelDtoListResult)
+																					.build();
+		return new ResponseEntity<>(response, HttpStatus.CREATED);
+	}
+
 }
