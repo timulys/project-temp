@@ -341,8 +341,9 @@ public class GuideService {
         Assert.notNull(guidePayload.getName(), "name must not be null");
         Assert.notNull(guidePayload.getType(), "type must not be null");
 
-        if (enabled) {
-            Assert.notEmpty(guidePayload.getContents(), "content must not be empty");
+        if (enabled) Assert.notEmpty(guidePayload.getContents(), "content must not be empty");
+
+        if (!guidePayload.getContents().isEmpty()) {
             Assert.isTrue(guidePayload.getContents().size() <= 20, "guide blocks are under 20 size");
             Assert.isTrue(guidePayload.getContents().stream().noneMatch(item -> item.getPayload().getChapters().size() > 10), "messages can not be over 10 in guide block");
         }
