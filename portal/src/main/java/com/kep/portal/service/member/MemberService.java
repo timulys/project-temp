@@ -184,13 +184,28 @@ public class MemberService {
 	 * @return
 	 */
 	public boolean status(Long id, WorkType.OfficeHoursStatusType status) throws Exception {
+		boolean result = true;
 		Member member = this.findById(id);
-		Member beforeMember = new Member();
-		BeanUtils.copyProperties(member , beforeMember );
-		Assert.notNull(member, "member is null");
-		member.setStatus(status);
-		memberRepository.save(member);
-		this.systemEventStore(SystemEventHistoryActionType.member_update , beforeMember , member);
+		Branch branch = branchRepository.findById(member.getBranchId()).orElseThrow(() -> new BizException("Not existed Branch"));
+
+		if (branch.getAssign().equals(WorkType.Cases.branch)) {
+			if (workService.offDutyHours(branch)) {
+				BranchOfficeHours branchOfficeHours = branchOfficeHoursRepository.findByBranchId(branch.getId());
+				result = officeHoursService.isOfficeHours(
+						branchOfficeHours.getStartCounselTime(),
+						branchOfficeHours.getEndCounselTime(),
+						branchOfficeHours.getDayOfWeek());
+			}
+		}
+
+		if (result) {
+			Member beforeMember = new Member();
+			BeanUtils.copyProperties(member, beforeMember);
+			Assert.notNull(member, "member is null");
+			member.setStatus(status);
+			memberRepository.save(member);
+			this.systemEventStore(SystemEventHistoryActionType.member_update, beforeMember, member);
+		}
 		return true;
 	}
 
