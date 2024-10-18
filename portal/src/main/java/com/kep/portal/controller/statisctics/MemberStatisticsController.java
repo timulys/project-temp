@@ -43,7 +43,6 @@ public class MemberStatisticsController {
             ,@Parameter(description = "팀 아이디")
             @RequestParam(name = "team_id",required = false) Long teamId){
 
-
         ZonedDateTime start = ZonedDateTimeUtil.start(from.toString());
         ZonedDateTime end = ZonedDateTimeUtil.end(to.toString());
         List<IssueMemberStatisticsDto> issueMemberStatistics = issueStatisticsService.issueMemberStatistics(start , end , branchId , teamId);

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -163,7 +164,7 @@ public class NoticeController {
 	@PostMapping(value = "/manager/save", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE , MediaType.APPLICATION_JSON_VALUE})
 	@PreAuthorize("hasAnyAuthority('WRITE_NOTICE')")
 	public ResponseEntity<ApiResult<NoticeDto>> post(
-			@RequestBody NoticeDto noticeDto
+			@RequestBody @Valid NoticeDto noticeDto
 			,@RequestPart(required = false) List<MultipartFile> files
 	) {
 

@@ -9,6 +9,7 @@ import lombok.*;
 
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Data
@@ -66,5 +67,26 @@ public class BranchDto {
 	 */
 	@Schema(description = "역할목록")
 	private List<RoleDto> roles;
+
+	@Schema(description = "")
+	private String firstMessageType;
+
+	@Schema(description = "상담 여부")
+	private WorkType.OfficeHoursStatusType status;
+
+	@Schema(description = "신규직원 최대 상담 건수")
+	private Integer maxMemberCounsel;
+
+	@Schema(description = "생성자")
+	private Long creator;
+
+	@Schema(description = "생성 일시")
+	private ZonedDateTime created;
+
+	@Schema(description = "수정자")
+	private Long modifier;
+
+	@Schema(description = "수정 일시")
+	private ZonedDateTime modified;
 
 }
