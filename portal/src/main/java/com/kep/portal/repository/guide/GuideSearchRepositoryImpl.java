@@ -300,7 +300,7 @@ public class GuideSearchRepositoryImpl implements GuideSearchRepository {
 
 
     @Override
-    public Optional<Guide> findByIdForManager(Long guideId, Long branchId, Long teamId) {
+    public Optional<Guide> findByIdForManager(Long guideId, Long branchId) {
         QGuide qGuide = new QGuide("guide");
 
         return Optional.ofNullable(queryFactory.select(qGuide)
@@ -310,10 +310,6 @@ public class GuideSearchRepositoryImpl implements GuideSearchRepository {
                         ExpressionUtils.or(
                                 qGuide.branch.id.eq(branchId),
                                 qGuide.isBranchOpen.isTrue()
-                        ),
-                        ExpressionUtils.or(
-                                qGuide.teamId.eq(teamId),
-                                qGuide.isTeamOpen.isTrue()
                         )
                 )
                 .fetchOne());
