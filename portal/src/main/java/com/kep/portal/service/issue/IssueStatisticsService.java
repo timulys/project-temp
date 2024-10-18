@@ -199,6 +199,7 @@ public class IssueStatisticsService {
                             branchOfficeHours.getEndCounselTime(),
                             branchOfficeHours.getDayOfWeek());
                 }
+                // FIXME : isDayOfWeek 기능은 isOfficeHours 기능에 포함되어 있음
                 //근무 가능 시간 , 근무 요일 체크
                 if(isWork){
                     isWork = OfficeHoursTimeUtils.isDayOfWeek(branchOfficeHours.getDayOfWeek());

@@ -184,8 +184,17 @@ public class MemberService {
 	 * @return
 	 */
 	public boolean status(Long id, WorkType.OfficeHoursStatusType status) throws Exception {
-		boolean result = true;
 		Member member = this.findById(id);
+		Member beforeMember = new Member();
+		BeanUtils.copyProperties(member , beforeMember );
+		Assert.notNull(member, "member is null");
+		member.setStatus(status);
+		memberRepository.save(member);
+		this.systemEventStore(SystemEventHistoryActionType.member_update , beforeMember , member);
+		return true;
+		/* TODO : (tim.c) 내재화 QA 이후 아래 코드로 치환(상담원 상담 상태 브랜치와 연동 로직 추가)
+		boolean result = true;
+		Member member = memberRepository.findById(id).orElseThrow(() -> new BizException("Not Existed Member"));
 		Branch branch = branchRepository.findById(member.getBranchId()).orElseThrow(() -> new BizException("Not existed Branch"));
 
 		if (branch.getAssign().equals(WorkType.Cases.branch)) {
@@ -201,12 +210,11 @@ public class MemberService {
 		if (result) {
 			Member beforeMember = new Member();
 			BeanUtils.copyProperties(member, beforeMember);
-			Assert.notNull(member, "member is null");
 			member.setStatus(status);
 			memberRepository.save(member);
 			this.systemEventStore(SystemEventHistoryActionType.member_update, beforeMember, member);
 		}
-		return true;
+		return result;*/
 	}
 
 	/**
