@@ -116,8 +116,6 @@ public class AssignBySystemOfficeHours implements Assignable {
             }
         }
 
-
-
         log.info("ASSIGN BY : {}", branch.getAssign());
         if(!WorkType.Cases.branch.equals(branch.getAssign())){
             return members;
@@ -126,15 +124,12 @@ public class AssignBySystemOfficeHours implements Assignable {
         BranchOfficeHours branchOfficeHours = branchOfficeHoursRepository
                 .findByBranchId(issue.getBranchId());
 
-            if(branchOfficeHours.getBranchId() != null
-                && branch.getEnabled()
-                && branch.getStatus().equals(WorkType.OfficeHoursStatusType.on)
-        ){
+        if(branchOfficeHours.getBranchId() != null && branch.getEnabled() && branch.getStatus().equals(WorkType.OfficeHoursStatusType.on)){
             isOfficeHours = officeHoursService.isOfficeHours(
-                    branchOfficeHours.getStartCounselTime()
-                    , branchOfficeHours.getEndCounselTime()
-                    , branchOfficeHours.getDayOfWeek());
-
+                branchOfficeHours.getStartCounselTime()
+                , branchOfficeHours.getEndCounselTime()
+                , branchOfficeHours.getDayOfWeek()
+            );
         }
 
         //근무일 아니면 상담 종료
@@ -143,7 +138,6 @@ public class AssignBySystemOfficeHours implements Assignable {
             eventBySystemService.sendDisabledAndClose(issue);
             throw new UnsupportedOperationException("AssignBySystemOfficeHours DAY OF WEEK");
         }
-
 
         log.info("BRANCH OFFICE HOURS ID: {} , START : {} , END : {} , DAY OF WEEK : {} , IS OFFICE:{}"
                 , branchOfficeHours.getBranchId()

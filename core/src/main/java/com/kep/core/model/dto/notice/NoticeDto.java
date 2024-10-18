@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -28,12 +29,14 @@ public class NoticeDto {
 	 * 제목
 	 */
 	@Schema(description = "공지사항 제목")
+	@NotEmpty // tim.c : 사용자가 공백으로 입력을 할 수도 있어서 서버레벨에서 Validation check
 	private String title;
 
 	/**
 	 * 본문
 	 */
 	@Schema(description = "공지사항 본문")
+	@NotEmpty // tim.c : 사용자가 공백으로 입력을 할 수도 있어서 서버레벨에서 Validation check
 	private String content;
 
 	/**

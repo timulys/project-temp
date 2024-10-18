@@ -192,6 +192,29 @@ public class MemberService {
 		memberRepository.save(member);
 		this.systemEventStore(SystemEventHistoryActionType.member_update , beforeMember , member);
 		return true;
+		/* TODO : (tim.c) 내재화 QA 이후 아래 코드로 치환(상담원 상담 상태 브랜치와 연동 로직 추가)
+		boolean result = true;
+		Member member = memberRepository.findById(id).orElseThrow(() -> new BizException("Not Existed Member"));
+		Branch branch = branchRepository.findById(member.getBranchId()).orElseThrow(() -> new BizException("Not existed Branch"));
+
+		if (branch.getAssign().equals(WorkType.Cases.branch)) {
+			if (workService.offDutyHours(branch)) {
+				BranchOfficeHours branchOfficeHours = branchOfficeHoursRepository.findByBranchId(branch.getId());
+				result = officeHoursService.isOfficeHours(
+						branchOfficeHours.getStartCounselTime(),
+						branchOfficeHours.getEndCounselTime(),
+						branchOfficeHours.getDayOfWeek());
+			}
+		}
+
+		if (result) {
+			Member beforeMember = new Member();
+			BeanUtils.copyProperties(member, beforeMember);
+			member.setStatus(status);
+			memberRepository.save(member);
+			this.systemEventStore(SystemEventHistoryActionType.member_update, beforeMember, member);
+		}
+		return result;*/
 	}
 
 	/**
