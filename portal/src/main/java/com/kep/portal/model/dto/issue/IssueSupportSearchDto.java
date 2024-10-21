@@ -30,6 +30,12 @@ public class IssueSupportSearchDto {
     @Schema(description = "상담 지원 타입 :: change : 상담 직원 전환 요청, question : 상담 검토 요청", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<IssueSupportType> type;
 
+    @Schema(description = "브랜치 아이디", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private Long branchId;
+
+    @Schema(description = "상담그룹 아이디", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private Long teamId;
+
     @Schema(description = "사용자 아이디", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private Long memberId;
 

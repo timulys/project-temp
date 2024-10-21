@@ -580,35 +580,36 @@ public class IssueSupportService {
 
 	/**
 	 * 상담관리 > 상담 지원 요청 목록 SB-CA-005, WA004/WA005, 상담 지원 요청
-	 * 
-	 * @param search
+	 * tim.c : entity 와 구분을 위하여 searchDto로 명칭 변경
+	 *
+	 * @param searchDto
 	 * @param pageable
 	 * @return
 	 */
-	public Page<IssueSupportDetailDto> search(IssueSupportSearchDto search, @NotNull Pageable pageable) {
+	public Page<IssueSupportDetailDto> search(IssueSupportSearchDto searchDto, @NotNull Pageable pageable) {
 		// TODO: 상담지원요청의 조회 및 처리 기준이 브랜치로 될 경우 아래 부분 주석처리 START
 		List<Long> memberIds = new ArrayList<>();
 
 		// 목록에 상담직원에 관련된 검색 조건 존재여부 체크하여 존재하지 않을 경우 그룹장이 소속된 모든 팀원 정보 세팅
-		if (ObjectUtils.isEmpty(search.getMemberId())) {
+		if (ObjectUtils.isEmpty(searchDto.getMemberId())) {
 			List<String> roles = securityUtils.getRoles();
-
 			// 역할별 조건 회원목록 조회
-			// 관리자의 경우 소속 브랜치의 전체 member 목록을 조회
-			if (roles.contains(Level.ROLE_ADMIN)) {
-				List<Member> members = memberRepository.findAllByBranchIdOrderByBranchIdDesc(securityUtils.getBranchId());
-				memberIds = members.stream().map(Member::getId).collect(Collectors.toList());
-
-			// 매니저일 경우 해당 매니저가 그룹장 권한을 가지고 있는 소속 팀의 팀원들 목록을 조회
+			if (roles.contains(Level.ROLE_ADMIN) && searchDto.getTeamId() == null) {
+				// 관리자의 경우 브랜치의 전체 member 목록을 조회
+				long branchId = searchDto.getBranchId() != null ? searchDto.getBranchId() : securityUtils.getBranchId();
+				List<Member> branchMemberList = memberRepository.findAllByBranchIdOrderByBranchIdDesc(branchId);
+				memberIds = branchMemberList.stream().map(Member::getId).collect(Collectors.toList());
+			} else if (roles.contains(Level.ROLE_ADMIN) && searchDto.getTeamId() != null) {
+				// 관리자계정이면서 브랜치와 상담그룹을 선택한 경우 상담그룹에 해당하는 member 목록을 조회
+				memberIds = teamMemberRepository.findAllByTeamId(searchDto.getTeamId()).stream().map(TeamMember::getMemberId).collect(Collectors.toList());
 			} else if (roles.contains(Level.ROLE_MANAGER)) {
+				// 매니저일 경우 해당 매니저가 그룹장 권한을 가지고 있는 소속 팀의 팀원들 목록을 조회
 				List<BranchTeam> branchTeams = branchTeamRepository.findAllByBranchIdAndMemberIdOrderByIdDesc(securityUtils.getBranchId(), securityUtils.getMemberId());
-
 				List<Long> teamIds = branchTeams.stream().map(item -> item.getTeam().getId()).collect(Collectors.toList());
-
 				memberIds = teamMemberRepository.findAllByTeamIdIn(teamIds).stream().map(TeamMember::getMemberId).collect(Collectors.toList());
 			}
 		} else {
-			memberIds.add(search.getMemberId());
+			memberIds.add(searchDto.getMemberId());
 		}
 		// TODO: 상담지원요청의 조회 및 처리 기준이 브랜치로 될 경우 위 부분 주석처리 END
 
@@ -616,18 +617,18 @@ public class IssueSupportService {
 		ZonedDateTime startDate;
 		ZonedDateTime endDate;
 		// 검색 날짜가 따로 세팅되어 있지 않은 경우 최근 1주일 날짜 세팅
-		if (ObjectUtils.isEmpty(search.getSearchStartDate()) && ObjectUtils.isEmpty(search.getSearchEndDate())) {
+		if (ObjectUtils.isEmpty(searchDto.getSearchStartDate()) && ObjectUtils.isEmpty(searchDto.getSearchEndDate())) {
 			// 날짜 형식 정의
 			ZonedDateTime now = ZonedDateTime.now();
 
-			search.setSearchEndDate(now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))); //FIXME :: 패턴 DateUtil 이동 volka
-			search.setSearchStartDate(now.minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))); //FIXME :: 패턴 DateUtil 이동 volka
+			searchDto.setSearchEndDate(now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))); //FIXME :: 패턴 DateUtil 이동 volka
+			searchDto.setSearchStartDate(now.minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))); //FIXME :: 패턴 DateUtil 이동 volka
 		}
 
-		startDate = ZonedDateTimeUtil.stringToDateTime(search.getSearchStartDate() + " 00:00:00");
-		endDate = ZonedDateTimeUtil.stringToDateTime(search.getSearchEndDate() + " 23:59:59");
+		startDate = ZonedDateTimeUtil.stringToDateTime(searchDto.getSearchStartDate() + " 00:00:00");
+		endDate = ZonedDateTimeUtil.stringToDateTime(searchDto.getSearchEndDate() + " 23:59:59");
 
-		Page<IssueSupportDetailDto> issueSupportPageList = issueSupportRepository.search(startDate, endDate, search.getType(), search.getStatus(), memberIds, pageable);
+		Page<IssueSupportDetailDto> issueSupportPageList = issueSupportRepository.search(startDate, endDate, searchDto.getType(), searchDto.getStatus(), memberIds, pageable);
 
 		for(IssueSupportDetailDto issueSupportDetailDto  : issueSupportPageList.getContent() ){
 			List<TeamDto> teamDtoList  = teamService.getTeamListUseMemberId( issueSupportDetailDto.getQuestionerInfo().getId() ) ;
