@@ -774,12 +774,12 @@ public class IssueSupportService {
 				if (IssueSupportStatus.finish.equals(issueSupportHistory.getStatus()) || IssueSupportStatus.change.equals(issueSupportHistory.getStatus())
 					|| IssueSupportStatus.receive.equals(issueSupportHistory.getStatus()) || IssueSupportStatus.auto.equals(issueSupportHistory.getStatus())) {
 					if(issueSupportHistory.getMember() != null){
-						dto.setChangeName(getChangeMemberName(issueSupportHistory.getMember().getId(), false));
+						dto.setChangeName(getChangeMemberName(issueSupportHistory.getMember().getId(), true));
 					}
 				} else {
 					if (IssueSupportChangeType.select.equals(issueSupportHistory.getChangeType())) {
 						if(issueSupportHistory.getSelectMemberId() != null){
-							dto.setChangeName(getChangeMemberName(issueSupportHistory.getSelectMemberId(), false));
+							dto.setChangeName(getChangeMemberName(issueSupportHistory.getSelectMemberId(), true));
 						}
 
 					} else {
