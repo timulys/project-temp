@@ -77,7 +77,7 @@ public class MemberScheduleSearchRepositoryImpl implements MemberScheduleSearchR
                                 .and(qMemberSchedule.startDateTime.between(startDateTime,endDateTime))
                                 .and(scheduleTypeIn(types))
                                 .and(completedEq(completed))
-                ).orderBy(qMemberSchedule.startDateTime.desc()).fetch();
+                ).orderBy(qMemberSchedule.startDateTime.asc()).fetch();
 
         List<Long> customerIds = customerId;
 
