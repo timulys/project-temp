@@ -88,7 +88,7 @@ public class MemberScheduleService {
         LocalDate start = date.withDayOfMonth(1);
         LocalDate end = date.withDayOfMonth(date.lengthOfMonth());
         Set<ScheduleType> types = new HashSet<>();
-        return search(memberId , start , end , types , null, null);
+        return search(memberId, start, end, types, null, null);
     }
 
     /**
@@ -143,7 +143,7 @@ public class MemberScheduleService {
                 return Collections.emptyList();
         }
 
-        List<MemberSchedule> memberSchedules = memberScheduleRepository.search(memberId ,start , end , type , completed , customerIds);
+        List<MemberSchedule> memberSchedules = memberScheduleRepository.search(memberId, start, end, type, completed, customerIds);
         return memberScheduleMapper.map(memberSchedules);
     }
 
