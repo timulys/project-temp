@@ -8,6 +8,7 @@ import com.kep.core.model.dto.notification.*;
 import com.kep.core.model.dto.subject.IssueCategoryDto;
 import com.kep.core.model.dto.team.TeamDto;
 import com.kep.core.model.dto.work.WorkType;
+import com.kep.core.model.exception.BizException;
 import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.config.property.SocketProperty;
 import com.kep.portal.model.dto.issue.IssueSupportDetailDto;
@@ -277,11 +278,13 @@ public class IssueSupportService {
 	//FIXME :: 도메인으로 이동
 	private IssueSupport getSetupIssueSupportWhenChangeRequest(Long issueSupportId, IssueSupportDto input) throws Exception {
 
+		Long memberId = securityUtils.getMemberId();
+
 		IssueSupport issueSupport = issueSupportMapper.map(input);
 		issueSupport.setIssue(Issue.builder().id(issueSupportId).build());
-		issueSupport.setQuestioner(securityUtils.getMemberId());
+		issueSupport.setQuestioner(memberId);
 		issueSupport.setQuestionModified(ZonedDateTime.now());
-		issueSupport.setCreator(securityUtils.getMemberId());
+		issueSupport.setCreator(memberId);
 		issueSupport.setCreated(ZonedDateTime.now());
 
 		return issueSupport;
@@ -358,12 +361,12 @@ public class IssueSupportService {
 			Assert.notNull(branchDto, "branch data is can not be null");
 		}
 
-		// 상담직원전환요청/상담직원변경처리 시 상담원을 선택한 경우 상담 가능 여부 체크 후 상담 불가능일 경우 처리가 되지 않음
+		// 상담직원전환요청/상담직원변경처리 시 상담원을 선택한 경우 상담 가능 여부 체크 후 상담 불가능일 경우 처리가 되지 않음 or 이어받기 시 계정 근무상태 검증
 		if (
-				isChangeSelectedMemberRequest(inputSupportType, inputSupportStatus, inputSupportChangeType)
-				&& !isWorkingMember(issueSupportDto.getSelectMemberId())
+				(isChangeSelectedMemberRequest(inputSupportType, inputSupportStatus, inputSupportChangeType) && !isWorkingMember(issueSupportDto.getSelectMemberId()))
+				|| (inputSupportStatus == IssueSupportStatus.receive && !isWorkingMember(securityUtils.getMemberId()))
 		) {
-				return IssueSupportDto.builder().assignable(false).build();
+				throw new BizException("this member is not working this time");
 		}
 
 		CounselEnv counselEnv = new CounselEnv();
