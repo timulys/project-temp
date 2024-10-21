@@ -38,7 +38,10 @@ public class IssueSupportSearchRepositoryImpl implements IssueSupportSearchRepos
 
 	@Override
 	public Page<IssueSupportDetailDto> search(ZonedDateTime startDate, ZonedDateTime endDate, List<IssueSupportType> type, List<IssueSupportStatus> status, @NotNull List<Long> memberIds, @NotNull Pageable pageable) {
-
+		// 브랜치 또는 팀에 member가 한 명도 없다면 조회 자체가 무의미
+		if (memberIds.size() < 1) {
+			return new PageImpl<>(new ArrayList<>(), pageable, 0);
+		}
 		// mysql 8이상에서만 COUNT() OVER (PARTITION BY ...) 지원하기 떄문에 totalElements 구하기 위해서 count 쿼리 따로 작성
 		Long totalElements = queryFactory.select(issueSupport.count())
 										 .from(issueSupport)
@@ -110,7 +113,7 @@ public class IssueSupportSearchRepositoryImpl implements IssueSupportSearchRepos
 	}
 
 	private BooleanExpression questionerIn(List<Long> memberIds) {
-		return !ObjectUtils.isEmpty(memberIds) ? issueSupport.questioner.in(memberIds) : null;
+		return memberIds.size() != 0 ? issueSupport.questioner.in(memberIds) : null;
 	}
 
 	private BooleanExpression branchIdEq(Long branchId) {

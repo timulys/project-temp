@@ -93,12 +93,9 @@ public class IssueSupportController {
 	@GetMapping("/manager")
 	@PreAuthorize("hasAnyAuthority('WRITE_SUPPORT')")
 	public ResponseEntity<ApiResult<List<IssueSupportDetailDto>>> get(
-			@ParameterObject IssueSupportSearchDto issueSupportSearchDto
-			, @SortDefault.SortDefaults({
-				@SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}
-			)
-			@ParameterObject
-			Pageable pageable) throws Exception {
+			@ParameterObject @ModelAttribute IssueSupportSearchDto issueSupportSearchDto,
+			@SortDefault.SortDefaults({@SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)})
+			@ParameterObject Pageable pageable) throws Exception {
 
 		Assert.isTrue(!(null == issueSupportSearchDto.getStatus() || 0 == issueSupportSearchDto.getStatus().size()), "status can not be null");
 		Assert.isTrue(!(null == issueSupportSearchDto.getType() || 0 == issueSupportSearchDto.getType().size()), "type can not be null");
