@@ -115,8 +115,9 @@ public class ForbiddenController {
 	 * 테스트용 금칙어 확인 
 	 * TODO : 삭제예정
 	 */
+	@Deprecated
 	@Tag(name = "금칙어 API")
-	@Operation(summary = "금칙어 수정 :: 삭제예정")
+	@Operation(summary = "금칙어 수정 :: 삭제예정", deprecated = true)
 	@PostMapping("/change")
 	public ResponseEntity<ApiResult<String>> change(@RequestBody String word) {
 
