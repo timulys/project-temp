@@ -6,26 +6,24 @@
  */
 package com.kep.portal.service.forbidden;
 
-import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import javax.annotation.Resource;
-import javax.transaction.Transactional;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-
+import com.kep.core.model.exception.BizException;
 import com.kep.portal.model.dto.forbidden.ForbiddenDto;
 import com.kep.portal.model.entity.forbidden.Forbidden;
 import com.kep.portal.model.entity.forbidden.ForbiddenMapper;
 import com.kep.portal.repository.forbidden.ForbiddenRepository;
 import com.kep.portal.util.SecurityUtils;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 @Service
 @Transactional
@@ -44,7 +42,8 @@ public class ForbiddenService {
 
 	@Resource
 	private ObjectMapper objectMapper;
-	
+
+	private static final Pattern forbiddenRegexPattern = Pattern.compile("^[ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9]*$");
 	
 	/**
 	 * 금칙어 리스트 가져오기
@@ -65,16 +64,20 @@ public class ForbiddenService {
 		Assert.notNull(dto,"dto is Null");
 		Assert.notNull(dto.getWord(),"word is Null");
 
-		//특수문제 제거
-		String word = dto.getWord().replaceAll("[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9]" , "");
+		String word = dto.getWord();
 
-		Forbidden forbidden = forbiddenRepository.save(Forbidden.builder().word(word)
+		if (!forbiddenRegexPattern.matcher(word).matches()) throw new BizException("forbidden words can be korean, english, numbers");
+		if (forbiddenRepository.findByWord(word).isPresent()) throw new BizException("already exists word");
+
+		//특수문제 제거
+//		String word = dto.getWord().replaceAll("[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9]" , "");
+
+		forbiddenRepository.save(Forbidden.builder().word(word)
 							.memberId(securityUtils.getMemberId())
 							.created(ZonedDateTime.now()).build());
-		if(forbidden == null) {
-			return null;
-		}
-			
+
+		forbiddenRepository.flush();
+
 		return this.getList();
 		
 	}
