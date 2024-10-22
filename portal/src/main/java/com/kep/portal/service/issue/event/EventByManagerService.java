@@ -98,7 +98,9 @@ public class EventByManagerService {
 			// 종료 (즉시 종료)
 			IssuePayload issuePayload;
 			try {
-				issuePayload = channelEnv.getEnd().getGuide().getNoticeMessage();
+				issuePayload = channelEnv.getMemberDirectEnabled() ?
+						// 즉시 종료 메시지 설정이 true라면 설정한 종료 메시지 발생 : 아니라면 안내 메시지 우선 발송(KICA-239)
+						channelEnv.getEnd().getGuide().getMessage() : channelEnv.getEnd().getGuide().getNoticeMessage();
 			} catch (Exception e) {
 				log.warn(e.getLocalizedMessage());
 				issuePayload = new IssuePayload("고객님 다음 상담을 위해 상담을 종료합니다." +
