@@ -5,6 +5,7 @@ import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.guide.GuideDto;
 import com.kep.core.model.dto.guide.GuideLogDto;
 import com.kep.core.model.dto.guide.GuidePayload;
+import com.kep.core.model.dto.team.TeamDto;
 import com.kep.core.model.type.QueryParam;
 import com.kep.portal.model.dto.guide.GuideSearchDto;
 import com.kep.portal.model.dto.guide.GuideSearchResponseDto;
@@ -30,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -139,10 +141,10 @@ public class GuideController {
      * @return
      * @throws Exception
      */
-    @PostMapping
-    @PreAuthorize("hasAnyAuthority('WRITE_GUIDE')")
     @Tag(name = "가이드 API")
     @Operation(summary = "상담가이드 저장", description = "상담가이드 저장(SB-CA-006) :: 저장 시 매니저는 team 선택 필수. 관리자일 경우 team = null 로 요청 시 팀 전체로 적용 됨.")
+    @PostMapping
+    @PreAuthorize("hasAnyAuthority('WRITE_GUIDE')")
     public ResponseEntity<ApiResult<GuideDto>> create(
             @Valid @RequestBody GuidePayload guidePayload
             , @Parameter(description = "저장 여부 (임시저장 시 false)")
@@ -571,6 +573,36 @@ public class GuideController {
         } catch (Exception e) {
             log.error(e.getLocalizedMessage());
             ApiResult<List<GuideDto>> response = ApiResult.<List<GuideDto>>builder()
+                    .code(ApiResultCode.failed)
+                    .message(e.getLocalizedMessage())
+                    .build();
+            response.setError("<<SB-CP-T03>>");
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+    @Tag(name = "가이드 API")
+    @Operation(summary = "가이드 등록 시 팀 목록 조회 [매니저/관리자] (신규)", description = "가이드 목록 조회 매니저/관리자용")
+    @PreAuthorize("hasAnyAuthority('WRITE_GUIDE')")
+    @GetMapping("/team/management")
+    public ResponseEntity<ApiResult<List<TeamDto>>> getTeamsForManager() {
+        try {
+
+            log.info("GUIDE TEAM MANAGEMENT SEARCH BRANCH ID");
+
+            List<TeamDto> items = guideService.getTeamsWhenManagement();
+
+            ApiResult<List<TeamDto>> response = ApiResult.<List<TeamDto>>builder()
+                    .code(ApiResultCode.succeed)
+                    .payload(items)
+                    .build();
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            log.error(e.getLocalizedMessage());
+            ApiResult<List<TeamDto>> response = ApiResult.<List<TeamDto>>builder()
                     .code(ApiResultCode.failed)
                     .message(e.getLocalizedMessage())
                     .build();
