@@ -2,6 +2,7 @@ package com.kep.portal.controller.guide;
 
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
+import com.kep.core.model.dto.branch.BranchTeamDto;
 import com.kep.core.model.dto.guide.GuideDto;
 import com.kep.core.model.dto.guide.GuideLogDto;
 import com.kep.core.model.dto.guide.GuidePayload;
@@ -587,14 +588,14 @@ public class GuideController {
     @Operation(summary = "가이드 등록 시 팀 목록 조회 [매니저/관리자] (신규)", description = "가이드 목록 조회 매니저/관리자용")
     @PreAuthorize("hasAnyAuthority('WRITE_GUIDE')")
     @GetMapping("/team/management")
-    public ResponseEntity<ApiResult<List<TeamDto>>> getTeamsForManager() {
+    public ResponseEntity<ApiResult<List<BranchTeamDto>>> getTeamsForManager() {
         try {
 
             log.info("GUIDE TEAM MANAGEMENT SEARCH BRANCH ID");
 
-            List<TeamDto> items = guideService.getTeamsWhenManagement();
+            List<BranchTeamDto> items = guideService.getTeamsWhenManagement();
 
-            ApiResult<List<TeamDto>> response = ApiResult.<List<TeamDto>>builder()
+            ApiResult<List<BranchTeamDto>> response = ApiResult.<List<BranchTeamDto>>builder()
                     .code(ApiResultCode.succeed)
                     .payload(items)
                     .build();
@@ -602,7 +603,7 @@ public class GuideController {
 
         } catch (Exception e) {
             log.error(e.getLocalizedMessage());
-            ApiResult<List<TeamDto>> response = ApiResult.<List<TeamDto>>builder()
+            ApiResult<List<BranchTeamDto>> response = ApiResult.<List<BranchTeamDto>>builder()
                     .code(ApiResultCode.failed)
                     .message(e.getLocalizedMessage())
                     .build();

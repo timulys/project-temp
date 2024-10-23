@@ -3,6 +3,7 @@ package com.kep.portal.service.guide;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kep.core.model.dto.branch.BranchTeamDto;
 import com.kep.core.model.dto.guide.GuideBlockDto;
 import com.kep.core.model.dto.guide.GuideDto;
 import com.kep.core.model.dto.guide.GuidePayload;
@@ -1291,9 +1292,14 @@ public class GuideService {
         guideBlockSheet.addMergedRegion(new CellRangeAddress(0, 0, 5, 17));
     }
 
-    public List<TeamDto> getTeamsWhenManagement() {
+    public List<BranchTeamDto> getTeamsWhenManagement() {
         Branch branch = branchRepository.findById(securityUtils.getBranchId()).orElseThrow(() -> new BizException("Not Found Branch"));
         List<Team> teams = null;
+        List<BranchTeamDto> result = new ArrayList<>();
+
+        List<BranchTeam> branchTeams = branchTeamRepository.findAllByBranch(branch);
+        Assert.notEmpty(branchTeams, "this branchTeam is null");
+
 
         if (securityUtils.isManager()) {
             teams = getTeamsByGroupLeaderForManager(securityUtils.getMemberId());
@@ -1307,7 +1313,19 @@ public class GuideService {
             throw new BizException("No Authority");
         }
 
-        return teamMapper.map(teams);
+        Map<Long, Team> teamMap = teams.stream().collect(Collectors.toMap(Team::getId, item -> item));
+
+        for (BranchTeam branchTeam : branchTeams) {
+            Team team = teamMap.get(branchTeam.getTeam().getId());
+            if (team != null) {
+                BranchTeamDto dto = new BranchTeamDto();
+                dto.setId(branchTeam.getId());
+                dto.setTeam(teamMapper.map(team));
+                result.add(dto);
+            }
+        }
+
+        return result;
     }
 
     /**
