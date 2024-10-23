@@ -43,7 +43,7 @@ public class ForbiddenService {
 	@Resource
 	private ObjectMapper objectMapper;
 
-	private static final Pattern forbiddenRegexPattern = Pattern.compile("^[ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9]*$");
+//	private static final Pattern forbiddenRegexPattern = Pattern.compile("^[ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9]*$");
 	
 	/**
 	 * 금칙어 리스트 가져오기
@@ -64,13 +64,11 @@ public class ForbiddenService {
 		Assert.notNull(dto,"dto is Null");
 		Assert.notNull(dto.getWord(),"word is Null");
 
-		String word = dto.getWord();
+		String word = dto.getWord().replaceAll("[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9]" , "");
 
-		if (!forbiddenRegexPattern.matcher(word).matches()) throw new BizException("forbidden words can be korean, english, numbers");
+//		if (!forbiddenRegexPattern.matcher(word).matches()) throw new BizException("forbidden words can be korean, english, numbers");
+		//특문 제거 후 중복 체크
 		if (forbiddenRepository.findByWord(word).isPresent()) throw new BizException("already exists word");
-
-		//특수문제 제거
-//		String word = dto.getWord().replaceAll("[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9]" , "");
 
 		forbiddenRepository.save(Forbidden.builder().word(word)
 							.memberId(securityUtils.getMemberId())
