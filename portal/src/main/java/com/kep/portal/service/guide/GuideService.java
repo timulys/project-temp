@@ -3,15 +3,18 @@ package com.kep.portal.service.guide;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kep.core.model.dto.branch.BranchTeamDto;
 import com.kep.core.model.dto.guide.GuideBlockDto;
 import com.kep.core.model.dto.guide.GuideDto;
 import com.kep.core.model.dto.guide.GuidePayload;
 import com.kep.core.model.dto.guide.GuideType;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
+import com.kep.core.model.dto.team.TeamDto;
 import com.kep.core.model.exception.BizException;
 import com.kep.portal.model.dto.guide.GuideSearchDto;
 import com.kep.portal.model.dto.guide.GuideSearchResponseDto;
 import com.kep.portal.model.entity.branch.Branch;
+import com.kep.portal.model.entity.branch.BranchTeam;
 import com.kep.portal.model.entity.guide.*;
 import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.model.entity.member.MemberMapper;
@@ -19,13 +22,16 @@ import com.kep.portal.model.entity.member.MemberRole;
 import com.kep.portal.model.entity.privilege.Level;
 import com.kep.portal.model.entity.team.Team;
 import com.kep.portal.model.entity.team.TeamMapper;
+import com.kep.portal.model.entity.team.TeamMember;
 import com.kep.portal.repository.branch.BranchRepository;
+import com.kep.portal.repository.branch.BranchTeamRepository;
 import com.kep.portal.repository.guide.GuideBlockRepository;
 import com.kep.portal.repository.guide.GuideCategoryRepository;
 import com.kep.portal.repository.guide.GuideRepository;
 import com.kep.portal.repository.member.MemberRepository;
 import com.kep.portal.repository.member.MemberRoleRepository;
 import com.kep.portal.repository.privilege.RoleRepository;
+import com.kep.portal.repository.team.TeamMemberRepository;
 import com.kep.portal.repository.team.TeamRepository;
 import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.SecurityUtils;
@@ -89,9 +95,12 @@ public class GuideService {
     private MemberRoleRepository memberRoleRepository;
     @Resource
     private RoleRepository roleRepository;
-    @Autowired
+    @Resource
     private GuideCategoryRepository guideCategoryRepository;
-
+    @Resource
+    private BranchTeamRepository branchTeamRepository;
+    @Autowired
+    private TeamMemberRepository teamMemberRepository;
 
     /**
      * 상담사 상담 시 가이드 탭 내 가이드 조회
@@ -298,12 +307,13 @@ public class GuideService {
 
         CommonUtils.copyNotEmptyProperties(guidePayload, guide);
 
+        //매니저는 수정자 아이디 기준 20241023
         if (securityUtils.isManager()) {
-            if (!guide.getCreatorId().equals(memberId)) throw new BizException("No Authority");
+            if (!guide.getModifierId().equals(memberId)) throw new BizException("No Authority");
             guide.setTeamId(team.getId());
 
         } else if (securityUtils.isAdmin()) {
-            if (!guide.getBranch().getId().equals(branch.getId()) && !guide.getCreatorId().equals(member.getId())) throw new BizException("No Authority");
+            if (!guide.getBranch().getId().equals(branch.getId()) && !guide.getModifierId().equals(member.getId())) throw new BizException("No Authority");
 
             //팀 전체 공개일 땐 null 어드민만 가능
             guide.setTeamId(team == null ? null : team.getId());
@@ -357,11 +367,13 @@ public class GuideService {
 //        if (guidePayload.getTeamId() != null || securityUtils.getTeamId() != null) { //공개범위 팀 선택에 따라 입력된 팀으로만 저장
 
         if (securityUtils.isManager()) {
-            List<Long> teamIds = securityUtils.getAuthMember().getTeamIds();
+//            List<Long> teamIds = securityUtils.getAuthMember().getTeamIds();
             if (guidePayload.getTeamId() == null) throw new BizException("manager must required teamId");
-            if (!teamIds.contains(guidePayload.getTeamId())) throw new BizException("No Authority"); //매니저는 본인 관리 그룹만 가능
 
             team = teamRepository.findById(guidePayload.getTeamId()).orElseThrow(() -> new BizException("Not Found Team"));
+            List<Team> teams = getTeamsByGroupLeaderForManager(securityUtils.getMemberId());
+            if (!teams.contains(team)) throw new BizException("No Authority"); //매니저는 본인 관리 그룹만 가능 (그룹장인 팀만 등록 가능)
+
         }
 
         if (securityUtils.isAdmin() && guidePayload.getTeamId() != null) {
@@ -1278,5 +1290,54 @@ public class GuideService {
             cell.setCellValue(headerName[i]);
         }
         guideBlockSheet.addMergedRegion(new CellRangeAddress(0, 0, 5, 17));
+    }
+
+    public List<BranchTeamDto> getTeamsWhenManagement() {
+        Branch branch = branchRepository.findById(securityUtils.getBranchId()).orElseThrow(() -> new BizException("Not Found Branch"));
+        List<Team> teams = null;
+        List<BranchTeamDto> result = new ArrayList<>();
+
+        List<BranchTeam> branchTeams = branchTeamRepository.findAllByBranch(branch);
+        Assert.notEmpty(branchTeams, "this branchTeam is null");
+
+
+        if (securityUtils.isManager()) {
+            teams = getTeamsByGroupLeaderForManager(securityUtils.getMemberId());
+
+        } else if (securityUtils.isAdmin()) {
+            teams = branchTeamRepository.findAllByBranchIdOrderByIdDesc(branch.getId()).stream()
+                    .map(BranchTeam::getTeam)
+                    .collect(Collectors.toList());
+
+        } else {
+            throw new BizException("No Authority");
+        }
+
+        Map<Long, Team> teamMap = teams.stream().collect(Collectors.toMap(Team::getId, item -> item));
+
+        for (BranchTeam branchTeam : branchTeams) {
+            Team team = teamMap.get(branchTeam.getTeam().getId());
+            if (team != null) {
+                BranchTeamDto dto = new BranchTeamDto();
+                dto.setId(branchTeam.getId());
+                dto.setTeam(teamMapper.map(team));
+                result.add(dto);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 매니저일 경우 본인이 그룹장인 팀 목록 조회 (매니저만 사용 가능)
+     * @return
+     */
+    private List<Team> getTeamsByGroupLeaderForManager(Long memberId) {
+        List<BranchTeam> branchTeams = branchTeamRepository.findAllByMemberId(memberId);
+        if (branchTeams.isEmpty()) throw new BizException("this manager does not having group leader");
+
+        return branchTeams.stream()
+                .map(BranchTeam::getTeam)
+                .collect(Collectors.toList());
     }
 }

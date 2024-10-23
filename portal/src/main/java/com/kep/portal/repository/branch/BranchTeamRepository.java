@@ -5,7 +5,9 @@ import com.kep.portal.model.entity.branch.BranchTeam;
 import com.kep.portal.model.entity.team.Team;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,6 +17,8 @@ public interface BranchTeamRepository extends JpaRepository<BranchTeam, Long> {
 
     List<BranchTeam> findAllByOrderByIdDesc();
     List<BranchTeam> findAllByBranch(Branch branch);
+
+    @EntityGraph(attributePaths = {"branch", "team", "member"})
     List<BranchTeam> findAllByBranchIdOrderByIdDesc(Long branchId);
     Page<BranchTeam> findAllByBranchOrderByIdDesc(Branch branch , Pageable pageable);
     List<BranchTeam> findAllByBranchIdAndMemberIdOrderByIdDesc(Long branchId, Long memberId);
@@ -35,4 +39,7 @@ public interface BranchTeamRepository extends JpaRepository<BranchTeam, Long> {
     BranchTeam findByBranchAndTeam(Branch branch , Team team);
 
     List<BranchTeam> findAllByBranchAndTeamIn(Branch branch , List<Team> teams);
+
+    @EntityGraph(attributePaths = {"branch", "team", "member"})
+    List<BranchTeam> findAllByMemberId(Long memberId);
 }
