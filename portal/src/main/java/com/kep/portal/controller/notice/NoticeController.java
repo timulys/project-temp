@@ -251,12 +251,15 @@ public class NoticeController {
 			@RequestParam(name = "keyword", required = false) String keyword,
 			@Parameter(description = "조회 타입")
 			@RequestParam(name = "type", required = false) String type,
+			@Parameter(description = "고정 여부")
+			@RequestParam(name = "fixation", required = false) Boolean fixation,
 			@SortDefault.SortDefaults({
 					@SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable) {
 
 		log.info("NOTICE MANAGER LIST, GET, KEYWORD: {}", keyword);
 
-		Page<NoticeResponseDto> page = noticeService.getList(keyword,type, pageable , false);
+		Page<NoticeResponseDto> page = noticeService.getList(keyword, type, pageable, fixation);
+
 		// 미확인 공지사항 카운팅
 		Map<String, Object> map = new HashMap<>();
 		map.put("unreadNotice", noticeService.unreadNotice());

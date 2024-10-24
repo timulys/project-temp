@@ -142,16 +142,16 @@ public class NoticeSearchRepositoryImpl implements NoticeSearchRepository {
 	 * 2023.03.28 / philip.lee7	 / readFlag 읽기여부 서브쿼리 추가
 	*/
 	@Override
-	public Page<Notice> searchList(String keyword, String type, @NotNull Long branchId,@NotNull Long memberId, @NotNull Pageable pageable , boolean fixation) {
+	public Page<Notice> searchList(String keyword, String type, @NotNull Long branchId,@NotNull Long memberId, @NotNull Pageable pageable, Boolean fixation) {
 
 		Long teamId = securityUtils.getTeamId();
 		Long totalElements = queryFactory.select(notice.count())
 				.from(notice)
-				.where(getSearchCondition(keyword, type, branchId , teamId , fixation))
+				.where(getSearchCondition(keyword, type, branchId, teamId, fixation))
 				.fetchFirst();
 
 		List<Notice> notices = Collections.emptyList();
-		if (totalElements > 0) {
+		if (totalElements > 0 && fixation != null) {
 			notices = queryFactory.select(
 					Projections.fields(Notice.class,notice.id
 							,notice.title
@@ -167,7 +167,27 @@ public class NoticeSearchRepositoryImpl implements NoticeSearchRepository {
 							.and(noticeRead.noticeReadPk.notice_id.eq(notice.id)))
 							, "readFlag")))
 					.from(notice)
-					.where(getSearchCondition(keyword, type, branchId , teamId , fixation))
+					.where(getSearchCondition(keyword, type, branchId, teamId, fixation))
+					.orderBy(getOrderSpecifiers(pageable))
+					.offset(pageable.getOffset())
+					.limit(pageable.getPageSize())
+					.fetch();
+		} else {
+			notices = queryFactory.select(
+							Projections.fields(Notice.class,notice.id
+									,notice.title
+									,notice.creator
+									,notice.created
+									,notice.branchId
+									,notice.teamId
+									,notice.openType
+									,ExpressionUtils.as(JPAExpressions.select(noticeRead.count())
+													.from(noticeRead)
+													.where(noticeRead.noticeReadPk.member_id.eq(memberId)
+															.and(noticeRead.noticeReadPk.notice_id.eq(notice.id)))
+											, "readFlag")))
+					.from(notice)
+					.where(getSearchCondition(keyword, type, branchId, teamId, fixation))
 					.orderBy(getOrderSpecifiers(pageable))
 					.offset(pageable.getOffset())
 					.limit(pageable.getPageSize())
@@ -195,12 +215,14 @@ public class NoticeSearchRepositoryImpl implements NoticeSearchRepository {
 				.fetchFirst();
 	}
 
-	private Predicate[] getSearchCondition(String keyword, String type, Long branchId , Long teamId , boolean fixation) {
+	private Predicate[] getSearchCondition(String keyword, String type, Long branchId, Long teamId, Boolean fixation) {
 
 		List<Predicate> conditions = new ArrayList<>();
 		conditions.add(enabledEq(true));
-		conditions.add(titleContentContains(keyword,type));
-		conditions.add(fixedEq(fixation));
+		conditions.add(titleContentContains(keyword, type));
+		if (fixation != null) {
+			conditions.add(fixedEq(fixation));
+		}
 		conditions.add(branchIdEqOpenTypeIn(branchId,teamId));
 		return conditions.toArray(new Predicate[0]);
 	}
