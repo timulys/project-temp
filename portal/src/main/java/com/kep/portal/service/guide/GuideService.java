@@ -115,6 +115,8 @@ public class GuideService {
 
         List<Long> categoryChildrenIds = null;
 
+        if (searchDto.getKeyword() == null || searchDto.getKeyword().isEmpty()) searchDto.setKeyword(null);
+
         if (searchDto.getCategoryId() != null) {
             categoryChildrenIds = guideCategoryService.getAllSubCategory(searchDto.getCategoryId(), searchDto.getBranchId());
         }
@@ -143,6 +145,8 @@ public class GuideService {
         searchDto.setTeamId(securityUtils.getTeamId());
 
         List<Long> categoryChildrenIds = null;
+
+        if (searchDto.getKeyword() == null || searchDto.getKeyword().isEmpty()) searchDto.setKeyword(null);
 
         if (searchDto.getCategoryId() != null) {
             categoryChildrenIds = guideCategoryService.getAllSubCategory(searchDto.getCategoryId(), searchDto.getBranchId());
