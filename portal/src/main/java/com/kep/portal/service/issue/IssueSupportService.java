@@ -269,6 +269,7 @@ public class IssueSupportService {
 				.branchId(issueSupport.getBranchId())
 				.categoryId(issueSupport.getCategoryId())
 				.selectMemberId(issueSupport.getSelectMemberId())
+				.member(issueSupport.getMember())
 				.creator(memberId)
 				.created(ZonedDateTime.now())
 				.build();
@@ -410,6 +411,9 @@ public class IssueSupportService {
 
 			issueSupport.setAnswerer(securityUtils.getMemberId());
 			issueSupport.setAnswerModified(ZonedDateTime.now());
+			if (IssueSupportType.change == issueSupport.getType()) {
+				issueSupport.setMember(memberService.findById(issueSupport.getSelectMemberId()));
+			}
 
 			if (!ObjectUtils.isEmpty(issueSupportDto.getAnswer())) {
 				content = issueSupportDto.getAnswer();
@@ -420,7 +424,7 @@ public class IssueSupportService {
 		issueSupport = issueSupportRepository.save(issueSupport);
 
 		// 이력 저장
-		issueSupportHistoryRepository.save(createIssueSupportHistory(issueSupport, inputSupportStatus, content, securityUtils.getMemberId()));
+		issueSupportHistoryRepository.save(this.createIssueSupportHistory(issueSupport, inputSupportStatus, content, securityUtils.getMemberId()));
 
 		// 상담 검토/직원전환 완료(상담원의 상담직원변경>시스템전환 자동배정시, 상담이어받기, 상담직원변경, 관리자의 완료(상담직원변경 요청에 대한))시에 후 처리를 위한 부분
 		if (isCheckOrChangeSuccess(issueSupport.getStatus(), issueSupport.getChangeType())) {
