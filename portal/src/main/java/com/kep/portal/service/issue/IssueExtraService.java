@@ -169,7 +169,7 @@ public class IssueExtraService {
 			CommonUtils.copyNotEmptyProperties(issueExtraMapper.map(issueExtraDto), issueExtra);
 		}
 
-		issueExtra.setSummary(summary == null || summary.isEmpty() ? null : summary);
+		issueExtra.setSummary(summary == null || summary.isEmpty() ? "empty" : summary);
 		issueExtra.setSummaryModified(ZonedDateTime.now());
 		issueExtra.setSummaryCompleted(true);
 
@@ -235,7 +235,7 @@ public class IssueExtraService {
 
 			issueExtra = IssueExtra.builder()
 					.guestId(issue.getGuest().getId())
-					.summary(summary == null || summary.isEmpty() ? "empty" : summary)
+					.summary(summary == null || summary.isEmpty() ? null : summary)
 					.summaryModified(ZonedDateTime.now())
 					.summaryCompleted(issueExtraSummaryDto.getSummaryCompleted())
 					.issueCategoryId(category.getId())
@@ -243,6 +243,10 @@ public class IssueExtraService {
 
 		} else {
 			issueExtra = issue.getIssueExtra();
+			issueExtra.setSummaryCompleted(issueExtraSummaryDto.getSummaryCompleted());
+			issueExtra.setIssueCategoryId(category.getId());
+			issueExtra.setSummary(issueExtraSummaryDto.getSummary());
+			issueExtra.setSummaryModified(ZonedDateTime.now());
 		}
 
 		if (issueExtraSummaryDto.getMemo() != null && !issueExtraSummaryDto.getMemo().isEmpty()) {
