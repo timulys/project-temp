@@ -6,7 +6,6 @@ import com.kep.core.model.dto.branch.BranchTeamDto;
 import com.kep.core.model.dto.guide.GuideDto;
 import com.kep.core.model.dto.guide.GuideLogDto;
 import com.kep.core.model.dto.guide.GuidePayload;
-import com.kep.core.model.dto.team.TeamDto;
 import com.kep.core.model.type.QueryParam;
 import com.kep.portal.model.dto.guide.GuideSearchDto;
 import com.kep.portal.model.dto.guide.GuideSearchResponseDto;
@@ -32,7 +31,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -516,9 +514,10 @@ public class GuideController {
     @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
     @GetMapping("/list")
     public ResponseEntity<ApiResult<List<GuideDto>>> getListForUser(
-            @ParameterObject GuideSearchDto searchDto,
+            @ParameterObject @QueryParam GuideSearchDto searchDto,
             @SortDefault.SortDefaults({
-                    @SortDefault(sort = {"name"}, direction = Sort.Direction.ASC)}) Pageable pageable
+                    @SortDefault(sort = {"name"}, direction = Sort.Direction.ASC)})
+            @ParameterObject Pageable pageable
     ) {
 
         log.info("GUIDE LIST SEARCH :: {}", searchDto);
@@ -551,7 +550,7 @@ public class GuideController {
     @PreAuthorize("hasAnyAuthority('WRITE_GUIDE')")
     @GetMapping("/list/management")
     public ResponseEntity<ApiResult<List<GuideDto>>> getListForManager(
-            @ParameterObject GuideSearchDto searchDto,
+            @ParameterObject @QueryParam GuideSearchDto searchDto,
             @SortDefault.SortDefaults({
                     @SortDefault(sort = {"name"}, direction = Sort.Direction.ASC)}) Pageable pageable
     ) {
