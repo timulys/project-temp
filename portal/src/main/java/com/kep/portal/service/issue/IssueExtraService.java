@@ -234,7 +234,6 @@ public class IssueExtraService {
 		IssueExtra issueExtra = null;
 
 		if (issue.getIssueExtra() == null) {
-
 			issueExtra = IssueExtra.builder()
 					.guestId(issue.getGuest().getId())
 					.summary(summary == null || summary.isEmpty() ? null : summary)

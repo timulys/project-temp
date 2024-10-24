@@ -20,7 +20,7 @@ public class IssueExtraSummaryDto {
     @Positive
     private Long issueId;
 
-    @Schema(description = "후처리 요약 (nullable -> null 시 'empty'로 저장)")
+    @Schema(description = "후처리 요약")
     private String summary;
 
     @Schema(description = "상담 카테고리 아이디 (채널의 상담 카테고리 최하위 뎁스 카테고리)")
