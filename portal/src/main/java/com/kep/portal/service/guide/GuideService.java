@@ -354,8 +354,14 @@ public class GuideService {
         if (enabled) Assert.notEmpty(guidePayload.getContents(), "content must not be empty");
 
         if (!guidePayload.getContents().isEmpty()) {
-            Assert.isTrue(guidePayload.getContents().size() <= 20, "guide blocks are under 20 size");
+
             Assert.isTrue(guidePayload.getContents().stream().noneMatch(item -> item.getPayload().getChapters().size() > 10), "messages can not be over 10 in guide block");
+
+            if (guidePayload.getType() == GuideType.process) {
+                Assert.isTrue(guidePayload.getContents().size() <= 20, "guide blocks are under 20 size");
+                Assert.isTrue(guidePayload.getContents().stream().noneMatch(item -> item.getPayload().getChapters().isEmpty()), "content must not be empty");
+            }
+
         }
 
 //        Long branchId = guidePayload.getBranchId() == null ? securityUtils.getBranchId() : guidePayload.getBranchId();
