@@ -169,7 +169,7 @@ public class IssueExtraService {
 			CommonUtils.copyNotEmptyProperties(issueExtraMapper.map(issueExtraDto), issueExtra);
 		}
 
-		issueExtra.setSummary(summary == null || summary.isEmpty() ? "empty" : summary);
+		issueExtra.setSummary(summary == null || summary.isEmpty() ? null : summary);
 		issueExtra.setSummaryModified(ZonedDateTime.now());
 		issueExtra.setSummaryCompleted(true);
 
