@@ -169,9 +169,11 @@ public class IssueExtraService {
 			CommonUtils.copyNotEmptyProperties(issueExtraMapper.map(issueExtraDto), issueExtra);
 		}
 
-		issueExtra.setSummary(summary == null || summary.isEmpty() ? "empty" : summary);
-		issueExtra.setSummaryModified(ZonedDateTime.now());
-		issueExtra.setSummaryCompleted(true);
+		if (summary != null) {
+			issueExtra.setSummary(summary);
+			issueExtra.setSummaryModified(ZonedDateTime.now());
+			issueExtra.setSummaryCompleted(true);
+		}
 
 		if (issueExtraDto.getMemo() != null) {
 			issueExtra.setMemo(issueExtraDto.getMemo());
