@@ -36,7 +36,9 @@ public class FileHistoryController {
     @Tag(name = "파일 업로드 이력 API")
     @Operation(summary = "파일 업로드 이력 조회")
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('READ_FILE_HISTORY') and hasAnyRole('MANAGER','ADMIN')")
+    //@PreAuthorize("hasAnyAuthority('READ_FILE_HISTORY') and hasAnyRole('MANAGER','ADMIN')")
+    // [KICA-286] 마스터 체크 박스 변경 으로 인하여 수정 ( 파일 업로드 이력 조회 상담원도 조회 가능하도록 수정 )
+    // ( 코드 클릭 개발 서버와 일단 sync )
     public ResponseEntity<ApiResult<List<UploadHistoryDto>>> get(
             @ParameterObject @QueryParam @Valid UploadHistorySearchCondition condition,
             @ParameterObject @SortDefault.SortDefaults({
