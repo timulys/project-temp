@@ -152,16 +152,8 @@ public class GuideService {
             categoryChildrenIds = guideCategoryService.getAllSubCategory(searchDto.getCategoryId(), searchDto.getBranchId());
         }
 
-        String roleType = null;
-        if (securityUtils.isAdmin()) {
-            roleType = Level.ROLE_ADMIN;
-        } else if (securityUtils.isManager()) {
-            roleType = Level.ROLE_MANAGER;
-        } else {
-            throw new BizException("No Authority");
-        }
 
-        Page<Guide> guides = guideRepository.findByGuideSearchForManagement(searchDto, categoryChildrenIds, roleType, pageable);
+        Page<Guide> guides = guideRepository.findByGuideSearchForManagement(searchDto, categoryChildrenIds, pageable);
         if (guides.getContent().isEmpty()) return Page.empty();
 
         List<GuideDto> guideDtos = new ArrayList<>();

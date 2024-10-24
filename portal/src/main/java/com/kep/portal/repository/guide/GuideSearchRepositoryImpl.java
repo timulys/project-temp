@@ -506,14 +506,13 @@ public class GuideSearchRepositoryImpl implements GuideSearchRepository {
 
 
     @Override
-    public Page<Guide> findByGuideSearchForManagement(GuideSearchDto searchDto, List<Long> categoryChildrenIds, String roleType, Pageable pageable) {
+    public Page<Guide> findByGuideSearchForManagement(GuideSearchDto searchDto, List<Long> categoryChildrenIds, Pageable pageable) {
         QGuide qGuide = new QGuide("guide");
         QGuideBlock qGuideBlock = new QGuideBlock("guideBlock");
 
         BooleanBuilder condition = new BooleanBuilder();
         if (categoryChildrenIds != null && !categoryChildrenIds.isEmpty()) condition.and(qGuide.guideCategory.id.in(categoryChildrenIds));
-        if (roleType.equals(Level.ROLE_MANAGER)) condition.and(qGuide.teamId.eq(searchDto.getTeamId())); //매니저일 경우 소속 팀 고정
-
+//        if (roleType.equals(Level.ROLE_MANAGER)) condition.and(qGuide.teamId.in(searchDto.getTeamIds())); //매니저일 경우 소속 팀 고정 -> 매니저도 소속 브랜치 내 가이드 전체 조회 20241024
         Long totalElement = queryFactory.select(qGuide.count())
                 .from(qGuide)
                 .where(

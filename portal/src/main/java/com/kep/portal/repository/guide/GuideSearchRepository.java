@@ -46,5 +46,5 @@ public interface GuideSearchRepository {
     Page<Guide> findByGuideSearchForUser(GuideSearchDto searchDto, List<Long> categoryChildrenIds, Pageable pageable);
 
     //상담가이드 관리 > 가이드 조회
-    Page<Guide> findByGuideSearchForManagement(GuideSearchDto searchDto, List<Long> categoryChildrenIds, String roleType, Pageable pageable);
+    Page<Guide> findByGuideSearchForManagement(GuideSearchDto searchDto, List<Long> categoryChildrenIds, Pageable pageable);
 }

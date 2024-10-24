@@ -232,10 +232,9 @@ public class IssueExtraService {
 		IssueExtra issueExtra = null;
 
 		if (issue.getIssueExtra() == null) {
-
 			issueExtra = IssueExtra.builder()
 					.guestId(issue.getGuest().getId())
-					.summary(summary == null || summary.isEmpty() ? "empty" : summary)
+					.summary(summary == null || summary.isEmpty() ? null : summary)
 					.summaryModified(ZonedDateTime.now())
 					.summaryCompleted(issueExtraSummaryDto.getSummaryCompleted())
 					.issueCategoryId(category.getId())
