@@ -21,12 +21,18 @@ public class BreakTimeService {
      * false : 상담시간 (breaktime : X) 인 경우
      */
     public boolean inBreakTime() {
+        // eddie.j 휴식시간 QA 기간 동안 사용 X
+        LocalTime now = LocalTime.now();
+        log.info(">>> getBreaktime : START, {} ~ {}, NOW: {}", portalProperty.getBreakTimeStart(), portalProperty.getBreakTimeEnd(), now);
+        return false;
+        /*
         LocalTime now = LocalTime.now();
         log.info(">>> getBreaktime : START, {} ~ {}, NOW: {}", portalProperty.getBreakTimeStart(), portalProperty.getBreakTimeEnd(), now);
         if (now.isAfter(portalProperty.getBreakTimeStart()) && now.isBefore(portalProperty.getBreakTimeEnd())) {
             return true;
         }
         return false;
+        */
     }
 
 }
