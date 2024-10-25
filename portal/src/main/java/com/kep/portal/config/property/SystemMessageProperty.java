@@ -16,7 +16,7 @@ public class SystemMessageProperty {
 
     // todo inner class 제거 예정으로 알고 있음... ( 확정되면 추후 걷어내야 할 수 있는 코드 )
     private ConsultationTalk consultationTalk;
-    private ConsultationEnvironmentSettings consultationEnvironmentSettings;
+    private Validation validation;
 
     @Data
     @NoArgsConstructor
@@ -212,13 +212,14 @@ public class SystemMessageProperty {
 
     @Data
     @NoArgsConstructor
-    public static class ConsultationEnvironmentSettings {
+    public static class Validation {
 
-        private ConsultationEnvironmentSettings.Validation validation;
+        private Validation.Duplication duplication;
 
         @Data
         @NoArgsConstructor
-        public static class Validation {
+        public static class Duplication {
+            private String branch;
             private String consultationFunnel;
         }
     }

@@ -213,18 +213,20 @@ public class BranchController {
     @Tag(name = "브랜치 API")
     @Operation(summary = "브랜치 생성", description = "브랜치 생성")
     @PreAuthorize("hasAnyRole('ROLE_MASTER')")
-    public ResponseEntity<ApiResult<BranchDto>> create(
-            @RequestBody @Valid BranchDto branchDto) {
-
-        BranchDto branch = branchService.store(branchDto);
-
-        ApiResult<BranchDto> response = ApiResult.<BranchDto>builder()
-                .code(ApiResultCode.succeed)
-                .payload(branch)
-                .build();
-
-        return new ResponseEntity<>(response , HttpStatus.CREATED);
-
+    public ResponseEntity<ApiResult<BranchDto>> create(@RequestBody @Valid BranchDto branchDto) {
+        try {
+            BranchDto branch =  branchService.store(branchDto);
+            ApiResult<BranchDto> response = ApiResult.<BranchDto>builder().code(ApiResultCode.succeed)
+                                                                          .payload(branch)
+                                                                          .build();
+            return new ResponseEntity<>(response , HttpStatus.CREATED);
+        } catch (DataIntegrityViolationException e) {
+            log.info("BRANCH DUPLICATION ERROR :  ", e );
+            throw new BizException(systemMessageProperty.getValidation().getDuplication().getBranch());
+        } catch (Exception exception){
+            log.info("BRANCH DUPLICATION ERROR :  ", exception );
+            throw new BizException(exception.getMessage());
+        }
     }
 
     /**
@@ -433,7 +435,7 @@ public class BranchController {
                 Map<String, Object> extra = new HashMap<>();
                 extra.put("branch_id",dto.getBranchId());
                 extra.put("params",dto.getParams());
-                throw new BizException(systemMessageProperty.getConsultationEnvironmentSettings().getValidation().getConsultationFunnel(), "SB-SA-005-001" , extra);
+                throw new BizException(systemMessageProperty.getValidation().getDuplication().getConsultationFunnel(), "SB-SA-005-001" , extra);
             } else {
                 throw new BizException();
             }
