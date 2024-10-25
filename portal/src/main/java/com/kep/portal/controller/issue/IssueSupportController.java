@@ -3,6 +3,7 @@ package com.kep.portal.controller.issue;
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.issue.IssueSupportDto;
+import com.kep.core.model.type.QueryParam;
 import com.kep.portal.model.dto.issue.IssueSupportDetailDto;
 import com.kep.portal.model.dto.issue.IssueSupportHistoryResponseDto;
 import com.kep.portal.model.dto.issue.IssueSupportSearchDetailDto;
@@ -93,7 +94,7 @@ public class IssueSupportController {
 	@GetMapping("/manager")
 	@PreAuthorize("hasAnyAuthority('WRITE_SUPPORT')")
 	public ResponseEntity<ApiResult<List<IssueSupportDetailDto>>> get(
-			@ParameterObject @ModelAttribute IssueSupportSearchDto issueSupportSearchDto,
+			@ParameterObject @QueryParam IssueSupportSearchDto issueSupportSearchDto,
 			@SortDefault.SortDefaults({@SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)})
 			@ParameterObject Pageable pageable) throws Exception {
 
