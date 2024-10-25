@@ -5,11 +5,11 @@ import java.util.List;
 import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
 
-import com.kep.portal.model.entity.privilege.Role;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -153,20 +153,19 @@ public class RoleController {
 		log.info("ROLE, PUT, BODY: {}", role);
 		role.setId(id);
 
-		role = roleService.store(role, id);
 
-		if(role != null){
-			ApiResult<RoleDto> response = ApiResult.<RoleDto>builder()
-					.code(ApiResultCode.succeed)
-					.payload(role)
-					.build();
-
-			return new ResponseEntity<>(response, HttpStatus.CREATED);
+		// todo 일단 공통 RestExceptionHandler를 건드리는 건 좋지 않다고 생각되어서 try catch로 처리 추후 RestExceptionHandler의 로직을 수정 하는 방향으로 변경
+		try{
+			role = roleService.store(role, id);
 		}
-		ApiResult<RoleDto> response = ApiResult.<RoleDto>builder()
-				.code(ApiResultCode.failed)
-				.build();
+		catch (DataIntegrityViolationException e) {
+			ApiResult<RoleDto> response = ApiResult.<RoleDto>builder().code(ApiResultCode.failed).build();
+			return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+		}
 
-		return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+		ApiResult<RoleDto> response = ApiResult.<RoleDto>builder().code(ApiResultCode.succeed)
+																  .payload(role)
+																  .build();
+		return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}
 }
