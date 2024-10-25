@@ -294,21 +294,15 @@ public class EventByOperatorService {
 
         log.info("uploadPlatformRequestDto: {}",uploadPlatformRequestDto);
 
-        // [KICA-290] - 모든 파일 업로드 가능하도록 임시 협의
-        String platformUploadUrl = platformClient.uploadFile(issueMapper.map(issue), uploadPlatformRequestDto);
-        String sourceUrl = convertURL(platformUploadUrl);
-        /*
+        // 이미지 업로드 문제로 인하여 원복
+        String platformUploadUrl;
+        String sourceUrl;
         if (uploadUtils.isImage(multipartFile)) {
             platformUploadUrl = platformClient.uploadImage(issueMapper.map(issue), uploadPlatformRequestDto);
-            sourceUrl = platformUploadUrl;
-            // sourceUrl = convertURL(sourceUrl);
-
         } else {
             platformUploadUrl = platformClient.uploadFile(issueMapper.map(issue), uploadPlatformRequestDto);
-            sourceUrl = platformUploadUrl;
-            // sourceUrl = convertURL(sourceUrl);
         }
-         */
+        sourceUrl = convertURL(platformUploadUrl);
         log.info("platformUploadUrl: {}", sourceUrl);
 
         //upload save

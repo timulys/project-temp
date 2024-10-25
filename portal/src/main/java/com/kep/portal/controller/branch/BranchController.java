@@ -224,7 +224,7 @@ public class BranchController {
             log.info("BRANCH DUPLICATION ERROR :  ", e );
             throw new BizException(systemMessageProperty.getValidation().getDuplication().getBranch());
         } catch (Exception exception){
-            log.info("BRANCH DUPLICATION ERROR :  ", exception );
+            log.info("BRANCH Create Exception :  ", exception );
             throw new BizException(exception.getMessage());
         }
     }
