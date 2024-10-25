@@ -299,14 +299,10 @@ public class EventByOperatorService {
         String sourceUrl;
         if (uploadUtils.isImage(multipartFile)) {
             platformUploadUrl = platformClient.uploadImage(issueMapper.map(issue), uploadPlatformRequestDto);
-            sourceUrl = platformUploadUrl;
-            sourceUrl = convertURL(sourceUrl);
         } else {
             platformUploadUrl = platformClient.uploadFile(issueMapper.map(issue), uploadPlatformRequestDto);
-            sourceUrl = platformUploadUrl;
-            sourceUrl = convertURL(sourceUrl);
         }
-
+        sourceUrl = convertURL(platformUploadUrl);
         log.info("platformUploadUrl: {}", sourceUrl);
 
         //upload save
