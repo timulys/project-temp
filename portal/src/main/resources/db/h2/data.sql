@@ -353,39 +353,39 @@ VALUES (133, 3, null, null, 'Y', null, 'N', '상담포털', '대화목록', '상
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
 VALUES (200, 1, null, null, 'Y', null, 'N', '상담관리', null, null, null, 'Y', 200, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (210, 2, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '대시보드', null, null, 'Y', 210, 200);
+VALUES (210, 2, null, null, 'Y', null, 'N', '상담관리', '대시보드', null, null, 'Y', 210, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (211, 3, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '대시보드', '대시보드', null, 'Y', 211, 200);
+VALUES (211, 3, null, null, 'Y', null, 'N', '상담관리', '대시보드', '대시보드', null, 'Y', 211, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (220, 2, null, null, 'Y', null, 'N', '상담관리', '요청관리', null, null, 'Y', 220, 200);
+VALUES (220, 2, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '요청관리', null, null, 'Y', 220, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (221, 3, null, null, 'Y', null, 'N', '상담관리', '요청관리', '상담 지원 요청', null, 'Y', 221, 200);
+VALUES (221, 3, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '요청관리', '상담 지원 요청', null, 'Y', 221, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (222, 3, null, null, 'Y', null, 'N', '상담관리', '요청관리', '톡 발송 요청', null, 'Y', 222, 200);
+VALUES (222, 3, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '요청관리', '톡 발송 요청', null, 'Y', 222, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
 VALUES (230, 2, null, null, 'Y', null, 'N', '상담관리', '상담', null, null, 'Y', 230, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
 VALUES (231, 3, null, null, 'Y', null, 'N', '상담관리', '상담', '상담 진행 목록', null, 'Y', 231, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (232, 3, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '상담', '상담 이력', null, 'Y', 232, 200);
+VALUES (232, 3, null, null, 'Y', null, 'N', '상담관리', '상담', '상담 이력', null, 'Y', 232, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (233, 3, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '상담', '톡 발송 이력', null, 'Y', 233, 200);
+VALUES (233, 3, null, null, 'Y', null, 'N', '상담관리', '상담', '톡 발송 이력', null, 'Y', 233, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (234, 3, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '상담', '톡 발송 예약 목록', null, 'Y', 234, 200);
+VALUES (234, 3, null, null, 'Y', null, 'N', '상담관리', '상담', '톡 발송 예약 목록', null, 'Y', 234, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (235, 3, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '상담', '파일 전송 이력', null, 'Y', 235, 200);
+VALUES (235, 3, null, null, 'Y', null, 'N', '상담관리', '상담', '파일 전송 이력', null, 'Y', 235, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (240, 2, null, null, 'Y', null, 'N', '상담관리', '상담지원', null, null, 'Y', 240, 200);
+VALUES (240, 2, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '상담지원', null, null, 'Y', 240, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (241, 3, null, null, 'Y', null, 'N', '상담관리', '상담지원', '공지사항', null, 'Y', 241, 200);
+VALUES (241, 3, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '상담지원', '공지사항', null, 'Y', 241, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (242, 3, null, null, 'Y', null, 'N', '상담관리', '상담지원', '상담가이드', null, 'Y', 242, 200);
+VALUES (242, 3, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '상담지원', '상담가이드', null, 'Y', 242, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (245, 3, null, null, 'N', null, 'N', '상담관리', '상담지원', '상품설명서', null, 'Y', 245, 200);
+VALUES (245, 3, 'OPERATOR', null, 'N', null, 'N', '상담관리', '상담지원', '상품설명서', null, 'Y', 245, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (246, 3, null, null, 'Y', null, 'N', '상담관리', '상담지원', '템플릿 관리', null, 'Y', 246, 200);
+VALUES (246, 3, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '상담지원', '템플릿 관리', null, 'Y', 246, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (247, 3, null, null, 'Y', null, 'N', '상담관리', '상담지원', '상담 보조 콘텐츠', null, 'Y', 247, 200);
+VALUES (247, 3, 'OPERATOR', null, 'Y', null, 'N', '상담관리', '상담지원', '상담 보조 콘텐츠', null, 'Y', 247, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
 VALUES (250, 2, null, null, 'N', null, 'N', '상담관리', '톡 발송 관리', null, null, 'Y', 250, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
@@ -395,29 +395,29 @@ VALUES (260, 2, null, null, 'N', null, 'N', '상담관리', '통계', null, null
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
 VALUES (261, 3, null, null, 'N', null, 'N', '상담관리', '통계', '통계', null, 'Y', 261, 200);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (300, 1, 'OPERATOR', null, 'Y', null, 'Y', '시스템설정', null, null, null, 'Y', 300, 300);
+VALUES (300, 1, 'OPERATOR,MANAGER', null, 'Y', null, 'Y', '시스템설정', null, null, null, 'Y', 300, 300);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (310, 2, 'OPERATOR', null, 'Y', null, 'Y', '시스템설정', '계정 관리', null, null, 'Y', 310, 300);
+VALUES (310, 2, 'OPERATOR,MANAGER', null, 'Y', null, 'Y', '시스템설정', '계정 관리', null, null, 'Y', 310, 300);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (311, 3, 'OPERATOR', null, 'Y', null, 'Y', '시스템설정', '계정 관리', '권한 관리', null, 'N', 311, 300);
+VALUES (311, 3, 'OPERATOR,MANAGER', null, 'Y', null, 'Y', '시스템설정', '계정 관리', '권한 관리', null, 'N', 311, 300);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (312, 3, 'OPERATOR', null, 'Y', null, 'Y', '시스템설정', '계정 관리', '브랜치/채널 관리', null, 'N', 312, 300);
+VALUES (312, 3, 'OPERATOR,MANAGER', null, 'Y', null, 'Y', '시스템설정', '계정 관리', '브랜치/채널 관리', null, 'N', 312, 300);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (314, 3, 'OPERATOR', null, 'Y', null, 'Y', '시스템설정', '계정 관리', '계정 관리', null, 'Y', 314, 300);
+VALUES (314, 3, 'OPERATOR,MANAGER', null, 'Y', null, 'Y', '시스템설정', '계정 관리', '계정 관리', null, 'Y', 314, 300);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (320, 2, 'OPERATOR', null, 'Y', null, 'N', '시스템설정', '상담 설정', null, null, 'Y', 320, 300);
+VALUES (320, 2, 'OPERATOR,MANAGER', null, 'Y', null, 'N', '시스템설정', '상담 설정', null, null, 'Y', 320, 300);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (321, 3, 'OPERATOR', null, 'Y', null, 'N', '시스템설정', '상담 설정', '근무 조건 설정', null, 'Y', 321, 300);
+VALUES (321, 3, 'OPERATOR,MANAGER', null, 'Y', null, 'N', '시스템설정', '상담 설정', '근무 조건 설정', null, 'Y', 321, 300);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (322, 3, 'OPERATOR', null, 'Y', null, 'N', '시스템설정', '상담 설정', '상담 환경 설정', null, 'Y', 322, 300);
+VALUES (322, 3, 'OPERATOR,MANAGER', null, 'Y', null, 'N', '시스템설정', '상담 설정', '상담 환경 설정', null, 'Y', 322, 300);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (323, 3, 'OPERATOR', null, 'Y', null, 'N', '시스템설정', '상담 설정', '자동메세지 설정', null, 'Y', 323, 300);
+VALUES (323, 3, 'OPERATOR,MANAGER', null, 'Y', null, 'N', '시스템설정', '상담 설정', '자동메세지 설정', null, 'Y', 323, 300);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (325, 3, 'OPERATOR', null, 'Y', null, 'N', '시스템설정', '상담 설정', '상담 배분 설정', null, 'Y', 325, 300);
+VALUES (325, 3, 'OPERATOR,MANAGER', null, 'Y', null, 'N', '시스템설정', '상담 설정', '상담 배분 설정', null, 'Y', 325, 300);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (390, 2, 'OPERATOR', null, 'N', null, 'N', '시스템설정', '서비스 관리', null, null, 'Y', 390, 300);
+VALUES (390, 2, 'OPERATOR,MANAGER', null, 'N', null, 'N', '시스템설정', '서비스 관리', null, null, 'Y', 390, 300);
 INSERT INTO MENU (ID, DEPTH, DISABLED_LEVELS, DISPLAY, ENABLED, LINK, MASTER_ENABLED, NAME1, NAME2, NAME3, NAME4, ROLE_ENABLED, SORT, TOP_ID)
-VALUES (391, 3, 'OPERATOR', null, 'N', null, 'Y', '시스템설정', '서비스 관리', '서비스 이용 내역', null, 'Y', 391, 300);
+VALUES (391, 3, 'OPERATOR,MANAGER', null, 'N', null, 'Y', '시스템설정', '서비스 관리', '서비스 이용 내역', null, 'Y', 391, 300);
 
 -- ////////////////////////////////////////////////////////////////////////////
 -- 권한 (Static)

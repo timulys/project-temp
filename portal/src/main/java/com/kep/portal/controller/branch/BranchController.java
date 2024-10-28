@@ -12,6 +12,7 @@ import com.kep.core.model.dto.work.OfficeHoursDto;
 import com.kep.core.model.dto.work.OfficeWorkDto;
 import com.kep.core.model.dto.work.WorkType;
 import com.kep.core.model.exception.BizException;
+import com.kep.portal.config.property.SystemMessageProperty;
 import com.kep.portal.model.dto.branch.BranchDtoWithRole;
 import com.kep.portal.model.dto.team.TeamMembersDto;
 import com.kep.portal.model.entity.team.Team;
@@ -61,6 +62,9 @@ public class BranchController {
 
     @Resource
     private CounselEnvService counselEnvService;
+
+    @Resource
+    private SystemMessageProperty systemMessageProperty;
 
     /**
      * 활성 / 비활성
@@ -209,18 +213,20 @@ public class BranchController {
     @Tag(name = "브랜치 API")
     @Operation(summary = "브랜치 생성", description = "브랜치 생성")
     @PreAuthorize("hasAnyRole('ROLE_MASTER')")
-    public ResponseEntity<ApiResult<BranchDto>> create(
-            @RequestBody @Valid BranchDto branchDto) {
-
-        BranchDto branch = branchService.store(branchDto);
-
-        ApiResult<BranchDto> response = ApiResult.<BranchDto>builder()
-                .code(ApiResultCode.succeed)
-                .payload(branch)
-                .build();
-
-        return new ResponseEntity<>(response , HttpStatus.CREATED);
-
+    public ResponseEntity<ApiResult<BranchDto>> create(@RequestBody @Valid BranchDto branchDto) {
+        try {
+            BranchDto branch =  branchService.store(branchDto);
+            ApiResult<BranchDto> response = ApiResult.<BranchDto>builder().code(ApiResultCode.succeed)
+                                                                          .payload(branch)
+                                                                          .build();
+            return new ResponseEntity<>(response , HttpStatus.CREATED);
+        } catch (DataIntegrityViolationException e) {
+            log.info("BRANCH DUPLICATION ERROR :  ", e );
+            throw new BizException(systemMessageProperty.getValidation().getDuplication().getBranch());
+        } catch (Exception exception){
+            log.info("BRANCH Create Exception :  ", exception );
+            throw new BizException(exception.getMessage());
+        }
     }
 
     /**
@@ -429,7 +435,7 @@ public class BranchController {
                 Map<String, Object> extra = new HashMap<>();
                 extra.put("branch_id",dto.getBranchId());
                 extra.put("params",dto.getParams());
-                throw new BizException("SB-SA-005-001", "SB-SA-005-001" , extra);
+                throw new BizException(systemMessageProperty.getValidation().getDuplication().getConsultationFunnel(), "SB-SA-005-001" , extra);
             } else {
                 throw new BizException();
             }

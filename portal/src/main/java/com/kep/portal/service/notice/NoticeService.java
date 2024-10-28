@@ -4,6 +4,7 @@ import java.io.File;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -217,7 +218,7 @@ public class NoticeService {
 	/**
 	 * 공통 팝업 > 공지사항 목록 조회
 	 */
-	public Page<NoticeResponseDto> getList(String keyword, String type,@NotNull Pageable pageable,boolean fixation) {
+	public Page<NoticeResponseDto> getList(String keyword, String type,@NotNull Pageable pageable, Boolean fixation) {
 
 		// [2023.03.28 / philip.lee7 / MemberId 추가]
 		Page<Notice> noticepPage =  noticeRepository.searchList(keyword, type, securityUtils.getBranchId(),securityUtils.getMemberId(), pageable , fixation);

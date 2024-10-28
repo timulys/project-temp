@@ -294,19 +294,15 @@ public class EventByOperatorService {
 
         log.info("uploadPlatformRequestDto: {}",uploadPlatformRequestDto);
 
+        // 이미지 업로드 문제로 인하여 원복
         String platformUploadUrl;
         String sourceUrl;
         if (uploadUtils.isImage(multipartFile)) {
             platformUploadUrl = platformClient.uploadImage(issueMapper.map(issue), uploadPlatformRequestDto);
-            sourceUrl = platformUploadUrl;
-            sourceUrl = convertURL(sourceUrl);
-
         } else {
             platformUploadUrl = platformClient.uploadFile(issueMapper.map(issue), uploadPlatformRequestDto);
-            sourceUrl = platformUploadUrl;
-            sourceUrl = convertURL(sourceUrl);
-
         }
+        sourceUrl = convertURL(platformUploadUrl);
         log.info("platformUploadUrl: {}", sourceUrl);
 
         //upload save
