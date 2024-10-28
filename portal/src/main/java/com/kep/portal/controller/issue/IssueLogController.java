@@ -79,6 +79,7 @@ public class IssueLogController {
 				.totalPage(page.getTotalPages())
 				.totalElement(page.getTotalElements())
 				.currentPage(page.getNumber())
+				.hasNext(page.hasNext())
 				.build();
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}

@@ -316,6 +316,8 @@ public class GuideCategoryService {
         boolean headQuartersAdmin = isHeadQuartersAdmin(); //본사 관리자 여부
         Assert.notNull(branch, "Not Found Branch");
 
+        if (!securityUtils.isAdmin()) throw new BizException("save only can admin");
+
         if (branch.getMaxGuideCategoryDepth() == 0) throw new IllegalStateException("Guide category depth is not initialized");
         Long memberId = securityUtils.getMemberId();
 //        Long memberId = 1L;//FIXME ::  테스트 후 제거
