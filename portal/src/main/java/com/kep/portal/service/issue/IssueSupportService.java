@@ -11,6 +11,7 @@ import com.kep.core.model.dto.work.WorkType;
 import com.kep.core.model.exception.BizException;
 import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.config.property.SocketProperty;
+import com.kep.portal.config.property.SystemMessageProperty;
 import com.kep.portal.model.dto.issue.IssueSupportDetailDto;
 import com.kep.portal.model.dto.issue.IssueSupportHistoryResponseDto;
 import com.kep.portal.model.dto.issue.IssueSupportSearchDetailDto;
@@ -172,6 +173,9 @@ public class IssueSupportService {
 
 	@Resource
 	private TeamService teamService;
+
+	@Resource
+	private SystemMessageProperty systemMessageProperty;
 
 	public IssueSupport save(@NotNull @Valid IssueSupport entity) {
 		return issueSupportRepository.save(entity);
@@ -846,7 +850,7 @@ public class IssueSupportService {
 	}
 
 
-	public void assignByMember(@NotNull List<Long> issueIds, @NotNull @Positive Long memberId) throws Exception {
+	public String assignByMember(@NotNull List<Long> issueIds, @NotNull @Positive Long memberId) throws Exception {
 		Member member = memberService.findById(memberId);
 		Assert.notNull(member, "member is not found");
 		Assert.isTrue(member.getEnabled(), "member is disabled");
@@ -854,17 +858,19 @@ public class IssueSupportService {
 		for (Long issueId : issueIds) {
 			Issue issue = issueService.findById(issueId);
 			if(!this.isWorkingMember(memberId)){
-				continue;
+				return systemMessageProperty.getValidation().getTransfer().getCounselingStaff();
 			}
+
 			if (!this.storeIssueSupportValCheckUseIssue(memberId, issue) ) {
-				continue;
+				return systemMessageProperty.getValidation().getTransfer().getCounselingStaff();
 			}
 			IssueSupportHistory issueSupportHistory = this.storeIssueSupportAndResultIssueSupportHistory(issue , IssueSupportChangeType.select , memberId , null);
 			eventByManagerService.assignByMember(issueId , memberId , issueSupportHistory  );
 		}
+		return null;
 	}
 
-	public void assignByBranch(@NotNull List<Long> issueIds, @NotNull @Positive Long branchId) {
+	public String assignByBranch(@NotNull List<Long> issueIds, @NotNull @Positive Long branchId) {
 		Branch branch = branchService.findById(branchId);
 		Assert.notNull(branch, "branch is not found");
 		Assert.isTrue(branch.getEnabled(), "branch is disabled");
@@ -872,14 +878,15 @@ public class IssueSupportService {
 		for (Long issueId : issueIds) {
 			Issue issue = issueService.findById(issueId);
 			if (!this.storeIssueSupportValCheckUseIssue(issueId, issue) ) {
-				continue;
+				return systemMessageProperty.getValidation().getTransfer().getCounselingStaff();
 			}
 			IssueSupportHistory issueSupportHistory = this.storeIssueSupportAndResultIssueSupportHistory(issue, IssueSupportChangeType.auto , null  , branchId);
 			eventByManagerService.assignByBranch(issueId , branchId , issueSupportHistory);
 		}
+		return null;
 	}
 
-	public void assignByCategory(@NotNull List<Long> issueIds, @NotNull @Positive Long issueCategoryId , @Positive Long issueBranchId) {
+	public String assignByCategory(@NotNull List<Long> issueIds, @NotNull @Positive Long issueCategoryId , @Positive Long issueBranchId) {
 
 		IssueCategory issueCategory = issueCategoryService.findById(issueCategoryId);
 		Assert.notNull(issueCategory, "issueCategory is not found");
@@ -888,11 +895,12 @@ public class IssueSupportService {
 		for (Long issueId : issueIds) {
 			Issue issue = issueService.findById(issueId);
 			if (!this.storeIssueSupportValCheckUseIssue(issueId, issue) ) {
-				continue;
+				return systemMessageProperty.getValidation().getTransfer().getCounselingStaff();
 			}
 			IssueSupportHistory issueSupportHistory = this.storeIssueSupportAndResultIssueSupportHistory(issue , IssueSupportChangeType.auto , null , issueBranchId);
 			eventByManagerService.assignByCategory(issueId , issueCategoryId , issueSupportHistory );
 		}
+		return null;
 	}
 
 
