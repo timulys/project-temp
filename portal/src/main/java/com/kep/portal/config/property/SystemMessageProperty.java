@@ -215,12 +215,19 @@ public class SystemMessageProperty {
     public static class Validation {
 
         private Validation.Duplication duplication;
+        private Validation.Transfer transfer;
 
         @Data
         @NoArgsConstructor
         public static class Duplication {
             private String branch;
             private String consultationFunnel;
+        }
+
+        @Data
+        @NoArgsConstructor
+        public static class Transfer {
+            private String counselingStaff;
         }
     }
 }

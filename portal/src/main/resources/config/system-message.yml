@@ -99,3 +99,6 @@ system-message:
     duplication:
       consultation-funnel: 해당 변수명은 이미 존재하거나 삭제된 상태입니다. 다른 이름으로 저장해주세요.
       branch: 이미 존재하는 브랜치명입니다.
+    # 상담원 전환 오류
+    transfer:
+      counseling-staff: 상담직원배정에 실패 되었습니다.

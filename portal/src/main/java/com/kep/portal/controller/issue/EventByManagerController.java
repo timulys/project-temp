@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 이슈 관련 매니저 이벤트
@@ -45,7 +46,7 @@ public class EventByManagerController {
 	@Operation(summary = "상담 직원 배정", description = "상담 관리 > 상담 진행 목록 > 상담 직원 배정")
 	@PostMapping(value = "/assign")
 	@PreAuthorize("hasAnyAuthority('WRITE_ISSUE_OPEN')")
-	public ResponseEntity<ApiResult<IssueDto>> assign(
+	public ResponseEntity<ApiResult<String>> assign(
 			@Parameter(description = "이슈 아이디 목록", required = true)
 			@RequestParam(value = "issue_id") List<Long> issueIds,
 			@Parameter(description = "사용자 아이디")
@@ -58,16 +59,25 @@ public class EventByManagerController {
 		log.info("EVENT BY MANAGER, ASSIGN, ISSUES: {}, MEMBER: {}, BRANCH: {}, CATEGORY: {}",
 				issueIds, memberId, branchId, issueCategoryId);
 
+		String errorMessage = null;
 		if (!ObjectUtils.isEmpty(memberId)) {
-			issueSupportService.assignByMember(issueIds, memberId);
+			errorMessage = issueSupportService.assignByMember(issueIds, memberId);
 		}  else if (!ObjectUtils.isEmpty(issueCategoryId)) {
-			issueSupportService.assignByCategory(issueIds, issueCategoryId , branchId);
+			errorMessage = issueSupportService.assignByCategory(issueIds, issueCategoryId , branchId);
 		} else if (!ObjectUtils.isEmpty(branchId)) {
-			issueSupportService.assignByBranch(issueIds, branchId);
+			errorMessage = issueSupportService.assignByBranch(issueIds, branchId);
 		}
 		else {
 			log.error("EVENT BY MANAGER, ASSIGN, ASSIGN OBJECT IS NULL");
 			return new ResponseEntity<>(new ApiResult<>(ApiResultCode.failed), HttpStatus.NOT_ACCEPTABLE);
+		}
+
+		if(Objects.nonNull(errorMessage)){
+			ApiResult response = ApiResult.builder()
+					.code(ApiResultCode.failed)
+					.message(errorMessage)
+					.build();
+			return new ResponseEntity<>(response, HttpStatus.NOT_ACCEPTABLE);
 		}
 
 		return new ResponseEntity<>(new ApiResult<>(ApiResultCode.succeed), HttpStatus.CREATED);
