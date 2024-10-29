@@ -54,18 +54,21 @@ public class EventByManagerController {
 			@Parameter(description = "브랜치 아이디")
 			@RequestParam(value = "branch_id", required = false) Long branchId,
 			@Parameter(description = "이슈 카테고리 아이디")
-			@RequestParam(value = "issue_category_id", required = false) Long issueCategoryId) throws Exception {
+			@RequestParam(value = "issue_category_id", required = false) Long issueCategoryId,
+			@Parameter(description = "변경사유")
+			@RequestParam(value = "question", required = false) String question
+			) throws Exception {
 
-		log.info("EVENT BY MANAGER, ASSIGN, ISSUES: {}, MEMBER: {}, BRANCH: {}, CATEGORY: {}",
-				issueIds, memberId, branchId, issueCategoryId);
+		log.info("EVENT BY MANAGER, ASSIGN, ISSUES: {}, MEMBER: {}, BRANCH: {}, CATEGORY: {}, QUESTION : {} " ,
+				issueIds, memberId, branchId, issueCategoryId, question );
 
 		String errorMessage = null;
 		if (!ObjectUtils.isEmpty(memberId)) {
-			errorMessage = issueSupportService.assignByMember(issueIds, memberId);
+			errorMessage = issueSupportService.assignByMember(issueIds, memberId , question);
 		}  else if (!ObjectUtils.isEmpty(issueCategoryId)) {
-			errorMessage = issueSupportService.assignByCategory(issueIds, issueCategoryId , branchId);
+			errorMessage = issueSupportService.assignByCategory(issueIds, issueCategoryId , branchId , question);
 		} else if (!ObjectUtils.isEmpty(branchId)) {
-			errorMessage = issueSupportService.assignByBranch(issueIds, branchId);
+			errorMessage = issueSupportService.assignByBranch(issueIds, branchId , question);
 		}
 		else {
 			log.error("EVENT BY MANAGER, ASSIGN, ASSIGN OBJECT IS NULL");
