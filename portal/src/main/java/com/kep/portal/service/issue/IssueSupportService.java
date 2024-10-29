@@ -850,7 +850,7 @@ public class IssueSupportService {
 	}
 
 
-	public String assignByMember(@NotNull List<Long> issueIds, @NotNull @Positive Long memberId) throws Exception {
+	public String assignByMember(@NotNull List<Long> issueIds, @NotNull @Positive Long memberId , String question) throws Exception {
 		Member member = memberService.findById(memberId);
 		Assert.notNull(member, "member is not found");
 		Assert.isTrue(member.getEnabled(), "member is disabled");
@@ -864,13 +864,13 @@ public class IssueSupportService {
 			if (!this.storeIssueSupportValCheckUseIssue(memberId, issue) ) {
 				return systemMessageProperty.getValidation().getTransfer().getCounselingStaff();
 			}
-			IssueSupportHistory issueSupportHistory = this.storeIssueSupportAndResultIssueSupportHistory(issue , IssueSupportChangeType.select , memberId , null);
+			IssueSupportHistory issueSupportHistory = this.storeIssueSupportAndResultIssueSupportHistory(issue , IssueSupportChangeType.select , memberId , null , question);
 			eventByManagerService.assignByMember(issueId , memberId , issueSupportHistory  );
 		}
 		return null;
 	}
 
-	public String assignByBranch(@NotNull List<Long> issueIds, @NotNull @Positive Long branchId) {
+	public String assignByBranch(@NotNull List<Long> issueIds, @NotNull @Positive Long branchId, String question) {
 		Branch branch = branchService.findById(branchId);
 		Assert.notNull(branch, "branch is not found");
 		Assert.isTrue(branch.getEnabled(), "branch is disabled");
@@ -880,13 +880,13 @@ public class IssueSupportService {
 			if (!this.storeIssueSupportValCheckUseIssue(issueId, issue) ) {
 				return systemMessageProperty.getValidation().getTransfer().getCounselingStaff();
 			}
-			IssueSupportHistory issueSupportHistory = this.storeIssueSupportAndResultIssueSupportHistory(issue, IssueSupportChangeType.auto , null  , branchId);
+			IssueSupportHistory issueSupportHistory = this.storeIssueSupportAndResultIssueSupportHistory(issue, IssueSupportChangeType.auto , null  , branchId , question);
 			eventByManagerService.assignByBranch(issueId , branchId , issueSupportHistory);
 		}
 		return null;
 	}
 
-	public String assignByCategory(@NotNull List<Long> issueIds, @NotNull @Positive Long issueCategoryId , @Positive Long issueBranchId) {
+	public String assignByCategory(@NotNull List<Long> issueIds, @NotNull @Positive Long issueCategoryId , @Positive Long issueBranchId , String question) {
 
 		IssueCategory issueCategory = issueCategoryService.findById(issueCategoryId);
 		Assert.notNull(issueCategory, "issueCategory is not found");
@@ -897,22 +897,26 @@ public class IssueSupportService {
 			if (!this.storeIssueSupportValCheckUseIssue(issueId, issue) ) {
 				return systemMessageProperty.getValidation().getTransfer().getCounselingStaff();
 			}
-			IssueSupportHistory issueSupportHistory = this.storeIssueSupportAndResultIssueSupportHistory(issue , IssueSupportChangeType.auto , null , issueBranchId);
+			IssueSupportHistory issueSupportHistory = this.storeIssueSupportAndResultIssueSupportHistory(issue , IssueSupportChangeType.auto , null , issueBranchId , question);
 			eventByManagerService.assignByCategory(issueId , issueCategoryId , issueSupportHistory );
 		}
 		return null;
 	}
 
 
-	public IssueSupportHistory storeIssueSupportAndResultIssueSupportHistory(@NotNull Issue issue , @NotNull IssueSupportChangeType issueSupportChangeType , Long memberId  , Long branchId )  {
+	public IssueSupportHistory storeIssueSupportAndResultIssueSupportHistory(@NotNull Issue issue , @NotNull IssueSupportChangeType issueSupportChangeType , Long memberId  , Long branchId , String question )  {
 
 		IssueSupport issueSupport = IssueSupport.builder().answerer(property.getSystemMemberId())
 														  .changeType(issueSupportChangeType)
 														  .type(IssueSupportType.change)
 														  .issue(issue)
-														  .answerModified(ZonedDateTime.now())
 														  .questioner(issue.getMember().getId())
 														  .questionModified(ZonedDateTime.now())
+														  .question(question)
+														  // 아래 피드백 내용 확인 필요 auto의 경우 answer이 없어서 사실 피드백 내용이 toast에 안보임..
+													      //.answer(question)
+														  //.answerer(securityUtils.getMemberId())
+														  //.answerModified(ZonedDateTime.now())
 														  .creator(securityUtils.getMemberId())
 														  .created(ZonedDateTime.now())
 														  .selectMemberId(memberId)
