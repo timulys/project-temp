@@ -222,6 +222,7 @@ public class SystemMessageProperty {
         public static class Duplication {
             private String branch;
             private String consultationFunnel;
+            private String channelKey;
         }
 
         @Data
