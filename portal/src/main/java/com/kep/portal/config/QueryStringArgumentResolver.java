@@ -73,12 +73,6 @@ public class QueryStringArgumentResolver implements HandlerMethodArgumentResolve
                         queryParam.put(param, request.getParameterValues(param));
                     }
                 }
-                // todo 리팩토링 예정으로 알고있어서 일단 되게만 해놓음 관련 jira :
-                else if (parameter.getParameterType().equals(IssueSupportSearchDto.class)) {
-                    if ("type".equalsIgnoreCase(param) || "status".equalsIgnoreCase(param)) {
-                        queryParam.put(param, request.getParameterValues(param));
-                    }
-                }
             } else {
                 queryParam.put(param, request.getParameterValues(param));
             }
