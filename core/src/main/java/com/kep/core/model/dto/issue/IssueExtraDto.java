@@ -1,16 +1,14 @@
 package com.kep.core.model.dto.issue;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kep.core.model.dto.legacy.LegacyBnkCategoryDto;
-import com.kep.core.model.dto.member.MemberDto;
 import com.kep.core.model.dto.subject.IssueCategoryDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.Length;
 
-import javax.validation.constraints.Size;
 import java.time.ZonedDateTime;
 
 /**
@@ -54,6 +52,7 @@ public class IssueExtraDto {
 	 * 메모
 	 */
 	@Schema(description = "메모")
+	@Length(max = 200)
 	private String memo;
 	@Schema(description = "메모 수정일시")
 	private ZonedDateTime memoModified;
