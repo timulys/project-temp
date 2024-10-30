@@ -10,19 +10,18 @@ import com.kep.core.model.dto.system.SystemEnvEnum;
 import com.kep.core.model.dto.system.SystemIssuePayloadDto;
 import com.kep.core.model.exception.BizException;
 import com.kep.portal.config.property.SystemMessageProperty;
-import com.kep.portal.model.entity.branch.*;
+import com.kep.portal.model.entity.branch.Branch;
+import com.kep.portal.model.entity.branch.BranchChannel;
+import com.kep.portal.model.entity.branch.BranchChannelMapper;
+import com.kep.portal.model.entity.branch.BranchMapper;
 import com.kep.portal.model.entity.channel.Channel;
 import com.kep.portal.model.entity.channel.ChannelMapper;
-import com.kep.portal.model.entity.member.Member;
-import com.kep.portal.model.entity.privilege.Level;
-import com.kep.portal.model.entity.team.TeamMember;
 import com.kep.portal.repository.branch.BranchChannelRepository;
 import com.kep.portal.repository.channel.ChannelRepository;
 import com.kep.portal.service.branch.BranchChannelService;
 import com.kep.portal.service.branch.BranchService;
 import com.kep.portal.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -157,7 +156,7 @@ public class ChannelService {
 				Map<String, Object> extra = new HashMap<>();
 				extra.put("platform",dto.getPlatform());
 				extra.put("search_key",dto.getServiceKey());
-				throw new BizException("SB-SA-001-001", "SB-SA-001-001" , extra);
+				throw new BizException(systemMessageProperty.getValidation().getDuplication().getChannelKey(), "SB-SA-001-001" , extra);
 			} else {
 				throw new BizException();
 			}
