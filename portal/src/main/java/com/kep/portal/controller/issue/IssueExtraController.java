@@ -180,7 +180,7 @@ public class IssueExtraController {
 	public ResponseEntity<ApiResult<IssueExtraDto>> postMemo(
 			@Parameter(description = "이슈 아이디", in = ParameterIn.PATH, required = true)
 			@PathVariable("issueId") Long issueId,
-			@RequestBody IssueExtraDto issueExtraDto) throws Exception {
+			@RequestBody @Valid IssueExtraDto issueExtraDto) throws Exception {
 
 		log.info("ISSUE EXTRA, MEMO, POST, ISSUE: {}, BODY: {}", issueId, issueExtraDto);
 
