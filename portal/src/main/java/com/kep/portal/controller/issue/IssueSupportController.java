@@ -94,7 +94,7 @@ public class IssueSupportController {
 	@GetMapping("/manager")
 	@PreAuthorize("hasAnyAuthority('WRITE_SUPPORT')")
 	public ResponseEntity<ApiResult<List<IssueSupportDetailDto>>> get(
-			@ParameterObject @QueryParam IssueSupportSearchDto issueSupportSearchDto,
+			@ParameterObject @ModelAttribute IssueSupportSearchDto issueSupportSearchDto,
 			@SortDefault.SortDefaults({@SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)})
 			@ParameterObject Pageable pageable) throws Exception {
 
