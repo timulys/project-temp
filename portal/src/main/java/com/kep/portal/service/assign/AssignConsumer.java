@@ -270,6 +270,10 @@ public class AssignConsumer implements ChannelAwareMessageListener {
 							.payload(issueAssign.getIssueSupport().getAnswer())
 							.build();
 
+					if(IssueSupportStatus.auto == issueAssign.getIssueSupport().getStatus()){
+						notificationDto.setType(NotificationType.done_member_transform_auto);
+					}
+
 					// 상담 이어받기의 경우 알림 아이콘 및 문구가 변경됨으로 변경 처리
 					if (IssueSupportStatus.receive.equals(issueAssign.getIssueSupport().getStatus())) {
 						notificationDto.setIcon(NotificationIcon.system);

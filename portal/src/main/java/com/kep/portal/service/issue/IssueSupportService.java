@@ -415,7 +415,7 @@ public class IssueSupportService {
 
 			issueSupport.setAnswerer(securityUtils.getMemberId());
 			issueSupport.setAnswerModified(ZonedDateTime.now());
-			if (IssueSupportType.change == issueSupport.getType()) {
+			if (IssueSupportType.change == issueSupport.getType() && issueSupport.getSelectMemberId() != null) {
 				issueSupport.setMember(memberService.findById(issueSupport.getSelectMemberId()));
 			}
 

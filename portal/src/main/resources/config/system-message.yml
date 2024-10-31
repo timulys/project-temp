@@ -53,7 +53,8 @@ system-message:
         delay-issue-room: ${상담고객}님에게 온 메시지에 ${m}분이상 답을 하지 않고 있습니다.
         done-member-assignment: 상담직원 배정이 완료되었습니다. 상담고객을 확인해주세요.
         request-member-transform: ${요청 상담직원}님의 상담직원 전환이 요청되었습니다.
-        done-member-transform: ${상담고객}님의 상담직원 전환이 완료되었습니다.
+        done-member-transform: ${상담고객}의 상담이 담당 매니저에 의해 전환되었습니다,
+        done-member-transform-auto: ${상담고객}님의 상담직원 전환이 완료되었습니다.
         refer-member-transform: ${상담고객}님의 상담직원 전환이 반려되었습니다.
         fail-manual-member-transform: ${요청 상담직원}님의 상담직원 전환이 실패되었습니다.
         fail-auto-member-transform: ${상담고객}님의 상담직원 전환이 실패되었습니다.

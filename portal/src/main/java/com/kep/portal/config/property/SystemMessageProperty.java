@@ -138,6 +138,7 @@ public class SystemMessageProperty {
                 private String doneMemberAssignment;
                 private String requestMemberTransform;
                 private String doneMemberTransform;
+                private String doneMemberTransformAuto;
                 private String referMemberTransform;
                 private String failManualMemberTransform;
                 private String failAutoMemberTransform;
