@@ -38,7 +38,7 @@ public class PortalProperty {
 	@NotEmpty
 	private String evaluationLinkUrl;
 
-	private Set<String> allocateExtension;
+	private Set<String> allowedExtension;
 
 	//기존 로직
 	public static final String kakaoCounselTalkBaseUrl = "https://bizmessage.kakao.com/chat";

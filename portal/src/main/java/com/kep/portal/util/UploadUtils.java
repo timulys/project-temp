@@ -1,12 +1,10 @@
 package com.kep.portal.util;
 
+import com.kep.core.model.exception.BizException;
 import com.kep.portal.config.property.PortalProperty;
-import com.mysema.commons.lang.Assert;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -18,6 +16,9 @@ import java.net.FileNameMap;
 import java.net.URLConnection;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -26,6 +27,14 @@ public class UploadUtils {
 
     @Resource
     private PortalProperty portalProperty;
+    //이미지 타입 확장자 : jpg, png, gif
+    // FIXME :: 임시. 에버리 상의 후 확장자 확정되면 프로퍼티로 빼서 수정 -> 현재 자바 8에선 Set.of() 지원 안함
+    // TODO :: 상담톡 스펙상 버튼 링크에 들어가는 이미지는 gif 비허용. 가이드 추가 시 해당 부분 수정인데 파일관련 정책 고도화때 정한다고 했으니 노티만 20241031
+    private static final Set<String> allowedImageFileExtSet = new HashSet<>(Arrays.asList(".jpg", ".png", ".gif"));
+    private static final Set<String> allowedButtonLinkImageFileExtSet = new HashSet<>(Arrays.asList(".jpg", ".png"));
+    private static final long IMAGE_MAX_SIZE = 5 * 1024 * 1024; //5MB
+    private static final long LINK_BUTTON_IMAGE_MAX_SIZE = 500 * 1024; //500kB
+
 
     /**
      * 이미지 체크
@@ -33,16 +42,29 @@ public class UploadUtils {
      * @return
      */
     public boolean isImage(MultipartFile file){
-        String mimeType = getMimeType(file);
+        String mimeType = file.getContentType() == null ? getMimeType(file) : file.getContentType();
+//        String mimeType = getMimeType(file);
         return mimeType.startsWith("image/");
     }
 
+    /**
+     * 파일 확장자 반환 dot 포함 + 소문자 변환
+     * @param originalFilename
+     * @return fileExtension (included dot)
+     */
     public String getExt(@NotBlank String originalFilename) {
-        return originalFilename.substring(originalFilename.lastIndexOf("."));
+        int dotIndex = originalFilename.lastIndexOf(".");
+        return dotIndex == -1 ? "" : originalFilename.substring(dotIndex).toLowerCase();
     }
 
-    public boolean validateExt(String originalFilename) {
-        return portalProperty.getAllocateExtension().contains(getExt(originalFilename).toLowerCase());
+//    public boolean validateExt(String originalFilename) {
+//        return portalProperty.getAllowedExtension().contains(getExt(originalFilename).toLowerCase());
+//    }
+
+    //TODO :: 링크 버튼용 검증 분기 추가
+    private void validImage(@NotNull MultipartFile file) {
+        if (!allowedImageFileExtSet.contains(getExt(file.getOriginalFilename()))) throw new BizException("it's not allowed to upload image. image extension can be jpg, png, gif");
+        if (file.getSize() > IMAGE_MAX_SIZE) throw new BizException("it's not allowed to upload image. image file size is too large");
     }
 
     /**
@@ -55,8 +77,18 @@ public class UploadUtils {
             throw new UnsupportedOperationException("<<CODE>> uploaded file cannot be empty");
         }
 
+        String basePath = null;
+
+        if (isImage(multipartFile)) {
+            validImage(multipartFile);
+            basePath = getDefaultPath("image");
+        } else {
+            //TODO :: file 미디어 타입 별 검증 추가 -> 파일 관련 정책.. 정해지면..
+            basePath = getDefaultPath("file");
+        }
+
         // TODO: 업무(타입)별 디렉토리 생성
-        String basePath = getDefaultPath(isImage(multipartFile) ? "image" : "file");
+//        String basePath = getDefaultPath(isImage(multipartFile) ? "image" : "file");
         log.info("기본 패스 :::::::;; {} ",basePath);
         String fileName = getFileName(multipartFile);
         log.info("파일이름 :::::::;; {} ",fileName);
@@ -97,8 +129,9 @@ public class UploadUtils {
      */
     private String getFileName(MultipartFile file){
         String uuid = UUID.randomUUID().toString();
-        String ext = FilenameUtils.getExtension(file.getOriginalFilename());
-        return uuid + (ObjectUtils.isEmpty(ext) ? "" : "." + ext);
+        return String.format("%s%s", uuid, getExt(file.getOriginalFilename()));
+//        String ext = FilenameUtils.getExtension(file.getOriginalFilename());
+//        return uuid + (ObjectUtils.isEmpty(ext) ? "" : "." + ext);
     }
 
     /**

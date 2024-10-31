@@ -20,7 +20,7 @@ application:
     upload-path: ${application.portal.storage-path}/upload
     upload-url: ${application.portal.service-url}/upload
     #TODO :: 파일 허용 확장자 요건 정해지면 추가 20240717 volka
-    allcate-extension:
+    allowed-extension:
       - ".xlsx"
       - ".jpg"
       - ".jpeg"
