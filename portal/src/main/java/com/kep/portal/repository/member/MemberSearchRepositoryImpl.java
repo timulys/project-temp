@@ -1,6 +1,7 @@
 package com.kep.portal.repository.member;
 
 import com.kep.core.model.dto.member.MemberDto;
+import com.kep.portal.model.dto.member.MemberAssignDto;
 import com.kep.portal.model.dto.member.MemberSearchCondition;
 import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.model.entity.member.QMemberRole;
@@ -22,6 +23,7 @@ import org.springframework.util.ObjectUtils;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 
+import static com.kep.portal.model.entity.branch.QBranch.branch;
 import static com.kep.portal.model.entity.member.QMember.member;
 import static com.kep.portal.model.entity.privilege.QRoleMenu.roleMenu;
 import static com.kep.portal.model.entity.team.QTeam.team;
@@ -57,6 +59,47 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
         return new PageImpl<>(members, pageable, totalElements);
     }
 
+    @Override
+    public Page<MemberAssignDto> searchAssignableMember(@NotNull MemberSearchCondition condition, @NotNull Pageable pageable) {
+
+        Long totalElements = queryFactory.select(member.count())
+                                          .from(member)
+                                          .where(getConditions(condition))
+                                          .fetchFirst();
+
+        QMemberRole orderMemberRole = new QMemberRole("orderMemberRole");
+
+        List<MemberAssignDto> members = Collections.emptyList();
+
+        if (totalElements > 0) {
+            members = queryFactory.select(
+                                            Projections.fields( MemberAssignDto.class,
+                                                                member.id,
+                                                                member.username,
+                                                                member.nickname,
+                                                                member.status,
+                                                                branch.id.as("branchId")
+                                                               )
+                                          )
+                    .from(member)
+                    .join(branch)
+                        .on(member.branchId.eq(branch.id))
+                    .leftJoin(orderMemberRole)
+                        .on(member.id.eq(orderMemberRole.memberId))
+                    .leftJoin(teamMember)
+                        .on(member.id.eq(teamMember.memberId))
+                    .leftJoin(team)
+                        .on(teamMember.team.id.eq(team.id))
+                    .where(getConditions(condition))
+                    .offset(pageable.getOffset())
+                    .limit(pageable.getPageSize())
+                    .groupBy(member.id)
+                    .orderBy(team.id.min().coalesce(9999L).asc() , orderMemberRole.roleId.max().desc() , member.nickname.asc())
+                    .fetch();
+        }
+
+        return new PageImpl<>(members, pageable, totalElements);
+    }
 
     @Override
     public List<MemberDto> findMemberUseTeamId(Long teamId) {
