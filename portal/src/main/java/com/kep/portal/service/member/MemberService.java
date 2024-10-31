@@ -629,14 +629,13 @@ public class MemberService {
 		roles.add(100L);
 		condition.setRoleIds(roles);
 
-		Page<Member> memberPage = memberRepository.search(condition, pageable);
-		List<Member> members = memberPage.getContent();
-		List<MemberAssignDto> memberAssignDtos = memberMapper.mapAssign(memberPage.getContent());
+		// todo 일대다 아닌 경우 querydsl에 join 하여 사용 예정 ( 아래 소스 파악 필요 )
+		Page<MemberAssignDto> memberAssignDtos = memberRepository.searchAssignableMember(condition, pageable);
 
 		log.info("MEMBER ASSIGN LIST {}", memberAssignDtos);
 
 		// 브랜치 이름
-		Set<Long> branchIds = members.stream().map(Member::getBranchId).collect(Collectors.toSet());
+		Set<Long> branchIds = memberAssignDtos.stream().map(MemberAssignDto::getBranchId).collect(Collectors.toSet());
 		List<BranchOfficeHours> branchOfficeHours = officeHoursService.getBranchOfficeHours(branchIds);
 		List<Branch> branches = branchService.findAllById(branchIds).stream().peek(item -> {
 			OfficeHours officeHours = branchOfficeHours.stream().filter(q -> item.getId().equals(q.getBranchId())).findFirst().orElse(null);
@@ -647,7 +646,7 @@ public class MemberService {
 
 
 		// 근무시간체크
-		Set<Long> memberIds = members.stream().map(Member::getId).collect(Collectors.toSet());
+		Set<Long> memberIds = memberAssignDtos.stream().map(MemberAssignDto::getId).collect(Collectors.toSet());
 		List<MemberOfficeHours> memberOfficeHoursList = memberOfficeHoursRepository.findAllByMemberIdIn(memberIds);
 
 		// 회원 소속
@@ -720,7 +719,7 @@ public class MemberService {
 			member.setAssigned(assignedGroupByMember.get(member.getId()));
 		}
 
-		return new PageImpl<>(memberAssignDtos, memberPage.getPageable(), memberPage.getTotalElements());
+		return new PageImpl<>(memberAssignDtos.getContent(), memberAssignDtos.getPageable(), memberAssignDtos.getTotalElements());
 	}
 
 	private boolean addMembersCondition(@NotNull MemberSearchCondition condition) {
