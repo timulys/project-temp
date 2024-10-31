@@ -5,11 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.channel.ChannelEnvDto;
 import com.kep.core.model.dto.issue.*;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
+import com.kep.core.model.dto.notification.*;
 import com.kep.core.model.dto.system.SystemEnvEnum;
 import com.kep.portal.client.PlatformClient;
 import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.config.property.SocketProperty;
 import com.kep.portal.config.property.SystemMessageProperty;
+import com.kep.portal.model.dto.notification.NotificationInfoDto;
 import com.kep.portal.model.entity.channel.ChannelEndAuto;
 import com.kep.portal.model.entity.issue.*;
 import com.kep.portal.model.entity.member.Member;
@@ -20,6 +22,7 @@ import com.kep.portal.service.channel.ChannelEnvService;
 import com.kep.portal.service.issue.IssueLogService;
 import com.kep.portal.service.issue.IssueService;
 import com.kep.portal.service.issue.IssueStorageService;
+import com.kep.portal.service.notification.NotificationService;
 import com.kep.portal.util.SecurityUtils;
 import com.querydsl.core.Tuple;
 import lombok.extern.slf4j.Slf4j;
@@ -77,6 +80,9 @@ public class EventBySystemService {
 
 	@Resource
 	private SystemMessageProperty systemMessageProperty;
+
+	@Resource
+	private NotificationService notificationService;
 
 	// ////////////////////////////////////////////////////////////////////////
 	// 시스템 관리 > 상담 시작 설정 적용
@@ -568,6 +574,11 @@ public class EventBySystemService {
 			// 소켓으로 이슈 전송
 			simpMessagingTemplate.convertAndSend(socketProperty.getIssuePath(), issueDto);
 
+			// 담당 상담원에게 알림 전송
+			if(Objects.nonNull(issueDto.getMember()) && Objects.nonNull(issueDto.getMember().getId())){
+				this.sendMemberNotification(issueDto);
+			}
+
 		} catch (Exception e) {
 			log.error(e.getLocalizedMessage(), e);
 		}
@@ -657,6 +668,20 @@ public class EventBySystemService {
             }
             */
 		}
+	}
+
+	public void sendMemberNotification(IssueDto issueDto) {
+		NotificationDto notificationDto = NotificationDto.builder().displayType(NotificationDisplayType.toast)
+																   .icon(NotificationIcon.member)
+																   .target(NotificationTarget.member)
+																   .type(NotificationType.end_counsel)
+																   .build();
+
+		NotificationInfoDto notificationInfoDto = NotificationInfoDto.builder().receiverId(issueDto.getMember().getId())
+																			   .senderId(securityUtils.getMemberId())
+																			   .build();
+
+		notificationService.store( notificationInfoDto , notificationDto, securityUtils.getMemberId());
 	}
 
 }
