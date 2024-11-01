@@ -13,6 +13,8 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.ParameterizedType;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +32,6 @@ public class QueryStringArgumentResolver implements HandlerMethodArgumentResolve
     @Override
     public boolean supportsParameter(final MethodParameter parameter) {
         return parameter.hasParameterAnnotation(QueryParam.class);
-//        return parameter.getParameterAnnotation(QueryParam.class) != null;
     }
 
     @Override
@@ -76,14 +77,18 @@ public class QueryStringArgumentResolver implements HandlerMethodArgumentResolve
         return dto;
     }
 
-    // TODO : 현재는 Wrapper Class만 지원..추후 더욱 다양하게..
+    // TODO : 추후 더욱 다양하게..
     private Object convertToType(Object item, Class<?> targetType) {
-        if (targetType == String.class)
+        if (item == "")
+            return null;
+        else if (targetType == String.class)
             return item.toString();
         else if (targetType == Integer.class)
             return Integer.parseInt(item.toString());
         else if (targetType == Long.class)
             return Long.parseLong(item.toString());
+        else if (targetType == LocalDate.class)
+            return LocalDate.parse(item.toString(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         else if (targetType == Double.class)
             return Double.parseDouble(item.toString());
 
