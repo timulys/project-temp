@@ -3,15 +3,21 @@ package com.kep.portal.repository.member;
 import com.kep.core.model.dto.member.MemberDto;
 import com.kep.portal.model.dto.member.MemberAssignDto;
 import com.kep.portal.model.dto.member.MemberSearchCondition;
+import com.kep.portal.model.entity.branch.Branch;
 import com.kep.portal.model.entity.member.Member;
+import com.kep.portal.model.entity.member.MemberRole;
+import com.kep.portal.model.entity.member.QMember;
 import com.kep.portal.model.entity.member.QMemberRole;
+import com.kep.portal.model.entity.team.Team;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -25,6 +31,8 @@ import java.util.*;
 
 import static com.kep.portal.model.entity.branch.QBranch.branch;
 import static com.kep.portal.model.entity.member.QMember.member;
+import static com.kep.portal.model.entity.member.QMemberRole.memberRole;
+import static com.kep.portal.model.entity.privilege.QRole.role;
 import static com.kep.portal.model.entity.privilege.QRoleMenu.roleMenu;
 import static com.kep.portal.model.entity.team.QTeam.team;
 import static com.kep.portal.model.entity.team.QTeamMember.teamMember;
@@ -64,10 +72,11 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
 
         Long totalElements = queryFactory.select(member.count())
                                           .from(member)
-                                          .where(getConditions(condition))
+                                          .where(
+                                                  this.enabledEq(condition.getEnabled()),
+                                                  this.branchIdEq(condition.getBranchId())
+                                                )
                                           .fetchFirst();
-
-        QMemberRole orderMemberRole = new QMemberRole("orderMemberRole");
 
         List<MemberAssignDto> members = Collections.emptyList();
 
@@ -79,22 +88,27 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                                                                 member.nickname,
                                                                 member.status,
                                                                 branch.id.as("branchId")
-                                                               )
+                                                              )
                                           )
                     .from(member)
                     .join(branch)
                         .on(member.branchId.eq(branch.id))
-                    .leftJoin(orderMemberRole)
-                        .on(member.id.eq(orderMemberRole.memberId))
+                    .join(memberRole)
+                        .on(member.id.eq(memberRole.memberId))
+                    .join(role)
+                        .on(memberRole.roleId.eq(role.level.id))
                     .leftJoin(teamMember)
                         .on(member.id.eq(teamMember.memberId))
                     .leftJoin(team)
-                        .on(teamMember.team.id.eq(team.id))
-                    .where(getConditions(condition))
+                        .on(teamMember.team.eq(team))
+                    .where(
+                            this.enabledEq(condition.getEnabled()),
+                            this.branchIdEq(condition.getBranchId()),
+                            team.id.coalesce(0L).in(this.getMinTeamMemberId(member.id))
+                          )
                     .offset(pageable.getOffset())
                     .limit(pageable.getPageSize())
-                    .groupBy(member.id)
-                    .orderBy(team.id.min().coalesce(9999L).asc() , orderMemberRole.roleId.max().desc() , member.nickname.asc())
+                    .orderBy(this.getOrderAssignableMemberSpecifiers(pageable))
                     .fetch();
         }
 
@@ -210,4 +224,44 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
     private BooleanExpression usernameContains(String username) {
         return !ObjectUtils.isEmpty(username) ? member.username.contains(username) : null;
     }
+
+    private OrderSpecifier[] getOrderAssignableMemberSpecifiers(@NotNull Pageable pageable) {
+
+        List<OrderSpecifier> orders = new ArrayList<>();
+        PathBuilder<Object> pathBuilder = null;
+        if (!ObjectUtils.isEmpty(pageable.getSort())) {
+            for (Sort.Order order : pageable.getSort()) {
+                Order direction = order.getDirection().isAscending() ? Order.ASC : Order.DESC;
+                // todo swtich문 .class 구문 변경 방법 찾아봐야함
+                switch (order.getProperty()){
+                    case "role.name":
+                        pathBuilder = new PathBuilder<>(MemberRole.class, order.getProperty());
+                    case "team.name":
+                        pathBuilder = new PathBuilder<>(Team.class, order.getProperty());
+                    case "branch.name":
+                        pathBuilder = new PathBuilder<>(Branch.class, order.getProperty());
+                    default:
+                        pathBuilder = new PathBuilder<>(Member.class, order.getProperty());
+                }
+                orders.add(new OrderSpecifier(direction, pathBuilder));
+            }
+        }
+
+        return orders.stream().toArray(OrderSpecifier[]::new);
+    }
+
+    private JPQLQuery<Long> getMinTeamMemberId(NumberPath<Long> memberId) {
+        QMember subQueryMember = new QMember("subQueryMember");
+
+        return JPAExpressions.select(team.id.min().coalesce(0L))
+                             .from(subQueryMember)
+                             .leftJoin(teamMember)
+                               .on(subQueryMember.id.eq(teamMember.memberId))
+                             .leftJoin(team)
+                               .on(teamMember.team.eq(team))
+                             .where(subQueryMember.id.eq(memberId))
+                             .groupBy(member.id);
+    }
+
+
 }
