@@ -41,5 +41,4 @@ public class IssueSupportSearchDto {
 
     @Schema(description = "상담 지원 상태(다건) [request : 상담검토/상담직원전환 요청, reject : 반려, finish : 완료, change : 상담직원변경, receive : 상담이어받기, auto : 전환자동승인, end : 상담종료]", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<IssueSupportStatus> status;
-
 }
