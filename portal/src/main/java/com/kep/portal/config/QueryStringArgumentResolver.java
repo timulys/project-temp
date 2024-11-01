@@ -40,12 +40,10 @@ public class QueryStringArgumentResolver implements HandlerMethodArgumentResolve
         Object dto = paramType.getDeclaredConstructor().newInstance(); // Parsing Parameter Object
 
         Map<String, String[]> parameterMap = webRequest.getParameterMap();
-        Map<String, Object> camelCaseMap = parameterMap.entrySet().stream()
-                .collect(Collectors.toMap(
+        Map<String, Object> camelCaseMap = parameterMap.entrySet().stream().collect(Collectors.toMap(
                         entry -> toCamelCase(entry.getKey()),
                         // List 또는 단일값 처리
-                        entry -> entry.getValue().length > 1 ? Arrays.asList(entry.getValue()) : entry.getValue()[0]
-                ));
+                        entry -> entry.getValue().length > 1 ? Arrays.asList(entry.getValue()) : entry.getValue()[0]));
 
         for (PropertyDescriptor propertyDescriptor : java.beans.Introspector.getBeanInfo(paramType).getPropertyDescriptors()) {
             String propertyName = propertyDescriptor.getName();
@@ -74,7 +72,7 @@ public class QueryStringArgumentResolver implements HandlerMethodArgumentResolve
         }
         // 안정성을 위하여 Reflection 대신 WebDataBinder 사용
         WebDataBinder binder = binderFactory.createBinder(webRequest, dto, paramType.getSimpleName());
-        binder.validate(); // 파라미터의 Validation 시행
+        binder.validate();
         return dto;
     }
 
