@@ -1,6 +1,5 @@
 package com.kep.portal.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.type.QueryParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
@@ -12,14 +11,17 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import javax.annotation.Resource;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.ParameterizedType;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
  * 쿼리 파라미터를 객체로 매핑시 설정
+ * [modified] tim.c : List 자료구조형 파라미터를 바인딩하기 위해 기능 추가(24.11.01)
  */
 @Component
 @Slf4j
@@ -89,7 +91,7 @@ public class QueryStringArgumentResolver implements HandlerMethodArgumentResolve
 
         return item;
     }
-
+    
     private String toCamelCase(String key) {
         String[] parts = key.split("_");
         return parts[0] + Arrays.stream(parts, 1, parts.length)
