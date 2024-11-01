@@ -18,6 +18,7 @@ import com.kep.portal.model.entity.channel.Channel;
 import com.kep.portal.model.entity.channel.ChannelMapper;
 import com.kep.portal.repository.branch.BranchChannelRepository;
 import com.kep.portal.repository.channel.ChannelRepository;
+import com.kep.portal.repository.channel.ChannelSearchRepository;
 import com.kep.portal.service.branch.BranchChannelService;
 import com.kep.portal.service.branch.BranchService;
 import com.kep.portal.util.SecurityUtils;
@@ -71,6 +72,9 @@ public class ChannelService {
 
 	@Resource
 	private BranchChannelMapper branchChannelMapper;
+
+	@Resource
+	private ChannelSearchRepository channelSearchRepository;
 
 	@Nullable
 	public Channel findById(@NotNull Long id) {
@@ -401,6 +405,11 @@ public class ChannelService {
 			channelList.add(this.store(channelDto));
 		}
 		return channelList;
+	}
+
+	public List<ChannelDto> getChannelList() {
+		Long branchId = securityUtils.isMaster() ? null : securityUtils.getBranchId();
+		return channelSearchRepository.searchChannelList(branchId);
 	}
 }
 
