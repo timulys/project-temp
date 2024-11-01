@@ -398,4 +398,17 @@ public class ChannelController {
 		return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}
 
+
+	// todo 영향도 파악이 되면 원래 조회성을 대체하는게 나아보임
+	@Tag(name = "채널 API")
+	@Operation(summary = "채널 목록 조회", description = "채널 목록 조회 카테 고리 등록 안된 것 제외")
+	@GetMapping(value="/custom")
+	public ResponseEntity<ApiResult<List<ChannelDto>>> getChannelAndCategory() {
+		List<ChannelDto> channelDtoList = channelService.getChannelList();
+		ApiResult<List<ChannelDto>> response = ApiResult.<List<ChannelDto>>builder()
+				.code(ApiResultCode.succeed)
+				.payload(channelDtoList)
+				.build();
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
 }
