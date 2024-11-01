@@ -625,9 +625,11 @@ public class MemberService {
 		if (!addMembersCondition(condition)) {
 			return new PageImpl<>(Collections.emptyList());
 		}
+		/*
 		Set<Long> roles = new HashSet<>();
 		roles.add(100L);
 		condition.setRoleIds(roles);
+		 */
 
 		// todo 일대다 아닌 경우 querydsl에 join 하여 사용 예정 ( 아래 소스 파악 필요 )
 		Page<MemberAssignDto> memberAssignDtos = memberRepository.searchAssignableMember(condition, pageable);
