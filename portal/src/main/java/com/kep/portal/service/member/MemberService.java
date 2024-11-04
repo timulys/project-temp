@@ -691,19 +691,6 @@ public class MemberService {
 			}
 		}
 
-		// 상담원별 상담중 카운트
-		/*Map<Long, Long> ongoingGroupByMember = issueService.countOngoingGroupByMember(memberIds);
-		for (MemberAssignDto member : memberAssignDtos) {
-			member.setOngoing(ongoingGroupByMember.get(member.getId()));
-		}
-		*/
-
-		// 상담원별 상담대기 카운트
-		Map<Long, Long> assignedGroupByMember = issueService.countAssignedGroupByMember(memberIds);
-		for (MemberAssignDto member : memberAssignDtos) {
-			member.setAssigned(assignedGroupByMember.get(member.getId()));
-		}
-
 		return new PageImpl<>(memberAssignDtos.getContent(), memberAssignDtos.getPageable(), memberAssignDtos.getTotalElements());
 	}
 

@@ -36,7 +36,6 @@ import static com.kep.portal.model.entity.privilege.QRole.role;
 import static com.kep.portal.model.entity.privilege.QRoleMenu.roleMenu;
 import static com.kep.portal.model.entity.team.QTeam.team;
 import static com.kep.portal.model.entity.team.QTeamMember.teamMember;
-import static com.querydsl.core.types.dsl.Expressions.constant;
 
 
 @Slf4j
@@ -92,7 +91,8 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                                                                 branch.id.as("branchId"),
                                                                 branch.name.as("branchName"),
                                                                 team.name.as("teamName"),
-                                                                ExpressionUtils.as(this.getOngoing(member.id), "ongoing" ),
+                                                                ExpressionUtils.as(this.getCountIssueGroupByIssueStatus(member.id, Arrays.asList(IssueStatus.ask, IssueStatus.reply, IssueStatus.urgent ) ), "ongoing" ),
+                                                                ExpressionUtils.as(this.getCountIssueGroupByIssueStatus(member.id, Arrays.asList(IssueStatus.assign ) ), "assigned" ),
                                                                 Projections.fields( BranchDto.class,
                                                                                     branch.id,
                                                                                     branch.name,
@@ -121,9 +121,9 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                         .on(member.branchId.eq(branch.id))
                     .join(counselEnv)
                         .on(branch.id.eq(counselEnv.branchId))
-                    .leftJoin(memberRole)
+                    .join(memberRole)
                         .on(member.id.eq(memberRole.memberId))
-                    .leftJoin(role)
+                    .join(role)
                         .on(memberRole.roleId.eq(role.id))
                     .leftJoin(teamMember)
                         .on(member.id.eq(teamMember.memberId))
@@ -290,25 +290,20 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                              .groupBy(member.id);
     }
 
-    private NumberExpression<Long> getOngoing(NumberPath<Long> memberId) {
-        QIssue subIssueUseOngoing = new QIssue("subIssueUseOngoing");
-        QMember subMemberUseOngoing = new QMember("subMemberUseOngoing");
-        JPQLQuery<Long> subQuery = JPAExpressions.select(subIssueUseOngoing.id.count().coalesce(0L))
-                .from(subIssueUseOngoing)
-                .join(subMemberUseOngoing)
-                .on(subIssueUseOngoing.member.eq(subMemberUseOngoing))
+    private NumberExpression<Long> getCountIssueGroupByIssueStatus(NumberPath<Long> memberId , List<IssueStatus> issueStatusList) {
+        QIssue subIssueUseIssueStatus = new QIssue("subIssueUseIssueStatus");
+        QMember subMemberUseIssueStatus = new QMember("subMemberUseIssueStatus");
+        JPQLQuery<Long> subQuery = JPAExpressions.select(subIssueUseIssueStatus.id.count().coalesce(0L))
+                .from(subIssueUseIssueStatus)
+                .join(subMemberUseIssueStatus)
+                .on(subIssueUseIssueStatus.member.eq(subMemberUseIssueStatus))
                 .where(
-                         subMemberUseOngoing.id.eq(memberId),
-                        subIssueUseOngoing.status.in(IssueStatus.ask,IssueStatus.reply,IssueStatus.urgent)
+                        subMemberUseIssueStatus.id.eq(memberId),
+                        subIssueUseIssueStatus.status.in(issueStatusList)
                       )
-                .groupBy(subMemberUseOngoing.id);
+                .groupBy(subMemberUseIssueStatus.id);
 
-
-        NumberExpression<Long> coalescedSubQuery = new CaseBuilder().when(subQuery.isNull())
-                                                                    .then(0L)
-                                                                    .otherwise(subQuery);
+        NumberTemplate<Long> coalescedSubQuery = Expressions.numberTemplate(Long.class, "COALESCE({0}, 0)", subQuery);
         return coalescedSubQuery;
     }
-
-
 }
