@@ -97,7 +97,7 @@ public class QueryStringArgumentResolver implements HandlerMethodArgumentResolve
         else if (targetType == Double.class)
             return Double.parseDouble(item.toString());
         else if (targetType == Boolean.class)
-            return Boolean.getBoolean(item.toString());
+            return Boolean.parseBoolean(item.toString());
         else if (targetType.isEnum())
             return Enum.valueOf((Class<Enum>) targetType, item.toString());
 
