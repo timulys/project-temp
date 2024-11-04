@@ -96,6 +96,8 @@ public class QueryStringArgumentResolver implements HandlerMethodArgumentResolve
             return LocalDate.parse(item.toString(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         else if (targetType == Double.class)
             return Double.parseDouble(item.toString());
+        else if (targetType == Boolean.class)
+            return Boolean.getBoolean(item.toString());
         else if (targetType.isEnum())
             return Enum.valueOf((Class<Enum>) targetType, item.toString());
 
