@@ -2,7 +2,6 @@ package com.kep.core.model.dto.env;
 
 
 import com.kep.core.model.dto.system.SystemEnvDto;
-import com.kep.core.model.dto.system.SystemEnvEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

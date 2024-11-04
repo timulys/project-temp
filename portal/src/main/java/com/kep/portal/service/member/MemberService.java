@@ -625,11 +625,6 @@ public class MemberService {
 		if (!addMembersCondition(condition)) {
 			return new PageImpl<>(Collections.emptyList());
 		}
-		/*
-		Set<Long> roles = new HashSet<>();
-		roles.add(100L);
-		condition.setRoleIds(roles);
-		 */
 
 		// todo 일대다 아닌 경우 querydsl에 join 하여 사용 예정 ( 아래 소스 파악 필요 )
 		Page<MemberAssignDto> memberAssignDtos = memberRepository.searchAssignableMember(condition, pageable);
@@ -644,16 +639,10 @@ public class MemberService {
 			item.setOfficeHours(officeHours);
 		}).collect(Collectors.toList());
 
-		CounselEnvDto counselEnvDto = counselEnvService.get(condition.getBranchId());
-
 
 		// 근무시간체크
 		Set<Long> memberIds = memberAssignDtos.stream().map(MemberAssignDto::getId).collect(Collectors.toSet());
 		List<MemberOfficeHours> memberOfficeHoursList = memberOfficeHoursRepository.findAllByMemberIdIn(memberIds);
-
-		// 회원 소속
-		List<Long> memberIdList = new ArrayList<>(memberIds);
-		List<TeamMember> teamMembers = teamMemberService.findAllByMemberIdIn(memberIdList);
 
 		boolean isWork = true;
 
@@ -666,16 +655,9 @@ public class MemberService {
 
 			// 브랜치 구하기
 			Branch branch = branches.stream().filter(item -> item.getId().equals(member.getBranchId())).findFirst().orElse(null);
-			member.setBranchName(branch.getName());
 
 			// 시스템 근무시간 / 개인 근무시간인지 여부 체크
 			OfficeHours officeHours = this.getOfficeHoursUseWorkType(member, branch, memberOfficeHoursList);
-
-			// 소속명 구하기
-			Team team = teamMembers.stream().filter(q -> q.getMemberId().equals(member.getId())).map(TeamMember::getTeam).findFirst().orElse(null);
-			if(Objects.nonNull(team)){
-				member.setTeamName(team.getName());
-			}
 
 			member.setAssignable(true);
 			// 오늘 휴무 인지 여부 체크 추가
@@ -698,7 +680,7 @@ public class MemberService {
 			}
 
 			// 3. 상담 인입 제한 체크
-			if(Objects.nonNull(counselEnvDto) && counselEnvDto.getRequestBlockEnabled()){
+			if(member.getBranchDto().getCounselEnvDto().getRequestBlockEnabled()){
 				member.setAssignable(false);
 				continue;
 			}
@@ -710,10 +692,11 @@ public class MemberService {
 		}
 
 		// 상담원별 상담중 카운트
-		Map<Long, Long> ongoingGroupByMember = issueService.countOngoingGroupByMember(memberIds);
+		/*Map<Long, Long> ongoingGroupByMember = issueService.countOngoingGroupByMember(memberIds);
 		for (MemberAssignDto member : memberAssignDtos) {
 			member.setOngoing(ongoingGroupByMember.get(member.getId()));
 		}
+		*/
 
 		// 상담원별 상담대기 카운트
 		Map<Long, Long> assignedGroupByMember = issueService.countAssignedGroupByMember(memberIds);
