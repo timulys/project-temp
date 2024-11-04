@@ -1,5 +1,6 @@
 package com.kep.portal.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.type.QueryParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
@@ -11,6 +12,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+import javax.annotation.Resource;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.ParameterizedType;
 import java.time.LocalDate;
@@ -28,6 +30,9 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class QueryStringArgumentResolver implements HandlerMethodArgumentResolver {
+
+    @Resource
+    private ObjectMapper objectMapper;
 
     @Override
     public boolean supportsParameter(final MethodParameter parameter) {
@@ -91,6 +96,8 @@ public class QueryStringArgumentResolver implements HandlerMethodArgumentResolve
             return LocalDate.parse(item.toString(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         else if (targetType == Double.class)
             return Double.parseDouble(item.toString());
+        else if (targetType.isEnum())
+            return Enum.valueOf((Class<Enum>) targetType, item.toString());
 
         return item;
     }
