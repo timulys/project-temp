@@ -262,7 +262,7 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                 Order direction = order.getDirection().isAscending() ? Order.ASC : Order.DESC;
                 // todo swtich문 .class 구문 변경 방법 찾아봐야함
                 switch (order.getProperty()){
-                    case "role.id":
+                    case "role.level.id":
                         pathBuilder = new PathBuilder<>(MemberRole.class, order.getProperty());
                     case "team.name":
                         pathBuilder = new PathBuilder<>(Team.class, order.getProperty());
