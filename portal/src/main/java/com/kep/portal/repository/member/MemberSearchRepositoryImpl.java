@@ -1,21 +1,20 @@
 package com.kep.portal.repository.member;
 
+import com.kep.core.model.dto.branch.BranchDto;
+import com.kep.core.model.dto.env.CounselEnvDto;
+import com.kep.core.model.dto.issue.IssueStatus;
 import com.kep.core.model.dto.member.MemberDto;
 import com.kep.portal.model.dto.member.MemberAssignDto;
 import com.kep.portal.model.dto.member.MemberSearchCondition;
 import com.kep.portal.model.entity.branch.Branch;
+import com.kep.portal.model.entity.issue.QIssue;
 import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.model.entity.member.MemberRole;
 import com.kep.portal.model.entity.member.QMember;
 import com.kep.portal.model.entity.member.QMemberRole;
 import com.kep.portal.model.entity.team.Team;
-import com.querydsl.core.types.Order;
-import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.core.types.*;
+import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -30,12 +29,15 @@ import javax.validation.constraints.NotNull;
 import java.util.*;
 
 import static com.kep.portal.model.entity.branch.QBranch.branch;
+import static com.kep.portal.model.entity.env.QCounselEnv.counselEnv;
 import static com.kep.portal.model.entity.member.QMember.member;
 import static com.kep.portal.model.entity.member.QMemberRole.memberRole;
 import static com.kep.portal.model.entity.privilege.QRole.role;
 import static com.kep.portal.model.entity.privilege.QRoleMenu.roleMenu;
 import static com.kep.portal.model.entity.team.QTeam.team;
 import static com.kep.portal.model.entity.team.QTeamMember.teamMember;
+import static com.querydsl.core.types.dsl.Expressions.constant;
+
 
 @Slf4j
 public class MemberSearchRepositoryImpl implements MemberSearchRepository {
@@ -87,12 +89,38 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                                                                 member.username,
                                                                 member.nickname,
                                                                 member.status,
-                                                                branch.id.as("branchId")
+                                                                branch.id.as("branchId"),
+                                                                branch.name.as("branchName"),
+                                                                team.name.as("teamName"),
+                                                                ExpressionUtils.as(this.getOngoing(member.id), "ongoing" ),
+                                                                Projections.fields( BranchDto.class,
+                                                                                    branch.id,
+                                                                                    branch.name,
+                                                                                    branch.assign,
+                                                                                    branch.enabled,
+                                                                                    branch.headQuarters,
+                                                                                    branch.maxCounsel,
+                                                                                    branch.maxCounselType,
+                                                                                    branch.offDutyHours,
+                                                                                    branch.maxGuideCategoryDepth,
+                                                                                    branch.firstMessageType,
+                                                                                    branch.status,
+                                                                                    branch.maxMemberCounsel,
+                                                                                    branch.creator,
+                                                                                    branch.created,
+                                                                                    branch.modifier,
+                                                                                    branch.modified,
+                                                                                    Projections.fields( CounselEnvDto.class,
+                                                                                                        counselEnv.requestBlockEnabled
+                                                                                                      ).as("counselEnvDto")
+                                                                                  ).as("branchDto")
                                                               )
                                           )
                     .from(member)
                     .join(branch)
                         .on(member.branchId.eq(branch.id))
+                    .join(counselEnv)
+                        .on(branch.id.eq(counselEnv.branchId))
                     .join(memberRole)
                         .on(member.id.eq(memberRole.memberId))
                     .join(role)
@@ -103,8 +131,8 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                         .on(teamMember.team.eq(team))
                     .where(
                             this.enabledEq(condition.getEnabled()),
-                            this.branchIdEq(condition.getBranchId()),
-                            team.id.coalesce(0L).in(this.getMinTeamMemberId(member.id))
+                            this.branchIdEq(condition.getBranchId())
+                            ,team.id.coalesce(0L).in(this.getMinTeamMemberId(member.id))
                           )
                     .offset(pageable.getOffset())
                     .limit(pageable.getPageSize())
@@ -234,7 +262,7 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                 Order direction = order.getDirection().isAscending() ? Order.ASC : Order.DESC;
                 // todo swtich문 .class 구문 변경 방법 찾아봐야함
                 switch (order.getProperty()){
-                    case "role.name":
+                    case "role.id":
                         pathBuilder = new PathBuilder<>(MemberRole.class, order.getProperty());
                     case "team.name":
                         pathBuilder = new PathBuilder<>(Team.class, order.getProperty());
@@ -252,7 +280,6 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
 
     private JPQLQuery<Long> getMinTeamMemberId(NumberPath<Long> memberId) {
         QMember subQueryMember = new QMember("subQueryMember");
-
         return JPAExpressions.select(team.id.min().coalesce(0L))
                              .from(subQueryMember)
                              .leftJoin(teamMember)
@@ -261,6 +288,26 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                                .on(teamMember.team.eq(team))
                              .where(subQueryMember.id.eq(memberId))
                              .groupBy(member.id);
+    }
+
+    private NumberExpression<Long> getOngoing(NumberPath<Long> memberId) {
+        QIssue subIssueUseOngoing = new QIssue("subIssueUseOngoing");
+        QMember subMemberUseOngoing = new QMember("subMemberUseOngoing");
+        JPQLQuery<Long> subQuery = JPAExpressions.select(subIssueUseOngoing.id.count().coalesce(0L))
+                .from(subIssueUseOngoing)
+                .join(subMemberUseOngoing)
+                .on(subIssueUseOngoing.member.eq(subMemberUseOngoing))
+                .where(
+                         subMemberUseOngoing.id.eq(memberId),
+                        subIssueUseOngoing.status.in(IssueStatus.ask,IssueStatus.reply,IssueStatus.urgent)
+                      )
+                .groupBy(subMemberUseOngoing.id);
+
+
+        NumberExpression<Long> coalescedSubQuery = new CaseBuilder().when(subQuery.isNull())
+                                                                    .then(0L)
+                                                                    .otherwise(subQuery);
+        return coalescedSubQuery;
     }
 
 

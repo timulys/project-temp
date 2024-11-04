@@ -1,7 +1,7 @@
 package com.kep.portal.model.dto.member;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.kep.core.model.dto.team.TeamDto;
+import com.kep.core.model.dto.branch.BranchDto;
 import com.kep.core.model.dto.work.WorkType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,4 +42,6 @@ public class MemberAssignDto {
 	private WorkType.OfficeHoursStatusType status;
 
 	private String teamName;
+
+	private BranchDto branchDto;
 }
