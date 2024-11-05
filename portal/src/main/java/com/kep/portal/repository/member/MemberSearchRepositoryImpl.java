@@ -1,9 +1,11 @@
 package com.kep.portal.repository.member;
 
 import com.kep.core.model.dto.branch.BranchDto;
+import com.kep.core.model.dto.work.BranchOfficeHoursDto;
 import com.kep.core.model.dto.env.CounselEnvDto;
 import com.kep.core.model.dto.issue.IssueStatus;
 import com.kep.core.model.dto.member.MemberDto;
+import com.kep.core.model.dto.work.MemberOfficeHoursDto;
 import com.kep.portal.model.dto.member.MemberAssignDto;
 import com.kep.portal.model.dto.member.MemberSearchCondition;
 import com.kep.portal.model.entity.branch.Branch;
@@ -36,6 +38,8 @@ import static com.kep.portal.model.entity.privilege.QRole.role;
 import static com.kep.portal.model.entity.privilege.QRoleMenu.roleMenu;
 import static com.kep.portal.model.entity.team.QTeam.team;
 import static com.kep.portal.model.entity.team.QTeamMember.teamMember;
+import static com.kep.portal.model.entity.work.QBranchOfficeHours.branchOfficeHours;
+import static com.kep.portal.model.entity.work.QMemberOfficeHours.memberOfficeHours;
 
 
 @Slf4j
@@ -71,18 +75,7 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
     @Override
     public Page<MemberAssignDto> searchAssignableMember(@NotNull MemberSearchCondition condition, @NotNull Pageable pageable) {
 
-        Long totalElements = queryFactory.select(member.count())
-                                          .from(member)
-                                          .where(
-                                                  this.enabledEq(condition.getEnabled()),
-                                                  this.branchIdEq(condition.getBranchId())
-                                                )
-                                          .fetchFirst();
-
-        List<MemberAssignDto> members = Collections.emptyList();
-
-        if (totalElements > 0) {
-            members = queryFactory.select(
+            List<MemberAssignDto> members = queryFactory.select(
                                             Projections.fields( MemberAssignDto.class,
                                                                 member.id,
                                                                 member.username,
@@ -112,13 +105,40 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                                                                                     branch.modified,
                                                                                     Projections.fields( CounselEnvDto.class,
                                                                                                         counselEnv.requestBlockEnabled
-                                                                                                      ).as("counselEnvDto")
-                                                                                  ).as("branchDto")
+                                                                                                      ).as("counselEnvDto"),
+                                                                                    Projections.fields(BranchOfficeHoursDto.class,
+                                                                                                       branchOfficeHours.id,
+                                                                                                       branchOfficeHours.branchId,
+                                                                                                       branchOfficeHours.startCounselTime,
+                                                                                                       branchOfficeHours.endCounselTime,
+                                                                                                       branchOfficeHours.dayOfWeek,
+                                                                                                       branchOfficeHours.modified,
+                                                                                                       branchOfficeHours.modifier,
+                                                                                                       branchOfficeHours.created,
+                                                                                                       branchOfficeHours.creator
+                                                                                                      ).as("branchOfficeHoursDto")
+                                                                                   ).as("branchDto"),
+                                                                    Projections.fields( MemberOfficeHoursDto.class,
+                                                                                        memberOfficeHours.id,
+                                                                                        memberOfficeHours.memberId,
+                                                                                        memberOfficeHours.offDutyCounselYn,
+                                                                                        memberOfficeHours.startCounselTime,
+                                                                                        memberOfficeHours.endCounselTime,
+                                                                                        memberOfficeHours.dayOfWeek,
+                                                                                        memberOfficeHours.modified,
+                                                                                        memberOfficeHours.modifier,
+                                                                                        memberOfficeHours.created,
+                                                                                        memberOfficeHours.creator
+                                                                                      ).as("memberOfficeHoursDto")
                                                               )
                                           )
                     .from(member)
                     .join(branch)
                         .on(member.branchId.eq(branch.id))
+                    .join(memberOfficeHours)
+                        .on(member.id.eq(memberOfficeHours.memberId))
+                    .join(branchOfficeHours)
+                        .on(branch.id.eq(branchOfficeHours.branchId))
                     .join(counselEnv)
                         .on(branch.id.eq(counselEnv.branchId))
                     .join(memberRole)
@@ -131,16 +151,14 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                         .on(teamMember.team.eq(team))
                     .where(
                             this.enabledEq(condition.getEnabled()),
-                            this.branchIdEq(condition.getBranchId())
-                            ,team.id.coalesce(0L).in(this.getMinTeamMemberId(member.id))
+                            this.branchIdEq(condition.getBranchId()),
+                            team.id.coalesce(0L).in(this.getMinTeamMemberId(member.id))
                           )
                     .offset(pageable.getOffset())
                     .limit(pageable.getPageSize())
                     .orderBy(this.getOrderAssignableMemberSpecifiers(pageable))
                     .fetch();
-        }
-
-        return new PageImpl<>(members, pageable, totalElements);
+        return new PageImpl<>(members, pageable, Objects.isNull(members) ? 0L : members.size());
     }
 
     @Override

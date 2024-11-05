@@ -2,6 +2,7 @@ package com.kep.portal.model.dto.member;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.kep.core.model.dto.branch.BranchDto;
+import com.kep.core.model.dto.work.MemberOfficeHoursDto;
 import com.kep.core.model.dto.work.WorkType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -44,4 +45,6 @@ public class MemberAssignDto {
 	private String teamName;
 
 	private BranchDto branchDto;
+
+	private MemberOfficeHoursDto memberOfficeHoursDto;
 }

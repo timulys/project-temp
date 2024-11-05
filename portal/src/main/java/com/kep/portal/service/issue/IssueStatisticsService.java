@@ -183,7 +183,7 @@ public class IssueStatisticsService {
 
         boolean isMemberAssign = branch.getAssign().equals(WorkType.Cases.member);
         //근무 시간 예외 처리
-        boolean isWork = workService.offDutyHours(branch);
+        boolean isWork = workService.offDutyHours(branch.getOffDutyHours() , branch.getId());
         // 휴게 시간 예외 처리 추가 ( 기획자와 구두 논의 완료 ) ( 임시 추가 )
         boolean isBreakTime = breakTimeService.inBreakTime();
 
