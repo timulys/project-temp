@@ -308,7 +308,7 @@ public class EventByPlatformService {
 		simpMessagingTemplate.convertAndSend(socketProperty.getIssuePath() + "." + issue.getId() + "." + "message", issueLogDto);
 
 		// 자동메세지 (배정대기/상담대기 중 고객메세지 자동응답)
-		if (IssueStatus.open == issue.getStatus()) {
+		if (IssueStatus.open == issue.getStatus() || IssueStatus.assign == issue.getStatus() ) {
 			eventBySystemService.sendReplyWhenOpenedAndAssigned(issue);
 		}
 
