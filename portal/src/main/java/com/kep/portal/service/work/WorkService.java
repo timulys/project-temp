@@ -107,7 +107,7 @@ public class WorkService {
         boolean isWork = true;
 
         //근무 시간 예외 처리
-        isWork = this.offDutyHours(branch);
+        isWork = this.offDutyHours(branch.getOffDutyHours() , branch.getId());
 
         //브랜치 근무시간이면
         if(branch.getAssign().equals(WorkType.Cases.branch)){
@@ -207,17 +207,18 @@ public class WorkService {
 
     /**
      * 근무시간 예외
-     * @param branch
+     * @param paramOffDutyHours
+     * @param branchId
      * @return
      */
-    public boolean offDutyHours(Branch branch){
+    public boolean offDutyHours(Boolean paramOffDutyHours , Long branchId ){
         boolean isBranchOffDutyHours = false;
-        if(branch.getOffDutyHours()) { // branch에 근무시간 예외가 설정되어 있을 경우 아래 로직을 실행
+        if(paramOffDutyHours) { // branch에 근무시간 예외가 설정되어 있을 경우 아래 로직을 실행
             LocalDate localDate = LocalDate.now();
             Map<String, ZonedDateTime> today = ZonedDateTimeUtil.getTodayDateTime(localDate);
             ZonedDateTime now = ZonedDateTime.now();
             List<OffDutyHours> branchOffDutyHours = branchOffDutyHoursRepository.findAllByBranchIdAndStartCreatedGreaterThanEqualAndEndCreatedLessThanEqual(
-                    branch.getId() ,today.get("start"), today.get("end")
+                    branchId ,today.get("start"), today.get("end")
             );
             log.info("OFF DUTY HOURS , BRANCH OFF DUTY HOURS , START :{},END:{} , NOW:{}",today.get("start"),today.get("end"),now);
 
@@ -228,7 +229,7 @@ public class WorkService {
 
             for (OffDutyHours offDutyHours : branchOffDutyHours){
                 offDutyHours.setCases(WorkType.Cases.branch);
-                offDutyHours.setCasesId(branch.getId());
+                offDutyHours.setCasesId(branchId);
                 log.info("OFF DUTY HOURS , BRANCH OFF DUTY HOURS:{}",offDutyHoursMapper.map(branchOffDutyHours));
                 //근무 체크(true) 시간을 구해서 근무를 함
                 if(offDutyHours.getEnabled()){

@@ -2,6 +2,7 @@ package com.kep.core.model.dto.branch;
 import com.kep.core.model.dto.env.CounselEnvDto;
 import com.kep.core.model.dto.privilege.RoleDto;
 import com.kep.core.model.dto.team.TeamDto;
+import com.kep.core.model.dto.work.BranchOfficeHoursDto;
 import com.kep.core.model.dto.work.OffDutyHoursDto;
 import com.kep.core.model.dto.work.OfficeHoursDto;
 import com.kep.core.model.dto.work.WorkType;
@@ -94,5 +95,8 @@ public class BranchDto {
 
 	@Schema(description = "상담 환경 설정")
 	private CounselEnvDto counselEnvDto;
+
+	@Schema(description = "브랜치별 시스템 근무 시간")
+	private BranchOfficeHoursDto branchOfficeHoursDto;
 
 }

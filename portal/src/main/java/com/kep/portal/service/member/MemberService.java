@@ -631,19 +631,6 @@ public class MemberService {
 
 		log.info("MEMBER ASSIGN LIST {}", memberAssignDtos);
 
-		// 브랜치 이름
-		Set<Long> branchIds = memberAssignDtos.stream().map(MemberAssignDto::getBranchId).collect(Collectors.toSet());
-		List<BranchOfficeHours> branchOfficeHours = officeHoursService.getBranchOfficeHours(branchIds);
-		List<Branch> branches = branchService.findAllById(branchIds).stream().peek(item -> {
-			OfficeHours officeHours = branchOfficeHours.stream().filter(q -> item.getId().equals(q.getBranchId())).findFirst().orElse(null);
-			item.setOfficeHours(officeHours);
-		}).collect(Collectors.toList());
-
-
-		// 근무시간체크
-		Set<Long> memberIds = memberAssignDtos.stream().map(MemberAssignDto::getId).collect(Collectors.toSet());
-		List<MemberOfficeHours> memberOfficeHoursList = memberOfficeHoursRepository.findAllByMemberIdIn(memberIds);
-
 		boolean isWork = true;
 
 
@@ -651,17 +638,9 @@ public class MemberService {
 
 		for (MemberAssignDto member : memberAssignDtos) {
 
-			log.info("MEMBER ID:{} , ASSIGNABLE STATUS:{} ", member.getId(), member.getStatus());
-
-			// 브랜치 구하기
-			Branch branch = branches.stream().filter(item -> item.getId().equals(member.getBranchId())).findFirst().orElse(null);
-
-			// 시스템 근무시간 / 개인 근무시간인지 여부 체크
-			OfficeHours officeHours = this.getOfficeHoursUseWorkType(member, branch, memberOfficeHoursList);
-
 			member.setAssignable(true);
 			// 오늘 휴무 인지 여부 체크 추가
-			isWork = workService.offDutyHours(branch);
+			isWork = workService.offDutyHours(member.getBranchDto().getOffDutyHours(), member.getBranchDto().getId());
 			if(!isWork){
 				member.setAssignable(false);
 				continue;
@@ -686,8 +665,21 @@ public class MemberService {
 			}
 
 			// 4. 근무시간 체크
-			if (Objects.nonNull(officeHours)) {
-				member.setAssignable(officeHoursService.isOfficeHours(officeHours));
+			switch (member.getBranchDto().getAssign()) {
+				case branch:
+					officeHoursService.isOfficeHours( member.getBranchDto().getBranchOfficeHoursDto().getStartCounselTime(),
+													  member.getBranchDto().getBranchOfficeHoursDto().getEndCounselTime(),
+													  member.getBranchDto().getBranchOfficeHoursDto().getDayOfWeek()
+													);
+					break;
+				case member:
+					officeHoursService.isOfficeHours( member.getMemberOfficeHoursDto().getStartCounselTime(),
+													  member.getMemberOfficeHoursDto().getEndCounselTime(),
+													  member.getMemberOfficeHoursDto().getDayOfWeek()
+													);
+					break;
+				default:
+					break;
 			}
 		}
 
@@ -1157,30 +1149,6 @@ public class MemberService {
 	//총 멤버수 
 	public long getTotalmembers() {
 		return memberRepository.countByEnabledAndUsernameNot(true , "master1");
-	}
-
-
-	/**
-	 * 시스템 설정 > 근무 조건 설정에서 > 근무 시간 기준이 시스템 or 상담직원 기준인지 여부에 따른 OfficeHours GET
-	 * @param member
-	 * @param branch
-	 * @param memberOfficeHoursList
-	 * @return
-	 */
-	private OfficeHours getOfficeHoursUseWorkType(MemberAssignDto member, Branch branch, List<MemberOfficeHours> memberOfficeHoursList) {
-		if(Objects.isNull(branch)){
-			return null;
-		}
-		OfficeHours officeHours = null;
-
-		if (branch.getAssign().equals(WorkType.Cases.branch)) {
-			officeHours = branch.getOfficeHours();
-		}
-		if (branch.getAssign().equals(WorkType.Cases.member)) {
-			officeHours = memberOfficeHoursList.stream().filter(item -> item.getMemberId().equals(member.getId())).findFirst().orElse(null);
-		}
-		log.info("ASSIGN TYPE:{} , ID:{} , OFFICE_HOURS:{}", branch.getAssign(), branch.getId(), officeHoursMapper.map(officeHours));
-		return officeHours;
 	}
 
 	public OfficeHoursDto saveOfficeHours(@NotNull OfficeWorkDto officeWorkDto) {
