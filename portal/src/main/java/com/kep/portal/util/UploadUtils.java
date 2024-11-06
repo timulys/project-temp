@@ -30,8 +30,9 @@ public class UploadUtils {
     //이미지 타입 확장자 : jpg, png, gif
     // FIXME :: 임시. 에버리 상의 후 확장자 확정되면 프로퍼티로 빼서 수정 -> 현재 자바 8에선 Set.of() 지원 안함
     // TODO :: 상담톡 스펙상 버튼 링크에 들어가는 이미지는 gif 비허용. 가이드 추가 시 해당 부분 수정인데 파일관련 정책 고도화때 정한다고 했으니 노티만 20241031
-    private static final Set<String> allowedImageFileExtSet = new HashSet<>(Arrays.asList(".jpg", ".png", ".gif"));
-    private static final Set<String> allowedButtonLinkImageFileExtSet = new HashSet<>(Arrays.asList(".jpg", ".png"));
+    // 현재 이미지, 이미지 링크 버튼 타입 둘 다 jpg, png 확장자로 고정 20241106 volka
+    private static final Set<String> allowedImageFileExtSet = new HashSet<>(Arrays.asList(".jpg", ".png"));
+//    private static final Set<String> allowedButtonLinkImageFileExtSet = new HashSet<>(Arrays.asList(".jpg", ".png"));
     private static final long IMAGE_MAX_SIZE = 5 * 1024 * 1024; //5MB
     private static final long LINK_BUTTON_IMAGE_MAX_SIZE = 500 * 1024; //500kB
 
@@ -67,6 +68,11 @@ public class UploadUtils {
         if (file.getSize() > IMAGE_MAX_SIZE) throw new BizException("it's not allowed to upload image. image file size is too large");
     }
 
+    //링크버튼용 이미지 검증
+    public void validLinkImage(@NotNull MultipartFile file) {
+        if (!allowedImageFileExtSet.contains(getExt(file.getOriginalFilename()))) throw new BizException("it's not allowed to upload image. image extension can be jpg, png, gif");
+        if (file.getSize() > LINK_BUTTON_IMAGE_MAX_SIZE) throw new BizException("it's not allowed to upload image. image file size is too large");
+    }
     /**
      * 파일 저장
      */
@@ -77,18 +83,8 @@ public class UploadUtils {
             throw new UnsupportedOperationException("<<CODE>> uploaded file cannot be empty");
         }
 
-        String basePath = null;
-
-        if (isImage(multipartFile)) {
-            validImage(multipartFile);
-            basePath = getDefaultPath("image");
-        } else {
-            //TODO :: file 미디어 타입 별 검증 추가 -> 파일 관련 정책.. 정해지면..
-            basePath = getDefaultPath("file");
-        }
-
         // TODO: 업무(타입)별 디렉토리 생성
-//        String basePath = getDefaultPath(isImage(multipartFile) ? "image" : "file");
+        String basePath = getDefaultPath(isImage(multipartFile) ? "image" : "file");
         log.info("기본 패스 :::::::;; {} ",basePath);
         String fileName = getFileName(multipartFile);
         log.info("파일이름 :::::::;; {} ",fileName);

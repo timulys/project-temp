@@ -417,17 +417,18 @@ public class GuideCategoryService {
      */
     private List<Long> getChildrenIds(Long branchId, List<GuideCategory> guideCategoryList) {
         List<GuideCategoryDto> dtoList = categoryMapper.map(guideCategoryList);
+        Integer maxDepth = getCategoryMaxDepth();
 
         List<Long> childrenIds = new ArrayList<>();
         for (GuideCategoryDto dto : dtoList) {
             if (branchId.equals(0L)) {
-                if (dto.getDepth() == getCategoryMaxDepth())
+                if (dto.getDepth().equals(maxDepth))
                     childrenIds.add(dto.getId());
                 recursiveGetAllSubCategory(dto.getChildren(), childrenIds, branchId);
 
             } else {
                 if (dto.getIsOpen() || branchId.equals(dto.getBranchId()) || branchId.equals(dto.getBranch().getId())) {
-                    if (dto.getDepth() == getCategoryMaxDepth())
+                    if (dto.getDepth().equals(maxDepth))
                         childrenIds.add(dto.getId());
                     recursiveGetAllSubCategory(dto.getChildren(), childrenIds, branchId);
                 }

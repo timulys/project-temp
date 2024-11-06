@@ -1,20 +1,25 @@
 package com.kep.portal.service.upload;
 
 import com.kep.core.model.dto.upload.UploadDto;
+import com.kep.core.model.exception.BizException;
 import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.model.entity.upload.Upload;
 import com.kep.portal.model.entity.upload.UploadMapper;
 import com.kep.portal.repository.upload.UploadRepository;
 import com.kep.portal.util.SecurityUtils;
+import com.kep.portal.util.UploadUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.time.ZonedDateTime;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -31,6 +36,9 @@ public class UploadService {
 
     @Resource
     private PortalProperty portalProperty;
+
+    @Resource
+    private UploadUtils uploadUtils;
 
     public UploadDto getById(@NotNull Long id) {
 
@@ -111,5 +119,27 @@ public class UploadService {
        return result;
        
     	
+    }
+
+    /**
+     * 첫 인사말 업로드 -> 첫인사말 검증으로 API 추가. 향후 파일 유틸 리팩토링 후 정리 필요 20241106
+     * @param dto
+     * @return
+     */
+    public UploadDto saveFirstMessageImage(@NotNull UploadDto dto) {
+
+        MultipartFile mFile = dto.getFile();
+
+        if (mFile == null || mFile.isEmpty()) throw new BizException("file must be not null");
+        if (!uploadUtils.isImage(mFile)) throw new BizException("firstMessage file is only image");
+
+        dto.setOriginalName(dto.getFile().getOriginalFilename());
+        dto.setMimeType(uploadUtils.getMimeType(dto.getFile()));
+
+        uploadUtils.validLinkImage(mFile);
+
+        File file = Optional.ofNullable(uploadUtils.upload(mFile)).orElseThrow(()->new BizException("upload image error"));
+
+        return store(dto, file);
     }
 }
