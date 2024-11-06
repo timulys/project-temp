@@ -905,7 +905,7 @@ public class IssueSupportService {
 
 
 	public IssueSupportHistory storeIssueSupportAndResultIssueSupportHistory(@NotNull Issue issue , @NotNull IssueSupportChangeType issueSupportChangeType , Long memberId  , Long branchId , String question )  {
-
+		Member member = memberService.findById(memberId);
 		IssueSupport issueSupport = IssueSupport.builder().answerer(property.getSystemMemberId())
 														  .changeType(issueSupportChangeType)
 														  .type(IssueSupportType.change)
@@ -922,16 +922,19 @@ public class IssueSupportService {
 														  .selectMemberId(memberId)
 														  .branchId(branchId)
 														  .status(IssueSupportStatus.auto)
+														  .member(member)
 														  .build();
 		// 지원 요청 데이터 저장
 		issueSupportRepository.save(issueSupport);
 
 		// 전환 자동 승인 데이터 생성
 		return IssueSupportHistory.builder().issueSupport(issueSupport)
-									 .issue(issueSupport.getIssue())
-							         .type(issueSupport.getType())
-							         .changeType(issueSupport.getChangeType())
-									 .status(IssueSupportStatus.auto).build();
+									        .issue(issueSupport.getIssue())
+							                .type(issueSupport.getType())
+									        .content(question )
+							                .changeType(issueSupport.getChangeType())
+											.member(member)
+									        .status(IssueSupportStatus.auto).build();
 	}
 
 	private boolean storeIssueSupportValCheckUseIssue(Long memberId, Issue issue) {
