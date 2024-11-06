@@ -65,4 +65,24 @@ public class FileController {
                 .build();
         return new ResponseEntity<>(response , HttpStatus.CREATED);
     }
+
+    /**
+     * FIXME :: 기존 업로드 API엔 이미지용 5MB로 검증. 따라서 현재 500kB 고정이므로 API 추가 -> 향후 고도화 시에 파일 유틸 다시 만들고 업로드쪽 정리 필요 20241106
+     * @param dto
+     * @return
+     * @throws Exception
+     */
+    @Tag(name = "파일 업로드 API")
+    @Operation(summary = "첫인사말 이미지 업로드")
+    @PostMapping("/image")
+    public ResponseEntity<ApiResult<UploadDto>> uploadFistMessageImage(@NotNull UploadDto dto) {
+
+        UploadDto uploadDto = uploadService.saveFirstMessageImage(dto);
+
+        ApiResult<UploadDto> response = ApiResult.<UploadDto>builder()
+                .code(ApiResultCode.succeed)
+                .payload(uploadDto)
+                .build();
+        return new ResponseEntity<>(response , HttpStatus.CREATED);
+    }
 }
