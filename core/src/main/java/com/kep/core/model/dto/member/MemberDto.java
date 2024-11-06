@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Positive;
@@ -41,9 +42,11 @@ public class MemberDto {
 	private Long branchId;
 
 	@Schema(description = "사용자명")
+	@Length(max = 255)
 	private String username;
 
 	@NotEmpty
+	@Length(max = 255)
 	@Schema(description = "닉네임", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String nickname;
 	
