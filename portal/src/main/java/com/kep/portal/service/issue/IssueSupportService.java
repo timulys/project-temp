@@ -928,10 +928,11 @@ public class IssueSupportService {
 
 		// 전환 자동 승인 데이터 생성
 		return IssueSupportHistory.builder().issueSupport(issueSupport)
-									 .issue(issueSupport.getIssue())
-							         .type(issueSupport.getType())
-							         .changeType(issueSupport.getChangeType())
-									 .status(IssueSupportStatus.auto).build();
+									        .issue(issueSupport.getIssue())
+							                .type(issueSupport.getType())
+									        .content(question )
+							                .changeType(issueSupport.getChangeType())
+									        .status(IssueSupportStatus.auto).build();
 	}
 
 	private boolean storeIssueSupportValCheckUseIssue(Long memberId, Issue issue) {
