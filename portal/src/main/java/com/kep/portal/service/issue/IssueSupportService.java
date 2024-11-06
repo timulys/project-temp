@@ -905,7 +905,7 @@ public class IssueSupportService {
 
 
 	public IssueSupportHistory storeIssueSupportAndResultIssueSupportHistory(@NotNull Issue issue , @NotNull IssueSupportChangeType issueSupportChangeType , Long memberId  , Long branchId , String question )  {
-
+		Member member = memberService.findById(memberId);
 		IssueSupport issueSupport = IssueSupport.builder().answerer(property.getSystemMemberId())
 														  .changeType(issueSupportChangeType)
 														  .type(IssueSupportType.change)
@@ -922,6 +922,7 @@ public class IssueSupportService {
 														  .selectMemberId(memberId)
 														  .branchId(branchId)
 														  .status(IssueSupportStatus.auto)
+														  .member(member)
 														  .build();
 		// 지원 요청 데이터 저장
 		issueSupportRepository.save(issueSupport);
@@ -932,6 +933,7 @@ public class IssueSupportService {
 							                .type(issueSupport.getType())
 									        .content(question )
 							                .changeType(issueSupport.getChangeType())
+											.member(member)
 									        .status(IssueSupportStatus.auto).build();
 	}
 
