@@ -47,4 +47,6 @@ public class MemberAssignDto {
 	private BranchDto branchDto;
 
 	private MemberOfficeHoursDto memberOfficeHoursDto;
+
+	private Long roleId;
 }

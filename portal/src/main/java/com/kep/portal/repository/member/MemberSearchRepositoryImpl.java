@@ -84,6 +84,7 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                                                                 branch.id.as("branchId"),
                                                                 branch.name.as("branchName"),
                                                                 team.name.as("teamName"),
+                                                                memberRole.roleId.as("roleId"),
                                                                 ExpressionUtils.as(this.getCountIssueGroupByIssueStatus(member.id, Arrays.asList(IssueStatus.ask, IssueStatus.reply, IssueStatus.urgent ) ), "ongoing" ),
                                                                 ExpressionUtils.as(this.getCountIssueGroupByIssueStatus(member.id, Arrays.asList(IssueStatus.assign ) ), "assigned" ),
                                                                 Projections.fields( BranchDto.class,
