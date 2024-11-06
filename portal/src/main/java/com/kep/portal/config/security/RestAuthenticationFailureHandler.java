@@ -66,12 +66,17 @@ public class RestAuthenticationFailureHandler implements AuthenticationFailureHa
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 		response.setCharacterEncoding(StandardCharsets.UTF_8.toString());
 
+		// update : response 변경 요청으로 수정
+		String json = objectMapper.writeValueAsString(map);
+		response.getWriter().write(json);
+		/*
 		ApiResult<Map<String,Object>> result = ApiResult.<Map<String,Object>>builder()
 				.code(ApiResultCode.failed)
 				.payload(map)
 				.build();
 		result.setError(e.getLocalizedMessage());
 
-		objectMapper.writeValue(response.getWriter(), result);
+		objectMapper.writeValue(response.getWriter().write(json), result);
+		 */
 	}
 }
