@@ -67,7 +67,6 @@ public class NotificationController {
      * SB-FM-009, SB-CM-P02
      *
      * @param day
-     * @param pageable
      * @return
      */
     @Tag(name = "알림(노티) API")
@@ -75,17 +74,13 @@ public class NotificationController {
     @GetMapping
 //    @PreAuthorize("hasAnyAuthority('READ_PORTAL', 'READ_MANAGE', 'READ_SYSTEM')")
     public ResponseEntity<ApiResult<List<NotificationDto>>> getMainNotification(
-            @RequestParam(value = "day", required = false, defaultValue = "7") Long day,
-            @SortDefault.SortDefaults({@SortDefault(sort = {"id"}, direction = Sort.Direction.DESC)}) Pageable pageable) {
+            @RequestParam(value = "day", required = false, defaultValue = "7") Long day) {
         try {
-            Page<NotificationDto> notificationDtoList = notificationService.getMainNotificationList(day, pageable);
+            List<NotificationDto> notificationDtoList = notificationService.getMainNotificationList(day);
 
             ApiResult<List<NotificationDto>> response = ApiResult.<List<NotificationDto>>builder()
                     .code(ApiResultCode.succeed)
-                    .payload(notificationDtoList.getContent())
-                    .totalPage(notificationDtoList.getTotalPages())
-                    .totalElement(notificationDtoList.getTotalElements())
-                    .currentPage(notificationDtoList.getNumber())
+                    .payload(notificationDtoList)
                     .build();
 
             return new ResponseEntity<>(response, HttpStatus.OK);
