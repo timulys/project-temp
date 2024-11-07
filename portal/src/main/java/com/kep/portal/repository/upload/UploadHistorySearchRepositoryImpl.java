@@ -7,6 +7,7 @@ import com.kep.portal.model.entity.upload.UploadHistory;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -26,6 +27,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.kep.portal.model.entity.branch.QBranch.branch;
+import static com.kep.portal.model.entity.issue.QIssue.issue;
 import static com.kep.portal.model.entity.upload.QUploadHistory.uploadHistory;
 
 @Slf4j
@@ -39,23 +42,30 @@ public class UploadHistorySearchRepositoryImpl implements UploadHistorySearchRep
 
     @Override
     public Page<UploadHistory> search(UploadHistorySearchCondition condition, Pageable pageable) {
-        QUploadHistory qUploadHistory = new QUploadHistory("uploadHistory");
-
-        Long totalElement = queryFactory.select(qUploadHistory.count())
-                .from(qUploadHistory)
-                .where(getConditions(condition))
-                .fetchFirst();
+        Long totalElement = queryFactory.select(uploadHistory.count())
+                                        .from(uploadHistory)
+                                        .innerJoin(issue)
+                                            .on(uploadHistory.issueId.eq(issue.id))
+                                        .innerJoin(branch)
+                                            .on(issue.branchId.eq(branch.id))
+                                        .where(getConditions(condition))
+                                        .fetchFirst();
 
         List<UploadHistory> uploadHistories = Collections.emptyList();
         if (totalElement > 0) {
-            uploadHistories = queryFactory.selectFrom(qUploadHistory)
-                    .where(getConditions(condition))
-                    .orderBy(getOrderSpecifiers(pageable))
-                    .offset(pageable.getOffset())
-                    .limit(pageable.getPageSize())
-                    .fetch();
+            uploadHistories = queryFactory.select(uploadHistory)
+                                          .from(uploadHistory)
+                                          .innerJoin(issue)
+                                            .on(uploadHistory.issueId.eq(issue.id))
+                                          .innerJoin(branch)
+                                            .on(issue.branchId.eq(branch.id))
+                                          .where(getConditions(condition))
+                                          //.orderBy(getOrderSpecifiers(pageable))
+                                          .orderBy(uploadHistory.created.desc())
+                                          .offset(pageable.getOffset())
+                                          .limit(pageable.getPageSize())
+                                          .fetch();
         }
-
         return new PageImpl<>(uploadHistories, pageable, totalElement);
     }
 
@@ -101,7 +111,7 @@ public class UploadHistorySearchRepositoryImpl implements UploadHistorySearchRep
         mainBuilder.and(guestIn(condition.getGuests()));
         mainBuilder.and(dateBetween(condition.getStartDate(), condition.getEndDate()));
         mainBuilder.and(issueCategoryIdEq(condition.getIssueCategoryId()));
-
+        mainBuilder.and(branchIdEq(condition.getBranchId()));
         return mainBuilder;
     }
 
@@ -134,5 +144,9 @@ public class UploadHistorySearchRepositoryImpl implements UploadHistorySearchRep
 
             return uploadHistory.created.between(from, to);
         }
+    }
+
+    private BooleanExpression branchIdEq(Long branchId) {
+        return branchId != null ? branch.id.eq(branchId) : null;
     }
 }
