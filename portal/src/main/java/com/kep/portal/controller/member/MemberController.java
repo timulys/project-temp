@@ -178,15 +178,11 @@ public class MemberController {
 
         log.info("MEMBER, SEARCH ASSIGNABLE, PARAM: {}", condition);
 
-        Page<MemberAssignDto> page = memberService.searchAssignable(condition, pageable);
+        List<MemberAssignDto> memberAssignDtoList = memberService.searchAssignable(condition, pageable);
 
-        ApiResult<List<MemberAssignDto>> response = ApiResult.<List<MemberAssignDto>>builder()
-                .code(ApiResultCode.succeed)
-                .payload(page.getContent())
-                .currentPage(page.getNumber())
-                .totalPage(page.getTotalPages())
-                .totalElement(page.getTotalElements())
-                .build();
+        ApiResult<List<MemberAssignDto>> response = ApiResult.<List<MemberAssignDto>>builder().code(ApiResultCode.succeed)
+                                                                                              .payload(memberAssignDtoList)
+                                                                                              .build();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
