@@ -11,6 +11,7 @@ import com.kep.portal.model.entity.channel.Channel;
 import com.kep.portal.model.entity.channel.ChannelEnv;
 import com.kep.portal.model.entity.issue.*;
 import com.kep.portal.model.entity.subject.IssueCategory;
+import com.kep.portal.model.entity.subject.IssueCategoryMapper;
 import com.kep.portal.repository.channel.ChannelEnvRepository;
 import com.kep.portal.repository.issue.IssueExtraRepository;
 import com.kep.portal.repository.issue.IssueRepository;
@@ -69,6 +70,9 @@ public class IssueExtraService {
 
 	@Resource
 	private IssueRepository issueRepository;
+
+	@Resource
+	private IssueCategoryMapper issueCategoryMapper;
 
 	@Resource
 	private LegacyClient legacyClient;
@@ -163,10 +167,11 @@ public class IssueExtraService {
 		// 요약 정보 확인 및 저장
 		String summary = issueExtraDto.getSummary();
 		if (issueExtra == null) {
-			issueExtra = issueExtraMapper.map(issueExtraDto);
+			issueExtra = issueExtraRepository.save(issueExtraMapper.map(issueExtraDto));
 			issueExtra.setGuestId(issue.getGuest().getId());
 		} else {
-			CommonUtils.copyNotEmptyProperties(issueExtraMapper.map(issueExtraDto), issueExtra);
+			issueExtra.setIssueCategory(issueCategoryMapper.map(issueExtraDto.getIssueCategory())); //Transient var
+			issueExtra.setIssueCategoryId(issueExtraDto.getIssueCategoryId());
 		}
 
 		if (summary != null) {
@@ -180,18 +185,18 @@ public class IssueExtraService {
 			issueExtra.setMemoModified(ZonedDateTime.now());
 		}
 
-		if (issueExtraDto.getInflow() != null) {
-			issueExtra.setInflowModified(ZonedDateTime.now());
-		}
+//		if (issueExtraDto.getInflow() != null) {
+//			issueExtra.setInflowModified(ZonedDateTime.now());
+//		}
 
 		issue.setIssueExtra(issueExtra);
 
-		issueExtra = (IssueExtra)issueExtraRepository.save(issueExtra);
+//		issueExtra = issueExtraRepository.save(issueExtra);
 
-		if (issue.getIssueExtra() == null) {
-			issue.setIssueExtra(issueExtra);
-			issueRepository.save(issue);
-		}
+//		if (issue.getIssueExtra() == null) {
+//			issue.setIssueExtra(issueExtra);
+//			issueRepository.save(issue);
+//		}
 
 		if ((!ObjectUtils.isEmpty(issueExtraDto.getIssueCategoryId())) && (!ObjectUtils.isEmpty(issueExtraDto.getSummary())))
 		{
@@ -234,13 +239,15 @@ public class IssueExtraService {
 		IssueExtra issueExtra = null;
 
 		if (issue.getIssueExtra() == null) {
-			issueExtra = IssueExtra.builder()
-					.guestId(issue.getGuest().getId())
-					.summary(summary == null || summary.isEmpty() ? null : summary)
-					.summaryModified(ZonedDateTime.now())
-					.summaryCompleted(issueExtraSummaryDto.getSummaryCompleted())
-					.issueCategoryId(category.getId())
-					.build();
+			issueExtra = issueExtraRepository.save(
+					IssueExtra.builder()
+							.guestId(issue.getGuest().getId())
+							.summary(summary == null || summary.isEmpty() ? null : summary)
+							.summaryModified(ZonedDateTime.now())
+							.summaryCompleted(issueExtraSummaryDto.getSummaryCompleted())
+							.issueCategoryId(category.getId())
+							.build()
+			);
 
 		} else {
 			issueExtra = issue.getIssueExtra();
@@ -255,11 +262,10 @@ public class IssueExtraService {
 			issueExtra.setMemoModified(ZonedDateTime.now());
 		}
 
-		if (issueExtraSummaryDto.getInflow() != null && !issueExtraSummaryDto.getInflow().isEmpty()) {
-			issueExtra.setInflowModified(ZonedDateTime.now());
-		}
+//		if (issueExtraSummaryDto.getInflow() != null && !issueExtraSummaryDto.getInflow().isEmpty()) {
+//			issueExtra.setInflowModified(ZonedDateTime.now());
+//		}
 
-		issueExtra = issueExtraRepository.save(issueExtra);
 		issue.setIssueExtra(issueExtra);
 
 		issueService.joinIssueSupport(issue);
