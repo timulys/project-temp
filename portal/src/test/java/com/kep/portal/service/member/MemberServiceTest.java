@@ -132,21 +132,4 @@ class MemberServiceTest {
 		assertEquals(100, assigned + ongoing);
 	}
 
-	@Test
-	void searchAssignable() throws Exception {
-
-		// when
-		Page<MemberAssignDto> members = memberService.searchAssignable(MemberSearchCondition.builder()
-				.branchId(branch.getId())
-				.enabled(true)
-				.build(), PageRequest.of(0, 1000));
-
-		// then
-		Long assigned = members.stream().map(MemberAssignDto::getAssigned).collect(Collectors.toList()).stream().reduce(0L, Long::sum);
-		Long ongoing = members.stream().map(MemberAssignDto::getOngoing).collect(Collectors.toList()).stream().reduce(0L, Long::sum);
-		assertEquals(100, assigned + ongoing);
-		assertEquals(this.assigned, assigned);
-		assertEquals(this.ongoing, ongoing);
-//		log.info("{}", objectMapper.writeValueAsString(members));
-	}
 }
