@@ -92,14 +92,14 @@ public class NotificationService {
         return requestDto;
     }
 
-    public Page<NotificationDto> getMainNotificationList(Long day, Pageable pageable) {
+    public List<NotificationDto> getMainNotificationList(Long day) {
         ZonedDateTime end = ZonedDateTime.now();
         ZonedDateTime start = end.minusDays(day);
         start = start.truncatedTo(ChronoUnit.DAYS);
         log.info("start = {}, end = {}", start, end);
 
-        Page<Notification> items = notificationRepository.findByMemberIdAndCreatedBetween(securityUtils.getMemberId(), start, end, pageable);
-        return new PageImpl<>(notificationMapper.map(items.getContent()), items.getPageable(), items.getTotalElements());
+        List<Notification> items = notificationRepository.findByMemberIdAndCreatedBetween(securityUtils.getMemberId(), start, end);
+        return notificationMapper.map(items);
     }
 
     public Integer getMainNotificationNewCount() {
