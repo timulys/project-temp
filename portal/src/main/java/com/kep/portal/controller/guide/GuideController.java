@@ -404,27 +404,19 @@ public class GuideController {
     @PreAuthorize("hasAnyAuthority('WRITE_GUIDE')")
     @Tag(name = "가이드 API")
     @Operation(summary = "가이드 삭제")
-    public ResponseEntity<ApiResult<Map<String, String>>> delete(
+    public ResponseEntity<ApiResult<Map<String, Object>>> delete(
             @RequestParam List<Long> ids
     ) {
-        try {
-            Map<String, String> resultMap = guideService.deleteAllById(ids);
 
-            ApiResult<Map<String, String>> response = ApiResult.<Map<String, String>>builder()
-                    .payload(resultMap)
-                    .code(ApiResultCode.succeed)
-                    .build();
+        Map<String, Object> resultMap = guideService.deleteAllById(ids);
 
-            return new ResponseEntity<>(response, HttpStatus.OK);
+        ApiResult<Map<String, Object>> response = ApiResult.<Map<String, Object>>builder()
+                .payload(resultMap)
+                .code(ApiResultCode.succeed)
+                .build();
 
-        } catch (Exception e) {
-            ApiResult<Map<String, String>> response = ApiResult.<Map<String, String>>builder()
-                    .code(ApiResultCode.failed)
-                    .message(e.getLocalizedMessage())
-                    .build();
-            response.setError("<<SB-CA-006-DELETE>>");
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
     }
 
     @PatchMapping("/branch")
