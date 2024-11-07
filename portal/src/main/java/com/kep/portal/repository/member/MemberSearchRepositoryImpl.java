@@ -186,7 +186,8 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                                 .innerJoin(member)
                                     .on(teamMember.memberId.eq(member.id))
                                 .where(
-                                        this.teamIdEq(teamId)
+                                        this.teamIdEq(teamId),
+                                        member.enabled.eq(true)
                                       )
                                 .orderBy(member.id.asc())
                                 .fetch();
