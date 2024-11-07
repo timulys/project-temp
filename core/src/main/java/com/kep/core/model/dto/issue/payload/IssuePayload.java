@@ -103,7 +103,7 @@ public class IssuePayload {
 		private SectionType type;
 		@Schema(description = "메시지 컨텐트")
 		private String data;
-		@Schema(description = "")
+		@Schema(description = "메시지 타입 [text, photo, video, audio, file]")
 		private String display;
 		@Schema(description = "")
 		private String extra;
