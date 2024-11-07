@@ -41,6 +41,8 @@ public class UploadHistorySearchCondition {
     @Schema(description = "")
     private String customerQuery;
 
+    @Schema(description = "브랜치 아이디")
+    private Long branchId;
 
     /**
      * 고객검색
