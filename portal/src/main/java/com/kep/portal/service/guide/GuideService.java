@@ -963,10 +963,10 @@ public class GuideService {
      *
      * @param ids
      */
-    public Map<String, String> deleteAllById(List<Long> ids) {
+    public Map<String, Object> deleteAllById(List<Long> ids) {
         List<Guide> deleteGuide = guideRepository.findAllById(ids);
 
-        Map<String, String> resultMap = new HashMap<>();
+        Map<String, Object> resultMap = new HashMap<>();
 
         List<Long> saveDeleteIds = new ArrayList<>();
         for (Guide guide : deleteGuide) {
@@ -993,6 +993,9 @@ public class GuideService {
             }
         }
 
+        if(resultMap.size() > 0 ){
+            throw new BizException("SB-CA-006-DELETE" , "SB-CA-006-DELETE" ,resultMap);
+        }
 
         guideRepository.deleteAllById(saveDeleteIds);
         guideBlockRepository.deleteAllByGuideIdIn(saveDeleteIds);
