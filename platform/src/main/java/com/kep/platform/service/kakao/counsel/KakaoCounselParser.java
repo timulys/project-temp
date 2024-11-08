@@ -34,56 +34,55 @@ public class KakaoCounselParser {
 		KakaoCounselReceiveEvent.Reference reference = event.getReference();
 		KakaoCounselReceiveEvent.Reference lastReference = event.getLastReference();
 
-		Map<String, Object> params = new HashMap<>();
-
+		String appUserId = event.getAppUserId();
+		Map<String, Object> params = null;
+		String extra = null;
 
 		if( reference != null && StringUtils.isNoneBlank(reference.getExtra())) {
-
-			String extra = reference.getExtra();
+			extra = reference.getExtra();
 			log.info("KAKAO COUNSEL PARSER, REFERENCE, EXTRA: {}", extra);
 
-			params.put("appUserId", event.getAppUserId());
+			params = createParameterForReference(reference.getExtra(), appUserId);
 
-			String[] extraParams = extra.split("__");
-			for (String param : extraParams) {
-				if (!param.isEmpty()) {
-					int underscoreIndex = param.indexOf("_");
-					if (underscoreIndex != -1) {
-						String key = param.substring(0, underscoreIndex);
-						String value = param.substring(underscoreIndex + 1);
+			// 채팅방 종료 후 URL 매핑이 아닌 채팅을 입력 해서 신규 채팅 시 상담원 지정을 위해서 추가
+		} else if (lastReference != null && StringUtils.isNoneBlank(lastReference.getExtra())) {
+			extra = lastReference.getExtra();
+			log.info("KAKAO COUNSEL PARSER, LAST REFERENCE, EXTRA: {}", extra);
 
-						// bnk_상담원_username값 처리 vndr_cust_no
-						// FIXME :: eddie.j BNK 로직 삭제 예정
-						if ("vndr_cust_no".equals(key)) {
-							params.put("vndrCustNo", value);
-						} else {
-							params.put(key, value);
-						}
-					}
-				}
-			}
+			params = createParameterForReference(lastReference.getExtra(), appUserId);
 		}
 
-		// 채팅방 종료 후 URL 매핑이 아닌 채팅을 입력 해서 신규 채팅 시 상담원 지정을 위해서 추가
-		if( lastReference != null && StringUtils.isNoneBlank(lastReference.getExtra())){
-			String lastReferenceExtra  = lastReference.getExtra();
-			String[] lastReferenceExtraArray  = lastReferenceExtra.split("__");
-			for (String lastReferenceParam : lastReferenceExtraArray) {
-				if (lastReferenceParam.startsWith("path_")) {
-					//유입경로 추가
-					params.put("path", lastReferenceParam.replace("path_", ""));
-				}
-
-				if(lastReferenceParam.startsWith("mid_")){ // 상담원 지정 값만 사용하기 때문에 mid_하위만 추출
-					params.put( "mid", lastReferenceParam.replace("mid_" , "") );
-				}
-			}
-		}
 
 		log.info("KAKAO COUNSEL PARSER, REFERENCE, PARAMS: {}", params);
 
+		return params == null ? Collections.emptyMap() : params;
+	}
+
+	/**
+	 * extra 파싱
+	 * @param extra
+	 * @param appUserId
+	 * @return
+	 */
+	private Map<String, Object> createParameterForReference(String extra, String appUserId) {
+		Map<String, Object> params = new HashMap<>();
+		params.put("appUserId", appUserId);
+
+		String[] extraParams = extra.split("__");
+		for (String param : extraParams) {
+			if (!param.isEmpty()) {
+				int underscoreIndex = param.indexOf("_");
+				if (underscoreIndex != -1) {
+					String key = param.substring(0, underscoreIndex);
+					String value = param.substring(underscoreIndex + 1);
+					params.putIfAbsent(key, value);
+				}
+			}
+		}
+
 		return params;
 	}
+
 
 	@Deprecated
 	public IssuePayload parseMessage(@NotNull @Valid KakaoCounselReceiveEvent event) {
