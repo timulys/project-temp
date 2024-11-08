@@ -120,7 +120,9 @@ public class IssueCategory {
 
 		while (current.getParent() != null) {
 			current = current.getParent();
-			path.add(current);
+			if(Objects.nonNull(current.getId())){
+				path.add(current);
+			}
 		}
 		if(Objects.nonNull(issueCategory.getDepth())){
 			path.sort(Comparator.comparingInt(IssueCategory::getDepth));
