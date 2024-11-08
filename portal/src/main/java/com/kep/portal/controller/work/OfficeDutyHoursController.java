@@ -4,6 +4,8 @@ import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.work.OffDutyHoursDto;
 import com.kep.core.model.dto.work.WorkType;
+import com.kep.core.model.exception.BizException;
+import com.kep.portal.config.property.SystemMessageProperty;
 import com.kep.portal.model.entity.work.OffDutyHours;
 import com.kep.portal.service.work.OffDutyHoursService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +13,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +35,9 @@ public class OfficeDutyHoursController {
     @Resource
     private OffDutyHoursService offDutyHoursService;
 
+
+    @Resource
+    private SystemMessageProperty systemMessageProperty;
 
 
     /**
@@ -83,7 +89,13 @@ public class OfficeDutyHoursController {
         log.info("DTO : {}", dto);
         dto.setCases(cases);
 
-        OffDutyHoursDto offDutyHoursDto = offDutyHoursService.create(dto , casesId);
+        OffDutyHoursDto offDutyHoursDto = null;
+        try{
+            offDutyHoursDto = offDutyHoursService.create(dto , casesId);
+        } catch (
+            DataIntegrityViolationException e) {
+            throw new BizException(systemMessageProperty.getValidation().getDuplication().getBranchSchedule());
+        }
         HttpStatus status = HttpStatus.UNPROCESSABLE_ENTITY;
         ApiResultCode code = ApiResultCode.failed;
         if(offDutyHoursDto != null){
@@ -119,7 +131,14 @@ public class OfficeDutyHoursController {
             , @RequestBody @Valid OffDutyHoursDto dto) throws Exception{
 
         dto.setCases(cases);
-        OffDutyHoursDto offDutyHoursDto = offDutyHoursService.create(dto , casesId);
+
+        OffDutyHoursDto offDutyHoursDto = null;
+        try{
+            offDutyHoursDto = offDutyHoursService.create(dto , casesId);
+        } catch (
+            DataIntegrityViolationException e) {
+            throw new BizException(systemMessageProperty.getValidation().getDuplication().getBranchSchedule());
+        }
         ApiResult<OffDutyHoursDto> response = ApiResult.<OffDutyHoursDto>builder()
                 .code(ApiResultCode.succeed)
                 .payload(offDutyHoursDto)

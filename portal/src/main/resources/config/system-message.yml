@@ -102,6 +102,7 @@ system-message:
       branch: 이미 존재하는 브랜치명입니다.
       channel-key: 이미 사용 중인 연결키입니다. 다른 키를 입력해주세요.
       counseling-group : 이미 존재하는 상담그룹명입니다.
+      branch-schedule: 해당 일자에 이미 등록된 일정이 있습니다.
     # 상담원 전환 오류
     transfer:
       counseling-staff: 상담직원배정에 실패 되었습니다.
