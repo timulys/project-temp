@@ -101,7 +101,7 @@ system-message:
       consultation-funnel: 해당 변수명은 이미 존재하거나 삭제된 상태입니다. 다른 이름으로 저장해주세요.
       branch: 이미 존재하는 브랜치명입니다.
       channel-key: 이미 사용 중인 연결키입니다. 다른 키를 입력해주세요.
-      counseling-group : 이미 존재하는 상담그룹명입니다.
+      counseling-group : 이미 존재하는 그룹명입니다.
       branch-schedule: 해당 일자에 이미 등록된 일정이 있습니다.
     # 상담원 전환 오류
     transfer:
