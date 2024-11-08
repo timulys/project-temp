@@ -6,6 +6,7 @@ import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.branch.BranchTeamDto;
 import com.kep.core.model.dto.team.TeamDto;
 import com.kep.core.model.exception.BizException;
+import com.kep.portal.config.property.SystemMessageProperty;
 import com.kep.portal.service.team.TeamService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,6 +36,9 @@ public class TeamController {
 
     @Resource
     private TeamService teamService;
+
+    @Resource
+    private SystemMessageProperty systemMessageProperty;
 
     /**
      * FIXME :: Pageable 사용 안됨. 확인 필요 20240715 volka
@@ -148,13 +152,10 @@ public class TeamController {
         try {
             branchTeamDto = teamService.store(dto);
         } catch (DataIntegrityViolationException e) {
-            if(e.getLocalizedMessage().contains("UK_TEAM___NAME")){
-                Map<String, Object> extra = new HashMap<>();
-                extra.put("name",dto.getName());
-                throw new BizException("SB-SA-P01-001", "SB-SA-P01-001" , extra);
-            } else {
-                throw new BizException();
-            }
+            throw new BizException(systemMessageProperty.getValidation().getDuplication().getCounselingGroup());
+            //Map<String, Object> extra = new HashMap<>();
+            //extra.put("name",dto.getName());
+            //throw new BizException("SB-SA-P01-001", "SB-SA-P01-001" , extra);
         }
 
         ApiResult<BranchTeamDto> response = ApiResult.<BranchTeamDto>builder()

@@ -224,6 +224,7 @@ public class SystemMessageProperty {
             private String branch;
             private String consultationFunnel;
             private String channelKey;
+            private String counselingGroup;
         }
 
         @Data
