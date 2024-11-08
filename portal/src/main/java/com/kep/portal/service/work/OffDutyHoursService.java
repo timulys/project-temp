@@ -80,17 +80,13 @@ public class OffDutyHoursService {
 		}
 
 		if (branchOffDutyHours == null) {
-
-
-			Long branchId = securityUtils.getBranchId();;
-
+			// KICA-415 금일 등록 된 요일이 있을 경우 브랜치 일정 등록 안되는 로직 주석 처리
+			/*
+			Long branchId = securityUtils.getBranchId();
 			List<OffDutyHours> branchOffDutyHoursList = this.getOffDutyHours(branchId);
-
 			if(!branchOffDutyHoursList.isEmpty()){
 				return null;
-			}
-
-
+			}*/
 			branchOffDutyHours = BranchOffDutyHours.builder()
 					.created(ZonedDateTime.now())
 					.creator(memberId)
