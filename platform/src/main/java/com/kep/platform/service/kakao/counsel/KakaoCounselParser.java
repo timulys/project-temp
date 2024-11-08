@@ -69,9 +69,13 @@ public class KakaoCounselParser {
 			String lastReferenceExtra  = lastReference.getExtra();
 			String[] lastReferenceExtraArray  = lastReferenceExtra.split("__");
 			for (String lastReferenceParam : lastReferenceExtraArray) {
-				if(lastReferenceParam.contains("mid_")){ // 상담원 지정 값만 사용하기 때문에 mid_하위만 추출
+				if (lastReferenceParam.startsWith("path_")) {
+					//유입경로 추가
+					params.put("path", lastReferenceParam.replace("path_", ""));
+				}
+
+				if(lastReferenceParam.startsWith("mid_")){ // 상담원 지정 값만 사용하기 때문에 mid_하위만 추출
 					params.put( "mid", lastReferenceParam.replace("mid_" , "") );
-					break;
 				}
 			}
 		}
