@@ -39,11 +39,14 @@ public class MemberStatusSyncAssignMemberJob {
      * 상담원별 Sync이기 떄문에 주기를 더 자주 실행힙니다. ( 오후 3시(15:00)부터 밤 11시(23:59)까지 10분간격으로 실행 ),
      * 다음날에 대한 온/오프라인 Sync를 위해서 자정에 한 번 더 Sync 합니다. ( 이 경우 날짜만 체크합니다. )
      ********************************************************/
+    // [KICA-378] 스케줄러 일단 주석처리 ( 추후 어떻게 될지 논의 필요 )
+    /*
     @Scheduled(cron = "0 0/10 15-23 * * ?")
     @Scheduled(cron = "0 0 0 * * ?")
     @SchedulerLock(name = "MEMBER_STATUS_SYNC_ASSIGN_MEMBER"
             , lockAtLeastFor = "PT5S"
             , lockAtMostFor = "PT20S")
+     */
     public void run() throws Exception {
         List<MemberStatusSyncDto> memberAndMemberOfficeHoursList = officeHoursService.getMemberAndMemberOfficeHoursListUseBranchId(null);
         List<Member> memberList = new ArrayList<>();
