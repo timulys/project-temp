@@ -349,7 +349,7 @@ public class IssueService {
         }
 
         //2023.05.02 브랜치 기준으로 변경(공통)
-        condition.setBranchId(securityUtils.getBranchId());
+        // condition.setBranchId(securityUtils.getBranchId());
 
         Page<Issue> issuePage;
         // 대화 이력에 대한 내용이 condition에 포함되어 있다면
