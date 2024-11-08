@@ -73,9 +73,9 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
     }
 
     @Override
-    public Page<MemberAssignDto> searchAssignableMember(@NotNull MemberSearchCondition condition, @NotNull Pageable pageable) {
+    public List<MemberAssignDto> searchAssignableMember(@NotNull MemberSearchCondition condition, @NotNull Pageable pageable) {
 
-            List<MemberAssignDto> members = queryFactory.select(
+        List<MemberAssignDto> memberList = queryFactory.select(
                                             Projections.fields( MemberAssignDto.class,
                                                                 member.id,
                                                                 member.username,
@@ -153,13 +153,14 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                     .where(
                             this.enabledEq(condition.getEnabled()),
                             this.branchIdEq(condition.getBranchId()),
-                            team.id.coalesce(0L).in(this.getMinTeamMemberId(member.id))
+                            team.id.coalesce(0L).in(this.getMinTeamMemberId(member.id)),
+                            role.level.id.loe(2)
                           )
                     .offset(pageable.getOffset())
                     .limit(pageable.getPageSize())
                     .orderBy(this.getOrderAssignableMemberSpecifiers(pageable))
                     .fetch();
-        return new PageImpl<>(members, pageable, Objects.isNull(members) ? 0L : members.size());
+        return memberList;
     }
 
     @Override
@@ -185,7 +186,8 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                                 .innerJoin(member)
                                     .on(teamMember.memberId.eq(member.id))
                                 .where(
-                                        this.teamIdEq(teamId)
+                                        this.teamIdEq(teamId),
+                                        member.enabled.eq(true)
                                       )
                                 .orderBy(member.id.asc())
                                 .fetch();

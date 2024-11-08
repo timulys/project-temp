@@ -619,24 +619,26 @@ public class MemberService {
 	 * <li>상담 포탈 > 상담 직원 전환
 	 * <li>상담 관리 > 상담 직원 전환
 	 */
-	public Page<MemberAssignDto> searchAssignable(MemberSearchCondition condition, Pageable pageable) {
+	public List<MemberAssignDto> searchAssignable(MemberSearchCondition condition, Pageable pageable) {
 
 		// 파라미터 프로젝션, 팀 소속 유저 (teamId -> memberIds)
+		/*
 		if (!addMembersCondition(condition)) {
 			return new PageImpl<>(Collections.emptyList());
 		}
+		*/
 
 		// todo 일대다 아닌 경우 querydsl에 join 하여 사용 예정 ( 아래 소스 파악 필요 )
-		Page<MemberAssignDto> memberAssignDtos = memberRepository.searchAssignableMember(condition, pageable);
+		List<MemberAssignDto> memberAssignDtoList = memberRepository.searchAssignableMember(condition, pageable);
 
-		log.info("MEMBER ASSIGN LIST {}", memberAssignDtos);
+		log.info("MEMBER ASSIGN LIST {}", memberAssignDtoList);
 
 		boolean isWork = true;
 
 
 		boolean isBreakTime = breakTimeService.inBreakTime();
 
-		for (MemberAssignDto member : memberAssignDtos) {
+		for (MemberAssignDto member : memberAssignDtoList) {
 
 			member.setAssignable(true);
 			// 오늘 휴무 인지 여부 체크 추가
@@ -683,7 +685,7 @@ public class MemberService {
 			}
 		}
 
-		return new PageImpl<>(memberAssignDtos.getContent(), memberAssignDtos.getPageable(), memberAssignDtos.getTotalElements());
+		return memberAssignDtoList;
 	}
 
 	private boolean addMembersCondition(@NotNull MemberSearchCondition condition) {

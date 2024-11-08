@@ -905,7 +905,10 @@ public class IssueSupportService {
 
 
 	public IssueSupportHistory storeIssueSupportAndResultIssueSupportHistory(@NotNull Issue issue , @NotNull IssueSupportChangeType issueSupportChangeType , Long memberId  , Long branchId , String question )  {
-		Member member = memberService.findById(memberId);
+		Member member = null;
+		if(Objects.nonNull(memberId)){
+			member = memberService.findById(memberId);
+		}
 		IssueSupport issueSupport = IssueSupport.builder().answerer(property.getSystemMemberId())
 														  .changeType(issueSupportChangeType)
 														  .type(IssueSupportType.change)

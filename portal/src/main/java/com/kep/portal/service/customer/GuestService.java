@@ -83,7 +83,9 @@ public class GuestService {
 
 	public List<Guest> search(String subject, String query) {
 		if (!ObjectUtils.isEmpty(subject) && !ObjectUtils.isEmpty(query)) {
-			return guestRepository.findAllByNameContaining(query);
+			if ("name".equals(subject))
+				// KICA-383, 상담 이력 게스트 이름 검색 시(Guest는 핸드폰 번호가 없음)
+				return guestRepository.findAllByNameContaining(query);
 		}
 		return Collections.emptyList();
 	}
