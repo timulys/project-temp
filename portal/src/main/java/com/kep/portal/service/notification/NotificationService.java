@@ -98,7 +98,7 @@ public class NotificationService {
         start = start.truncatedTo(ChronoUnit.DAYS);
         log.info("start = {}, end = {}", start, end);
 
-        List<Notification> items = notificationRepository.findByMemberIdAndCreatedBetween(securityUtils.getMemberId(), start, end);
+        List<Notification> items = notificationRepository.findByMemberIdAndCreatedBetweenOrderByIdDesc(securityUtils.getMemberId(), start, end);
         return notificationMapper.map(items);
     }
 
