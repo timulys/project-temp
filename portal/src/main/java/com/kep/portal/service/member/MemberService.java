@@ -406,8 +406,10 @@ public class MemberService {
 			dto.setOfficeHours(officeHoursService.branch(securityUtils.getBranchId()));
 			dto.getOfficeHours().setOffDutyCounselYn(yn);
 		}
+		member.setBranch(branch);
 
-
+		// todo QA 이후 논의 예정 ( [KICA-379] 오류를 발생시키는 것으로 보여서 )
+		/*
 		// 근무시간
 		if (!ObjectUtils.isEmpty(dto.getOfficeHours())) {
 			OfficeHours officeHours = officeHoursService.member(dto.getOfficeHours(), member.getId());
@@ -417,7 +419,12 @@ public class MemberService {
 			WorkType.OfficeHoursStatusType status = isOfficeHour ? WorkType.OfficeHoursStatusType.on : WorkType.OfficeHoursStatusType.off;
 			member.setStatus(status);
 		}
-		member.setBranch(branch);
+		*/
+		// 근무시간
+		if (!ObjectUtils.isEmpty(dto.getOfficeHours())) {
+			OfficeHours officeHours = officeHoursService.member(dto.getOfficeHours(), member.getId());
+			member.setOfficeHours(officeHours);
+		}
 		memberRepository.save(member);
 		// SystemEventHistory 저장 (update의 경우 MemberEventListener 사용 X )
 		if(Objects.nonNull(dto.getId())){

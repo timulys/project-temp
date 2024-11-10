@@ -85,8 +85,9 @@ public class OfficeHoursController {
         log.info("OFFICE HOURS :{}" ,officeWorkDto.getOfficeHours().getDayOfWeek());
 
         //브랜치 근무 설정 create
-        //OfficeHoursDto officeHoursDto = officeHoursService.branch(officeWorkDto,branchId);
-        OfficeHoursDto officeHoursDto = memberService.saveOfficeHours(officeWorkDto);
+        OfficeHoursDto officeHoursDto = officeHoursService.branch(officeWorkDto,branchId);
+        // todo QA 이후 논의 예정 ( [KICA-379] 오류를 발생시키는 것으로 보여서 )
+        //OfficeHoursDto officeHoursDto = memberService.saveOfficeHours(officeWorkDto);
 
         officeWorkDto.setBranch(dto);
         officeWorkDto.setOfficeHours(officeHoursDto);
