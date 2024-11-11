@@ -1308,7 +1308,6 @@ public class GuideService {
 
         if (securityUtils.isManager()) {
             teams = getTeamsByGroupLeaderForManager(securityUtils.getMemberId());
-
         } else if (securityUtils.isAdmin()) {
             teams = branchTeamRepository.findAllByBranchIdOrderByIdDesc(branch.getId()).stream()
                     .map(BranchTeam::getTeam)
@@ -1339,7 +1338,12 @@ public class GuideService {
      */
     private List<Team> getTeamsByGroupLeaderForManager(Long memberId) {
         List<BranchTeam> branchTeams = branchTeamRepository.findAllByMemberId(memberId);
-        if (branchTeams.isEmpty()) throw new BizException("this manager does not having group leader");
+        if (branchTeams.isEmpty()) {
+            //throw new BizException("this manager does not having group leader");
+            // KICA-422, 상담 그룹 미노출 버그픽스
+            // 그룹장인 BranchTeam이 없더라도 예외는 아님. 빈 List Return
+            return Collections.emptyList();
+        }
 
         return branchTeams.stream()
                 .map(BranchTeam::getTeam)
