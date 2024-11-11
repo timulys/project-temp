@@ -16,9 +16,8 @@ import com.kep.portal.repository.channel.ChannelEnvRepository;
 import com.kep.portal.repository.issue.IssueExtraRepository;
 import com.kep.portal.repository.issue.IssueRepository;
 import com.kep.portal.repository.subject.IssueCategoryRepository;
+import com.kep.portal.service.channel.ChannelService;
 import com.kep.portal.service.subject.IssueCategoryService;
-import com.kep.portal.util.CommonUtils;
-import com.kep.portal.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -35,6 +34,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -66,9 +66,6 @@ public class IssueExtraService {
 	private IssueCategoryService issueCategoryService;
 
 	@Resource
-	private SecurityUtils securityUtils;
-
-	@Resource
 	private IssueRepository issueRepository;
 
 	@Resource
@@ -79,6 +76,9 @@ public class IssueExtraService {
 
 	@Resource
     private ChannelEnvRepository channelEnvRepository;
+
+	@Resource
+	private ChannelService channelService;
 
 	public IssueExtraDto getByIssueId(@NotNull @Positive Long issueId) {
 
@@ -143,6 +143,10 @@ public class IssueExtraService {
 		Assert.notNull(issue, "issue not null id:" + issueId);
 		IssueExtra issueExtra = issue.getIssueExtra() != null ? issue.getIssueExtra() : null;
 
+		if(Objects.nonNull(issueExtraDto.getChannelDto()) && Objects.nonNull(issueExtraDto.getChannelDto().getId())){
+			issue.setChannel(channelService.channelDtoToEntity(issueExtraDto.getChannelDto()));
+			issueService.save(issue);
+		}
 		//	요약 정보 먼저 확인 및 저장
 //		    if (issueExtraDto.getSummary() != null) {
 //		        issueExtra.setSummary(issueExtraDto.getSummary());

@@ -90,8 +90,9 @@ public class Issue {
 	/**
 	 * 채널
 	 */
+	// updatable = false 삭제처리 : 대화내용 > 상담요약 저장 시 저장 한 채널 가변적으로 저장 필요 ( 사이드 이팩트 발생 시.. 수정 예정 )
 	@ManyToOne
-	@JoinColumn(name = "channelId", foreignKey = @ForeignKey(name = "FK_ISSUE__CHANNEL"), nullable = false, updatable = false)
+	@JoinColumn(name = "channelId", foreignKey = @ForeignKey(name = "FK_ISSUE__CHANNEL"), nullable = false)
 	@Comment("채널 PK")
 	@NotNull
 	private Channel channel;

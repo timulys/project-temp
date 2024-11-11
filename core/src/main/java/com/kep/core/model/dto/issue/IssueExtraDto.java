@@ -1,5 +1,6 @@
 package com.kep.core.model.dto.issue;
 
+import com.kep.core.model.dto.channel.ChannelDto;
 import com.kep.core.model.dto.legacy.LegacyBnkCategoryDto;
 import com.kep.core.model.dto.subject.IssueCategoryDto;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -182,4 +183,7 @@ public class IssueExtraDto {
 	 */
 	@Schema(description = "BNK 현업 분류 카테고리 :: 제거예정")
 	private String selectBnkCategory;
+
+	@Schema(description = "채널 정보")
+	private ChannelDto channelDto;
 }

@@ -2,8 +2,6 @@ package com.kep.core.model.dto.channel;
 
 import com.kep.core.model.dto.branch.BranchDto;
 import com.kep.core.model.dto.platform.PlatformType;
-import com.kep.core.model.dto.system.SystemEnvDto;
-import com.kep.core.model.dto.system.SystemEnvEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
