@@ -256,7 +256,8 @@ public class GuideService {
 
          Guide.GuideBuilder guideBuilder = Guide.builder()
                 .name(guidePayload.getName())
-//                .teamId(team == null ? null : team.getId())
+                 // KICA-
+                .teamId(team == null ? null : team.getId())
                 .branch(branch)
 //                    .isBranchOpen(guidePayload.getIsBranchOpen()) //가이드 추가 시 브랜치는 무조건 등록 계정의 소속 브랜치로 저장. 브랜치 전체 오픈 없음 20241011 기준 따라 주석처리
                 .isBranchOpen(false) //가이드 추가 시 브랜치는 무조건 등록 계정의 소속 브랜치로 저장. 브랜치 전체 오픈 없음 20241011 기준
