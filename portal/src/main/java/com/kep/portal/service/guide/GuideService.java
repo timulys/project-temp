@@ -348,18 +348,28 @@ public class GuideService {
         Assert.notNull(guidePayload.getName(), "name must not be null");
         Assert.notNull(guidePayload.getType(), "type must not be null");
 
-        if (enabled) Assert.notEmpty(guidePayload.getContents(), "content must not be empty");
+//        임시저장도 저장과 동일한 검증 적용으로 변경 20241111 volka
+//        if (enabled) Assert.notEmpty(guidePayload.getContents(), "content must not be empty");
+//
+//        if (!guidePayload.getContents().isEmpty()) {
+//
+//            Assert.isTrue(guidePayload.getContents().stream().noneMatch(item -> item.getPayload().getChapters().size() > 10), "messages can not be over 10 in guide block");
+//
+//            if (guidePayload.getType() == GuideType.process) {
+//                Assert.isTrue(guidePayload.getContents().size() <= 20, "guide blocks are under 20 size");
+//                Assert.isTrue(guidePayload.getContents().stream().noneMatch(item -> item.getPayload().getChapters().isEmpty()), "content must not be empty");
+//            }
+//
+//        }
 
-        if (!guidePayload.getContents().isEmpty()) {
+        Assert.notEmpty(guidePayload.getContents(), "content must not be empty");
+        Assert.isTrue(guidePayload.getContents().stream().noneMatch(item -> item.getPayload().getChapters().size() > 10), "messages can not be over 10 in guide block");
 
-            Assert.isTrue(guidePayload.getContents().stream().noneMatch(item -> item.getPayload().getChapters().size() > 10), "messages can not be over 10 in guide block");
-
-            if (guidePayload.getType() == GuideType.process) {
-                Assert.isTrue(guidePayload.getContents().size() <= 20, "guide blocks are under 20 size");
-                Assert.isTrue(guidePayload.getContents().stream().noneMatch(item -> item.getPayload().getChapters().isEmpty()), "content must not be empty");
-            }
-
+        if (guidePayload.getType() == GuideType.process) {
+            Assert.isTrue(guidePayload.getContents().size() <= 20, "guide blocks are under 20 size");
+            Assert.isTrue(guidePayload.getContents().stream().noneMatch(item -> item.getPayload().getChapters().isEmpty()), "content must not be empty");
         }
+
 
 //        Long branchId = guidePayload.getBranchId() == null ? securityUtils.getBranchId() : guidePayload.getBranchId();
         Long branchId = securityUtils.getBranchId(); // 저장시 소속 브랜치로만 저장 가능 20241010 기준 요건
