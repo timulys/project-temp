@@ -411,5 +411,18 @@ public class ChannelService {
 		Long branchId = securityUtils.isMaster() ? null : securityUtils.getBranchId();
 		return channelSearchRepository.searchChannelList(branchId);
 	}
+
+	public Channel channelDtoToEntity(ChannelDto channelDto){
+		Channel Channel = new Channel();
+		Channel.setId(channelDto.getId());
+		Channel.setBranchId(channelDto.getBranchId());
+		Channel.setName(channelDto.getName());
+		Channel.setPlatform(channelDto.getPlatform());
+		Channel.setServiceKey(channelDto.getServiceKey());
+		Channel.setServiceId(channelDto.getServiceId());
+		Channel.setModifier(securityUtils.getMemberId());
+		Channel.setModified(ZonedDateTime.now());
+		return Channel;
+	}
 }
 

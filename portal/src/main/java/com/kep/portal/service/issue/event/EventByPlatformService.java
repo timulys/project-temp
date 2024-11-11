@@ -16,7 +16,9 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
+import com.kep.core.model.dto.issue.*;
 import com.kep.portal.model.entity.issue.*;
+import com.kep.portal.repository.issue.IssueSupportRepository;
 import com.kep.portal.service.forbidden.ForbiddenService;
 import org.springframework.data.domain.Example;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -26,12 +28,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kep.core.model.dto.issue.IssueCloseType;
-import com.kep.core.model.dto.issue.IssueDto;
-import com.kep.core.model.dto.issue.IssueLogDto;
-import com.kep.core.model.dto.issue.IssueLogStatus;
-import com.kep.core.model.dto.issue.IssueStatus;
-import com.kep.core.model.dto.issue.IssueType;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
 import com.kep.core.model.dto.issue.payload.IssuerType;
 import com.kep.core.model.dto.platform.PlatformType;

@@ -256,7 +256,8 @@ public class GuideService {
 
          Guide.GuideBuilder guideBuilder = Guide.builder()
                 .name(guidePayload.getName())
-//                .teamId(team == null ? null : team.getId())
+                 // KICA-
+                .teamId(team == null ? null : team.getId())
                 .branch(branch)
 //                    .isBranchOpen(guidePayload.getIsBranchOpen()) //가이드 추가 시 브랜치는 무조건 등록 계정의 소속 브랜치로 저장. 브랜치 전체 오픈 없음 20241011 기준 따라 주석처리
                 .isBranchOpen(false) //가이드 추가 시 브랜치는 무조건 등록 계정의 소속 브랜치로 저장. 브랜치 전체 오픈 없음 20241011 기준
@@ -1318,7 +1319,6 @@ public class GuideService {
 
         if (securityUtils.isManager()) {
             teams = getTeamsByGroupLeaderForManager(securityUtils.getMemberId());
-
         } else if (securityUtils.isAdmin()) {
             teams = branchTeamRepository.findAllByBranchIdOrderByIdDesc(branch.getId()).stream()
                     .map(BranchTeam::getTeam)
@@ -1349,7 +1349,12 @@ public class GuideService {
      */
     private List<Team> getTeamsByGroupLeaderForManager(Long memberId) {
         List<BranchTeam> branchTeams = branchTeamRepository.findAllByMemberId(memberId);
-        if (branchTeams.isEmpty()) throw new BizException("this manager does not having group leader");
+        if (branchTeams.isEmpty()) {
+            //throw new BizException("this manager does not having group leader");
+            // KICA-422, 상담 그룹 미노출 버그픽스
+            // 그룹장인 BranchTeam이 없더라도 예외는 아님. 빈 List Return
+            return Collections.emptyList();
+        }
 
         return branchTeams.stream()
                 .map(BranchTeam::getTeam)
