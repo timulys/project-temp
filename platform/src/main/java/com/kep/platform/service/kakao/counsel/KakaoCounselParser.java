@@ -35,7 +35,7 @@ public class KakaoCounselParser {
 		KakaoCounselReceiveEvent.Reference lastReference = event.getLastReference();
 
 		String appUserId = event.getAppUserId();
-		Map<String, Object> params = null;
+		Map<String, Object> params = new HashMap<>();
 		Map<String, Object> lastParams = null;
 		String extra = null;
 		if( reference != null && StringUtils.isNoneBlank(reference.getExtra())) {
