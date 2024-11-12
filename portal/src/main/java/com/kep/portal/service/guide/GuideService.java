@@ -251,12 +251,12 @@ public class GuideService {
      */
     private Guide addGuide(GuidePayload guidePayload, boolean enabled, GuideCategory category, Branch branch, Team team, Member member) throws JsonProcessingException {
         List<Guide> guideList = guideRepository.findAllByName(guidePayload.getName());
-        if (!guideList.isEmpty()) throw new IllegalArgumentException("Already guide name");
+        if (!guideList.isEmpty()) throw new IllegalArgumentException("중복된 가이드명입니다.");
 
 
          Guide.GuideBuilder guideBuilder = Guide.builder()
                 .name(guidePayload.getName())
-                 // KICA-
+                 // KICA-422, 상담가이드 공개 그룹 추가
                 .teamId(team == null ? null : team.getId())
                 .branch(branch)
 //                    .isBranchOpen(guidePayload.getIsBranchOpen()) //가이드 추가 시 브랜치는 무조건 등록 계정의 소속 브랜치로 저장. 브랜치 전체 오픈 없음 20241011 기준 따라 주석처리
@@ -290,7 +290,7 @@ public class GuideService {
 
     private Guide modifyGuide(GuidePayload guidePayload, boolean enabled, GuideCategory category, Branch branch, Team team, Member member) throws JsonProcessingException {
         if (guideRepository.findAllByName(guidePayload.getName()).size() > 1) {
-            throw new IllegalArgumentException("Already guide name");
+            throw new IllegalArgumentException("중복된 가이드명입니다.");
         }
 
         Guide guide = guideRepository.findById(guidePayload.getId()).orElseThrow(() -> new IllegalArgumentException("Not Found Guide"));

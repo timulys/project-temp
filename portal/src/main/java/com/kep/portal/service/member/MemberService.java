@@ -889,6 +889,7 @@ public class MemberService {
 	 *
 	 * @수정일자 / 수정자 / 수정내용
 	 * 2023.04.04 / philip.lee7 / 함수추가
+	 * 2024.11.12 / tim.c / 동일 문자 반복 체크 기능 추가
 	 */
 	public Map<String,Object> changePassword(MemberPassDto dto) throws Exception {
 		Member member = memberRepository.findById(dto.getId()).orElse(null);

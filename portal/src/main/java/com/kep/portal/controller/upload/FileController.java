@@ -3,6 +3,7 @@ package com.kep.portal.controller.upload;
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.upload.UploadDto;
+import com.kep.core.model.exception.BizException;
 import com.kep.portal.service.upload.UploadService;
 import com.kep.portal.util.UploadUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -76,13 +77,20 @@ public class FileController {
     @Operation(summary = "첫인사말 이미지 업로드")
     @PostMapping("/image")
     public ResponseEntity<ApiResult<UploadDto>> uploadFistMessageImage(@NotNull UploadDto dto) {
+        try {
+            UploadDto uploadDto = uploadService.saveFirstMessageImage(dto);
 
-        UploadDto uploadDto = uploadService.saveFirstMessageImage(dto);
-
-        ApiResult<UploadDto> response = ApiResult.<UploadDto>builder()
-                .code(ApiResultCode.succeed)
-                .payload(uploadDto)
-                .build();
-        return new ResponseEntity<>(response , HttpStatus.CREATED);
+            ApiResult<UploadDto> response = ApiResult.<UploadDto>builder()
+                    .code(ApiResultCode.succeed)
+                    .payload(uploadDto)
+                    .build();
+            return new ResponseEntity<>(response , HttpStatus.CREATED);
+        } catch (BizException e) {
+            ApiResult<UploadDto> response = ApiResult.<UploadDto>builder()
+                    .code(ApiResultCode.failed)
+                    .message(e.getLocalizedMessage())
+                    .build();
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

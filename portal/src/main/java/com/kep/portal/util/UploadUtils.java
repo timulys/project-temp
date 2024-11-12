@@ -65,13 +65,13 @@ public class UploadUtils {
     //TODO :: 링크 버튼용 검증 분기 추가
     private void validImage(@NotNull MultipartFile file) {
         if (!allowedImageFileExtSet.contains(getExt(file.getOriginalFilename()))) throw new BizException("it's not allowed to upload image. image extension can be jpg, png, gif");
-        if (file.getSize() > IMAGE_MAX_SIZE) throw new BizException("it's not allowed to upload image. image file size is too large");
+        if (file.getSize() > IMAGE_MAX_SIZE) throw new BizException("이미지 용량이 너무 큽니다.");
     }
 
     //링크버튼용 이미지 검증
     public void validLinkImage(@NotNull MultipartFile file) {
         if (!allowedImageFileExtSet.contains(getExt(file.getOriginalFilename()))) throw new BizException("it's not allowed to upload image. image extension can be jpg, png, gif");
-        if (file.getSize() > LINK_BUTTON_IMAGE_MAX_SIZE) throw new BizException("it's not allowed to upload image. image file size is too large");
+        if (file.getSize() > LINK_BUTTON_IMAGE_MAX_SIZE) throw new BizException("이미지 용량이 너무 큽니다.");
     }
     /**
      * 파일 저장
