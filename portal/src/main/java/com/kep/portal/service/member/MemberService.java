@@ -898,15 +898,18 @@ public class MemberService {
 			if (!passwordEncoder.matches(dto.getPassword(), member.getPassword())) {
 				map.put("result",false);
 				map.put("message",systemMessageProperty.getPortal().getPassword().getChangeMessage().getNotMatch());
-
 			} else if(!confirmPasswordRule(dto)) {
 				map.put("result",false);
 				map.put("message",systemMessageProperty.getPortal().getPassword().getChangeMessage().getNotPasswordRule());
-			}else if(!dto.getNewPassword().equals(dto.getConfirmNewPassword())) {
+			} else if (!confirmPasswordRepeatRule(dto)) {
+				// KICA-446, 비밀번호 체크 패턴 추가
+				map.put("result",false);
+				map.put("message",systemMessageProperty.getPortal().getPassword().getChangeMessage().getNotSafety());
+			} else if(!dto.getNewPassword().equals(dto.getConfirmNewPassword())) {
 				//신규 비밀번호와 확인 비밀번호와 체크
 				map.put("result",false);
 				map.put("message",systemMessageProperty.getPortal().getPassword().getChangeMessage().getNotEqualConfirm());
-			}else  {
+			} else {
 				Member beforeMember = new Member();
 				BeanUtils.copyProperties(member , beforeMember );
 				member.setPassword(passwordEncoder.encode(dto.getNewPassword()));
@@ -918,22 +921,21 @@ public class MemberService {
 			}
 		}
 		return map;
-
-		 /*else if (confirmSafetyPassword(dto) ){
-			map.put("result",false);
-			map.put("message",systemMessageProperty.getPortal().getPassword().getChangeMessage().getNotSafety());
-		}*/
 	}
 
-
-	public boolean confirmPasswordRule (MemberPassDto dto){
-		boolean result = false;
+	// pattern1 : 10~16자의 영문 대소문자/숫자/특수문자 중 2가지 이상 조합
+	public boolean confirmPasswordRule(MemberPassDto dto){
 		Pattern passPattern1 = Pattern.compile("^(?!((?:[A-Za-z]+)|(?:[~!@#$%^&*()_+=]+)|(?:[0-9]+))$)[A-Za-z\\d~!@#$%^&*()_+=]{10,16}$");
-
 		Matcher matcher1 = passPattern1.matcher(dto.getNewPassword());
-
 		return matcher1.find();
+	}
 
+	// KICA-446, 비밀번호 체크 패턴 추가
+	// pattern2 : 동일문자 3번 이상 연속되는지 확인
+	public boolean confirmPasswordRepeatRule(MemberPassDto dto) {
+		Pattern repeatPattern = Pattern.compile("(.)\\1{2,}");
+		Matcher repeatMatcher = repeatPattern.matcher(dto.getNewPassword());
+		return !repeatMatcher.find();
 	}
 
 	/**
