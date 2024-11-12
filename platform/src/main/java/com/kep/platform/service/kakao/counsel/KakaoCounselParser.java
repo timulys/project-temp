@@ -35,24 +35,23 @@ public class KakaoCounselParser {
 		KakaoCounselReceiveEvent.Reference lastReference = event.getLastReference();
 
 		String appUserId = event.getAppUserId();
-		Map<String, Object> params = null;
+		Map<String, Object> params = new HashMap<>();
+		Map<String, Object> lastParams = null;
 		String extra = null;
-
 		if( reference != null && StringUtils.isNoneBlank(reference.getExtra())) {
 			extra = reference.getExtra();
 			log.info("KAKAO COUNSEL PARSER, REFERENCE, EXTRA: {}", extra);
-
 			params = createParameterForReference(reference.getExtra(), appUserId);
-
-			// 채팅방 종료 후 URL 매핑이 아닌 채팅을 입력 해서 신규 채팅 시 상담원 지정을 위해서 추가
-		} else if (lastReference != null && StringUtils.isNoneBlank(lastReference.getExtra())) {
+		}
+		// 채팅방 종료 후 URL 매핑이 아닌 채팅을 입력 해서 신규 채팅 시 상담원 지정을 위해서 추가
+		if (lastReference != null && StringUtils.isNoneBlank(lastReference.getExtra())) {
 			extra = lastReference.getExtra();
 			log.info("KAKAO COUNSEL PARSER, LAST REFERENCE, EXTRA: {}", extra);
-
-			params = createParameterForReference(lastReference.getExtra(), appUserId);
+			lastParams = createParameterForReference(lastReference.getExtra(), appUserId);
+			if(Objects.nonNull(lastParams.get("mid"))) {
+				params.putIfAbsent("mid", lastParams.get("mid"));
+			}
 		}
-
-
 		log.info("KAKAO COUNSEL PARSER, REFERENCE, PARAMS: {}", params);
 
 		return params == null ? Collections.emptyMap() : params;
