@@ -31,7 +31,7 @@ public class UploadUtils {
     // FIXME :: 임시. 에버리 상의 후 확장자 확정되면 프로퍼티로 빼서 수정 -> 현재 자바 8에선 Set.of() 지원 안함
     // TODO :: 상담톡 스펙상 버튼 링크에 들어가는 이미지는 gif 비허용. 가이드 추가 시 해당 부분 수정인데 파일관련 정책 고도화때 정한다고 했으니 노티만 20241031
     // 현재 이미지, 이미지 링크 버튼 타입 둘 다 jpg, png 확장자로 고정 20241106 volka
-    private static final Set<String> allowedImageFileExtSet = new HashSet<>(Arrays.asList(".jpg", ".png"));
+    private static final Set<String> allowedImageFileExtSet = new HashSet<>(Arrays.asList(".jpg", ".jpeg", ".png"));
 //    private static final Set<String> allowedButtonLinkImageFileExtSet = new HashSet<>(Arrays.asList(".jpg", ".png"));
     private static final long IMAGE_MAX_SIZE = 5 * 1024 * 1024; //5MB
     private static final long LINK_BUTTON_IMAGE_MAX_SIZE = 500 * 1024; //500kB
