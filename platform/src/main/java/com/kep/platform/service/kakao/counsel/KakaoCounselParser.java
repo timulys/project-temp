@@ -35,21 +35,24 @@ public class KakaoCounselParser {
 		KakaoCounselReceiveEvent.Reference lastReference = event.getLastReference();
 
 		String appUserId = event.getAppUserId();
-		Map<String, Object> params = new HashMap<>();
-		Map<String, Object> lastParams = null;
+		Map<String, Object> params = null;
 		String extra = null;
+
 		if( reference != null && StringUtils.isNoneBlank(reference.getExtra())) {
 			extra = reference.getExtra();
 			log.info("KAKAO COUNSEL PARSER, REFERENCE, EXTRA: {}", extra);
+
 			params = createParameterForReference(reference.getExtra(), appUserId);
-		}
-		// 채팅방 종료 후 URL 매핑이 아닌 채팅을 입력 해서 신규 채팅 시 상담원 지정을 위해서 추가
-		if (lastReference != null && StringUtils.isNoneBlank(lastReference.getExtra())) {
+
+			// 채팅방 종료 후 URL 매핑이 아닌 채팅을 입력 해서 신규 채팅 시 상담원 지정을 위해서 추가
+		} else if (lastReference != null && StringUtils.isNoneBlank(lastReference.getExtra())) {
 			extra = lastReference.getExtra();
 			log.info("KAKAO COUNSEL PARSER, LAST REFERENCE, EXTRA: {}", extra);
-			lastParams = createParameterForReference(lastReference.getExtra(), appUserId);
-			lastParams.forEach(params::putIfAbsent);
+
+			params = createParameterForReference(lastReference.getExtra(), appUserId);
 		}
+
+
 		log.info("KAKAO COUNSEL PARSER, REFERENCE, PARAMS: {}", params);
 
 		return params == null ? Collections.emptyMap() : params;
@@ -398,13 +401,13 @@ public class KakaoCounselParser {
 		if (KakaoCounselReceiveEvent.MessageType.photo.equals(messageType) && !platformProperty.isAllowReceiveImage()) {
 			log.warn("PREVENT IMAGE TYPE");
 			return Collections.singletonList(IssuePayload.Section.builder()
-							.type(IssuePayload.SectionType.text)
-							.data(platformProperty.getReplaceMessageForPrevent()).build());
+					.type(IssuePayload.SectionType.text)
+					.data(platformProperty.getReplaceMessageForPrevent()).build());
 		} else if (!KakaoCounselReceiveEvent.MessageType.photo.equals(messageType) && !platformProperty.isAllowReceiveFile()) {
 			log.warn("PREVENT FILE TYPE");
 			return Collections.singletonList(IssuePayload.Section.builder()
-							. type(IssuePayload.SectionType.text)
-							.data(platformProperty.getReplaceMessageForPrevent()).build());
+					. type(IssuePayload.SectionType.text)
+					.data(platformProperty.getReplaceMessageForPrevent()).build());
 		}
 
 		return contents.stream().map(content -> IssuePayload.Section.builder()
