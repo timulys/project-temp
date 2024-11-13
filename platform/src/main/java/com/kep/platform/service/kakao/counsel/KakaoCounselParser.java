@@ -36,6 +36,8 @@ public class KakaoCounselParser {
 
 		String appUserId = event.getAppUserId();
 		Map<String, Object> params = null;
+		Map<String, Object> lastParams = null;
+
 		String extra = null;
 
 		if( reference != null && StringUtils.isNoneBlank(reference.getExtra())) {
@@ -49,7 +51,11 @@ public class KakaoCounselParser {
 			extra = lastReference.getExtra();
 			log.info("KAKAO COUNSEL PARSER, LAST REFERENCE, EXTRA: {}", extra);
 
-			params = createParameterForReference(lastReference.getExtra(), appUserId);
+			lastParams = createParameterForReference(lastReference.getExtra(), appUserId);
+
+			params = new HashMap<>();
+			params.put("appUserId", appUserId);
+			if (lastParams.containsKey("mid")) params.put("mid", lastParams.get("mid"));
 		}
 
 
