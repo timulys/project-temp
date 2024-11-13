@@ -48,9 +48,7 @@ public class KakaoCounselParser {
 			extra = lastReference.getExtra();
 			log.info("KAKAO COUNSEL PARSER, LAST REFERENCE, EXTRA: {}", extra);
 			lastParams = createParameterForReference(lastReference.getExtra(), appUserId);
-			if(Objects.nonNull(lastParams.get("mid"))) {
-				params.putIfAbsent("mid", lastParams.get("mid"));
-			}
+			lastParams.forEach(params::putIfAbsent);
 		}
 		log.info("KAKAO COUNSEL PARSER, REFERENCE, PARAMS: {}", params);
 
