@@ -659,7 +659,7 @@ public class IssueCategoryService {
         issueCategoryDto.setName(issueCategory.getName());
         issueCategoryDto.setBranchId(issueCategoryDto.getBranchId());
         issueCategoryDto.setDepth(issueCategory.getDepth());
-        issueCategoryDto.setParent(this.issueCategoryEntityIssueCategoryBasicDto(issueCategory.getParent()));
+        issueCategoryDto.setParent(issueCategory.getParent() == null ? null : this.issueCategoryEntityIssueCategoryBasicDto(issueCategory.getParent()));
         issueCategoryDto.setExposed(issueCategory.getExposed());
         issueCategoryDto.setBnkCode(issueCategory.getBnkCode());
         return issueCategoryDto;
