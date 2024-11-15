@@ -5,11 +5,11 @@ import com.kep.core.model.dto.issue.IssueType;
 import com.kep.portal.model.dto.statistics.ReplyStatusDto;
 import com.kep.portal.model.dto.statistics.TodaySummaryDto;
 import com.kep.portal.model.entity.issue.QIssue;
-import com.kep.portal.model.entity.issue.QIssueLog;
 import com.kep.portal.model.entity.statistics.QGuestWaitingTime;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.ObjectUtils;
@@ -103,44 +103,63 @@ public class ReplyStatusSearchRepositoryImpl implements ReplyStatusSearchReposit
      * @return
      */
     @Override
-    public TodaySummaryDto findTodaySummary(ZonedDateTime start, ZonedDateTime end , Long branchId , Long teamId , Long memberId) {
-
-
-        //고객수 , 진행 , 대기 , 지연
+    public TodaySummaryDto findTodaySummary(ZonedDateTime start, ZonedDateTime end, Long branchId, Long teamId, Long memberId) {
+        // 고객수, 진행, 대기, 지연
+        // KICA-487, 종료되지 않은 상담의 카운팅이 되지 않음.
+        // 종료 이외 다른 조건절에는 기간을 조건절로 걸지 않도록 수정
         TodaySummaryDto dto = queryFactory
                 .select(Projections.fields(
                         TodaySummaryDto.class,
-                        guest.userKey.countDistinct().as("guestCount")
-                        , new CaseBuilder()
-                                .when(issue.status.in(IssueStatus.ask,IssueStatus.reply))
-                                .then(1L)
-                                .otherwise(0L)
-                                .sum().as("counselingCount")
-                        , new CaseBuilder()
-                                .when(issue.status.in(IssueStatus.open,IssueStatus.assign))
-                                .then(1L)
-                                .otherwise(0L)
-                                .sum().as("waitingCount")
-                        , new CaseBuilder()
-                                .when(issue.status.eq(IssueStatus.urgent))
-                                .then(1L)
-                                .otherwise(0L)
-                                .sum().as("delayCount")
-                        , new CaseBuilder()
-                                .when(issue.status.eq(IssueStatus.close))
-                                .then(1L)
-                                .otherwise(0L)
-                                .sum().as("closedCount")
-
+                        guest.userKey.countDistinct().as("guestCount"),
+                        // counselingCount: 특정 상태의 count를 위한 서브쿼리
+                        Expressions.as(
+                                JPAExpressions
+                                        .select(issue.count())
+                                        .from(issue)
+                                        .where(
+                                                issue.status.in(IssueStatus.ask, IssueStatus.reply)
+                                        ),
+                                "counselingCount"
+                        ),
+                        // waitingCount: 다른 상태의 count를 위한 서브쿼리
+                        Expressions.as(
+                                JPAExpressions
+                                        .select(issue.count())
+                                        .from(issue)
+                                        .where(
+                                                issue.status.in(IssueStatus.open, IssueStatus.assign)
+                                        ),
+                                "waitingCount"
+                        ),
+                        // delayCount: urgent 상태
+                        Expressions.as(
+                                JPAExpressions
+                                        .select(issue.count())
+                                        .from(issue)
+                                        .where(
+                                                issue.status.eq(IssueStatus.urgent)
+                                        ),
+                                "delayCount"
+                        ),
+                        // closedCount: close 상태
+                        Expressions.as(
+                                JPAExpressions
+                                        .select(issue.count())
+                                        .from(issue)
+                                        .where(
+                                                issue.status.eq(IssueStatus.close),
+                                                issue.modified.between(start, end) // 특정 기간 필터링 조건 유지
+                                        ),
+                                "closedCount"
+                        )
                 ))
                 .from(issue)
-                    .innerJoin(guest)
-                    .on(guest.id.eq(issue.guest.id))
+                .innerJoin(guest).on(guest.id.eq(issue.guest.id))
                 .where(
-                        issue.modified.between(start , end)
-                        , branchIdEq(branchId)
-                        , teamIdEq(teamId)
-                        , memberIdEq(memberId)
+//                        issue.modified.between(start, end),  // 특정 기간 필터링 조건 유지
+                        branchIdEq(branchId),
+                        teamIdEq(teamId),
+                        memberIdEq(memberId)
                 )
                 .fetchOne();
 

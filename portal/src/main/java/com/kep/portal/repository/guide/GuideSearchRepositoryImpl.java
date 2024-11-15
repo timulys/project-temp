@@ -435,6 +435,8 @@ public class GuideSearchRepositoryImpl implements GuideSearchRepository {
                         return new OrderSpecifier<>(direction, guide.id);
                     case "name":
                         return new OrderSpecifier<>(direction, guide.name);
+                    case "created" :
+                        return new OrderSpecifier<>(direction, guide.created);
                 }
             }
         }

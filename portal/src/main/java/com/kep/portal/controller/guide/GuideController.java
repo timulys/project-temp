@@ -508,7 +508,7 @@ public class GuideController {
     public ResponseEntity<ApiResult<List<GuideDto>>> getListForUser(
             @ParameterObject @QueryParam GuideSearchDto searchDto,
             @SortDefault.SortDefaults({
-                    @SortDefault(sort = {"name"}, direction = Sort.Direction.ASC)})
+                    @SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)})
             @ParameterObject Pageable pageable
     ) {
 
