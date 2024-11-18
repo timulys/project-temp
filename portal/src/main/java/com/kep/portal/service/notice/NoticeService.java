@@ -3,10 +3,7 @@ package com.kep.portal.service.notice;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -132,6 +129,7 @@ public class NoticeService {
 
 		if(!notices.isEmpty()){
 			noticeRepository.saveAll(notices);
+			simpMessagingTemplate.convertAndSend(socketProperty.getNoticePath() , noticeDto);
 		}
 	}
 
@@ -176,7 +174,7 @@ public class NoticeService {
 			notice.setContent(noticeDto.getContent());
 			notice.setTitle(noticeDto.getTitle());
 			// [KICA-406] 공지 사항 등록 시 다른 상담원에게 즉시 count
-			simpMessagingTemplate.convertAndSend(socketProperty.getNoticePath(), noticeMapper.map(notice));
+			simpMessagingTemplate.convertAndSend(socketProperty.getNoticePath(), this.noticeEntityToDto(notice));
 
 		} else {
 			notice = noticeRepository.findById(notice.getId()).orElse(null);
@@ -384,6 +382,22 @@ public class NoticeService {
 		noticeUploadRepository.delete(noticeUpload);
 
 		return uploadService.delete(uploadMapper.map(noticeUpload.getUpload()));
+	}
+
+	private NoticeDto noticeEntityToDto(Notice notice){
+		NoticeDto noticeDto = new NoticeDto();
+		noticeDto.setId(notice.getId());
+		noticeDto.setContent(notice.getContent());
+		noticeDto.setOpenType(notice.getOpenType());
+		noticeDto.setFixation(notice.getFixation());
+		noticeDto.setEnabled(notice.getEnabled());
+		noticeDto.setBranchId(notice.getBranchId());
+		noticeDto.setTeamId(notice.getTeamId());
+		noticeDto.setCreator(notice.getCreator());
+		noticeDto.setCreated(notice.getCreated());
+		noticeDto.setModifier(notice.getModifier());
+		noticeDto.setModified(notice.getModified());
+		return noticeDto;
 	}
 
 }
