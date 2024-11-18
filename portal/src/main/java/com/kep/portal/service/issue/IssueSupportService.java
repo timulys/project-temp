@@ -436,7 +436,7 @@ public class IssueSupportService {
 			// 관리자의 상담종료 버튼을 눌렀을 경우
 		} else if (IssueSupportStatus.end == issueSupport.getStatus()) {
 			// 상담 종료 처리
-			eventByManagerService.close(Collections.singletonList(issueSupport.getIssue().getId()), null);
+			eventByManagerService.close(Collections.singletonList(issueSupport.getIssue().getId()), null , false);
 		}
 
 		//알림 처리
@@ -453,7 +453,6 @@ public class IssueSupportService {
 	 * 알림 처리
 	 */
 	public void sendNotification(IssueSupportDto issueSupportDto, IssueSupport issueSupport, Issue issue, CounselEnv counselEnv) {
-		Long receiveMemberId = 0L;
 
 		// 알림 정보
 		NotificationDto notificationDto = NotificationDto.builder()
@@ -525,8 +524,10 @@ public class IssueSupportService {
 			notificationDto.setPayload(issueSupport.getAnswer());
 		}
 
+
 		// 알림 전송
 		notificationService.store(notificationInfoDto, notificationDto);
+
 
 		if (IssueSupportStatus.request.equals(issueSupport.getStatus()) || IssueSupportStatus.finish.equals(issueSupport.getStatus()) || IssueSupportStatus.reject.equals(issueSupport.getStatus())) {
 			// 지원요청 정보를 담아줌

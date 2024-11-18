@@ -89,4 +89,7 @@ public class NoticeDto {
 
 	@Schema(description = "팀 아이디")
 	private Long teamId;
+
+	@Schema(description = "브랜치 아이디")
+	private Long branchId;
 }
