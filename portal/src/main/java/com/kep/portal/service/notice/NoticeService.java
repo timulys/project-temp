@@ -14,6 +14,7 @@ import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 
 import com.kep.core.model.dto.notice.NoticeOpenType;
+import com.kep.portal.config.property.SocketProperty;
 import com.kep.portal.model.entity.branch.Branch;
 import com.kep.portal.model.entity.team.Team;
 import com.kep.portal.service.branch.BranchService;
@@ -21,6 +22,7 @@ import com.kep.portal.service.team.TeamService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -95,6 +97,12 @@ public class NoticeService {
 	@Resource
 	private TeamService teamService;
 
+	@Resource
+	private SocketProperty socketProperty;
+
+	@Resource
+	private SimpMessagingTemplate simpMessagingTemplate;
+
 
 	/**
 	 * 상담관리 > 공지사항 목록 조회
@@ -167,6 +175,8 @@ public class NoticeService {
 
 			notice.setContent(noticeDto.getContent());
 			notice.setTitle(noticeDto.getTitle());
+			// [KICA-406] 공지 사항 등록 시 다른 상담원에게 즉시 count
+			simpMessagingTemplate.convertAndSend(socketProperty.getNoticePath(), noticeMapper.map(notice));
 
 		} else {
 			notice = noticeRepository.findById(notice.getId()).orElse(null);

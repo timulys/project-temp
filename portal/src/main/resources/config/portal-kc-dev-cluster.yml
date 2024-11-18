@@ -57,6 +57,7 @@ application:
     admin-path: /topic/admin
     manager-admin-path: /topic/manager-admin
     issue-path: /topic/issue
+    notice-path: /topic/notice
     message-broker:
       addresses:
         - 10.0.1.116:61613
