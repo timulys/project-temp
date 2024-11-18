@@ -453,7 +453,6 @@ public class IssueSupportService {
 	 * 알림 처리
 	 */
 	public void sendNotification(IssueSupportDto issueSupportDto, IssueSupport issueSupport, Issue issue, CounselEnv counselEnv) {
-		Long receiveMemberId = 0L;
 
 		// 알림 정보
 		NotificationDto notificationDto = NotificationDto.builder()
@@ -525,8 +524,13 @@ public class IssueSupportService {
 			notificationDto.setPayload(issueSupport.getAnswer());
 		}
 
-		// 알림 전송
-		notificationService.store(notificationInfoDto, notificationDto);
+
+		// [KICA-494] 상담 진행 목록 강제 종료 / 상담 지원 요청 강제 종료 소스 충돌로 인하여
+		// 상담 진행 목록 강제 목록 제어 함수 ( 파일명 : EventBySystemService , 함수명 : close ) 에서 상담원 에게 알림 전송 하도록 수정
+		if(notificationDto.getType() != NotificationType.end_counsel){
+			// 알림 전송
+			notificationService.store(notificationInfoDto, notificationDto);
+		}
 
 		if (IssueSupportStatus.request.equals(issueSupport.getStatus()) || IssueSupportStatus.finish.equals(issueSupport.getStatus()) || IssueSupportStatus.reject.equals(issueSupport.getStatus())) {
 			// 지원요청 정보를 담아줌

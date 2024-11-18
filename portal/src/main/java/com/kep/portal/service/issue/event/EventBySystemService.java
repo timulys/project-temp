@@ -672,7 +672,7 @@ public class EventBySystemService {
 
 	public void sendMemberNotification(IssueDto issueDto) {
 		NotificationDto notificationDto = NotificationDto.builder().displayType(NotificationDisplayType.toast)
-																   .icon(NotificationIcon.member)
+																   .icon(NotificationIcon.system)
 																   .target(NotificationTarget.member)
 																   .type(NotificationType.end_counsel)
 																   .build();
