@@ -574,11 +574,6 @@ public class EventBySystemService {
 			// 소켓으로 이슈 전송
 			simpMessagingTemplate.convertAndSend(socketProperty.getIssuePath(), issueDto);
 
-			// 담당 상담원에게 알림 전송
-			if(Objects.nonNull(issueDto.getMember()) && Objects.nonNull(issueDto.getMember().getId())){
-				this.sendMemberNotification(issueDto);
-			}
-
 		} catch (Exception e) {
 			log.error(e.getLocalizedMessage(), e);
 		}

@@ -100,7 +100,7 @@ public class EventByManagerController {
 
 		log.info("EVENT BY MANAGER, CLOSE, ID: {}, OPTIONS: {}", issueIds, options);
 
-		eventByManagerService.close(issueIds, options);
+		eventByManagerService.close(issueIds, options, true );
 
 		return new ResponseEntity<>(new ApiResult<>(ApiResultCode.succeed), HttpStatus.CREATED);
 	}
