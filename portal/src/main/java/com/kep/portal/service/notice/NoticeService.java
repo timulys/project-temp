@@ -129,6 +129,9 @@ public class NoticeService {
 
 		if(!notices.isEmpty()){
 			noticeRepository.saveAll(notices);
+			// 삭제의 경우 branch 여부를 확인 하기는 어려움 ( 다건 같이 삭제 가능 )
+			// 해당 이슈로 인하여 noticeDto에 branch 오픈 범위 전체 공개로 소켓전송
+			noticeDto.setOpenType(NoticeOpenType.all);
 			simpMessagingTemplate.convertAndSend(socketProperty.getNoticePath() , noticeDto);
 		}
 	}
