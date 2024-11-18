@@ -61,7 +61,7 @@ public class GuideCategoryService {
         return branch.getMaxGuideCategoryDepth();
     }
 
-    public List<GuideCategoryDto> getAll(Long branchId) {
+    public List<GuideCategoryDto> getCategoriesOnlyEnabled(Long branchId) {
         if (branchId == null)
             branchId = securityUtils.getBranchId();
 //        branchId = 1L; FIXME :: 테스트 후 삭제
@@ -71,7 +71,7 @@ public class GuideCategoryService {
 
         List<GuideCategoryDto> dtos = categoryMapper.map(guideCategories);
 
-        recursiveGetAllAndIsOpenCategory(dtos, branchId);
+        recursiveGetAllAndIsOpenAndEnabledCategory(dtos, branchId);
 
         return dtos;
     }
@@ -107,7 +107,7 @@ public class GuideCategoryService {
 
         GuideCategoryDto delete = null;
         for (GuideCategoryDto dto : list) {
-            if (!dto.getIsOpen() && !dto.getBranch().getId().equals(branchId)) {
+            if ((!dto.getIsOpen() && !dto.getBranch().getId().equals(branchId))) {
                 delete = dto;
             } else {
                 recursiveGetAllAndIsOpenCategory(dto.getChildren(), branchId);
@@ -116,19 +116,21 @@ public class GuideCategoryService {
         list.remove(delete);
     }
 
-    private void recursiveGetAllOnlyBranch(List<GuideCategoryDto> list, Long branchId) {
+    private void recursiveGetAllAndIsOpenAndEnabledCategory(List<GuideCategoryDto> list, Long branchId) {
         if (list.isEmpty())
             return;
 
-        GuideCategoryDto delete = null;
-        for (GuideCategoryDto dto : list) {
-            if (!dto.getBranch().getId().equals(branchId)) {
-                delete = dto;
+        Iterator<GuideCategoryDto> iterator = list.iterator();
+
+        while (iterator.hasNext()) {
+            GuideCategoryDto dto = iterator.next();
+            if (!dto.getEnabled() || (!dto.getIsOpen() && !dto.getBranch().getId().equals(branchId))) {
+                iterator.remove();
             } else {
-                recursiveGetAllAndIsOpenCategory(dto.getChildren(), branchId);
+                recursiveGetAllAndIsOpenAndEnabledCategory(dto.getChildren(), branchId);
             }
         }
-        list.remove(delete);
+
     }
 
     /**
@@ -398,7 +400,8 @@ public class GuideCategoryService {
                     childrenIds.add(dto.getId());
                 recursiveGetAllSubCategory(dto.getChildren(), childrenIds, branchId);
             } else {
-                if ((dto.getIsOpen() || branchId.equals(dto.getBranchId()) || branchId.equals(dto.getBranch().getId())) && dto.getEnabled()) {
+                // 상위 뎁스가 사용중일 경우엔 하위뎁스 사용여부 상관없이 조회 조건에 모두 포함
+                if (dto.getIsOpen() || branchId.equals(dto.getBranchId()) || branchId.equals(dto.getBranch().getId())) {
                     if (dto.getDepth() == getCategoryMaxDepth())
                         childrenIds.add(dto.getId());
                     recursiveGetAllSubCategory(dto.getChildren(), childrenIds, branchId);
