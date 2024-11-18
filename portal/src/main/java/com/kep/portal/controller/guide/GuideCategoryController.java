@@ -36,7 +36,7 @@ public class GuideCategoryController {
 	@Operation(summary = "사용가능 가이드 카테고리 조회 (상담사용)", description = "상담사 호출 / 상담가이드 관리 조회조건용")
 	@GetMapping
 	public ResponseEntity<ApiResult<List<GuideCategoryDto>>> get() {
-		List<GuideCategoryDto> item = categoryService.getAll(null);
+		List<GuideCategoryDto> item = categoryService.getCategoriesOnlyEnabled(null);
 
 		ApiResult<List<GuideCategoryDto>> response = ApiResult.<List<GuideCategoryDto>>builder().code(ApiResultCode.succeed).payload(item).build();
 		return new ResponseEntity<>(response, HttpStatus.OK);
@@ -71,6 +71,7 @@ public class GuideCategoryController {
 			ApiResult<String> response = ApiResult.<String>builder().code(ApiResultCode.succeed).build();
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
+			log.error(e.getLocalizedMessage());
 			ApiResult<String> response = ApiResult.<String>builder().code(ApiResultCode.failed).message(e.getLocalizedMessage()).build();
 			response.setError("<<SB-CA-P02>>");
 
