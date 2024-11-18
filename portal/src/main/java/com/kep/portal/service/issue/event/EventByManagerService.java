@@ -1,10 +1,12 @@
 package com.kep.portal.service.issue.event;
 
 import com.kep.core.model.dto.channel.ChannelEnvDto;
+import com.kep.core.model.dto.issue.IssueDto;
 import com.kep.core.model.dto.issue.IssueStatus;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
 import com.kep.portal.model.entity.issue.Issue;
 import com.kep.portal.model.entity.issue.IssueAssign;
+import com.kep.portal.model.entity.issue.IssueMapper;
 import com.kep.portal.model.entity.issue.IssueSupportHistory;
 import com.kep.portal.service.assign.AssignProducer;
 import com.kep.portal.service.channel.ChannelEnvService;
@@ -19,6 +21,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * events by manager
@@ -39,6 +42,9 @@ public class EventByManagerService {
 	private EventBySystemService eventBySystemService;
 	@Resource
 	private ChannelEnvService channelEnvService;
+
+	@Resource
+	private IssueMapper issueMapper;
 
 
 	public void assignByMember(@NotNull Long issueId, @NotNull @Positive Long memberId, IssueSupportHistory issueSupportHistory) {
@@ -78,7 +84,8 @@ public class EventByManagerService {
 		// TODO: 로그 (배정 변경)
 	}
 
-	public void close(@NotNull List<Long> issueIds, Map<String, Object> options) throws Exception {
+	public void close(@NotNull List<Long> issueIds, Map<String, Object> options , boolean SendNotification) throws Exception {
+
 
 		for (Long issueId : issueIds) {
 			// 이슈 검색
@@ -108,6 +115,14 @@ public class EventByManagerService {
 						" 오늘도 행복한 하루되세요^^");
 			}
 			eventBySystemService.close(issue, issuePayload, true);
+
+
+			IssueDto issueDto = issueMapper.map(issue);
+
+			// 담당 상담원에게 알림 전송 ( 상담 진행 목록 에서 강제 종료 시 )
+			if( SendNotification && Objects.nonNull(issueDto.getMember()) && Objects.nonNull(issueDto.getMember().getId())){
+				eventBySystemService.sendMemberNotification(issueDto);
+			}
 		}
 	}
 }
