@@ -30,6 +30,8 @@ public class SocketProperty {
 	private String adminPath;
 	@NotEmpty
 	private String managerAdminPath;
+	@NotEmpty
+	private String noticePath;
 	@NotNull
 	private MessageBroker messageBroker;
 

@@ -56,6 +56,7 @@ application:
     admin-path: /topic/admin
     manager-admin-path: /topic/manager-admin
     issue-path: /topic/issue
+    notice-path: /topic/notice
     message-broker:
       host: localhost
       port: 61613
