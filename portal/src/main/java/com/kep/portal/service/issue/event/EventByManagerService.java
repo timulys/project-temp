@@ -116,11 +116,15 @@ public class EventByManagerService {
 			}
 			eventBySystemService.close(issue, issuePayload, true);
 
-
-			IssueDto issueDto = issueMapper.map(issue);
-
 			// 담당 상담원에게 알림 전송 ( 상담 진행 목록 에서 강제 종료 시 )
-			if( SendNotification && Objects.nonNull(issueDto.getMember()) && Objects.nonNull(issueDto.getMember().getId())){
+			sendNotificationToCounselor(SendNotification, issue);
+		}
+	}
+
+	public void sendNotificationToCounselor(boolean SendNotification, Issue issue) {
+		if(SendNotification){
+			IssueDto issueDto = issueMapper.map(issue);
+			if(Objects.nonNull(issueDto.getMember()) && Objects.nonNull(issueDto.getMember().getId())){
 				eventBySystemService.sendMemberNotification(issueDto);
 			}
 		}
