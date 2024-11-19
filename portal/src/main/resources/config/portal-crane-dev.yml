@@ -69,6 +69,7 @@ application:
     manager-admin-path: /topic/manager-admin
     issue-path: /topic/issue
     notice-path: /topic/notice
+    upload-path: /topic/upload
     message-broker:
       host: 10.202.25.216
       port: 61613
