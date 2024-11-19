@@ -9,7 +9,6 @@ import com.kep.portal.model.entity.customer.CustomerMapper;
 import com.kep.portal.model.entity.customer.Guest;
 import com.kep.portal.model.entity.issue.*;
 import com.kep.portal.model.entity.member.Member;
-import com.kep.portal.model.entity.privilege.Level;
 import com.kep.portal.model.entity.team.Team;
 import com.kep.portal.model.entity.team.TeamMember;
 import com.kep.portal.repository.issue.IssueRepository;
@@ -18,6 +17,7 @@ import com.kep.portal.repository.member.MemberRepository;
 import com.kep.portal.service.channel.ChannelService;
 import com.kep.portal.service.customer.CustomerService;
 import com.kep.portal.service.customer.GuestService;
+import com.kep.portal.service.subject.IssueCategoryService;
 import com.kep.portal.service.team.TeamMemberService;
 import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.SecurityUtils;
@@ -91,6 +91,9 @@ public class IssueService {
 
     @Resource
     private IssueLogService issueLogService;
+
+    @Resource
+    private IssueCategoryService issueCategoryService;
 
     public Issue findById(@NotNull Long id) {
 
@@ -350,6 +353,11 @@ public class IssueService {
 
         //2023.05.02 브랜치 기준으로 변경(공통)
         // condition.setBranchId(securityUtils.getBranchId());
+
+        // 카테고리 조회용 최하위 카테고리 in 조건 추가
+        if (condition.getCategoryId() != null) {
+            condition.setIssueCategoryIds(issueCategoryService.getLowestCategoriesById(condition.getChannelId(), condition.getCategoryId()));
+        }
 
         Page<Issue> issuePage;
         // 대화 이력에 대한 내용이 condition에 포함되어 있다면

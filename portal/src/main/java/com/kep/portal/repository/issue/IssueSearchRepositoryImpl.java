@@ -299,7 +299,12 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
         mainBuilder.and(branchIdEq(condition.getBranchId()));
         mainBuilder.and(teamIdEq(condition.getTeamId()));
         mainBuilder.and(memberIn(condition.getMembers()));
-        mainBuilder.and(issueCategoryEq(condition.getCategoryId()));
+        if (!ObjectUtils.isEmpty(condition.getIssueCategoryIds())) {
+            mainBuilder.and(extraIssueCategoryOrIssueCategoryIn(condition.getIssueCategoryIds()));
+        } else {
+            mainBuilder.and(issueCategoryEq(condition.getCategoryId()));
+        }
+
         mainBuilder.and(guestIdEq(condition.getGuestId()));
         mainBuilder.and(guestIn(condition.getGuests()));
 //		mainBuilder.and(customerIn(condition.getCustomerIds()));
@@ -448,6 +453,10 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
 
     private BooleanExpression statusNotIn(Collection<IssueStatus> notStatuses) {
         return !ObjectUtils.isEmpty(notStatuses) ? issue.status.notIn(notStatuses) : null;
+    }
+
+    private BooleanExpression extraIssueCategoryOrIssueCategoryIn(Collection<Long> issueCategoryIds) {
+        return !ObjectUtils.isEmpty(issueCategoryIds) ? issue.issueExtra.issueCategoryId.in(issueCategoryIds).or(issue.issueCategory.id.in(issueCategoryIds)) : null;
     }
 
     private BooleanExpression dateBetween(String dateSubject, LocalDate startDate, LocalDate endDate) {

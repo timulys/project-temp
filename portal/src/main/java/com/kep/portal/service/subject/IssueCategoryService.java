@@ -599,15 +599,23 @@ public class IssueCategoryService {
      * @param channelId
      * @return
      */
-    public IssueCategoryResponse getAllIssueCategories(Long channelId) {
+    public IssueCategoryResponse getAllIssueCategories(Long channelId, boolean forManagement) {
         ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId).orElseThrow(() -> new BizException("not exist channel"));
         if (isInitDepth(channelEnv.getMaxIssueCategoryDepth())) return null;
 
-        List<IssueCategory> issueCategories = issueCategoryRepository.findAllByChannelIdWithParent(channelId);
+        List<IssueCategory> issueCategories = null;
+
+        if (forManagement) {
+            issueCategories = issueCategoryRepository.findAllByChannelIdWithParent(channelId);
+        } else {
+            //FIXME :: 임시로 컨트롤러에서 forManagement 변수로 분기해서 사용. 권한 정리되면 분리 필요
+            issueCategories = issueCategoryRepository.findAllByChannelIdAndEnabledIsTrueAndExposedIsTrueWithParent(channelId);
+        }
         if (issueCategories.isEmpty()) return null;
 
         return new IssueCategoryResponse(channelEnv.getMaxIssueCategoryDepth(), createCategoryTree(issueCategories, channelEnv.getMaxIssueCategoryDepth()));
     }
+
 
 
     public IssueCategoryTreeDto getIssueCategoryTreeByLowestOne(Long channelId, Long issueCategoryId) {
@@ -634,6 +642,45 @@ public class IssueCategoryService {
         }
 
         return target;
+    }
+
+
+    /**
+     * 최하위 뎁스 카테고리 아이디 목록 조회 (입력 카테고리가 최하위 뎁스일 경우 입력 반환 / 아닐경우 하위 뎁스 카테고리 목록 반환 [본인 포함 X -> 이 경우 당연히 입력은 최하위가 아니니까])
+     * @param channelId
+     * @param issueCategoryId
+     * @return
+     */
+    public List<Long> getLowestCategoriesById(Long channelId, Long issueCategoryId) {
+        IssueCategory target = issueCategoryRepository.findById(issueCategoryId).orElseThrow(() -> new BizException("not exist issue category"));
+        channelId = channelId == null ? target.getChannelId() : channelId;
+        Integer categoryMaxDepth = getCategoryMaxDepth(channelId);
+        if (isInitDepth(categoryMaxDepth)) throw new BizException("not init issue category depth");
+
+        List<IssueCategory> issueCategories = issueCategoryRepository.findAllByChannelIdWithParent(channelId);
+        List<IssueCategory> lowestDepthCategories = null;
+
+        if (categoryMaxDepth > 1 && target.getDepth() < categoryMaxDepth) {
+            Map<Integer, List<IssueCategory>> depthMap = issueCategories.stream().collect(Collectors.groupingBy(IssueCategory::getDepth));
+            lowestDepthCategories = recursiveLowerCategories(target.getDepth() + 1, Arrays.asList(target), depthMap);
+        } else {
+            lowestDepthCategories = Arrays.asList(target);
+        }
+
+        return lowestDepthCategories.stream().map(IssueCategory::getId).collect(Collectors.toList());
+    }
+
+    public List<IssueCategory> recursiveLowerCategories(Integer depth, List<IssueCategory> parentList, Map<Integer, List<IssueCategory>> depthMap) {
+        if (!depthMap.containsKey(depth)) return parentList;
+        List<IssueCategory> lowerDepthCategories = depthMap.get(depth).stream()
+                .filter(category -> parentList.contains(category.getParent()))
+                .collect(Collectors.toList());
+
+        if (!depthMap.containsKey(depth + 1)) {
+            return lowerDepthCategories;
+        } else {
+            return recursiveLowerCategories(depth + 1, lowerDepthCategories, depthMap);
+        }
     }
 
 

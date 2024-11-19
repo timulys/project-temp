@@ -276,7 +276,31 @@ public class IssueCategoryController {
 
 
 	@Tag(name = "이슈 카테고리 API")
-	@Operation(summary = "이슈 카테고리 목록 조회 (신규)", description = "트리구조 조회")
+	@Operation(summary = "이슈 카테고리 목록 조회 [카테고리 관리 : 관리자용] (신규)", description = "트리구조 조회")
+	@GetMapping("/management/{channel_id}")
+	public ResponseEntity<ApiResult<IssueCategoryResponse>> getCategoryTreeForManagement(
+			@Parameter(description = "채널 아이디", required = true, in = ParameterIn.PATH)
+			@Positive
+			@PathVariable("channel_id") Long channelId
+	) {
+		log.info("ISSUE CATEGORY MANAGEMENT, GET, CHANNEL: {}", channelId);
+
+		IssueCategoryResponse result = issueCategoryService.getAllIssueCategories(channelId, true);
+
+		ApiResult<IssueCategoryResponse> response = ApiResult.<IssueCategoryResponse>builder()
+				.code(ApiResultCode.succeed)
+				.payload(result)
+				.build();
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	/**
+	 * TODO :: 임시로 분기용 파라미터로 동일 메서드 사용중. 추후 권한 분리로 분리되어야 함.
+	 * @param channelId
+	 * @return
+	 */
+	@Tag(name = "이슈 카테고리 API")
+	@Operation(summary = "이슈 카테고리 목록 조회 [사용자용] (신규)", description = "트리구조 조회")
 	@GetMapping("/{channel_id}")
 	public ResponseEntity<ApiResult<IssueCategoryResponse>> getCategoryTree(
 			@Parameter(description = "채널 아이디", required = true, in = ParameterIn.PATH)
@@ -285,7 +309,7 @@ public class IssueCategoryController {
 	) {
 		log.info("ISSUE CATEGORY, GET, CHANNEL: {}", channelId);
 
-		IssueCategoryResponse result = issueCategoryService.getAllIssueCategories(channelId);
+		IssueCategoryResponse result = issueCategoryService.getAllIssueCategories(channelId, false);
 
 		ApiResult<IssueCategoryResponse> response = ApiResult.<IssueCategoryResponse>builder()
 				.code(ApiResultCode.succeed)
