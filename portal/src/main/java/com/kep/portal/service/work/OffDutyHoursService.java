@@ -1,7 +1,10 @@
 package com.kep.portal.service.work;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -81,12 +84,12 @@ public class OffDutyHoursService {
 
 		if (branchOffDutyHours == null) {
 			// KICA-415 금일 등록 된 요일이 있을 경우 브랜치 일정 등록 안되는 로직 주석 처리
-			/*
-			Long branchId = securityUtils.getBranchId();
-			List<OffDutyHours> branchOffDutyHoursList = this.getOffDutyHours(branchId);
+			// KICA-501 브랜치 일정 여러건 등록 기능 방지 위해 주석 해제
+			List<OffDutyHours> branchOffDutyHoursList = this.getOffDutyHours(dto.getBranchId(), dto.getStartCreated(), dto.getEndCreated());
 			if(!branchOffDutyHoursList.isEmpty()){
 				return null;
-			}*/
+			}
+
 			branchOffDutyHours = BranchOffDutyHours.builder()
 					.created(ZonedDateTime.now())
 					.creator(memberId)
@@ -203,9 +206,16 @@ public class OffDutyHoursService {
 		return result;
 	}
 
-	public List<OffDutyHours> getOffDutyHours(Long branchId) {
-		Map<String,ZonedDateTime> today = ZonedDateTimeUtil.getTodayDateTime(LocalDate.now());
-		return branchOffDutyHoursRepository.findAllByBranchIdAndStartCreatedGreaterThanEqualAndEndCreatedLessThanEqual( branchId , today.get("start") , today.get("end") );
+	// KICA-501 브랜치 일정이 등록된 요일은 무조건 추가 일정 등록 불가로 인하여 해당 일자 전체 조회하여 일정이 있다면 reject
+	public List<OffDutyHours> getOffDutyHours(Long branchId, String startCreated, String endCreated) {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		ZonedDateTime start = LocalDateTime.parse(startCreated, formatter).toLocalDate()
+				.atStartOfDay().atZone(ZoneId.systemDefault());
+		ZonedDateTime end = LocalDateTime.parse(endCreated, formatter).toLocalDate()
+				.atTime(23, 59, 59, 999_999_999).atZone(ZoneId.systemDefault());
+
+		return branchOffDutyHoursRepository
+				.findAllByBranchIdAndStartCreatedGreaterThanEqualAndEndCreatedLessThanEqual(branchId, start, end);
 	}
 
 }

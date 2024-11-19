@@ -369,18 +369,17 @@ public class ChannelService {
 	public List<BranchChannelDto> allBranchChannel(){
 
 		Map<Channel,List<Branch>> list = branchChannelRepository.findAll().stream()
-				.collect(Collectors.groupingBy(BranchChannel::getChannel,Collectors.mapping(BranchChannel::getBranch , Collectors.toList())));
-
+				.collect(Collectors.groupingBy(BranchChannel::getChannel, Collectors.mapping(BranchChannel::getBranch, Collectors.toList())));
 
 		List<BranchChannelDto> branchChannels = new ArrayList<>();
-		for( Map.Entry<Channel, List<Branch>> entry : list.entrySet() ){
+		for(Map.Entry<Channel, List<Branch>> entry : list.entrySet()){
 			branchChannels.add(BranchChannelDto.builder()
 					.channel(channelMapper.map(entry.getKey()))
 					.branchs(branchMapper.map(entry.getValue()))
 					.build());
 		}
 
-		Collections.sort(branchChannels,Collections.reverseOrder());
+		Collections.sort(branchChannels, Collections.reverseOrder());
 		return branchChannels;
 	}
 
