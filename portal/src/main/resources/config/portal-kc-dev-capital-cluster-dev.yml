@@ -60,6 +60,7 @@ application:
     manager-admin-path: /topic/manager-admin
     issue-path: /topic/issue
     notice-path: /topic/notice
+    upload-path: /topic/upload
     message-broker:
       addresses:
         - 192.168.213.189:61613

@@ -324,6 +324,7 @@ public class EventByOperatorService {
                 .build();
 
         uploadHistoryService.store(uploadHistoryDto, issue);
+        simpMessagingTemplate.convertAndSend(socketProperty.getUploadPath() , issueDto);
 
         return sourceUrl;
     }
