@@ -57,11 +57,10 @@ public class GuideController {
      * @param pageable
      * @return
      */
-    @Deprecated
     @GetMapping
     @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
     @Tag(name = "가이드 API")
-    @Operation(summary = "가이드 목록 조회", description = "가이드 목록 조회(SB-CP-T03)", deprecated = true)
+    @Operation(summary = "가이드 목록 조회", description = "가이드 목록 조회(SB-CP-T03)")
     public ResponseEntity<ApiResult<List<GuideDto>>> get(
             @Parameter(description = "카테고리 아이디")
             @RequestParam(value = "category_id", required = false) Long categoryId,
@@ -99,11 +98,10 @@ public class GuideController {
      *
      * @return
      */
-    @Deprecated
     @GetMapping("/m")
     @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
     @Tag(name = "가이드 API")
-    @Operation(summary = "가이드 검색", description = "가이드 검색(SB-FM-010)", deprecated = true)
+    @Operation(summary = "가이드 검색", description = "가이드 검색(SB-FM-010)")
     public ResponseEntity<ApiResult<List<GuideDto>>> get(
             @Parameter(description = "카테고리 아이디")
             @RequestParam(value = "category_id") Long categoryId
@@ -177,9 +175,8 @@ public class GuideController {
      * @return
      * @throws Exception
      */
-    @Deprecated
     @Tag(name = "가이드 API")
-    @Operation(summary = "가이드 검색", description = "가이드 검색 (SB-CP-T07)", deprecated = true)
+    @Operation(summary = "가이드 검색", description = "가이드 검색 (SB-CP-T07)")
     @PreAuthorize("hasAnyAuthority('READ_GUIDE')")
     @GetMapping("/search")
     public ResponseEntity<ApiResult<GuideSearchResponseDto>> search(
@@ -214,11 +211,10 @@ public class GuideController {
      * @param pageable
      * @return
      */
-    @Deprecated
     @GetMapping("/manage-search")
     @PreAuthorize("hasAnyAuthority('WRITE_GUIDE')")
     @Tag(name = "가이드 API")
-    @Operation(summary = "가이드 검색", description = "가이드 검색(SB-CA-006)", deprecated = true)
+    @Operation(summary = "가이드 검색", description = "가이드 검색(SB-CA-006)")
     public ResponseEntity<ApiResult<List<GuideDto>>> manageSearch(
             @ParameterObject @QueryParam @Valid GuideSearchDto searchDto,
             @ParameterObject @SortDefault.SortDefaults({
@@ -372,10 +368,9 @@ public class GuideController {
      * @param guideLogDto
      * @return
      */
-    @Deprecated
     @GetMapping("/check-require")
     @Tag(name = "가이드 API")
-    @Operation(summary = "가이드 필수요소 체크", description = "가이드 필수블록 전송했는지 확인", deprecated = true)
+    @Operation(summary = "가이드 필수요소 체크", description = "가이드 필수블록 전송했는지 확인")
     public ResponseEntity<ApiResult> checkRequire(
             @ParameterObject @QueryParam GuideLogDto guideLogDto
     ) {

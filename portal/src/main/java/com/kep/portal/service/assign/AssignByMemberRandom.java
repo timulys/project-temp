@@ -62,20 +62,20 @@ public class AssignByMemberRandom implements Assignable {
 		// 최대 상담건수가 개별기준인지 branch 기준인지 체크 하기 위해서 쿼리
 		Branch branch = branchService.findById(issue.getBranchId());
 
-		Map<Long , Long> memberIssueGrouop = assignManager.memberIssueGrouop(issue.getBranchId() , members);
+		Map<Long, Long> memberIssueGrouop = assignManager.memberIssueGrouop(issue.getBranchId(), members);
 
-		log.info("MEMBER RANDOM MEMBER ISSUE GROUOP:{} , ISSUE ID:{}" , memberIssueGrouop , issue.getId());
+		log.info("MEMBER RANDOM MEMBER ISSUE GROUOP:{}, ISSUE ID:{}", memberIssueGrouop, issue.getId());
 
 		// todo 소스 리팩토링 필요, 가능한 상담원이 없는 경우 계속 시도하는게 맞는가..? ( 상담이 끝나면 다시 할당 가능하긴함.. )
 		if (WorkType.MaxCounselType.individual.equals(branch.getMaxCounselType()) ) {
 			Integer MemberCounsel = branch.getMaxMemberCounsel() == null ? 0 : branch.getMaxMemberCounsel() ;
-			this.setMemberIssueGrouop(members , memberIssueGrouop , MemberCounsel );
+			this.setMemberIssueGrouop(members, memberIssueGrouop, MemberCounsel );
 			if (memberIssueGrouop.size() == 0) {
 				if(issue.getAssignCount() < 2){ // 첫번째 시도에만 메세지 전송하기 위한 if문
 					ChannelEnvDto channelEnv = channelEnvService.getByChannel(issue.getChannel());
 					eventBySystemService.sendOverAssignedAndClose(issue, channelEnv);
 				}
-				throw new UnsupportedOperationException("AssignByMemberRandom, MAX COUNSEL TYPE(member) , MAX COUNSEL OVER");
+				throw new UnsupportedOperationException("AssignByMemberRandom, MAX COUNSEL TYPE(member), MAX COUNSEL OVER");
 			}
 		}
 
@@ -108,7 +108,7 @@ public class AssignByMemberRandom implements Assignable {
 	 * @param memberIssueGrouop
 	 * @param maxMemberCounsel
 	 */
-	private void setMemberIssueGrouop(List<Member> members, Map<Long, Long> memberIssueGrouop , Integer maxMemberCounsel ) {
+	private void setMemberIssueGrouop(List<Member> members, Map<Long, Long> memberIssueGrouop, Integer maxMemberCounsel ) {
 		for (Member member : members) {
 			Integer maxCounsel = Objects.isNull(member.getMaxCounsel()) ? maxMemberCounsel : member.getMaxCounsel();
 			// 최대 상담건수가 0으로 설정 된 경우 무제한 상담 (예외처리)

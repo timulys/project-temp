@@ -110,15 +110,15 @@ public class AssignByDisabled implements Assignable {
         Branch branch = branchService.findById(issue.getBranchId());
         log.info("ASSIGN BY DISABLED, ISSUE: {}, MAX COUNSEL TYPE: {}, MAX COUNSEL COUNT: {}",
                 issue.getId(), branch.getMaxCounselType() , branch.getMaxCounsel());
-        if(WorkType.MaxCounselType.batch.equals(branch.getMaxCounselType())){
+        if (WorkType.MaxCounselType.batch.equals(branch.getMaxCounselType())){
             //당일 갯수로 구한다.
             //TODO: 추후 설정으로 빠질수가 있다.
             LocalDate startDate = LocalDate.now();
             LocalDate endDate = LocalDate.now();
 
-            log.info("ASSIGN BY DISABLED START :{} , END :{}", startDate , endDate);
+            log.info("ASSIGN BY DISABLED START :{} , END :{}", startDate, endDate);
 
-            Long activStatusCount = issueService.countOngoing(branch.getId(), startDate , endDate);
+            Long activStatusCount = issueService.countOngoing(branch.getId(), startDate, endDate);
             //내자신은 뺀다
             activStatusCount--;
 

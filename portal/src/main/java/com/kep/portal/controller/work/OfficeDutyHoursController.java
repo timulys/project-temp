@@ -92,24 +92,23 @@ public class OfficeDutyHoursController {
         OffDutyHoursDto offDutyHoursDto = null;
         try{
             offDutyHoursDto = offDutyHoursService.create(dto , casesId);
-        } catch (
-            DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException e) {
             throw new BizException(systemMessageProperty.getValidation().getDuplication().getBranchSchedule());
         }
-        HttpStatus status = HttpStatus.UNPROCESSABLE_ENTITY;
-        ApiResultCode code = ApiResultCode.failed;
+        ApiResult<OffDutyHoursDto> response;
         if(offDutyHoursDto != null){
-            status = HttpStatus.CREATED;
-            code = ApiResultCode.succeed;
+            response = ApiResult.<OffDutyHoursDto>builder()
+                    .code(ApiResultCode.succeed)
+                    .payload(offDutyHoursDto)
+                    .build();
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } else {
+            response = ApiResult.<OffDutyHoursDto>builder()
+                    .code(ApiResultCode.failed)
+                    .message("해당 일자에 이미 등록된 이벤트가 있습니다.")
+                    .build();
+            return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
         }
-
-        ApiResult<OffDutyHoursDto> response = ApiResult.<OffDutyHoursDto>builder()
-                .code(code)
-                .payload(offDutyHoursDto)
-                .build();
-
-        return new ResponseEntity<>(response ,status);
-
     }
 
     /**
