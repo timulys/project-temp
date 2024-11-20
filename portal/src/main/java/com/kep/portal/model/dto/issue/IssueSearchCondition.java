@@ -1,10 +1,10 @@
 package com.kep.portal.model.dto.issue;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.kep.core.model.dto.issue.IssueStatus;
 import com.kep.core.model.dto.issue.IssueType;
 import com.kep.core.model.dto.platform.PlatformType;
 import com.kep.portal.model.entity.channel.Channel;
-import com.kep.portal.model.entity.customer.Customer;
 import com.kep.portal.model.entity.customer.Guest;
 import com.kep.portal.model.entity.member.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -113,4 +113,8 @@ public class IssueSearchCondition {
 
 	@Schema(description = "채널 아이디")
 	private Long channelId;
+
+	@Schema(description = "최하위 뎁스 카테고리 아이디 목록 [서비스 레이어에서 생성]", hidden = true)
+	@JsonIgnore
+	private List<Long> issueCategoryIds;
 }
