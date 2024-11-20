@@ -239,7 +239,8 @@ public class BranchService {
 			branch = branchMapper.map(dto);
 			branch.setCreator(securityUtils.getMemberId());
 			branch.setCreated(ZonedDateTime.now());
-			branch.setMaxCounsel(headQuarters.getMaxCounsel());
+			//branch.setMaxCounsel(headQuarters.getMaxCounsel());
+			branch.setMaxCounsel(0); // 최대 상담 건수 0건으로 수정 관련 jira : KICA-511
 			branch.setMaxCounselType(headQuarters.getMaxCounselType());
 			branch.setMaxMemberCounsel(headQuarters.getMaxMemberCounsel());
 			branch.setAssign(headQuarters.getAssign());
