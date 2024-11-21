@@ -81,6 +81,7 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                                                                 member.username,
                                                                 member.nickname,
                                                                 member.status,
+                                                                member.maxCounsel,
                                                                 branch.id.as("branchId"),
                                                                 branch.name.as("branchName"),
                                                                 team.name.as("teamName"),
