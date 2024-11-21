@@ -392,6 +392,7 @@ public class MemberService {
 			teamMemberRepository.saveAll(teamMembers);
 			member.setTeams(teams);
 		} else {
+			if (member.getRoles().stream().noneMatch(item -> Objects.equals(item.getLevel().getType(), Level.ROLE_TYPE_ADMIN))) throw new BizException("매니저 이하는 소속팀 지정이 필수입니다.");
 			teamMemberRepository.deleteByMemberId(member.getId());
 			teamMemberRepository.flush();
 		}
