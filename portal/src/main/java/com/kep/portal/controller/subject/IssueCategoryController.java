@@ -66,6 +66,53 @@ public class IssueCategoryController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	/**
+	 * FIXME :: 상담 카테고리 관련 배분 설정, 셀렉트 박스용 고도화시 리팩토링을 위해 url 겹치는 곳 없도록 특이하게 해놨습니다, 사이드 이펙트 최소화 하기 위해 추가한건데 고도화 때 정리 하겠습니다 ㅠ
+	 * @param channelId
+	 * @return
+	 * @throws Exception
+	 */
+	@Tag(name = "이슈 카테고리 API")
+	@Operation(summary = "상담직원 배정 이슈 카테고리 목록 조회 [신규][카테고리 셀렉트 :: 조회조건용]")
+	@GetMapping("/select/tree/{channel_id}")
+	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN','READ_MANAGE')")
+	public ResponseEntity<ApiResult<List<IssueCategoryChildrenDto>>> getUsableForSelectBox(
+			@Parameter(description = "채널 아이디", required = true, in = ParameterIn.PATH)
+			@PathVariable("channel_id") Long channelId
+	) throws Exception {
+
+		log.info("ISSUE CATEGORY, GET SELECT TREE channelId :: {}", channelId);
+
+		List<IssueCategoryChildrenDto> issueCategories = issueCategoryService.getUsableForSelectBox(channelId);
+
+		ApiResult<List<IssueCategoryChildrenDto>> response = ApiResult.<List<IssueCategoryChildrenDto>>builder()
+				.code(ApiResultCode.succeed)
+				.payload(issueCategories)
+				.build();
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@Tag(name = "이슈 카테고리 API")
+	@Operation(summary = "상담직원 배정 이슈 카테고리 목록 조회 [신규][상담 배분 설정 관리자용]")
+	@GetMapping("/management/tree")
+	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN','READ_MANAGE')")
+	public ResponseEntity<ApiResult<List<IssueCategoryChildrenDto>>> getUsableForManagement(
+			@Parameter(description = "채널 아이디", required = true)
+			@RequestParam(value = "channel_id") Long channelId,
+			@Parameter(description = "이슈 카테고리명")
+			@RequestParam(value = "name", required = false) String name) throws Exception {
+
+		log.info("ISSUE CATEGORY, GET MANAGEMENT TREE, NAME: {}", name);
+
+		List<IssueCategoryChildrenDto> issueCategories = issueCategoryService.getUsableForManagement(channelId, name);
+
+		ApiResult<List<IssueCategoryChildrenDto>> response = ApiResult.<List<IssueCategoryChildrenDto>>builder()
+				.code(ApiResultCode.succeed)
+				.payload(issueCategories)
+				.build();
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
 
 	// ////////////////////////////////////////////////////////////////////////
 	// 상담 배분 설정
