@@ -5,6 +5,7 @@ import com.kep.core.model.dto.channel.ChannelDto;
 import com.kep.core.model.dto.issue.*;
 import com.kep.core.model.dto.member.MemberDto;
 import com.kep.core.model.dto.notification.*;
+import com.kep.core.model.dto.subject.IssueCategoryBasicDto;
 import com.kep.core.model.dto.subject.IssueCategoryDto;
 import com.kep.core.model.dto.team.TeamDto;
 import com.kep.core.model.dto.work.WorkType;
@@ -846,8 +847,22 @@ public class IssueSupportService {
 		IssueCategoryDto issueCategoryDto = issueCategoryMapper.map(issueCategory);
 		BranchDto branchDto = branchService.getById(branchId);
 		ChannelDto channelDto = channelService.getById(issueCategory.getChannelId());
-		return "[" + branchDto.getName() + "/" + channelDto.getName() + "] " + issueCategoryDto.getPath().get(0).getName() + ">" + issueCategoryDto.getPath().get(1).getName() + ">"
-				+ issueCategoryDto.getPath().get(2).getName();
+
+		String branchChannelName = String.format("[%s/%s]", branchDto.getName(), channelDto.getName());
+		StringBuilder builder = new StringBuilder();
+		builder.append(branchChannelName);
+
+		List<IssueCategoryBasicDto> path = issueCategoryDto.getPath();
+
+		for (int i = 0; i < path.size(); i++) {
+			builder.append(path.get(i).getName());
+			if (i < path.size() - 1) builder.append(">");
+		}
+
+		return builder.toString();
+
+//		return "[" + branchDto.getName() + "/" + channelDto.getName() + "] " + issueCategoryDto.getPath().get(0).getName() + ">" + issueCategoryDto.getPath().get(1).getName() + ">"
+//				+ issueCategoryDto.getPath().get(2).getName();
 	}
 
 
