@@ -196,14 +196,15 @@ public class IssueCategoryService {
     /**
      * 브랜치에 포함된 채널에 포함된 분류 목록
      */
-    public List<IssueCategoryWithChannelDto> getAllByBranch(@Positive Long branchId, @Positive Long parentId) throws Exception {
+    public IssueCategoryOneDto getAllByBranch(@Positive Long branchId, @Positive Long parentId) throws Exception {
 
         IssueCategory search = new IssueCategory();
+        IssueCategoryOneDto result = new IssueCategoryOneDto();
 
         List<BranchChannel> branchChannel = branchChannelService.findAllByBranchId(
                 branchId != null ? branchId : securityUtils.getBranchId());
         if (branchChannel.isEmpty()) {
-            return Collections.emptyList();
+            return null;
         }
         List<Channel> channels = branchChannel.stream().map(BranchChannel::getChannel).collect(Collectors.toList());
         search.setChannelIds(channels.stream().map(Channel::getId).collect(Collectors.toList()));
@@ -213,13 +214,18 @@ public class IssueCategoryService {
             IssueCategory parent = issueCategoryRepository.findById(parentId).orElse(null);
             Assert.notNull(parent, "PARENT IS NULL");
             search.setParent(parent);
+
+            ChannelEnv channelEnv = channelEnvRepository.findByChannelId(parent.getChannelId()).orElseThrow(() -> new BizException("Not Exists Channel"));
+            result.setMaxDepth(channelEnv.getMaxIssueCategoryDepth());
         } else {
             search.setDepth(1);
         }
 
         log.info("ISSUE CATEGORY SEARCH: {}", objectMapper.writeValueAsString(search));
         List<IssueCategory> entities = issueCategoryRepository.search(search.getChannelIds(), search.getParent(), search.getDepth());
-        return issueCategoryMapper.mapWithChannel(entities, channels);
+
+        result.setCategories(issueCategoryMapper.mapWithChannel(entities, channels));
+        return result;
     }
 
     public IssueCategory findById(@NotNull @Positive Long id) {

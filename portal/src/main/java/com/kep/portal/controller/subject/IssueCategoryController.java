@@ -209,7 +209,7 @@ public class IssueCategoryController {
 			"상담 관리, 상담 이력, 검색 조건\n" +
 			"상담 관리, 상담 진행 목록, 검색 조건")
 	@GetMapping("/by-branch")
-	public ResponseEntity<ApiResult<List<IssueCategoryWithChannelDto>>> get(
+	public ResponseEntity<ApiResult<IssueCategoryOneDto>> get(
 			@Parameter(description = "브랜치 아이디")
 			@RequestParam(value = "branch_id", required = false) Long branchId,
 			@Parameter(description = "상위 이슈 카테고리 아이디")
@@ -217,9 +217,9 @@ public class IssueCategoryController {
 
 		log.info("ISSUE CATEGORY BY BRANCH, GET, BRANCH: {}, PARENT: {}", branchId, parentId);
 
-		List<IssueCategoryWithChannelDto> issueCategories = issueCategoryService.getAllByBranch(branchId, parentId);
+		IssueCategoryOneDto issueCategories = issueCategoryService.getAllByBranch(branchId, parentId);
 
-		ApiResult<List<IssueCategoryWithChannelDto>> response = ApiResult.<List<IssueCategoryWithChannelDto>>builder()
+		ApiResult<IssueCategoryOneDto> response = ApiResult.<IssueCategoryOneDto>builder()
 				.code(ApiResultCode.succeed)
 				.payload(issueCategories)
 				.build();
