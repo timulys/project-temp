@@ -1,5 +1,6 @@
 package com.kep.portal.service.subject;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.legacy.LegacyBnkCategoryDto;
 import com.kep.core.model.dto.subject.IssueCategoryBasicDto;
@@ -69,10 +70,48 @@ public class IssueCategoryService {
         return channelEnvService.getByChannelId(channelId).getMaxIssueCategoryDepth();
     }
 
+    /**
+     * 셀렉트 박스 조회조건용 카테고리 목록 조회
+     * @param channelId
+     * @return
+     * @throws JsonProcessingException
+     */
+    public List<IssueCategoryChildrenDto> getUsableForSelectBox(@NotNull @Positive Long channelId) throws JsonProcessingException {
+        List<IssueCategory> searchedCategories = null;
+
+        Integer maxDepth = getCategoryMaxDepth(channelId);
+
+        searchedCategories = issueCategoryRepository.findAllByDepthOnlyUse(channelId, maxDepth);
+        return issueCategoryMapper.mapChildren(flatAncestor(searchedCategories));
+    }
+
+    /**
+     * 상담 배분 관리 그리드용. 노출 조건이 채널에 귀속됨
+     */
+    public List<IssueCategoryChildrenDto> getUsableForManagement(@NotNull @Positive Long channelId, String name) throws JsonProcessingException {
+        List<IssueCategory> searchedCategories = null;
+
+        Integer maxDepth = getCategoryMaxDepth(channelId);
+
+        if (!ObjectUtils.isEmpty(name)) {
+            searchedCategories = issueCategoryRepository.findAllByChannelIdAndEnabledIsTrueAndNameLike(channelId, name);
+
+            List<IssueCategory> lastDepthCategories = new ArrayList<>();
+            settingIssueCategorySearch(searchedCategories, lastDepthCategories, getCategoryMaxDepth(channelId));
+
+            return issueCategoryMapper.mapChildren(flatAncestor(lastDepthCategories));
+        } else {
+            searchedCategories = issueCategoryRepository.findAllByChannelIdAndDepthAndEnabledIsTrueOrderBySort(channelId, maxDepth);
+            return issueCategoryMapper.mapChildren(flatAncestor(searchedCategories));
+        }
+    }
+
     @Nullable
     public List<IssueCategoryChildrenDto> search(@NotNull @Positive Long channelId, String name) throws Exception {
 
         List<IssueCategory> searchedCategories = null;
+
+        Integer maxDepth = getCategoryMaxDepth(channelId);
 
         if (!ObjectUtils.isEmpty(name)) {
             searchedCategories = issueCategoryRepository.search(channelId,
@@ -83,14 +122,14 @@ public class IssueCategoryService {
                     name);
 
             List<IssueCategory> lastDepthCategories = new ArrayList<>();
-            settingIssueCategorySearch(searchedCategories, lastDepthCategories, getCategoryMaxDepth(channelId));
+            settingIssueCategorySearch(searchedCategories, lastDepthCategories, maxDepth);
 
             log.debug(objectMapper.writeValueAsString(lastDepthCategories));
             return issueCategoryMapper.mapChildren(flatAncestor(lastDepthCategories));
         } else {
             searchedCategories = issueCategoryRepository.search(channelId,
 //					securityUtils.getBranchId(),
-                    true, true, getCategoryMaxDepth(channelId));
+                    true, true, maxDepth);
 
             return issueCategoryMapper.mapChildren(flatAncestor(searchedCategories));
         }
