@@ -58,7 +58,8 @@ public class AutoMessageService {
 
         Member member = memberService.findById(issue.getMember().getId());
 
-        if(!ObjectUtils.isEmpty(member.getFirstMessage())){
+        //UsedMessage 여부 조건 추가 20241122
+        if(member.getUsedMessage() && !ObjectUtils.isEmpty(member.getFirstMessage())){
             issuePayload = member.getFirstMessage();
         } else {
             ChannelStartAuto start = channelEnv.getStart();
