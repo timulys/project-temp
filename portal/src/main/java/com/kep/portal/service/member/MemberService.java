@@ -357,7 +357,7 @@ public class MemberService {
 		// TODO: 첫 인사말 안넘어오는 경우, 삭제 필요 (GNB > 내 정보 수정)
 		// TODO: 그 외 첫 인사말이 화면에 아에 없는 경우 (계정 관리 등) 예외 필요 (URL 분리 필요)
 		member.setUsedMessage(dto.getUsedMessage() != null && dto.getUsedMessage());
-		if (!ObjectUtils.isEmpty(dto.getFirstMessage())) validFirstMessage(dto.getFirstMessage());
+		if (dto.getUsedMessage()) validFirstMessage(dto.getFirstMessage());
 
 		member = memberRepository.save(member);
 
