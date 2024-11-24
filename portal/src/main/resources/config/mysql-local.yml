@@ -8,7 +8,7 @@ spring:
 #    password: ${DB_PASSWD:always2023!}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
-      maximum-pool-size: 5
+      maximum-pool-size: 30
   sql:
     init:
       mode: never
