@@ -358,15 +358,8 @@ public class MemberService {
 		// 회원 첫 인사말
 		// TODO: 첫 인사말 안넘어오는 경우, 삭제 필요 (GNB > 내 정보 수정)
 		// TODO: 그 외 첫 인사말이 화면에 아에 없는 경우 (계정 관리 등) 예외 필요 (URL 분리 필요)
-		if (dto.getUsedMessage() == null || !dto.getUsedMessage()) {
-			member.setUsedMessage(false);
-			member.setFirstMessage(null);
-		} else {
-			validFirstMessage(dto.getFirstMessage());
-
-			member.setUsedMessage(true);
-			member.setFirstMessage(dto.getFirstMessage());
-		}
+		member.setUsedMessage(dto.getUsedMessage() != null && dto.getUsedMessage());
+		if (dto.getUsedMessage()) validFirstMessage(dto.getFirstMessage());
 
 		member = memberRepository.save(member);
 
