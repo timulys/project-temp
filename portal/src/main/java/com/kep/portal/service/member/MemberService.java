@@ -356,15 +356,8 @@ public class MemberService {
 		// 회원 첫 인사말
 		// TODO: 첫 인사말 안넘어오는 경우, 삭제 필요 (GNB > 내 정보 수정)
 		// TODO: 그 외 첫 인사말이 화면에 아에 없는 경우 (계정 관리 등) 예외 필요 (URL 분리 필요)
-		if (dto.getUsedMessage() == null || !dto.getUsedMessage()) {
-			member.setUsedMessage(false);
-			member.setFirstMessage(null);
-		} else {
-			validFirstMessage(dto.getFirstMessage());
-
-			member.setUsedMessage(true);
-			member.setFirstMessage(dto.getFirstMessage());
-		}
+		member.setUsedMessage(dto.getUsedMessage() != null && dto.getUsedMessage());
+		if (dto.getUsedMessage()) validFirstMessage(dto.getFirstMessage());
 
 		member = memberRepository.save(member);
 
@@ -392,6 +385,7 @@ public class MemberService {
 			teamMemberRepository.saveAll(teamMembers);
 			member.setTeams(teams);
 		} else {
+			if (member.getRoles().stream().noneMatch(item -> Objects.equals(item.getLevel().getType(), Level.ROLE_TYPE_ADMIN))) throw new BizException("매니저 이하는 소속팀 지정이 필수입니다.");
 			teamMemberRepository.deleteByMemberId(member.getId());
 			teamMemberRepository.flush();
 		}

@@ -66,6 +66,53 @@ public class IssueCategoryController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	/**
+	 * FIXME :: 상담 카테고리 관련 배분 설정, 셀렉트 박스용 고도화시 리팩토링을 위해 url 겹치는 곳 없도록 특이하게 해놨습니다, 사이드 이펙트 최소화 하기 위해 추가한건데 고도화 때 정리 하겠습니다 ㅠ
+	 * @param channelId
+	 * @return
+	 * @throws Exception
+	 */
+	@Tag(name = "이슈 카테고리 API")
+	@Operation(summary = "상담직원 배정 이슈 카테고리 목록 조회 [신규][카테고리 셀렉트 :: 조회조건용]")
+	@GetMapping("/select/tree/{channel_id}")
+	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN','READ_MANAGE')")
+	public ResponseEntity<ApiResult<List<IssueCategoryChildrenDto>>> getUsableForSelectBox(
+			@Parameter(description = "채널 아이디", required = true, in = ParameterIn.PATH)
+			@PathVariable("channel_id") Long channelId
+	) throws Exception {
+
+		log.info("ISSUE CATEGORY, GET SELECT TREE channelId :: {}", channelId);
+
+		List<IssueCategoryChildrenDto> issueCategories = issueCategoryService.getUsableForSelectBox(channelId);
+
+		ApiResult<List<IssueCategoryChildrenDto>> response = ApiResult.<List<IssueCategoryChildrenDto>>builder()
+				.code(ApiResultCode.succeed)
+				.payload(issueCategories)
+				.build();
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@Tag(name = "이슈 카테고리 API")
+	@Operation(summary = "상담직원 배정 이슈 카테고리 목록 조회 [신규][상담 배분 설정 관리자용]")
+	@GetMapping("/management/tree")
+	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN','READ_MANAGE')")
+	public ResponseEntity<ApiResult<List<IssueCategoryChildrenDto>>> getUsableForManagement(
+			@Parameter(description = "채널 아이디", required = true)
+			@RequestParam(value = "channel_id") Long channelId,
+			@Parameter(description = "이슈 카테고리명")
+			@RequestParam(value = "name", required = false) String name) throws Exception {
+
+		log.info("ISSUE CATEGORY, GET MANAGEMENT TREE, NAME: {}", name);
+
+		List<IssueCategoryChildrenDto> issueCategories = issueCategoryService.getUsableForManagement(channelId, name);
+
+		ApiResult<List<IssueCategoryChildrenDto>> response = ApiResult.<List<IssueCategoryChildrenDto>>builder()
+				.code(ApiResultCode.succeed)
+				.payload(issueCategories)
+				.build();
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
 
 	// ////////////////////////////////////////////////////////////////////////
 	// 상담 배분 설정
@@ -209,7 +256,7 @@ public class IssueCategoryController {
 			"상담 관리, 상담 이력, 검색 조건\n" +
 			"상담 관리, 상담 진행 목록, 검색 조건")
 	@GetMapping("/by-branch")
-	public ResponseEntity<ApiResult<List<IssueCategoryWithChannelDto>>> get(
+	public ResponseEntity<ApiResult<IssueCategoryOneDto>> get(
 			@Parameter(description = "브랜치 아이디")
 			@RequestParam(value = "branch_id", required = false) Long branchId,
 			@Parameter(description = "상위 이슈 카테고리 아이디")
@@ -217,9 +264,9 @@ public class IssueCategoryController {
 
 		log.info("ISSUE CATEGORY BY BRANCH, GET, BRANCH: {}, PARENT: {}", branchId, parentId);
 
-		List<IssueCategoryWithChannelDto> issueCategories = issueCategoryService.getAllByBranch(branchId, parentId);
+		IssueCategoryOneDto issueCategories = issueCategoryService.getAllByBranch(branchId, parentId);
 
-		ApiResult<List<IssueCategoryWithChannelDto>> response = ApiResult.<List<IssueCategoryWithChannelDto>>builder()
+		ApiResult<IssueCategoryOneDto> response = ApiResult.<IssueCategoryOneDto>builder()
 				.code(ApiResultCode.succeed)
 				.payload(issueCategories)
 				.build();
@@ -276,7 +323,31 @@ public class IssueCategoryController {
 
 
 	@Tag(name = "이슈 카테고리 API")
-	@Operation(summary = "이슈 카테고리 목록 조회 (신규)", description = "트리구조 조회")
+	@Operation(summary = "이슈 카테고리 목록 조회 [카테고리 관리 : 관리자용] (신규)", description = "트리구조 조회")
+	@GetMapping("/management/{channel_id}")
+	public ResponseEntity<ApiResult<IssueCategoryResponse>> getCategoryTreeForManagement(
+			@Parameter(description = "채널 아이디", required = true, in = ParameterIn.PATH)
+			@Positive
+			@PathVariable("channel_id") Long channelId
+	) {
+		log.info("ISSUE CATEGORY MANAGEMENT, GET, CHANNEL: {}", channelId);
+
+		IssueCategoryResponse result = issueCategoryService.getAllIssueCategories(channelId, true);
+
+		ApiResult<IssueCategoryResponse> response = ApiResult.<IssueCategoryResponse>builder()
+				.code(ApiResultCode.succeed)
+				.payload(result)
+				.build();
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	/**
+	 * TODO :: 임시로 분기용 파라미터로 동일 메서드 사용중. 추후 권한 분리로 분리되어야 함.
+	 * @param channelId
+	 * @return
+	 */
+	@Tag(name = "이슈 카테고리 API")
+	@Operation(summary = "이슈 카테고리 목록 조회 [사용자용] (신규)", description = "트리구조 조회")
 	@GetMapping("/{channel_id}")
 	public ResponseEntity<ApiResult<IssueCategoryResponse>> getCategoryTree(
 			@Parameter(description = "채널 아이디", required = true, in = ParameterIn.PATH)
@@ -285,7 +356,7 @@ public class IssueCategoryController {
 	) {
 		log.info("ISSUE CATEGORY, GET, CHANNEL: {}", channelId);
 
-		IssueCategoryResponse result = issueCategoryService.getAllIssueCategories(channelId);
+		IssueCategoryResponse result = issueCategoryService.getAllIssueCategories(channelId, false);
 
 		ApiResult<IssueCategoryResponse> response = ApiResult.<IssueCategoryResponse>builder()
 				.code(ApiResultCode.succeed)

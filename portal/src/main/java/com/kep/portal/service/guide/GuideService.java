@@ -379,13 +379,14 @@ public class GuideService {
 
 //        if (guidePayload.getTeamId() != null || securityUtils.getTeamId() != null) { //공개범위 팀 선택에 따라 입력된 팀으로만 저장
 
+        // TODO :: 매니저 이하 레벨은 소속그룹 지정 필수 + 본인이 그룹장인 그룹만 등록 가능하였으나 소속그룹 지정 필수로만 변경됨 20241121 기준 volka
         if (securityUtils.isManager()) {
 //            List<Long> teamIds = securityUtils.getAuthMember().getTeamIds();
             if (guidePayload.getTeamId() == null) throw new BizException("manager must required teamId");
 
             team = teamRepository.findById(guidePayload.getTeamId()).orElseThrow(() -> new BizException("Not Found Team"));
-            List<Team> teams = getTeamsByGroupLeaderForManager(securityUtils.getMemberId());
-            if (!teams.contains(team)) throw new BizException("No Authority"); //매니저는 본인 관리 그룹만 가능 (그룹장인 팀만 등록 가능)
+//            List<Team> teams = getTeamsByGroupLeaderForManager(securityUtils.getMemberId());
+//            if (!teams.contains(team)) throw new BizException("No Authority"); //매니저는 본인 관리 그룹만 가능 (그룹장인 팀만 등록 가능)
 
         }
 
