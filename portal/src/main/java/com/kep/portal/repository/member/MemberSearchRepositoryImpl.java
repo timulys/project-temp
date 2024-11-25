@@ -155,7 +155,7 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                             this.enabledEq(condition.getEnabled()),
                             this.branchIdEq(condition.getBranchId()),
                             team.id.coalesce(0L).in(this.getMinTeamMemberId(member.id)),
-                            role.level.id.loe(2)
+                            this.roleLevelIdLoe(2)
                           )
                     .offset(pageable.getOffset())
                     .limit(pageable.getPageSize())
@@ -188,10 +188,26 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                                     .on(teamMember.memberId.eq(member.id))
                                 .where(
                                         this.teamIdEq(teamId),
-                                        member.enabled.eq(true)
+                                        this.enabledEq(true)
                                       )
                                 .orderBy(member.id.asc())
                                 .fetch();
+    }
+
+    @Override
+    public List<Member> searchMemberUseBranchId(Long branchId) {
+        return queryFactory.select(member)
+                           .from(member)
+                           .innerJoin(memberRole)
+                             .on(member.id.eq(memberRole.memberId))
+                           .innerJoin(role)
+                             .on(role.id.eq(memberRole.roleId))
+                           .where(
+                                   this.branchIdEq(branchId),
+                                   this.enabledEq(true),
+                                   this.roleLevelIdLoe(2)
+                                 )
+                            .fetch();
     }
 
     private Predicate[] getConditions(@NotNull MemberSearchCondition condition) {
@@ -226,6 +242,9 @@ public class MemberSearchRepositoryImpl implements MemberSearchRepository {
                     ).isNotNull();
         }
         return null;
+    }
+    private BooleanExpression roleLevelIdLoe(Integer levelId) {
+        return levelId != null ? role.level.id.loe(levelId) : null;
     }
 
     private BooleanExpression branchIdEq(Long branchId) {

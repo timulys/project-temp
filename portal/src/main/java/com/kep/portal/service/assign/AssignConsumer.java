@@ -164,9 +164,7 @@ public class AssignConsumer implements ChannelAwareMessageListener {
 							.collect(Collectors.toSet());
 					memberList.addAll(memberRepository.findAllByIdInAndEnabled(memberIds, true));
 				} else if(!ObjectUtils.isEmpty(issueAssign.getIssueSupport()) && issueAssign.getIssueSupport().getBranchId() != null){
-					memberList.addAll(memberRepository.findAll(Example.of(Member.builder()
-									.branchId(issueAssign.getIssueSupport().getBranchId())
-									.build()))
+					memberList.addAll(memberRepository.searchMemberUseBranchId(issueAssign.getIssueSupport().getBranchId())
 							// 기존 담당 유저 제외
 							.stream()
 							.filter(o -> assignedMember != null && !o.getId().equals(assignedMember.getId()))

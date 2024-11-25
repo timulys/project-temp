@@ -17,4 +17,6 @@ public interface MemberSearchRepository {
 	List<MemberDto> findMemberUseTeamId(Long teamId);
 
 	List<MemberAssignDto> searchAssignableMember(@NotNull MemberSearchCondition condition, @NotNull Pageable pageable);
+
+	List<Member> searchMemberUseBranchId(Long branchId);
 }
