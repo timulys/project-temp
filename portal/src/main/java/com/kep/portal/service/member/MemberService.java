@@ -640,22 +640,26 @@ public class MemberService {
 				member.setAssignable(false);
 				continue;
 			}
+
 			// 1. breakTime(휴식시간) 여부 체크
 			if(isBreakTime){
 				member.setAssignable(false);
 				continue;
 			}
+
 			// 2. 온라인 / 오프라인 체크
 			if (WorkType.OfficeHoursStatusType.off.equals(member.getStatus())) {
 				member.setAssignable(false);
 				continue;
 			}
+
 			// 3. 상담 인입 제한 체크
 			if(branchDto.getCounselEnvDto().getRequestBlockEnabled()){
 				member.setAssignable(false);
 				continue;
 			}
-			// 4. 상담사별 최대 상담건수 확인
+
+			// 4. 상담사별 최대 상담건수 확인(KICA-509 요구사항)
 			long counselingCount = member.getOngoing() + member.getAssigned();
 			if (WorkType.MaxCounselType.batch.equals(branchDto.getMaxCounselType())) {
 				// 최대 상담 건수 일괄 설정인 경우
@@ -675,6 +679,7 @@ public class MemberService {
 					continue;
 				}
 			}
+
 			// 5. 근무시간 체크
 			switch (branchDto.getAssign()) {
 				case branch:
