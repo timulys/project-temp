@@ -166,6 +166,10 @@ public class NotificationService {
                         log.info("DB에서 조회된 고객(게스트) 이름: {}", guest.getId());
                         customerName = "고객" + guest.getId();
                     }
+                } else if (guest.getId() != null) {
+                    // Synk 되지 않은 Guest는 Guest Name으로 상담고객 치환(KICA-542)
+                    log.info("DB에서 조회된 고객(게스트) 이름: {}", guest.getName());
+                    customerName = guest.getName();
                 }
             }
 
