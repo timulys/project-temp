@@ -18,6 +18,8 @@ import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 
@@ -129,6 +131,7 @@ public class UploadService {
     public UploadDto saveFirstMessageImage(@NotNull UploadDto dto) {
 
         MultipartFile mFile = dto.getFile();
+        log.info("mFile size :: {}", mFile.getSize());
 
         if (mFile == null || mFile.isEmpty()) throw new BizException("file must be not null");
         if (!uploadUtils.isImage(mFile)) throw new BizException("firstMessage file is only image");
@@ -136,7 +139,7 @@ public class UploadService {
         dto.setOriginalName(dto.getFile().getOriginalFilename());
         dto.setMimeType(uploadUtils.getMimeType(dto.getFile()));
 
-        uploadUtils.validLinkImage(mFile);
+//        uploadUtils.validLinkImage(mFile);
 
         File file = Optional.ofNullable(uploadUtils.upload(mFile)).orElseThrow(()->new BizException("upload image error"));
 
