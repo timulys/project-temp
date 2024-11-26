@@ -39,6 +39,8 @@ public class MemberAssignDto {
 
 	private Boolean assignable;
 
+	private Integer maxCounsel;
+
 	@JsonIgnore
 	private WorkType.OfficeHoursStatusType status;
 

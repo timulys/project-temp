@@ -2,6 +2,7 @@ package com.kep.portal.service.member;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kep.core.model.dto.branch.BranchDto;
 import com.kep.core.model.dto.env.CounselEnvDto;
 import com.kep.core.model.dto.env.CounselInflowEnvDto;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
@@ -69,6 +70,7 @@ import javax.transaction.Transactional;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -622,25 +624,15 @@ public class MemberService {
 	 */
 	public List<MemberAssignDto> searchAssignable(MemberSearchCondition condition, Pageable pageable) {
 
-		// 파라미터 프로젝션, 팀 소속 유저 (teamId -> memberIds)
-		/*
-		if (!addMembersCondition(condition)) {
-			return new PageImpl<>(Collections.emptyList());
-		}
-		*/
-
 		// todo 일대다 아닌 경우 querydsl에 join 하여 사용 예정 ( 아래 소스 파악 필요 )
 		List<MemberAssignDto> memberAssignDtoList = memberRepository.searchAssignableMember(condition, pageable);
-
 		log.info("MEMBER ASSIGN LIST {}", memberAssignDtoList);
 
 		boolean isWork = true;
-
-
 		boolean isBreakTime = breakTimeService.inBreakTime();
 
 		for (MemberAssignDto member : memberAssignDtoList) {
-
+			BranchDto branchDto = member.getBranchDto();
 			member.setAssignable(true);
 			// 오늘 휴무 인지 여부 체크 추가
 			isWork = workService.offDutyHours(member.getBranchDto().getOffDutyHours(), member.getBranchDto().getId());
@@ -662,17 +654,38 @@ public class MemberService {
 			}
 
 			// 3. 상담 인입 제한 체크
-			if(member.getBranchDto().getCounselEnvDto().getRequestBlockEnabled()){
+			if(branchDto.getCounselEnvDto().getRequestBlockEnabled()){
 				member.setAssignable(false);
 				continue;
 			}
 
-			// 4. 근무시간 체크
-			switch (member.getBranchDto().getAssign()) {
+			// 4. 상담사별 최대 상담건수 확인(KICA-509 요구사항)
+			long counselingCount = member.getOngoing() + member.getAssigned();
+			if (WorkType.MaxCounselType.batch.equals(branchDto.getMaxCounselType())) {
+				// 최대 상담 건수 일괄 설정인 경우
+				if (branchDto.getMaxCounsel() != null && branchDto.getMaxCounsel() > 0) {
+					// 현재 브랜치 상담 건수 확인
+					Long activeStatusCount = issueService.countOngoing(branchDto.getId(), LocalDate.now(), LocalDate.now());
+					// 현재 브랜치 상담 건수가 최대 상담 건수를 초과하면 배정 불가.
+					if (activeStatusCount > branchDto.getMaxCounsel()) {
+						member.setAssignable(false);
+						continue;
+					}
+				}
+			} else if (WorkType.MaxCounselType.individual.equals(branchDto.getMaxCounselType())) {
+				// 개별 최대 상담 건수 설정인 경우
+				if (member.getMaxCounsel() != null && member.getMaxCounsel() > 0 && member.getMaxCounsel() - counselingCount <= 0) {
+					member.setAssignable(false);
+					continue;
+				}
+			}
+
+			// 5. 근무시간 체크
+			switch (branchDto.getAssign()) {
 				case branch:
-					officeHoursService.isOfficeHours( member.getBranchDto().getBranchOfficeHoursDto().getStartCounselTime(),
-													  member.getBranchDto().getBranchOfficeHoursDto().getEndCounselTime(),
-													  member.getBranchDto().getBranchOfficeHoursDto().getDayOfWeek()
+					officeHoursService.isOfficeHours( branchDto.getBranchOfficeHoursDto().getStartCounselTime(),
+													  branchDto.getBranchOfficeHoursDto().getEndCounselTime(),
+													  branchDto.getBranchOfficeHoursDto().getDayOfWeek()
 													);
 					break;
 				case member:
@@ -685,7 +698,6 @@ public class MemberService {
 					break;
 			}
 		}
-
 		return memberAssignDtoList;
 	}
 
