@@ -11,6 +11,7 @@ import com.kep.portal.model.entity.issue.IssueSupportHistory;
 import com.kep.portal.service.assign.AssignProducer;
 import com.kep.portal.service.channel.ChannelEnvService;
 import com.kep.portal.service.issue.IssueService;
+import com.kep.portal.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,9 +43,10 @@ public class EventByManagerService {
 	private EventBySystemService eventBySystemService;
 	@Resource
 	private ChannelEnvService channelEnvService;
-
 	@Resource
 	private IssueMapper issueMapper;
+	@Resource
+	private SecurityUtils securityUtils;
 
 
 	public void assignByMember(@NotNull Long issueId, @NotNull @Positive Long memberId, IssueSupportHistory issueSupportHistory) {
@@ -54,6 +56,7 @@ public class EventByManagerService {
 												 .issueSupportYn(true)
 												 .issueSupport(issueSupportHistory.getIssueSupport())
 												 .issueSupportHistory(issueSupportHistory)
+												 .supportRequester(securityUtils.getMemberId())
 												 .build();
 			assignProducer.sendMessage(issueAssign);
 			// TODO: 로그 (배정 변경)
@@ -67,6 +70,7 @@ public class EventByManagerService {
 											 .issueSupportYn(true)
 											 .issueSupport(issueSupportHistory.getIssueSupport())
 											 .issueSupportHistory(issueSupportHistory)
+											 .supportRequester(securityUtils.getMemberId())
 											 .build();
 		assignProducer.sendMessage(issueAssign);
 		// TODO: 로그 (배정 변경)
@@ -79,6 +83,7 @@ public class EventByManagerService {
 											 .issueSupport(issueSupportHistory.getIssueSupport())
 											 .issueSupportHistory(issueSupportHistory)
 											 .issueCategoryId(issueCategoryId)
+										     .supportRequester(securityUtils.getMemberId())
 											 .build();
 		assignProducer.sendMessage(issueAssign);
 		// TODO: 로그 (배정 변경)
