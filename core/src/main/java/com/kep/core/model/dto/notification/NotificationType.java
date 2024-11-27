@@ -10,7 +10,7 @@ public enum NotificationType {
     done_member_assignment("상담직원 배정 완료"),
     request_member_transform("상담직원 전환 요청"),
     done_member_transform("상담직원 전환 완료"),
-    done_member_transform_auto("상담직원 전환 자동 완료"),
+    done_member_transform_auto("상담직원 전환 완료"),
     refer_member_transform("상담직원 전환 반려"),
     fail_manual_member_transform("상담직원 전환 실패"),
     fail_auto_member_transform("상담직원 전환 실패"),
