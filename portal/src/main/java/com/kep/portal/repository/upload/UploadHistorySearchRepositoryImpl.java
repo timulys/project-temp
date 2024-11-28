@@ -56,7 +56,9 @@ public class UploadHistorySearchRepositoryImpl implements UploadHistorySearchRep
             uploadHistories = queryFactory.select(uploadHistory)
                                           .from(uploadHistory)
                                           .innerJoin(issue)
-                                            .on(uploadHistory.issueId.eq(issue.id))
+                                            .on(
+                                                    condition.getChannelId() == null ? uploadHistory.issueId.eq(issue.id) : uploadHistory.issueId.eq(issue.id).and(issue.channel.id.eq(condition.getChannelId()))
+                                            )
                                           .innerJoin(branch)
                                             .on(issue.branchId.eq(branch.id))
                                           .where(getConditions(condition))
@@ -107,10 +109,13 @@ public class UploadHistorySearchRepositoryImpl implements UploadHistorySearchRep
         BooleanBuilder mainBuilder = new BooleanBuilder();
         mainBuilder.and(teamIdEq(condition.getTeamId()));
         mainBuilder.and(memberIdEq(condition.getMemberId()));
-        mainBuilder.and(issueCategoryIdEq(condition.getIssueCategoryId()));
         mainBuilder.and(guestIn(condition.getGuests()));
         mainBuilder.and(dateBetween(condition.getStartDate(), condition.getEndDate()));
-        mainBuilder.and(issueCategoryIdEq(condition.getIssueCategoryId()));
+        if (!ObjectUtils.isEmpty(condition.getIssueCategoryIds())) {
+            mainBuilder.and(issueCategoryIdIn(condition.getIssueCategoryIds()));
+        } else {
+            mainBuilder.and(issueCategoryIdEq(condition.getIssueCategoryId()));
+        }
         mainBuilder.and(branchIdEq(condition.getBranchId()));
         return mainBuilder;
     }
@@ -119,6 +124,9 @@ public class UploadHistorySearchRepositoryImpl implements UploadHistorySearchRep
         return !ObjectUtils.isEmpty(guests) ? uploadHistory.guest.in(guests): null;
     }
 
+    private BooleanExpression issueCategoryIdIn(Collection<Long> issueCategoryIds) {
+        return !ObjectUtils.isEmpty(issueCategoryIds) ? uploadHistory.issueCategory.id.in(issueCategoryIds): null;
+    }
 
     private BooleanExpression issueCategoryIdEq(Long issueCategoryId) {
         return issueCategoryId != null ? uploadHistory.issueCategory.id.eq(issueCategoryId) : null;
