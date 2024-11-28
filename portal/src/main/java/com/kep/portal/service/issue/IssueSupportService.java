@@ -385,7 +385,7 @@ public class IssueSupportService {
 			Assert.notNull(issue, "Not Found by IssueId to Issue");
 
 			// 기 요청 이력이 있는 경우 중복 요청 안 되도록 validation check
-			if(!this.issueSupportRequestCheck(issue)){
+			if(!this.issueSupportRequestCheck(issue , inputSupportType )){
 				return IssueSupportDto.builder().assignable(false).build();
 			}
 
@@ -971,12 +971,10 @@ public class IssueSupportService {
 		return true;
 	}
 
-	private boolean issueSupportRequestCheck(Issue issue){
-		List<IssueSupport> issueSupportList = issueSupportRepository.findAllByIssue(issue);
-		for(IssueSupport issueSupportTemp : issueSupportList){
-			if (IssueSupportStatus.request == issueSupportTemp.getStatus()){
-				return false;
-			}
+	private boolean issueSupportRequestCheck(Issue issue , IssueSupportType inputSupportType ){
+		List<IssueSupport> issueSupportList = issueSupportRepository.findAllByIssueAndTypeAndStatus(issue , inputSupportType , IssueSupportStatus.request);
+		if(issueSupportList.size() > 0 ){
+			return false;
 		}
 		return true;
 	}

@@ -1,5 +1,6 @@
 package com.kep.portal.repository.issue;
 
+import com.kep.core.model.dto.issue.IssueSupportStatus;
 import com.kep.core.model.dto.issue.IssueSupportType;
 import com.kep.portal.model.entity.issue.Issue;
 import com.kep.portal.model.entity.issue.IssueSupport;
@@ -16,5 +17,7 @@ public interface IssueSupportRepository extends JpaRepository<IssueSupport, Long
     List<IssueSupport> findAllByIssueInAndType(List<Issue> issues , IssueSupportType issueSupportType);
 
     List<IssueSupport> findAllByIssue(Issue issue);
+
+    List<IssueSupport> findAllByIssueAndTypeAndStatus(Issue issue , IssueSupportType issueSupportType , IssueSupportStatus issueSupportStatus);
 
 }
