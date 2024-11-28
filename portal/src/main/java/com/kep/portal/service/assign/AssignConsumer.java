@@ -268,7 +268,7 @@ public class AssignConsumer implements ChannelAwareMessageListener {
 							.payload(issueAssign.getIssueSupport().getAnswer())
 							.build();
 
-					if(IssueSupportStatus.auto == issueAssign.getIssueSupport().getStatus()){
+					if(IssueSupportStatus.auto == issueAssign.getIssueSupport().getStatus() && Objects.nonNull(issueAssign.getSupportRequester()) && issueAssign.getSupportRequester() != portalProperty.getSystemMemberId()){
 						notificationDto.setType(NotificationType.done_member_transform_auto);
 						//simpMessagingTemplate.convertAndSend(socketProperty.getBranchPath() + "." + issue.getBranchId() , notificationDto);
 					}

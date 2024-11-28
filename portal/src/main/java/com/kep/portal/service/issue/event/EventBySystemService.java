@@ -672,11 +672,14 @@ public class EventBySystemService {
 																   .type(NotificationType.end_counsel)
 																   .build();
 
-		NotificationInfoDto notificationInfoDto = NotificationInfoDto.builder().receiverId(issueDto.getMember().getId())
-																			   .senderId(securityUtils.getMemberId())
-																			   .build();
+		NotificationInfoDto.NotificationInfoDtoBuilder builder = NotificationInfoDto.builder()
+				.senderId(securityUtils.getMemberId())
+				.receiverId(issueDto.getMember().getId());
 
-		notificationService.store( notificationInfoDto , notificationDto, securityUtils.getMemberId());
+		if (issueDto.getCustomerId() != null) builder.customerId(issueDto.getCustomerId());
+		if (issueDto.getGuest() != null) builder.guestId(issueDto.getGuest().getId());
+
+		notificationService.store( builder.build() , notificationDto, securityUtils.getMemberId());
 	}
 
 }
