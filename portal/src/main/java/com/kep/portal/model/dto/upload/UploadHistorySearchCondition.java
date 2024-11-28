@@ -1,6 +1,7 @@
 package com.kep.portal.model.dto.upload;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.kep.portal.model.entity.customer.Customer;
 import com.kep.portal.model.entity.customer.Guest;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -49,4 +50,11 @@ public class UploadHistorySearchCondition {
      */
     @Schema(description = "")
     private List<Guest> guests;
+
+    @Schema(description = "채널 아이디")
+    private Long channelId;
+
+    @JsonIgnore
+    @Schema(description = "최하위 상담 카테고리 아이디 (조회용)", hidden = true)
+    private List<Long> issueCategoryIds;
 }

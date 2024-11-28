@@ -303,6 +303,11 @@ public class IssueService {
             condition.setChannels(Arrays.asList(channel));
         }
 
+        // 카테고리 조회용 최하위 카테고리 in 조건 추가
+        if (condition.getCategoryId() != null) {
+            condition.setIssueCategoryIds(issueCategoryService.getLowestCategoriesById(condition.getChannelId(), condition.getCategoryId()));
+        }
+
         Page<Issue> issuePage = issueRepository.search(condition, pageable);
 
         List<Long> memberIds = issuePage.getContent()
