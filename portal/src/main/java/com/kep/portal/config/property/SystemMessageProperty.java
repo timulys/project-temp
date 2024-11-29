@@ -217,6 +217,7 @@ public class SystemMessageProperty {
 
         private Validation.Duplication duplication;
         private Validation.Transfer transfer;
+        private Validation.CounselGuide counselGuide;
 
         @Data
         @NoArgsConstructor
@@ -232,6 +233,13 @@ public class SystemMessageProperty {
         @NoArgsConstructor
         public static class Transfer {
             private String counselingStaff;
+        }
+
+        @Data
+        @NoArgsConstructor
+        public static class CounselGuide {
+            private String maxBlock;
+            private String maxSpeechBubble;
         }
     }
 }
