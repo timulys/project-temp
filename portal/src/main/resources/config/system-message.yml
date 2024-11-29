@@ -98,7 +98,7 @@ system-message:
   validation:
     # 중복
     duplication:
-      consultation-funnel: 해당 변수명은 이미 존재하거나 삭제된 상태입니다. 다른 이름으로 저장해주세요.
+      consultation-funnel: 해당 변수값은 이미 존재하거나 삭제된 상태입니다. 다른 이름으로 저장해주세요.
       branch: 이미 존재하는 브랜치명입니다.
       channel-key: 이미 사용 중인 연결키입니다. 다른 키를 입력해주세요.
       counseling-group : 이미 존재하는 그룹명입니다.
@@ -110,3 +110,5 @@ system-message:
     counsel-guide:
       max-speech-bubble: 하나의 블록에는 최대 10개의 말풍선만 추가할 수 있습니다.
       max-block: 블록은 최대 20개까지 추가 가능합니다.
+      include-disabled-category: |
+        '사용 안 함' 상태인 카테고리가 있어 저장할 수 없습니다. 자세한 내용은 관리자에게 문의해주세요.

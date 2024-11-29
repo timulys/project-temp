@@ -240,6 +240,7 @@ public class SystemMessageProperty {
         public static class CounselGuide {
             private String maxBlock;
             private String maxSpeechBubble;
+            private String includeDisabledCategory;
         }
     }
 }
