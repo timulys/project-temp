@@ -35,6 +35,7 @@ import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.*;
@@ -341,9 +342,9 @@ public class GuideService {
     public GuideDto store(GuidePayload guidePayload, boolean enabled) throws Exception {
 
 
-        Assert.notNull(guidePayload.getCategoryId(), "category_id must not be null");
-        Assert.notNull(guidePayload.getName(), "name must not be null");
-        Assert.notNull(guidePayload.getType(), "type must not be null");
+        Assert.isTrue(Objects.nonNull(guidePayload.getCategoryId()) , systemMessageProperty.getValidation().getCounselGuide().getRequireCategory());
+        Assert.isTrue(StringUtils.isNoneBlank(guidePayload.getName()) , systemMessageProperty.getValidation().getCounselGuide().getRequireName());
+        Assert.isTrue(Objects.nonNull(guidePayload.getType()) , systemMessageProperty.getValidation().getCounselGuide().getRequireType());
 
 //        임시저장도 저장과 동일한 검증 적용으로 변경 20241111 volka
 //        if (enabled) Assert.notEmpty(guidePayload.getContents(), "content must not be empty");

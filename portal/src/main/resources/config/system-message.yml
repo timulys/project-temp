@@ -117,3 +117,6 @@ system-message:
       include-disabled-category: |
         '사용 안 함' 상태인 카테고리가 있어 저장할 수 없습니다. 
         자세한 내용은 관리자에게 문의해주세요.
+      require-name: 가이드명을 입력해주세요.
+      require-type: 타입을 선택해 주세요.
+      require-category: 카테고리를 선택해주세요.
