@@ -405,7 +405,7 @@ public class GuideService {
         Assert.isTrue(category.getDepth().equals(category.getBranch().getMaxGuideCategoryDepth()), "input category only equals max depth level");
 
         //카테고리 사용 가능 조건 : 사용중 + (소속 브랜치 카테고리 or 카테고리 전체 오픈)
-        Assert.isTrue(category.getEnabled() && (category.getBranch().getId().equals(branchId) || category.getIsOpen()), "Can not use this Category");
+        Assert.isTrue(category.getEnabled() && (category.getBranch().getId().equals(branchId) || category.getIsOpen()),  systemMessageProperty.getValidation().getCounselGuide().getIncludeDisabledCategory());
 
         Guide guide = null;
 
