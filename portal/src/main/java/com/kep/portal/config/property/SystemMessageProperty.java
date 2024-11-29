@@ -241,6 +241,9 @@ public class SystemMessageProperty {
             private String maxBlock;
             private String maxSpeechBubble;
             private String includeDisabledCategory;
+            private String requireName;
+            private String requireType;
+            private String requireCategory;
         }
     }
 }
