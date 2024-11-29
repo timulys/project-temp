@@ -9,8 +9,8 @@ import com.kep.core.model.dto.guide.GuideDto;
 import com.kep.core.model.dto.guide.GuidePayload;
 import com.kep.core.model.dto.guide.GuideType;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
-import com.kep.core.model.dto.team.TeamDto;
 import com.kep.core.model.exception.BizException;
+import com.kep.portal.config.property.SystemMessageProperty;
 import com.kep.portal.model.dto.guide.GuideSearchDto;
 import com.kep.portal.model.dto.guide.GuideSearchResponseDto;
 import com.kep.portal.model.entity.branch.Branch;
@@ -22,7 +22,6 @@ import com.kep.portal.model.entity.member.MemberRole;
 import com.kep.portal.model.entity.privilege.Level;
 import com.kep.portal.model.entity.team.Team;
 import com.kep.portal.model.entity.team.TeamMapper;
-import com.kep.portal.model.entity.team.TeamMember;
 import com.kep.portal.repository.branch.BranchRepository;
 import com.kep.portal.repository.branch.BranchTeamRepository;
 import com.kep.portal.repository.guide.GuideBlockRepository;
@@ -31,7 +30,6 @@ import com.kep.portal.repository.guide.GuideRepository;
 import com.kep.portal.repository.member.MemberRepository;
 import com.kep.portal.repository.member.MemberRoleRepository;
 import com.kep.portal.repository.privilege.RoleRepository;
-import com.kep.portal.repository.team.TeamMemberRepository;
 import com.kep.portal.repository.team.TeamRepository;
 import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.SecurityUtils;
@@ -42,7 +40,6 @@ import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -99,8 +96,8 @@ public class GuideService {
     private GuideCategoryRepository guideCategoryRepository;
     @Resource
     private BranchTeamRepository branchTeamRepository;
-    @Autowired
-    private TeamMemberRepository teamMemberRepository;
+    @Resource
+    private SystemMessageProperty systemMessageProperty;
 
     /**
      * 상담사 상담 시 가이드 탭 내 가이드 조회
@@ -363,10 +360,11 @@ public class GuideService {
 //        }
 
         Assert.notEmpty(guidePayload.getContents(), "content must not be empty");
-        Assert.isTrue(guidePayload.getContents().stream().noneMatch(item -> item.getPayload().getChapters().size() > 10), "messages can not be over 10 in guide block");
+
+        Assert.isTrue(guidePayload.getContents().stream().noneMatch(item -> item.getPayload().getChapters().size() > 10), systemMessageProperty.getValidation().getCounselGuide().getMaxSpeechBubble());
 
         if (guidePayload.getType() == GuideType.process) {
-            Assert.isTrue(guidePayload.getContents().size() <= 20, "guide blocks are under 20 size");
+            Assert.isTrue(guidePayload.getContents().size() <= 20, systemMessageProperty.getValidation().getCounselGuide().getMaxBlock());
             Assert.isTrue(guidePayload.getContents().stream().noneMatch(item -> item.getPayload().getChapters().isEmpty()), "content must not be empty");
         }
 
