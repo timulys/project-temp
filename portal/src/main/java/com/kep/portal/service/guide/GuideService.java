@@ -381,7 +381,7 @@ public class GuideService {
         // TODO :: 매니저 이하 레벨은 소속그룹 지정 필수 + 본인이 그룹장인 그룹만 등록 가능하였으나 소속그룹 지정 필수로만 변경됨 20241121 기준 volka
         if (securityUtils.isManager()) {
 //            List<Long> teamIds = securityUtils.getAuthMember().getTeamIds();
-            if (guidePayload.getTeamId() == null) throw new BizException("manager must required teamId");
+차            if (guidePayload.getTeamId() == null) throw new BizException(systemMessageProperty.getValidation().getCounselGuide().getManagerAllImpossible());
 
             team = teamRepository.findById(guidePayload.getTeamId()).orElseThrow(() -> new BizException("Not Found Team"));
 //            List<Team> teams = getTeamsByGroupLeaderForManager(securityUtils.getMemberId());
