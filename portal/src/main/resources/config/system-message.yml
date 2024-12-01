@@ -120,3 +120,5 @@ system-message:
       require-name: 가이드명을 입력해주세요.
       require-type: 타입을 선택해 주세요.
       require-category: 카테고리를 선택해주세요.
+      manager-all-impossible: |
+        매니저의 경우 상담그룹의 공개 범위를 '전체'로 지정할 수 없습니다.

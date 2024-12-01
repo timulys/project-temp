@@ -244,6 +244,7 @@ public class SystemMessageProperty {
             private String requireName;
             private String requireType;
             private String requireCategory;
+            private String managerAllImpossible;
         }
     }
 }
