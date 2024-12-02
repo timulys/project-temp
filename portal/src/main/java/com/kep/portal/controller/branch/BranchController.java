@@ -543,4 +543,31 @@ public class BranchController {
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    /**
+     * @param branchDtoList
+     * @return
+     */
+    @PostMapping(value = "/saveAll")
+    @Tag(name = "브랜치 다건 저장 API")
+    @Operation(summary = "브랜치 다건 저장", description = "브랜치 생성")
+    @PreAuthorize("hasAnyRole('ROLE_MASTER')")
+    public ResponseEntity<ApiResult<BranchDto>> saveAll(@RequestBody List<BranchDto> branchDtoList) {
+        try {
+            ApiResult<BranchDto> response = null;
+            for( BranchDto branchDto : branchDtoList ){
+                BranchDto branch =  branchService.store(branchDto);
+                response = ApiResult.<BranchDto>builder().code(ApiResultCode.succeed)
+                        .payload(branch)
+                        .build();
+            }
+            return new ResponseEntity<>(response , HttpStatus.CREATED);
+        } catch (DataIntegrityViolationException e) {
+            log.info("BRANCH DUPLICATION ERROR :  ", e );
+            throw new BizException(systemMessageProperty.getValidation().getDuplication().getBranch());
+        } catch (Exception exception){
+            log.info("BRANCH Create Exception :  ", exception );
+            throw new BizException(exception.getMessage());
+        }
+    }
 }
