@@ -31,6 +31,18 @@ import java.util.List;
 public class KakaoBizMessageTemplatePayload {
 
     /**
+     * 발신프로필 키
+     */
+    @Schema(description = "발신프로필 키")
+    private String senderKey;
+
+    /**
+     * 발신프로필 키 타입
+     */
+    @Schema(description = "발신프로필 키 타입")
+    private String senderKeyType;
+
+    /**
      * 템플릿 코드
      */
     @NotEmpty

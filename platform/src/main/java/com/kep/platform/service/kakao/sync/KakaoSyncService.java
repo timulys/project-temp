@@ -50,7 +50,9 @@ public class KakaoSyncService {
 	public String authorized(@NotEmpty String code, @NotNull Map<String, String> params) throws Exception {
 		// 주어진 params의 'state'값 처리
 		processParamsState(params);
+		// sync token 가져오기
 		String accessToken = getToken(code);
+
 		if (!ObjectUtils.isEmpty(accessToken)) {
 			// 액세스 토큰을 사용해 사용자 정보를 얻어옵니다.
 			Map<String, Object> userInfo = getUserInfo(accessToken);
@@ -100,7 +102,7 @@ public class KakaoSyncService {
 		if(!ObjectUtils.isEmpty(extra)) {
 			// 추가된 데이터로 URL 파라미터를 준비
 			String urlParam = prepareUrlParam(extra);
-			return coreProperty.kakaoCounselTalkBaseUrl + serviceIdKey + urlParam;
+//			return coreProperty.kakaoCounselTalkBaseUrl + serviceIdKey + urlParam;
 		}
 		return "";
 	}

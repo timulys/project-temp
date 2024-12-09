@@ -45,7 +45,7 @@ public class SyncService {
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
 
-        String redirectUri = portalProperty.getServiceUrl()+portalProperty.getApiBasePath()+"/sync/callback";
+        String redirectUri = portalProperty.getServiceUrl() + portalProperty.getApiBasePath()+"/sync/callback";
 
         Map response = webClient.post().uri(uriBuilder -> uriBuilder
                         .path("/oauth/token")

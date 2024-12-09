@@ -121,13 +121,9 @@ public class ExternalServiceClientByProxyConfig {
 
 		ServerOAuth2AuthorizedClientExchangeFilterFunction oauth =
 				new ServerOAuth2AuthorizedClientExchangeFilterFunction(authClientManager);
-//		ServerOAuth2AuthorizedClientExchangeFilterFunction oauth =
-//				new ServerOAuth2AuthorizedClientExchangeFilterFunction(clientRegistrations, clientRepository);
 		oauth.setDefaultClientRegistrationId("kakao-bizmsg");
 
 		return WebClient.builder()
-//				.defaultHeader("Content-Type", MediaType.APPLICATION_JSON.toString())
-//				.defaultHeader("Accept", MediaType.APPLICATION_JSON.toString())
 				.filter(oauth)
 				.clientConnector(new ReactorClientHttpConnector(httpClient))
 				.build();

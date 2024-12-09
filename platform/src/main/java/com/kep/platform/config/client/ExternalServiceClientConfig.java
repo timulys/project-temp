@@ -1,15 +1,18 @@
 package com.kep.platform.config.client;
 
+import com.kep.platform.config.property.KakaoTemplateProperty;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.oauth2.client.AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.InMemoryReactiveOAuth2AuthorizedClientService;
@@ -34,10 +37,13 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @Profile({"!live"})
 @Slf4j
+@RequiredArgsConstructor
 public class ExternalServiceClientConfig {
 
 	private static final int CONNECT_TIMEOUT_MILLIS = 20000;
 	private static final int READ_TIMEOUT_MILLIS = 20000;
+
+	private final KakaoTemplateProperty kakaoTemplateProperty;
 
 	@Bean
 	WebClient.Builder externalWebClientBuilder() {
@@ -82,8 +88,6 @@ public class ExternalServiceClientConfig {
 
 	@Bean
 	public WebClient externalOAuthWebClient(ReactiveClientRegistrationRepository clientRegistrations) {
-//						 ServerOAuth2AuthorizedClientRepository clientRepository) {
-
 		HttpClient httpClient = HttpClient.create()
 				.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, CONNECT_TIMEOUT_MILLIS)
 				.responseTimeout(Duration.ofMillis(CONNECT_TIMEOUT_MILLIS))
@@ -99,14 +103,10 @@ public class ExternalServiceClientConfig {
 
 		ServerOAuth2AuthorizedClientExchangeFilterFunction oauth =
 				new ServerOAuth2AuthorizedClientExchangeFilterFunction(authClientManager);
-//		ServerOAuth2AuthorizedClientExchangeFilterFunction oauth =
-//				new ServerOAuth2AuthorizedClientExchangeFilterFunction(clientRegistrations, clientRepository);
 		oauth.setDefaultOAuth2AuthorizedClient(true);
 		oauth.setDefaultClientRegistrationId("kakao-bizmsg");
 
 		return WebClient.builder()
-//				.defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED.toString())
-//				.defaultHeader("Accept", MediaType.APPLICATION_JSON.toString())
 				.filter(oauth)
 				.clientConnector(new ReactorClientHttpConnector(httpClient))
 				.build();
@@ -118,6 +118,24 @@ public class ExternalServiceClientConfig {
 		return builder
 				.setConnectTimeout(Duration.ofMillis(CONNECT_TIMEOUT_MILLIS))
 				.setReadTimeout(Duration.ofMillis(READ_TIMEOUT_MILLIS))
+				.build();
+	}
+
+	@Bean
+	public WebClient kakaoTemplateWebClient() {
+		HttpClient httpClient = HttpClient.create()
+				.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, CONNECT_TIMEOUT_MILLIS)
+				.responseTimeout(Duration.ofMillis(CONNECT_TIMEOUT_MILLIS))
+				.doOnConnected(conn -> conn
+						.addHandlerLast(new ReadTimeoutHandler(READ_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS))
+						.addHandlerLast(new WriteTimeoutHandler(READ_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)))
+				.wiretap("reactor.netty.http.client.HttpClient", LogLevel.DEBUG, AdvancedByteBufFormat.TEXTUAL);
+
+		String authHeader = String.format("Basic %s %s", kakaoTemplateProperty.getClientId(), kakaoTemplateProperty.getClientSecret());
+
+		return WebClient.builder()
+				.defaultHeader(HttpHeaders.AUTHORIZATION, authHeader)
+				.clientConnector(new ReactorClientHttpConnector(httpClient))
 				.build();
 	}
 }

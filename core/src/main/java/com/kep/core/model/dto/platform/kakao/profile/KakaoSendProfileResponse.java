@@ -31,4 +31,11 @@ public class KakaoSendProfileResponse {
     private String updateDate;
     private String sendProfileKey;
 
+    /**
+     * V3 추가 요소
+     */
+    private String senderKey;
+    private String uuid;
+    private String name;
+
 }

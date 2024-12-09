@@ -526,8 +526,7 @@ public class PortalController {
     @GetMapping("/template/category/all")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse<List<KakaoBizTemplateResponse.TemplateCategory>>>> getCategory(
             @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
-            @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey
-    ) {
+            @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey) {
         KakaoBizTemplateResponse<List<KakaoBizTemplateResponse.TemplateCategory>> category = kakaoBizTalkTemplateService.category(trackKey);
         ApiResult<KakaoBizTemplateResponse<List<KakaoBizTemplateResponse.TemplateCategory>>> response = ApiResult.<KakaoBizTemplateResponse<List<KakaoBizTemplateResponse.TemplateCategory>>>builder()
                 .code(ApiResultCode.succeed)
@@ -547,8 +546,7 @@ public class PortalController {
             @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
             @Parameter(description = "카테고리 코드", in = ParameterIn.PATH, required = true)
-            @PathVariable(value = "categoryCode") String categoryCode
-    ) {
+            @PathVariable(value = "categoryCode") String categoryCode) {
         KakaoBizTemplateResponse<KakaoBizTemplateResponse.TemplateCategory> category = kakaoBizTalkTemplateService.getCategoryCode(trackKey, categoryCode);
         ApiResult<KakaoBizTemplateResponse<KakaoBizTemplateResponse.TemplateCategory>> response = ApiResult.<KakaoBizTemplateResponse<KakaoBizTemplateResponse.TemplateCategory>>builder()
                 .code(ApiResultCode.succeed)
@@ -569,8 +567,7 @@ public class PortalController {
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
             @RequestBody KakaoBizMessageTemplatePayload dto,
             @Parameter(description = "프로필 키", in = ParameterIn.PATH, required = true)
-            @PathVariable(value = "profileKey") String profileKey
-    ) {
+            @PathVariable(value = "profileKey") String profileKey) {
         KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload> kakaoTemplateCategoryResponse = kakaoBizTalkTemplateService.create(trackKey, dto, profileKey);
         ApiResult<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>> response = ApiResult.<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>>builder()
                 .code(ApiResultCode.succeed)
@@ -656,7 +653,8 @@ public class PortalController {
             @Parameter(description = "템플릿 코드", in = ParameterIn.PATH, required = true)
             @PathVariable(value = "templateCode") String templateCode
     ) {
-        KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload> kakaoTemplateCategoryResponse = kakaoBizTalkTemplateService.remove(trackKey, profileKey, templateCode);
+        KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload> kakaoTemplateCategoryResponse =
+                kakaoBizTalkTemplateService.remove(trackKey, profileKey, templateCode);
         ApiResult<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>> response = ApiResult.<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>>builder()
                 .code(ApiResultCode.succeed)
                 .payload(kakaoTemplateCategoryResponse)
@@ -670,16 +668,18 @@ public class PortalController {
      */
     @Tag(name = "포탈 수신 API")
     @Operation(summary = "템플릿 조회")
-    @GetMapping("/template/{profileKey}/{templateCode}")
+    @GetMapping("/template/{senderKey}/{templateCode}")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>>> selectTemplate(
             @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
-            @Parameter(description = "프로필 키", in = ParameterIn.PATH, required = true)
-            @PathVariable(value = "profileKey") String profileKey,
+            @Parameter(description = "발신프로필 키", in = ParameterIn.PATH, required = true)
+            @PathVariable(value = "senderKey") String senderKey,
             @Parameter(description = "템플릿 코드", in = ParameterIn.PATH, required = true)
-            @PathVariable(value = "templateCode") String templateCode
-    ) {
-        KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload> kakaoTemplateCategoryResponse = kakaoBizTalkTemplateService.select(trackKey, profileKey, templateCode);
+            @PathVariable(value = "templateCode") String templateCode) {
+
+        KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload> kakaoTemplateCategoryResponse =
+                kakaoBizTalkTemplateService.select(trackKey, senderKey, templateCode);
+
         ApiResult<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>> response = ApiResult.<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>>builder()
                 .code(ApiResultCode.succeed)
                 .payload(kakaoTemplateCategoryResponse)
@@ -693,15 +693,17 @@ public class PortalController {
      */
     @Tag(name = "포탈 수신 API")
     @Operation(summary = "템플릿 리스트 조회")
-    @GetMapping("/template/all/{profileKey}")
+    @GetMapping("/template/all/{senderKey}")
     public ResponseEntity<ApiResult<KakaoBizTemplateResponse<List<KakaoBizMessageTemplatePayload>>>> getSelectAllTemplate(
             @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
             @ParameterObject @QueryParam KakaoBizSearchSendEvent dto,
             @Parameter(description = "프로필 키", in = ParameterIn.PATH, required = true)
-            @PathVariable(value = "profileKey") String profileKey
-    ) {
-        KakaoBizTemplateResponse<List<KakaoBizMessageTemplatePayload>> templateResponse = kakaoBizTalkTemplateService.selectAll(trackKey, profileKey, dto);
+            @PathVariable(value = "senderKey") String senderKey) {
+
+        KakaoBizTemplateResponse<List<KakaoBizMessageTemplatePayload>> templateResponse =
+                kakaoBizTalkTemplateService.selectAll(trackKey, senderKey, dto);
+
         ApiResult<KakaoBizTemplateResponse<List<KakaoBizMessageTemplatePayload>>> response = ApiResult.<KakaoBizTemplateResponse<List<KakaoBizMessageTemplatePayload>>>builder()
                 .code(ApiResultCode.succeed)
                 .payload(templateResponse)

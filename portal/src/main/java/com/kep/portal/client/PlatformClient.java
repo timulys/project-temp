@@ -501,7 +501,7 @@ public class PlatformClient {
         try {
             log.info("SEND TO PLATFORM, GET KAKAO BIZ PROFILE LIST, TRACK KEY: {}, HEADER: {}",
                     trackKey, headers);
-            ResponseEntity<ApiResult<KakaoBizTemplateResponse<List<KakaoBizTemplateResponse.TemplateCategory>>>> responseEntity = restTemplate.exchange(
+                ResponseEntity<ApiResult<KakaoBizTemplateResponse<List<KakaoBizTemplateResponse.TemplateCategory>>>> responseEntity = restTemplate.exchange(
                     requestUrl, HttpMethod.GET, request, new ParameterizedTypeReference<ApiResult<KakaoBizTemplateResponse<List<KakaoBizTemplateResponse.TemplateCategory>>>>() {
                     });
             log.info("SEND TO PLATFORM, KAKAO BIZ PROFILE LIST, TRACK KEY: {}, RETURN CODE: {}, RESPONSE BODY: {}",
@@ -560,7 +560,6 @@ public class PlatformClient {
 
         String baseUrl = coreProperty.getPlatformServiceUri() + platformProperty.getApiBasePath();
         String requestUrl = baseUrl + "/selectKakaoTemplateClientId";
-
 
         try {
             log.info("SEND TO PLATFORM, SELECT KAKAO TEMPLATE CLIENT ID, TRACK KEY: {}, HEADER: {}",

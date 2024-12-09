@@ -213,9 +213,6 @@ public class EventByPlatformController {
     }
 
     /**
-     *
-     * FIXME :: bnk 고객 번호 20240712 volka
-     *
      * 고객 인증 완료
      * @param authorizeType 인증 타입 정보
      * @param trackKey 트래킹 키
@@ -246,7 +243,7 @@ public class EventByPlatformController {
         // 고객 정보, 고객 연락처 정보, 고객 기념일 정보 등 DTO 객체를 생성
         CustomerDto customerDto = null;
         List<CustomerContactDto> customerContactDtos = new ArrayList<>();
-        List<CustomerAnniversaryDto> customerAnniversaryDtos = new ArrayList<>();
+        List<CustomerAnniversaryDto> customerAnniversaryDtos = new ArrayList<>(); // 기념일 관련 데이터
 
         // 추가적인 고객 ID, 멤버 ID, 이슈 ID
         Long customerId = 0L;
@@ -262,7 +259,7 @@ public class EventByPlatformController {
             custCi = dto.getKakaoAccount().getCi();
             platformUserId = dto.getId();
             
-            //연락처 정보 설정:이메일,전화번호
+            //연락처 정보 설정 : 이메일, 전화번호
             customerContactDtos.add(CustomerContactDto.builder()
                     .type(CustomerContactType.email)
                     .payload(dto.getKakaoAccount().getEmail())
@@ -275,12 +272,14 @@ public class EventByPlatformController {
 
             //TODO : 레거시 고객 데이터가 없을시 사용할지 말지 선택 우선 씽크 데이타 저장
             customerDto = CustomerDto.builder()
-                    .identifier(custCi)
+                    // FIXME : CustCI와 PlatformUserId의 상관관계에 대한 정의가 필요할 듯...
+                    .identifier(custCi != null ? custCi : platformUserId) // FIXME : 현재는 구분자가 없음(CI연동하지 않았을 경우)
                     .age(dto.getKakaoAccount().getAgeRange())
                     .profile(dto.getKakaoAccount().getProfile().getProfileImageUrl())
                     .name(dto.getKakaoAccount().getName())
                     .contacts(customerContactDtos)
                     .build();
+
             //기념일 (생일)
             if (dto.getKakaoAccount().getBirthday() != null) {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
@@ -290,7 +289,6 @@ public class EventByPlatformController {
                         .anniversary(anniversary.toString())
                         .build());
             }
-
 
             //기념일
             if (!customerAnniversaryDtos.isEmpty()) {
@@ -311,7 +309,6 @@ public class EventByPlatformController {
                 issueId = (dto.getExtra().get("issue_id") != null)
                         ? Long.valueOf(String.valueOf(dto.getExtra().get("issue_id"))) : 0L;
             }
-
         }
 
         if (customerDto != null) {

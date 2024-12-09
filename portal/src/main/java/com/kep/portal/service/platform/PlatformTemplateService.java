@@ -30,6 +30,7 @@ import com.kep.portal.repository.team.TeamRepository;
 import com.kep.portal.service.channel.ChannelService;
 import com.kep.portal.util.SecurityUtils;
 import com.kep.portal.util.UploadUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -37,7 +38,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
+import javax.annotation.Nullable;
 import javax.annotation.Resource;
+import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -84,6 +87,9 @@ public class PlatformTemplateService {
     @Resource
     private ObjectMapper objectMapper;
     private final PlatformSubscribeRepository platformSubscribeRepository;
+
+    @Value("${spring.sql.init.platform}")
+    private String sqlPlatform;
 
     public PlatformTemplateService(PlatformSubscribeRepository platformSubscribeRepository) {
         this.platformSubscribeRepository = platformSubscribeRepository;
@@ -241,8 +247,10 @@ public class PlatformTemplateService {
     /**
      * 상담관리 > 템플릿 관리 > 등록/수정 시 템플릿 코드 자동생성
      */
+    @Nullable
+    @Transactional
     public PlatformTemplateDto getNewTemplateCode() {
-        Long nextKey = platformTemplateRepository.selectKey();
+        Long nextKey = this.getNextTemplateSequence();
 
         String clientId = platformClient.selectKakaoTemplateClientId();
 
@@ -548,5 +556,28 @@ public class PlatformTemplateService {
         platformTemplateRepository.save(platformTemplate);
 
         return res;
+    }
+
+    /**
+     * private methods
+     */
+    private Long getNextTemplateSequence() {
+        // 시퀀스 미지원 벤더(MySQL & MariaDB)
+        if ("mysql".equals(this.sqlPlatform) || "mariadb".equals(this.sqlPlatform)) {
+            Long currentVal = platformTemplateRepository.findNextOfTemplateSequenceTable();
+            if (currentVal == null) {
+                currentVal = 1L;
+            }
+            platformTemplateRepository.updateTemplateSequenceTable(currentVal);
+            return currentVal;
+        }
+        // 시퀀스 지원 벤더(H2)
+        else if ("h2".equals(this.sqlPlatform)) {
+            return platformTemplateRepository.findNextOfTemplateSequenceOnH2();
+        }
+        // 시퀀스 지원 벤더
+        else {
+            return platformTemplateRepository.findNextOfTemplateSequence();
+        }
     }
 }

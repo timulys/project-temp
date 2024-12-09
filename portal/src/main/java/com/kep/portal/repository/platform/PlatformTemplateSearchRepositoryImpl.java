@@ -46,6 +46,7 @@ public class PlatformTemplateSearchRepositoryImpl implements PlatformTemplateSea
         this.queryFactory = queryFactory;
     }
 
+    @Deprecated
     @Override
     public Long selectKey(){
         SQLTemplates templates = SQLTemplates.DEFAULT;

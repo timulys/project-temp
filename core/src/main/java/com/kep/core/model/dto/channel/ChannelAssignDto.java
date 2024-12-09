@@ -36,7 +36,7 @@ public class ChannelAssignDto {
     private SystemEnvEnum.MemberAssign memberAssign;
 
     /**
-     * 상담직원 직접ㅈ 연결 허용
+     * 상담직원 직접 연결 허용
      */
     @Schema(description = "상담원 직접 연결 허용 여부")
     @NotNull

@@ -93,7 +93,7 @@ public class PlatformAuthController {
 		
 		Map<String, Object> response = new HashMap<>(requestParams);
 
-		log.info("KAKAO SYNC , RESPONSE:{}",response);
+		log.info("KAKAO SYNC , RESPONSE:{}", response);
 		setDefaultResponse(response, null, authentication);
 		ApiResult<Map<String, Object>> apiResult = ApiResult.<Map<String, Object>>builder()
 				.code(ApiResultCode.succeed)
@@ -104,8 +104,8 @@ public class PlatformAuthController {
 	@Tag(name = "플랫폼 인증 API")
 	@Operation(summary = "카카오 OAuth 인증 페이지 리다이렉트")
 	@GetMapping(value = "/kakao-sync/getSync")
-	public String customSyncRequest(@RequestHeader HttpHeaders httpHeaders,@RequestParam String state){
-		log.info("▶▶▶::카카오 커스텀 싱크 요청 URL: {}", state);
+	public String customSyncRequest(@RequestHeader HttpHeaders httpHeaders, @RequestParam String state){
+	log.info("▶▶▶::카카오 커스텀 싱크 요청 URL: {}", state);
 		String jsonState = convertStateToJson(state);
 		// URL 인코딩을 추가
 	    try {
@@ -120,7 +120,8 @@ public class PlatformAuthController {
 	            "&response_type=code&redirect_uri=" + kaKaoSyncProperties.getRedirectUri() +
 	            "&state=" + jsonState; 
 
-	    log.info("▶▶▶::OAuth URL로 리다이렉트: {}", oauthUrl);
+//	    log.info("▶▶▶::OAuth URL로 리다이렉트: {}", oauthUrl);
+
 	    return "redirect:" + oauthUrl;
 	}
 	
