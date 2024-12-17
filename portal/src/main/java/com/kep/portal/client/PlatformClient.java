@@ -583,6 +583,9 @@ public class PlatformClient {
 
         HttpHeaders headers = getKakaoBizHeaders(trackKey);
 
+        payload.setSenderKey(profileKey);
+        payload.setSenderKeyType("S");
+
         HttpEntity<KakaoBizMessageTemplatePayload> request = new HttpEntity<>(payload, headers);
 
         String baseUrl = coreProperty.getPlatformServiceUri() + platformProperty.getApiBasePath();

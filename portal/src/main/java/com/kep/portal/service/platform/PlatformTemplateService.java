@@ -416,12 +416,10 @@ public class PlatformTemplateService {
             platformTemplateRepository.save(platformTemplate);
         } else {
             res = platformClient.saveKakaoBizTemplate(senderProfileKey, sendPayload);
-
-            if(!"API_200".equals(res.getCode())){
+            if(!"200".equals(res.getCode())){
                 return res;
             } else {
                 platformTemplateRepository.save(platformTemplate);
-
                 // TODO: 매 저장/수정 요청 시 검수요청이 바로 되므로 검수요청취소를 임시적으로 실행함 추후 삭제해야함.
                 platformClient.cancelKakaoBizTemplateRequest(senderProfileKey, templatePayload.getTemplateCode());
             }

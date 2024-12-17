@@ -39,29 +39,8 @@ public class PlatformTemplateSearchRepositoryImpl implements PlatformTemplateSea
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Value("${spring.sql.init.platform}")
-    private String sqlPlaform;
-
     public PlatformTemplateSearchRepositoryImpl(JPAQueryFactory queryFactory) {
         this.queryFactory = queryFactory;
-    }
-
-    @Deprecated
-    @Override
-    public Long selectKey(){
-        SQLTemplates templates = SQLTemplates.DEFAULT;
-
-        log.info("##### DB PLATFORM : " + sqlPlaform);
-        if("h2".equals(sqlPlaform)){
-            templates = H2Templates.builder().build();
-        } else if("oracle".equals(sqlPlaform)){
-            templates = OracleTemplates.builder().build();
-        } else if("mariadb".equals(sqlPlaform) || "mysql".equals(sqlPlaform)){
-            templates = MySQLTemplates.builder().build();
-        }
-
-        JPASQLQuery query = new JPASQLQuery(entityManager, templates);
-        return (Long) query.select(SQLExpressions.nextval("TEMPLATE_SEQUENCE")).fetchOne();
     }
 
     @Override

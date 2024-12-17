@@ -72,29 +72,29 @@ spring:
               - message.write
           kakao-bizmsg:
             authorization-grant-type: client_credentials
-            client-id: R000000071
-            client-secret: R000000071_uFkrhKtpTVeca4fZnn2GiA
+            client-id: RCDKCI0000
+            client-secret: RCDKCI0000_FdZGtR0uTcecOX7PVwVW+g
+#            client-id: R000000071
+#            client-secret: R000000071_uFkrhKtpTVeca4fZnn2GiA
             scope:
               - read
               - write
           kakao-template:
             authorization-grant-type: client_credentials
-            client-id: R000000071
-            client-secret: R000000071_uFkrhKtpTVeca4fZnn2GiA
+            client-id: RCDKCI0000
+            client-secret: RCDKCI0000_FdZGtR0uTcecOX7PVwVW+g
+#            client-id: R000000071
+#            client-secret: R000000071_uFkrhKtpTVeca4fZnn2GiA
             scope:
               - read
               - write
           kakao-sync:
             authorization-grant-type: authorization_code
-            #           eddie.j 테스트
-            client-id: 2f4a4c2ec4d42e4ac720950fb1753a2a
-            #            eddie.j 테스트
-            client-secret: Eu5JCcl59oO3MX7S4oS7gnKMpUxRmuAl
-            #            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://connect-always-fe-cl.codeclick.co.kr/auth/kakao-sync/authorized}
-            #            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://dev.bnkcapital.co.kr/platform/auth/kakao-sync/authorized}
+            # tim.c : always channel rest key
+            client-id: 4685173414465be4d355d1a205ef52ad
+            # tim.c : always application secret key
+            client-secret: cK4Um8RpUIc7KIreVG5DULdRKJIqOvnE
             redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://always-talk.kakaoiconnect.ai/platform/auth/kakao-sync/authorized}
-            # eddie.j local에서 테스트할 때 사용
-            #redirect-uri: ${KAKAO_SYNC_RETURN_URL:http://127.0.0.1:9000/platform/auth/kakao-sync/authorized}
             scope:
               - read
               - write
@@ -104,7 +104,8 @@ spring:
           kakao-bizmsg:
             token-uri: https://bizmsg-web.kakaoenterprise.com/v1/oauth/token
           kakao-template:
-            token-uri: https://bizmsg-web.kakaoenterprise.com/mng/v1/oauth/token
+            token-uri: https://web1.dktechinmsg.com/v1/oauth/token
+#            token-uri: https://bizmsg-web.kakaoenterprise.com/mng/v1/oauth/token
           kakao-sync:
             authorization-uri: https://kauth.kakao.com/oauth/authorize
             token-uri: https://kauth.kakao.com/oauth/token
@@ -182,7 +183,8 @@ application:
         api-base-url: https://bizmsg-web.kakaoenterprise.com
         api-key: ${KAKAO_BIZ_API_KEY:1234}
       kakao_template:
-        api-base-url: https://bizmsg-web.kakaoenterprise.com
+        api-base-url: https://web1.dktechinmsg.com/
+#        api-base-url: https://bizmsg-web.kakaoenterprise.com
         api-key: ${KAKAO_BIZ_API_KEY:1234}
     # TODO: 저장소 및 관리
     clients:
@@ -215,6 +217,8 @@ application:
       - 192.168.0/24
       - 127.0.0.1
       - ::1
+      - 172.25.101.132
+      - 172.31.104.168
       - 0:0:0:0:0:0:0:1
       - 113.29.189.174
       - 113.29.189.176

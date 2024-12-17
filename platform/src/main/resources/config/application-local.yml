@@ -38,14 +38,14 @@ application:
   platform:
     platforms:
       kakao_alert_talk:
-        api-base-url: https://bizmsg-web.kakaoenterprise.com
+        api-base-url: https://web1.dktechinmsg.com
         api-key: ${KAKAO_BIZ_API_KEY:1234}
       kakao_friend_talk:
-        api-base-url: https://bizmsg-web.kakaoenterprise.com
+        api-base-url: https://web1.dktechinmsg.com
         api-key: ${KAKAO_BIZ_API_KEY:1234}
       kakao_template:
-        api-base-url: https://bizmsg-web.kakaoenterprise.com
-        api-key: ${KAKAO_BIZ_API_KEY:1234}
+        api-base-url: https://bzm-center.kakao.com/api
+        api-key: ${KAKAO_BIZ_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
 serviceIdKey:
   bnk: /open/@mtk27zwymtu3oou?extra=
 
