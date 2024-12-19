@@ -593,8 +593,7 @@ public class EventBySystemService {
 	 */
 	private String getTextBtnAddPayload(IssuePayload sendMessage , String buttonName) throws JsonProcessingException {
 		IssuePayload.Action action = IssuePayload.Action.builder().type(IssuePayload.ActionType.message)
-				     											  .name("종료버튼 테스트")
-																  .extra(buttonName)
+				     											  .name(buttonName)
 																  .build();
 		return this.getActionAddPayload(sendMessage , action);
 	}
