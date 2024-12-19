@@ -38,7 +38,7 @@ public class IssueLogDto {
 	@NotNull
 	private String payload;
 
-	@Schema(description = "생성자")
+	@Schema(description = "생성자 아이디")
 	@NotNull
 	@Positive
 	private Long creator;

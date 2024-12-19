@@ -13,6 +13,9 @@ import com.kep.portal.service.channel.ChannelService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -344,6 +347,8 @@ public class ChannelController {
 	@Tag(name = "채널 API")
 	@Operation(summary = "상담배분 분류 최대단계 조회")
 	@GetMapping(value = "/{id}/category/depth")
+	@ApiResponse(description = "상담 배분 분류 최대 단계 조회 시 실행하는 API , payload에 결과값을 반환",
+				 content = @Content(schema = @Schema(type = "integer", description = "상담 배분 분류 최대 단계 (1~3)")))
 //	@PreAuthorize("hasAnyAuthority('WRITE_ASSIGN','READ_ISSUE')")
 	public ResponseEntity<ApiResult<Integer>> getCategoryDepth(
 			@Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
