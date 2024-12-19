@@ -67,7 +67,7 @@ public class MemberDto {
 	@Schema(description = "프로필")
 	private String profile;
 
-	@Schema(description = "메세지")
+	@Schema(description = "첫 인사말")
 	private IssuePayload firstMessage;
 
 	@Schema(description = "수정자")
@@ -126,14 +126,11 @@ public class MemberDto {
 	@Schema(description = "상담 카테고리")
 	private String counselCategory;
 
-
-
 	/**
 	 * 상담원 개별 설정
 	 */
-	@Schema(description = "상담원 개별 설정")
+	@Schema(description = "상담직원 환경설정 ( enter_message_enabled : 엔터로 메세지 전송 여부 , forbidden_word_enabled : 금지어 사용 여부 ,  use_hotkey_enabled : 자주 사용하는 문구 사용 여부 ")
 	private Map<String , Object> setting;
-
 
 	/**
 	 * 첫 인사말 사용 여부 설정

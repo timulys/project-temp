@@ -48,7 +48,7 @@ public class MemberScheduleDto {
     private String content;
 
     @NotNull
-    @Schema(description = "스케줄 타입(holiday,meeting,telephone,etc)", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "스케줄 타입(holiday , meeting : 미팅 ,telephone : 전화 ,etc : 기타)", requiredMode = Schema.RequiredMode.REQUIRED)
     private ScheduleType scheduleType;
 
     @Schema(description = "주소")
@@ -72,13 +72,13 @@ public class MemberScheduleDto {
     @JsonFormat(pattern = "yyyy-MM-dd" ,shape = JsonFormat.Shape.STRING ,timezone = "Asia/Seoul")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @NotNull
-    @Schema(description = "")
+    @Schema(description = "종료일 (yyyy-MM-dd)")
     private LocalDate endDate;
 
     @JsonFormat(pattern = "HH:mm:ss" ,shape = JsonFormat.Shape.STRING ,timezone = "Asia/Seoul")
     @DateTimeFormat(pattern = "HH:mm:ss")
     @NotNull
-    @Schema(description = "")
+    @Schema(description = "종료 시간 (HH:mm:ss)")
     private LocalTime endTime;
 
     @JsonIncludeProperties({"id", "nickname"})

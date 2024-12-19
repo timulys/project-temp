@@ -41,6 +41,6 @@ public class RoleByMenuDto {
 	@Schema(description = "역할 아이디 셋")
 	private Set<Long> roleIds;
 
-	@Schema(description = "")
+	@Schema(description = "선택 불가 레벨 목록 ( OPERATOR : 상담원 , MANAGER : 매니저 , ADMIN : 관리자 ) - ','를 구분자로 사용하며 다건 입력 가능")
 	private Set<String> disabledLevels;
 }
