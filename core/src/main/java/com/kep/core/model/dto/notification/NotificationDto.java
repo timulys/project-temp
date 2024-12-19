@@ -78,7 +78,7 @@ public class NotificationDto {
             "expired_by_duplication : 중복으로 인한 세션 만료)")
     private NotificationType type;
 
-    @Schema(description = "한국어 타입(?)")
+    @Schema(description = "알림 타입 한국어 ( key , value 형태로 type에 정의된 값 )")
     private String korType;
 
     /**

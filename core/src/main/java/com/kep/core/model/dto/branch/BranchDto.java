@@ -75,7 +75,7 @@ public class BranchDto {
 	@Schema(description = "")
 	private String firstMessageType;
 
-	@Schema(description = "상담 여부")
+	@Schema(description = "상담 여부 ( on : 근무 , off : 오프 , rest : 휴식 , meal : 식사시간 )")
 	private WorkType.OfficeHoursStatusType status;
 
 	@Schema(description = "신규직원 최대 상담 건수")

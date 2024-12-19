@@ -25,7 +25,7 @@ public class BranchDtoWithRole {
 	@Schema(description = "브랜치명")
 	private String name;
 
-	@Schema(description = "")
+	@Schema(description = "본사 여부 ( true : 본사 , false : 지점 )")
 	private Boolean headQuarters;
 
 	@Schema(description = "역할 목록")
