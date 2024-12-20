@@ -63,7 +63,7 @@ public class ChannelEnvDto {
     /**
      * 상담 불가 메세지
      */
-    @Schema(description = "상담 불가 메세지")
+    @Schema(name = "impossibleMessage" , description = "상담 불가 메세지" , implementation = IssuePayload.class)
     private IssuePayload impossibleMessage;
 
     /**

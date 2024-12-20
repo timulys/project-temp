@@ -27,7 +27,7 @@ public class OfficeWorkDto {
     /**
      * branch , member
      */
-    @Schema(description = "근무시간 유형 (branch, member)")
+    @Schema(description = "근무시간 유형 ( branch : 시스템 , member : 상담직원 )")
     private WorkType.Cases cases;
 
     //브랜치 설정

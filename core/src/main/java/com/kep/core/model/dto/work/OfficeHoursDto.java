@@ -24,7 +24,7 @@ import java.util.List;
 @Builder
 public class OfficeHoursDto {
 
-    @Schema(description = "근무 시간 PK(KEY)" , requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "근무 시간 아이디(PK)" , requiredMode = Schema.RequiredMode.REQUIRED)
     @Positive
     private Long id;
 

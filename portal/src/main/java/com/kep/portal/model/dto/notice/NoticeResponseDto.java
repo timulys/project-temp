@@ -25,64 +25,34 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class NoticeResponseDto {
-	/**
-	 * 공지사항 PK
-	 */
-	@Schema(description = "공지사항 PK(KEY)" , requiredMode = Schema.RequiredMode.REQUIRED)
+	@Schema(description = "공지사항 아이디(PK)" , requiredMode = Schema.RequiredMode.REQUIRED)
 	private Long id;
 
-	/**
-	 * 제목
-	 */
 	@Schema(description = "공지사항 제목")
 	private String title;
 
-	/**
-	 * 본문
-	 */
 	@Schema(description = "공지사항 본문")
 	private String content;
 
-	/**
-	 * 오픈 범위(전체공개, 브랜치공개)
-	 */
 	@Schema(description = "오픈 범위(전체공개, 브랜치공개) ( all : 전체공개 , branch : 브랜치 공개 )")
 	private NoticeOpenType openType;
 
-	/**
-	 * 상단 고정 여부
-	 */
 	@Schema(description = "상단 고정 여부")
 	private Boolean fixation;
 
-	/**
-	 * 사용 여부
-	 */
 	@Schema(description = "사용 여부")
 	private Boolean enabled;
 
-	/**
-	 * 생성자 정보
-	 */
-	@Schema(description = "등록 유저 정보")
+	@Schema(description = "생성자 정보")
 	@JsonIncludeProperties({"id","username","nickname"})
 	private MemberDto creatorInfo;
 
-	/**
-	 * 생성 일시
-	 */
-	@Schema(description = "등록 시간")
+	@Schema(description = "생성 일시")
 	private ZonedDateTime created;
 
-	/**
-	 * 수정 일시
-	 */
-	@Schema(description = "수정 시간")
+	@Schema(description = "수정 일시")
 	private ZonedDateTime modified;
 
-	/**
-	 * 최근 일주일 여부
-	 */
 	@Schema(description = "최근 일주일 여부")
 	private Boolean newNotice;
 
@@ -92,17 +62,11 @@ public class NoticeResponseDto {
 	private List<NoticeUploadDto> noticeUpload;
 
 
-	/**
-	 * 읽기여부
-	 */
 	@Schema(description = "읽기 여부 ( 0 : 미확인 , 1 : 확인 )")
 	private Long readFlag;
 
-	/**
-	 * 브랜치 PK 다수
-	 */
 	@JsonIgnore
-	@Schema(description = "브랜치 PK(KEY)")
+	@Schema(description = "브랜치 아이디")
 	private String branchId;
 
 	@Schema(description = "브랜치명")

@@ -14,7 +14,7 @@ public class IssueExtraSummaryDetailDto {
     @Schema(description = "채널명")
     private String channelName;
 
-    @Schema(description = "상담 카테고리 뎁스")
+    @Schema(description = "상담 배분 설정 분류 단계 (1~3 단계 존재)")
     private Integer maxIssueCategoryDepth;
     @Schema(description = "상담 카테고리")
     private IssueCategoryTreeDto issueCategory;

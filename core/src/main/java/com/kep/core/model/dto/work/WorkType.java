@@ -6,8 +6,8 @@ public class WorkType {
      * 근무 시간 TYPE
      */
     public enum Cases {
-        branch //branch
-        , member //회원
+        branch // 시스템
+        , member // 상담직원
     }
 
     /**
