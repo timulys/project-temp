@@ -39,7 +39,7 @@ public class IssueCategoryTreeDto {
     @NotNull
     private Boolean exposed;
 
-    @Schema(description = "단계")
+    @Schema(description = "단계 (1~3)")
     @NotNull
     @Positive
     @Min(value = 1)

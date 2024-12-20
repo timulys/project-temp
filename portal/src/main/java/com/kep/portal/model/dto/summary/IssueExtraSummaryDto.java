@@ -20,7 +20,7 @@ public class IssueExtraSummaryDto {
     @Positive
     private Long issueId;
 
-    @Schema(description = "후처리 요약")
+    @Schema(description = "상담 요약")
     private String summary;
 
     @Schema(description = "상담 카테고리 아이디 (채널의 상담 카테고리 최하위 뎁스 카테고리)")
@@ -33,13 +33,12 @@ public class IssueExtraSummaryDto {
 
     @Schema(description = "메모")
     private String memo;
-    @Schema(description = "메모 수정일시")
+    @Schema(description = "메모 수정 일시")
     private ZonedDateTime memoModified;
 
-    @Schema(description = "요약 완료 여부")
+    @Schema(description = "요약 완료 여부 (요약 완료 : true , 요약 미완료 : false)")
     @NotNull
     private Boolean summaryCompleted;
-
 
     private IssueExtraSummaryDto(IssueExtra issueExtra) {
         this.issueId = issueExtra.getId();

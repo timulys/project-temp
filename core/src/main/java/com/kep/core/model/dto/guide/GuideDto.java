@@ -34,7 +34,7 @@ public class GuideDto {
     private String name;
 
     @NotNull
-    @Schema(description = "가이드 타입(single, process)")
+    @Schema(description = "가이드 타입(single : 단일 , process : 프로세스)")
     private GuideType type;
 
     @Schema(description = "가이드 카테고리 목록")
@@ -66,7 +66,7 @@ public class GuideDto {
     private MemberDto creator;
 
     @NotNull
-    @Schema(description = "생성일시")
+    @Schema(description = "생성 일시")
     private ZonedDateTime created;
 
     @NotNull
@@ -75,7 +75,7 @@ public class GuideDto {
     private MemberDto modifier;
 
     @NotNull
-    @Schema(description = "수정일시")
+    @Schema(description = "수정 일시")
     private ZonedDateTime modified;
 
     @Schema(description = "가이드 카테고리 아이디")

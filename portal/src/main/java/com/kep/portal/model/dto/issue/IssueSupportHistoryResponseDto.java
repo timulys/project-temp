@@ -42,14 +42,9 @@ public class IssueSupportHistoryResponseDto {
 
     private List<IssueMemoDto> memoList;
 
-    /**
-     *  상담 요약 카테고리 정보
-     */
     @Schema(description = "상담 요약 카테고리 정보")
     private List<IssueCategoryChildrenDto> categoryInfo;
 
-    /**
-     * 상담 지원 이력
-     */
+    @Schema(description = "상담 지원 이력")
     private List<IssueSupportHistoryDto> supportList;
 }
