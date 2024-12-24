@@ -42,7 +42,7 @@ public class MemberSearchCondition {
 	@Schema(description = "메일주소")
 	private String email;
 
-	@Schema(description = "레벨 타입 목록")
+	@Schema(description = "레벨 타입 목록" , requiredMode = Schema.RequiredMode.REQUIRED)
 	private List<String> levelType;
 
 	// ////////////////////////////////////////////////////////////////////////

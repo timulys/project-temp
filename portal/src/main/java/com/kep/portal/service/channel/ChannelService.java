@@ -134,6 +134,7 @@ public class ChannelService {
 			branchChannels = branchChannelService.findAllByBranchId(branchId, pageable);
 		}
 
+		// FIXME : BranchChannel entity를 ChannelDto로 매핑 하고 있음 -> BranchChannelDto로 매핑 필요
 		List<ChannelDto> channels = branchChannelMapper.mapChannel(branchChannels.getContent());
 		return new PageImpl<>(channels, branchChannels.getPageable(), branchChannels.getTotalElements());
 	}
