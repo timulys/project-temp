@@ -91,7 +91,7 @@ system-message:
 
   consultation-talk:
     button:
-      close: "상담 종료"
+      close: "!종료"
       evaluation: 상담평가하기
 
   # validation 체크
