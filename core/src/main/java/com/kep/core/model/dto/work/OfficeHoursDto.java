@@ -40,7 +40,6 @@ public class OfficeHoursDto {
     @NotEmpty
     private String startCounselMinutes;
 
-
     @Schema(description = "근무 종료 시간")
     @NotEmpty
     private String endCounselHours;
@@ -55,12 +54,17 @@ public class OfficeHoursDto {
     @Schema(description = "브랜치 아이디")
     private Long branchId;
 
+    @Schema(description = "멤버 아이디")
     private Long memberId;
 
+    @Schema(description = "수정자")
     @Positive
     private Long modifier;
+
+    @Schema(description = "수정 일자")
     private ZonedDateTime modified;
 
+    @Schema(description = "근무 상태 ( on : 근무 , off : 오프 , rest : 휴식 , meal : 식사시간 )")
     private WorkType.OfficeHoursStatusType status;
 
     private Boolean offDutyCounselYn;

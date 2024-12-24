@@ -23,7 +23,7 @@ public class BranchChannelDto implements Comparable<BranchChannelDto>{
 	@Positive
 	@Schema(description = "채널 아이디")
 	private Long channelId;
-	@Schema(description = "소유여부")
+	@Schema(description = "메인 브랜치 여부 ( true : 메인 브랜치 , false : 추가 브랜치 )")
 	private Boolean owned;
 	@Schema(description = "브랜치 아이디 목록")
 	private List<Long> branchList;

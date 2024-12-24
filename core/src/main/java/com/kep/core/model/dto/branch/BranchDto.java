@@ -37,7 +37,7 @@ public class BranchDto {
 	private Boolean enabled;
 
 	//본점 유무
-	@Schema(description = "본점 유무")
+	@Schema(description = "본사 여부 ( true : 본사 , false : 지점 )")
 	private Boolean headQuarters;
 
 	@Schema(description = "팀 목록")
@@ -45,7 +45,7 @@ public class BranchDto {
 
 	//최대 상담 건수
 	@PositiveOrZero
-	@Schema(description = "최대 상담 건수", requiredMode = Schema.RequiredMode.REQUIRED)
+	@Schema(description = "최대 상담 건수")
 	private Integer maxCounsel;
 
 	//최대상담건수 설정

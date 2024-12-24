@@ -33,7 +33,7 @@ public class ChannelDto {
 	private Long branchId;
 	@Schema(description = "브랜치 정보")
 	private BranchDto branch;
-	@Schema(description = "소유 여부")
+	@Schema(description = "메인 브랜치 여부 ( true : 메인 브랜치 , false : 추가 브랜치 )")
 	private Boolean owned;
 
 	@NotNull
