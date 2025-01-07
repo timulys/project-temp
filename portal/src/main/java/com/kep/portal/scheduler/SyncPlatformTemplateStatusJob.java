@@ -23,6 +23,7 @@ import javax.annotation.Resource;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * 플랫폼 템플릿 상태 동기화 배치(템플릿 상태 변경 처리)
@@ -87,11 +88,15 @@ public class SyncPlatformTemplateStatusJob {
 					KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload> response =
 							platformClient.getKakaoBizTemplateInfo(platformTemplate.getSenderProfileKey(), platformTemplate.getCode());
 
+					// 업데이트 대상이 없는 경우
 					if ((response == null || response.getData() == null) &&
 							!RESPONSE_SUCCESS_CODE.equals(response.getCode()) && !RESPONSE_DELETE_CODE.equals(response.getCode())) {
-						// 업데이트 대상이 없는 경우
 						log.info(">>> SCHEDULER: {}, SKIP ALREADY PROCESSED, TEMPLATE_CODE: {}, ERROR CODE: {}, ERROR MESSAGE: {}",
 								jobName, platformTemplate.getCode(), response != null ? response.getCode() : "N/A", response != null ? response.getMessage() : "N/A");
+						return;
+					} else if (Stream.of("REG", "REQ").anyMatch(status -> status.equals(response.getData().getInspectionStatus()))) { // 등록, 요청인 상태에서 변경이 없을 경우
+						log.info(">>> SCHEDULER: {}, SKIP ALREADY PROCESSED, TEMPLATE_CODE: {}, CURRENT INSPECTION STATUS: {}",
+								jobName, platformTemplate.getCode(), response != null ? response.getData().getInspectionStatus() : "N/A");
 						return;
 					} else {
 						// 템플릿 상태 업데이트
@@ -122,7 +127,9 @@ public class SyncPlatformTemplateStatusJob {
 
 	// 검수요청 중인 템플릿의 결과 상태 업데이트
 	private PlatformTemplate updateTemplateStatus(PlatformTemplate platformTemplate, KakaoBizMessageTemplatePayload data, String jobName) {
-		platformTemplate.setStatus(STATUS_APPROVE.equals(data.getInspectionStatus()) ? PlatformTemplateStatus.approve : PlatformTemplateStatus.reject);
+		if (!platformTemplate.getStatus().equals("REG")) { // 등록만 해놓은 상태일 경우 상태값 업데이트 방지
+			platformTemplate.setStatus(STATUS_APPROVE.equals(data.getInspectionStatus()) ? PlatformTemplateStatus.approve : PlatformTemplateStatus.reject);
+		}
 		platformTemplate.setModified(ZonedDateTime.now());
 		platformTemplate.setModifier(property.getSystemMemberId());
 
@@ -154,6 +161,8 @@ public class SyncPlatformTemplateStatusJob {
 							.created(ZonedDateTime.now())
 							.creator(property.getSystemMemberId())
 							.build();
+
+					platformTemplateRejectHistoryRepository.save(newHistory);
 				}
 			} catch (Exception e) {
 				log.error(">>> SCHEDULER: {}, FAILED TO SAVE REJECT HISTORY, TEMPLATE_CODE: {}, COMMENT_ID: {}, ERROR: {}",

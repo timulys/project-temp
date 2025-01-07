@@ -19,6 +19,7 @@ import java.util.List;
 
 /**
  * 카카오 비즈톡 템플릿 포맷
+ * FIXME : 추후 DTO 객체 개선 진행 예정(jhchoi)
  * <p>
  * https://stg-web.bizmsg.kakaoenterprise.com/api-docs/index.html#
  */
@@ -149,6 +150,7 @@ public class KakaoBizMessageTemplatePayload {
             "MI : templateExtra, templateAd 필드 필수, 그룹 템플릿 사용 불가")
     private TemplateMessageType templateMessageType;
 
+    @Deprecated // TODO : 삭제 예정
     public enum TemplateMessageType {
         BA, EX, AD, MI
     }

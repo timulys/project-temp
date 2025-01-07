@@ -15,6 +15,7 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<spring-boot.version>2.7.4</spring-boot.version>
+		<spring-cloud.version>2021.0.8</spring-cloud.version>
 	</properties>
 
 	<dependencies>
@@ -75,7 +76,6 @@
 			<artifactId>springdoc-openapi-webmvc-core</artifactId>
 			<version>1.8.0</version>
 		</dependency>
-
 	</dependencies>
 
 	<dependencyManagement>
@@ -84,6 +84,13 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
 				<version>${spring-boot.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>

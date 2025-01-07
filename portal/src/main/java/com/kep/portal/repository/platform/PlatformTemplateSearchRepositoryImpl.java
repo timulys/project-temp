@@ -45,7 +45,6 @@ public class PlatformTemplateSearchRepositoryImpl implements PlatformTemplateSea
 
     @Override
     public Page<PlatformTemplate> search(PlatformTemplateCondition platformTemplateCondition, @NotNull Pageable pageable) {
-
         QPlatformTemplate qPlatformTemplate = new QPlatformTemplate("platformTemplate");
 
         Long totalElements = queryFactory.select(qPlatformTemplate.count())

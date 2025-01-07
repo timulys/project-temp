@@ -1,20 +1,25 @@
 package com.kep.portal.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.issue.IssueDto;
 import com.kep.core.model.dto.issue.IssueLogDto;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
-import com.kep.core.model.dto.platform.BizTalkMessageType;
 import com.kep.core.model.dto.platform.PlatformType;
-import com.kep.core.model.dto.platform.kakao.*;
+import com.kep.core.model.dto.platform.kakao.KakaoBizDetailResponse;
+import com.kep.core.model.dto.platform.kakao.KakaoBizMessageTemplatePayload;
+import com.kep.core.model.dto.platform.kakao.KakaoBizTalkSendResponse;
+import com.kep.core.model.dto.platform.kakao.KakaoBizTemplateResponse;
+import com.kep.core.model.dto.platform.kakao.bizTalk.response.BizTalkResponseDto;
+import com.kep.core.model.dto.platform.kakao.bizTalk.response.SendProfileResponseDto;
+import com.kep.core.model.dto.platform.kakao.bizTalk.response.TemplateCategoryResponseDto;
 import com.kep.core.model.dto.platform.kakao.profile.KakaoSendProfileResponse;
 import com.kep.core.model.dto.upload.UploadPlatformRequestDto;
+import com.kep.core.model.exception.BizException;
 import com.kep.portal.config.property.CoreProperty;
 import com.kep.portal.config.property.PlatformProperty;
-import com.kep.portal.model.entity.platform.BizTalkRequest;
-import com.kep.portal.model.entity.platform.PlatformTemplate;
+import com.kep.portal.config.property.TalkProperty;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -59,6 +64,8 @@ public class PlatformClient {
     private CoreProperty coreProperty;
     @Resource
     private PlatformProperty platformProperty;
+    @Resource
+    private TalkProperty talkProperty;
     @Resource
     private ObjectMapper objectMapper;
 
@@ -456,64 +463,65 @@ public class PlatformClient {
         return new KakaoBizTemplateResponse<List<KakaoSendProfileResponse>>();
     }
 
-    public KakaoBizTemplateResponse<KakaoSendProfileResponse> getKakaoBizProfileInfo(String senderProfileKey){
+    /**
+     * Send Profile Info (V3)
+     * @param senderProfileKey
+     * @return
+     */
+    public SendProfileResponseDto getKakaoBizProfileInfo(String senderProfileKey){
         Long trackKey = System.currentTimeMillis();
-
         HttpHeaders headers = getKakaoBizHeaders(trackKey);
-
         HttpEntity request = new HttpEntity<>(headers);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        Calendar c = Calendar.getInstance();
-
-        String baseUrl = coreProperty.getPlatformServiceUri() + platformProperty.getApiBasePath();
-        // 카카오 비즈메세지 센터의 발신프로필 목록 조회 시 날짜가 입력이 안되면 당일 등록된 프로필만 조회를 해옴.
-        // 따라서 2000년 1월 1일을 시작일로 endDate는 최대 오늘날짜까지 세팅이 가능하여 아래와 같이 세팅함
-        String requestUrl = baseUrl + "/send-profile/select/" + senderProfileKey;
+        String baseUrl = coreProperty.getTalkServiceUri() + talkProperty.getApiBasePath(); // V3
+        String requestUrl = baseUrl + "/sendProfile/" + senderProfileKey;
 
         try {
             log.info("SEND TO PLATFORM, GET KAKAO BIZ PROFILE INFO, TRACK KEY: {}, HEADER: {}",
                     trackKey, headers);
-            ResponseEntity<ApiResult<KakaoBizTemplateResponse<KakaoSendProfileResponse>>> responseEntity = restTemplate.exchange(
-                    requestUrl, HttpMethod.GET, request, new ParameterizedTypeReference<ApiResult<KakaoBizTemplateResponse<KakaoSendProfileResponse>>>() {});
+            ResponseEntity<BizTalkResponseDto> responseEntity = restTemplate.exchange(
+                    requestUrl, HttpMethod.GET, request, new ParameterizedTypeReference<BizTalkResponseDto>() {});
             log.info("SEND TO PLATFORM, KAKAO BIZ PROFILE INFO, TRACK KEY: {}, RETURN CODE: {}, RESPONSE BODY: {}",
                     trackKey, responseEntity.getStatusCode(), responseEntity.getBody());
-            // TODO: 실패, 플랫폼 규격, 네트워크 문제 등
-            if (responseEntity.getBody() != null) {
-                return responseEntity.getBody().getPayload();
+            if (responseEntity.getBody() != null && responseEntity.getBody().getCode().contains("200")) {
+                return objectMapper.convertValue(responseEntity.getBody().getData(), SendProfileResponseDto.class);
             }
+            throw new BizException(responseEntity.getBody().getMessage(), responseEntity.getBody().getCode());
         } catch (Exception e) {
             log.error(e.getLocalizedMessage(), e);
         }
-        return new KakaoBizTemplateResponse<KakaoSendProfileResponse>();
+        return new SendProfileResponseDto();
     }
 
-    public KakaoBizTemplateResponse<List<KakaoBizTemplateResponse.TemplateCategory>> getKakaoBizTemplateCategoryList() {
+    /**
+     * Template Category List (V2)
+     * @return
+     */
+    public List<TemplateCategoryResponseDto> getKakaoBizTemplateCategoryList() {
         Long trackKey = System.currentTimeMillis();
-
         HttpHeaders headers = getKakaoBizHeaders(trackKey);
-
         HttpEntity request = new HttpEntity<>(headers);
 
-        String baseUrl = coreProperty.getPlatformServiceUri() + platformProperty.getApiBasePath();
+//        String baseUrl = coreProperty.getPlatformServiceUri() + platformProperty.getApiBasePath();
+//        String requestUrl = baseUrl + "/template/category/all";
+
+        String baseUrl = coreProperty.getTalkServiceUri() + talkProperty.getApiBasePath(); // V2
         String requestUrl = baseUrl + "/template/category/all";
 
         try {
-            log.info("SEND TO PLATFORM, GET KAKAO BIZ PROFILE LIST, TRACK KEY: {}, HEADER: {}",
-                    trackKey, headers);
-                ResponseEntity<ApiResult<KakaoBizTemplateResponse<List<KakaoBizTemplateResponse.TemplateCategory>>>> responseEntity = restTemplate.exchange(
-                    requestUrl, HttpMethod.GET, request, new ParameterizedTypeReference<ApiResult<KakaoBizTemplateResponse<List<KakaoBizTemplateResponse.TemplateCategory>>>>() {
-                    });
+            log.info("SEND TO PLATFORM, GET KAKAO BIZ PROFILE LIST, TRACK KEY: {}, HEADER: {}",trackKey, headers);
+            ResponseEntity<BizTalkResponseDto> responseEntity = restTemplate.exchange(
+                    requestUrl, HttpMethod.GET, request, new ParameterizedTypeReference<BizTalkResponseDto>() {});
             log.info("SEND TO PLATFORM, KAKAO BIZ PROFILE LIST, TRACK KEY: {}, RETURN CODE: {}, RESPONSE BODY: {}",
                     trackKey, responseEntity.getStatusCode(), responseEntity.getBody());
-            // TODO: 실패, 플랫폼 규격, 네트워크 문제 등
-            if (responseEntity.getBody() != null) {
-                return responseEntity.getBody().getPayload();
+            if (responseEntity.getBody() != null && responseEntity.getBody().getCode().contains("200")) {
+                return objectMapper.convertValue(responseEntity.getBody().getData(), new TypeReference<List<TemplateCategoryResponseDto>>() {});
             }
+            throw new BizException(responseEntity.getBody().getMessage(), responseEntity.getBody().getCode());
         } catch (Exception e) {
             log.error(e.getLocalizedMessage(), e);
         }
-        return new KakaoBizTemplateResponse<List<KakaoBizTemplateResponse.TemplateCategory>>();
+        return Collections.emptyList();
     }
 
     public KakaoBizTemplateResponse uploadAlertTemplateImage(UploadPlatformRequestDto uploadDto, String target) throws Exception {
@@ -551,26 +559,29 @@ public class PlatformClient {
         return new KakaoBizTemplateResponse();
     }
 
+    /**
+     * Get Kakao BizTalk Service Client Id(V2)
+     * FIXME : 신규 버전으로 Return도 개선할 것(DTO)
+     * @return
+     */
     public String selectKakaoTemplateClientId(){
         Long trackKey = System.currentTimeMillis();
-
         HttpHeaders headers = getKakaoBizHeaders(trackKey);
-
         HttpEntity request = new HttpEntity<>(headers);
 
-        String baseUrl = coreProperty.getPlatformServiceUri() + platformProperty.getApiBasePath();
-        String requestUrl = baseUrl + "/selectKakaoTemplateClientId";
+        String baseUrl = coreProperty.getTalkServiceUri() + talkProperty.getApiBasePath(); // v2
+        String requestUrl = baseUrl + "/template/clientId";
 
         try {
             log.info("SEND TO PLATFORM, SELECT KAKAO TEMPLATE CLIENT ID, TRACK KEY: {}, HEADER: {}",
                     trackKey, headers);
-            ResponseEntity<ApiResult<String>> responseEntity = restTemplate.exchange(
-                    requestUrl, HttpMethod.GET, request, new ParameterizedTypeReference<ApiResult<String>>() {});
+            ResponseEntity<String> responseEntity = restTemplate.exchange(
+                    requestUrl, HttpMethod.GET, request, new ParameterizedTypeReference<String>() {});
             log.info("SEND TO PLATFORM, SELECT KAKAO TEMPLATE CLIENT ID, TRACK KEY: {}, RETURN CODE: {}, RESPONSE BODY: {}",
                     trackKey, responseEntity.getStatusCode(), responseEntity.getBody());
             // TODO: 실패, 플랫폼 규격, 네트워크 문제 등
             if (responseEntity.getBody() != null) {
-                return responseEntity.getBody().getPayload();
+                return responseEntity.getBody();
             }
         } catch (Exception e) {
             log.error(e.getLocalizedMessage(), e);
@@ -578,9 +589,15 @@ public class PlatformClient {
         return new String();
     }
 
-    public KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload> saveKakaoBizTemplate(String profileKey, KakaoBizMessageTemplatePayload payload) throws Exception {
+    /**
+     * Save BizMessage Template(V2)
+     * @param profileKey
+     * @param payload
+     * @return
+     * @throws Exception
+     */
+    public BizTalkResponseDto<KakaoBizMessageTemplatePayload> saveKakaoBizTemplate(String profileKey, KakaoBizMessageTemplatePayload payload) throws Exception {
         Long trackKey = System.currentTimeMillis();
-
         HttpHeaders headers = getKakaoBizHeaders(trackKey);
 
         payload.setSenderKey(profileKey);
@@ -588,8 +605,8 @@ public class PlatformClient {
 
         HttpEntity<KakaoBizMessageTemplatePayload> request = new HttpEntity<>(payload, headers);
 
-        String baseUrl = coreProperty.getPlatformServiceUri() + platformProperty.getApiBasePath();
-        String requestUrl = baseUrl + "/template/" + profileKey;
+        String baseUrl = coreProperty.getTalkServiceUri() + talkProperty.getApiBasePath(); // V2
+        String requestUrl = baseUrl + "/template";
 
         HttpMethod method = HttpMethod.POST;
 
@@ -601,19 +618,18 @@ public class PlatformClient {
 
             log.info("SEND TO PLATFORM, SAVE KAKAO BIZ TEMPLATE INFO, TRACK KEY: {}, HEADER: {}, METHOD: {}, SAVE INFO: {}, PROFILE KEY: {}, BODY: {}",
                     trackKey, headers, method, (method.equals(HttpMethod.POST) ? "CREATE" : "MODIFY"), profileKey, payload);
-            ResponseEntity<ApiResult<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>>> responseEntity = restTemplate.exchange(
-                    requestUrl, method, request, new ParameterizedTypeReference<ApiResult<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>>>() {
-                    });
+            ResponseEntity<BizTalkResponseDto<KakaoBizMessageTemplatePayload>> responseEntity = restTemplate.exchange(
+                    requestUrl, method, request, new ParameterizedTypeReference<BizTalkResponseDto<KakaoBizMessageTemplatePayload>>() {});
             log.info("SEND TO PLATFORM, SAVE KAKAO BIZ TEMPLATE INFO, TRACK KEY: {}, RETURN CODE: {}, RESPONSE BODY: {}",
                     trackKey, responseEntity.getStatusCode(), responseEntity.getBody());
-            // TODO: 실패, 플랫폼 규격, 네트워크 문제 등
-            if (responseEntity.getBody() != null) {
-                return responseEntity.getBody().getPayload();
+            if (responseEntity.getBody() != null && responseEntity.getBody().getCode().contains("200")) {
+                return responseEntity.getBody(); // TODO : return Value를 하나의 방식으로 통일해야 함. responseEntity.getBody()인지 .getData()인지
             }
+            throw new BizException(responseEntity.getBody().getMessage(), responseEntity.getBody().getCode());
         } catch (Exception e) {
             log.error(e.getLocalizedMessage(), e);
         }
-        return new KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>();
+        return new BizTalkResponseDto<KakaoBizMessageTemplatePayload>();
     }
 
     public KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload> cancelKakaoBizTemplateRequest(String profileKey, String templateCode) {

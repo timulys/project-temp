@@ -32,6 +32,7 @@ import java.time.ZonedDateTime;
 @AllArgsConstructor
 @Getter
 @Setter
+@Deprecated
 public class PlatformTemplate {
 
 	@Id

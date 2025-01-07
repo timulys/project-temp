@@ -9,7 +9,10 @@ import com.kep.core.model.dto.platform.PlatformType;
 import com.kep.core.model.dto.platform.kakao.KakaoBizMessageTemplatePayload;
 import com.kep.core.model.dto.platform.kakao.KakaoBizMessageTemplateType;
 import com.kep.core.model.dto.platform.kakao.KakaoBizTemplateResponse;
+import com.kep.core.model.dto.platform.kakao.bizTalk.response.BizTalkResponseDto;
+import com.kep.core.model.dto.platform.kakao.bizTalk.response.SendProfileResponseDto;
 import com.kep.core.model.dto.platform.kakao.profile.KakaoSendProfileResponse;
+import com.kep.core.model.dto.platform.kakao.bizTalk.response.TemplateCategoryResponseDto;
 import com.kep.core.model.dto.upload.UploadPlatformRequestDto;
 import com.kep.portal.client.PlatformClient;
 import com.kep.portal.model.dto.platform.PlatformTemplateCondition;
@@ -238,10 +241,10 @@ public class PlatformTemplateService {
     /**
      * 상담관리 > 템플릿 관리 > 등록/수정 시 발신프로필 목록
      */
-    public KakaoSendProfileResponse checkProfileKey(String senderProfileKey) {
-        KakaoBizTemplateResponse<KakaoSendProfileResponse> res = platformClient.getKakaoBizProfileInfo(senderProfileKey);
+    public SendProfileResponseDto checkProfileKey(String senderProfileKey) {
+        SendProfileResponseDto res = platformClient.getKakaoBizProfileInfo(senderProfileKey);
 
-        return res.getData();
+        return res;
     }
 
     /**
@@ -265,10 +268,10 @@ public class PlatformTemplateService {
     /**
      * 상담관리 > 템플릿 관리 > 알림톡 템플릿 등록/수정 시 카테고리 목록
      */
-    public List<KakaoBizTemplateResponse.TemplateCategory> getCategoryList() {
-        KakaoBizTemplateResponse<List<KakaoBizTemplateResponse.TemplateCategory>> res = platformClient.getKakaoBizTemplateCategoryList();
+    public List<TemplateCategoryResponseDto> getCategoryList() {
+        List<TemplateCategoryResponseDto> res = platformClient.getKakaoBizTemplateCategoryList();
 
-        return res.getData();
+        return res;
     }
 
     /**
@@ -280,6 +283,7 @@ public class PlatformTemplateService {
      * @return
      * @throws Exception
      */
+    @Transactional
     public KakaoBizTemplateResponse uploadAlertTemplateImage(UploadPlatformRequestDto uploadDto, String target) throws Exception {
         return platformClient.uploadAlertTemplateImage(uploadDto, target);
     }
@@ -287,11 +291,12 @@ public class PlatformTemplateService {
     /**
      * 상담관리 > 템플릿 관리 > 알림톡 템플릿 등록/수정 저장 후 검수 요청
      */
-    public KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload> saveAlertTemplate(String senderProfileKey, Long id, KakaoBizMessageTemplatePayload templatePayload) throws Exception {
+    @Transactional
+    public BizTalkResponseDto<KakaoBizMessageTemplatePayload> saveAlertTemplate(String senderProfileKey, Long id, KakaoBizMessageTemplatePayload templatePayload) throws Exception {
         Assert.notNull(templatePayload.getTemplateCode(), "template_code is not null");
         Assert.notNull(templatePayload.getTemplateName(), "template_name is not null");
 
-        KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload> res = new KakaoBizTemplateResponse<>();
+        BizTalkResponseDto<KakaoBizMessageTemplatePayload> res = new BizTalkResponseDto<>();
 
         PlatformTemplateStatus status = PlatformTemplateStatus.request;
 
@@ -416,12 +421,16 @@ public class PlatformTemplateService {
             platformTemplateRepository.save(platformTemplate);
         } else {
             res = platformClient.saveKakaoBizTemplate(senderProfileKey, sendPayload);
-            if(!"200".equals(res.getCode())){
+            if(!res.getCode().contains("200")){
                 return res;
             } else {
+                // BZM에 템플릿이 등록 정상 처리 후 DB Save
                 platformTemplateRepository.save(platformTemplate);
+                // DB Save 이후 TEMPLATE_SEQUENCE 업데이트
+                this.updateNextTemplateSequence(platformTemplate.getCode());
                 // TODO: 매 저장/수정 요청 시 검수요청이 바로 되므로 검수요청취소를 임시적으로 실행함 추후 삭제해야함.
-                platformClient.cancelKakaoBizTemplateRequest(senderProfileKey, templatePayload.getTemplateCode());
+                // FIXME : 그럼 검수 요청이라는 버튼을 쓰면 안되는거 아님? 추후 수정 필요함.
+//                platformClient.cancelKakaoBizTemplateRequest(senderProfileKey, templatePayload.getTemplateCode());
             }
         }
 
@@ -566,7 +575,7 @@ public class PlatformTemplateService {
             if (currentVal == null) {
                 currentVal = 1L;
             }
-            platformTemplateRepository.updateTemplateSequenceTable(currentVal);
+//            platformTemplateRepository.updateTemplateSequenceTable(currentVal);
             return currentVal;
         }
         // 시퀀스 지원 벤더(H2)
@@ -577,5 +586,11 @@ public class PlatformTemplateService {
         else {
             return platformTemplateRepository.findNextOfTemplateSequence();
         }
+    }
+
+    // FIXME : Transactional 처리 할 갓
+    private void updateNextTemplateSequence(String templateCode) {
+        Long currentVal = Long.parseLong(templateCode.split("_")[1]);
+        platformTemplateRepository.updateTemplateSequenceTable(currentVal);
     }
 }

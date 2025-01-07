@@ -327,6 +327,11 @@ public class AssignConsumer implements ChannelAwareMessageListener {
 		// 자동메세지 (상담대기)
 		eventBySystemService.sendAssigned(issue);
 
+		// TODO : 첫 인사말 메시지가 바로 발송될 수 있게 해당 위치에 기능 구현
+		// TODO : 첫 인사말 전송 시 배정 상태가 assign에서 변경되는지 확인이 필요함(대화 중 등으로)
+		// TODO : saveWelcome을 통해 issue를 받아온 후 send로직은 따로 구현해야 할 듯
+		// TODO : 문제는 saveWelcome을 사용할 경우 별도의 log를 남기지 않는 다는 것. 해당 부분에 대한 수정이 필요함.
+
 		// send issue by socket
 		IssueDto issueDto = issueMapper.map(issue);
 		log.debug("ASSIGN CONSUMER, SUCCESS, SEND TO SOCKET, ISSUE: {}, STATUS: {}", issueDto.getId(), issueDto.getStatus());

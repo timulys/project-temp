@@ -4,14 +4,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.event.PlatformEventDto;
-import com.kep.core.model.dto.platform.PlatformType;
 import com.kep.core.model.dto.platform.kakao.KakaoAlertSendEvent;
 import com.kep.core.model.dto.platform.kakao.KakaoBizTalkSendResponse;
+import com.kep.core.model.dto.platform.kakao.bizTalk.response.TalkSendResponseDto;
 import com.kep.platform.client.PortalClient;
+import com.kep.platform.client.TalkServiceClient;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.StopWatch;
@@ -20,7 +22,10 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 카카오 알림톡 이벤트 전송 컨슈머
@@ -35,6 +40,8 @@ public class SendToKakaoAlertTalkConsumer implements ChannelAwareMessageListener
     private ObjectMapper objectMapper;
     @Resource
     private PortalClient portalClient;
+    @Resource
+    private TalkServiceClient talkServiceClient;
 
     /**
      * 큐서버에서 받은 이벤트 처리
@@ -90,14 +97,26 @@ public class SendToKakaoAlertTalkConsumer implements ChannelAwareMessageListener
     /**
      * 발송 이벤트 처리
      */
-    private void handleMessageEvent(
-            @NotNull @Valid PlatformEventDto platformEventDto) throws Exception {
+    private void handleMessageEvent(@NotNull @Valid PlatformEventDto platformEventDto) throws Exception {
 
         KakaoAlertSendEvent alertPayload = objectMapper.readValue(platformEventDto.getPayload(), KakaoAlertSendEvent.class);
         log.debug("{}", objectMapper.writeValueAsString(alertPayload));
-        KakaoBizTalkSendResponse send = kakaoAlertTalkService.send(alertPayload, platformEventDto.getTrackKey());
 
-        portalClient.sendMessageResponse(send);
+        // TODO : 추후 정식 개발 시 해당 내용 어떻게 수정할 것인지 판단 필요
+        // FIXME : 일자(8) + 일련번호(9)
+        String serialNumber = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        serialNumber += "-" + UUID.randomUUID().toString().replace("-", "").substring(0, 9);
+        alertPayload.setSerialNumber(serialNumber);
+        alertPayload.setTemplateCode(alertPayload.getSendMessages().get(0).getTemplateCode());
+        alertPayload.setPhoneNumber(alertPayload.getSendMessages().get(0).getPhoneNumber());
+        alertPayload.setMessage(alertPayload.getSendMessages().get(0).getMessage());
+        alertPayload.setResponseMethod("push");
+
+        // TODO : AlimTalk Controller로 WebClient? Feign Client?
+        ResponseEntity<? super TalkSendResponseDto> response = talkServiceClient.send(alertPayload);
+//        KakaoBizTalkSendResponse send = kakaoAlertTalkService.send(alertPayload, platformEventDto.getTrackKey());
+
+        portalClient.sendMessageResponse(objectMapper.convertValue(response.getBody(), KakaoBizTalkSendResponse.class));
     }
 
     /**

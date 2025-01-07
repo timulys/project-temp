@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
         "currentPage", "totalPage", "totalElement", "hasNext",
         "extra", "error", "now" })
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ApiResult<T> {
+public class ApiResult<T> extends ResponseDto {
 
     public ApiResult(ApiResultCode code) {
         this.code = code;
