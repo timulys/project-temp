@@ -38,7 +38,7 @@ public class GuideBlockDto {
     @Schema(description = "")
     private String payload;
 
-    @Schema(description = "")
+    @Schema(description = "블록에 포함 된 메세지 갯수")
     private Integer contentCount;
 
     @Schema(description = "")

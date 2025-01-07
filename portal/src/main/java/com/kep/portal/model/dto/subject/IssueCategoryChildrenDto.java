@@ -1,6 +1,7 @@
 package com.kep.portal.model.dto.subject;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import javax.validation.constraints.Positive;
@@ -16,9 +17,11 @@ import java.util.List;
 @EqualsAndHashCode(of = "id")
 public class IssueCategoryChildrenDto {
 
+	@Schema(description = "이슈 카테고리 아이디(PK)")
 	@Positive
 	private Long id;
 
+	@Schema(description = "이슈 카테고리 이름")
 	private String name;
 
 	@JsonIgnore
@@ -30,6 +33,7 @@ public class IssueCategoryChildrenDto {
 	@JsonIgnore
 	private Integer depth;
 
+	@Schema(description = "채널 ID")
 	private Long channelId;
 	
 	@JsonIgnore

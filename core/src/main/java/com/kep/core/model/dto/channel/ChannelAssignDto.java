@@ -38,7 +38,7 @@ public class ChannelAssignDto {
     /**
      * 상담직원 직접 연결 허용
      */
-    @Schema(description = "상담원 직접 연결 허용 여부")
+    @Schema(description = "상담원 직접 연결 허용 여부 ( true : 허용 : false : 미허용 )")
     @NotNull
     private Boolean memberDirectEnabled;
 }

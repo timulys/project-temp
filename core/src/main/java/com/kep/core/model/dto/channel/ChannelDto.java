@@ -33,11 +33,11 @@ public class ChannelDto {
 	private Long branchId;
 	@Schema(description = "브랜치 정보")
 	private BranchDto branch;
-	@Schema(description = "소유 여부")
+	@Schema(description = "메인 브랜치 여부 ( true : 메인 브랜치 , false : 추가 브랜치 )")
 	private Boolean owned;
 
 	@NotNull
-	@Schema(description = "플랫폼 유형", requiredMode = Schema.RequiredMode.REQUIRED)
+	@Schema(description = "플랫폼 유형  ( solution_web : 웹 , kakao_counsel_talk : 상담톡 , kakao_alert_talk : 알림톡 , kakao_friend_talk : 친구톡 , kakao_template , legacy_web  , legacy_app , kakao_counsel_center  )", requiredMode = Schema.RequiredMode.REQUIRED)
 	private PlatformType platform;
 
 	@NotEmpty

@@ -1,5 +1,6 @@
 package com.kep.core.model.dto.system;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import javax.validation.constraints.PositiveOrZero;
@@ -62,7 +63,9 @@ public class SystemEnvDto {
     @Getter
     @Setter
     public static class EnabledMinute {
+        @Schema(description = "상담 지연 상태 사용 여부 ( true : 사용 , false : 미사용 )" )
         private Boolean enabled;
+        @Schema(description = "상담상태가 '지연' 상태로 변경 될 시간 (단위 : 분)" )
         @PositiveOrZero
         private Integer minute;
     }
@@ -148,7 +151,9 @@ public class SystemEnvDto {
     @Builder
     @Data
     public static class EnableFileMimeType {
+        @Schema(description = "파일 전송 허용 여부 ( true : 파일 전송 허용 , false : 파일 전송 미허용 )" )
         private Boolean enabled;
+        @Schema(description = "파일 전송 허용 타입 ( all : 모든 파일 가능 , image : 이미지만 가능 )" )
         private SystemEnvEnum.FileMimeType fileMimeType;
     }
 }

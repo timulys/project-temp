@@ -2,6 +2,7 @@ package com.kep.portal.model.dto.forbidden;
 
 import java.time.ZonedDateTime;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,16 +13,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class ForbiddenDto {
-	
-	//PK
+
+	@Schema(description = "금지어 아이디(PK)")
 	private Long id;
-	
-	//금칙어 단어
+
+	@Schema(description = "금기어")
 	private String word;
-	
-	//직원 PK
+
+	@Schema(description = "생성자")
 	private Long memberId;
-	
-	//작성 날짜
+
+	@Schema(description = "생성 일자")
 	private ZonedDateTime created;
 }

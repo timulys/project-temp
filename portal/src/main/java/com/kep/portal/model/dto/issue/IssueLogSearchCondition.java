@@ -18,7 +18,7 @@ import java.util.List;
 @Builder
 public class IssueLogSearchCondition {
 
-	@Schema(description = "이슈 아이디")
+	@Schema(description = "이슈 아이디", required = true)
 	private Long issueId;
 
 	@Schema(description = "이슈 로그 아이디")

@@ -2,6 +2,7 @@ package com.kep.core.model.dto.env;
 
 
 import com.kep.core.model.dto.system.SystemEnvDto;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,64 +19,51 @@ import java.util.List;
 @Builder
 public class CounselEnvDto {
 
+
+    @Schema(description = "상담 환경 설정 PK(KEY)" , requiredMode = Schema.RequiredMode.REQUIRED)
     @Positive
     private Long id;
 
+    @Schema(description = "브랜치 아이디")
     @Positive
     private Long branchId;
 
+    @Schema(description = "수정자")
     @Positive
     private Long modifier;
 
+    @Schema(description = "수정 일시")
     private ZonedDateTime modified;
 
-    /**
-     * 상담 인입제한
-     */
+    @Schema(description = "상담 인입 제한 여부 ( true : 상담 불가능 , false : 상담 가능 )")
     @NotNull
     private Boolean requestBlockEnabled;
 
-    /**
-     * 상담직원 전환 자동 승인
-     */
+    @Schema(description = "상담직원전환 자동승인 여부 ( true : 자동 승인 , false : 승인 필요 )")
     @NotNull
     private Boolean memberAutoTransformEnabled;
 
-    /**
-     * 알림톡 발송 자동승인
-     */
+    @Schema(description = "알림톡 발송 자동승인")
     @NotNull
     private Boolean alertTalkAutoSendEnable;
 
-    /**
-     * 친구톡 발송 자동승인
-     */
+    @Schema(description = "친구톡 발송 자동승인")
     @NotNull
     private Boolean friendTalkAutoSendEnable;
 
-
-    /**
-     * 근무 시간 종료후 진행중인방 종료
-     */
+    @Schema(description = "근무시간 종료 후 상담 진행 중인 채팅 목록 자동종료 ( true : 자동 종료 활성화 , false : 자동 종료 비활성화 )")
     @NotNull
     private Boolean issueAutoCloseEnabled;
 
-    /**
-     * 상담 지연 상태 사용
-     */
+    @Schema(description = "상담 지연 상태 사용")
     @NotNull
     private SystemEnvDto.EnabledMinute issueDelay;
 
-
-    /**
-     * 채팅방 파일전송
-     */
+    @Schema(description = "채팅방 파일전송 허용")
     @NotNull
     private SystemEnvDto.EnableFileMimeType issueFileMimeType;
 
 
-    /**
-     * 상담 유입경로 설정
-     */
+    @Schema(description = "상담 유입경로 설정")
     private List<CounselInflowEnvDto> counselInflow;
 }

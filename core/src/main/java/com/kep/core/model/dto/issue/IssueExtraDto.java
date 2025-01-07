@@ -20,10 +20,8 @@ import java.time.ZonedDateTime;
 @AllArgsConstructor
 @Builder
 public class IssueExtraDto {
-	/**
-	 * 후처리 요약
-	 */
-	@Schema(description = "후처리 요약")
+
+	@Schema(description = "상담 요약")
 	private String summary;
 	
 	/**
@@ -35,7 +33,7 @@ public class IssueExtraDto {
 	/**
 	 * 후처리 분류
 	 */
-	@Schema(description = "후처리 분류 (이슈 카테고리 아이디)")
+	@Schema(description = "이슈 카테고리 아이디")
 	private Long issueCategoryId;
 	@Schema(description = "이슈 카테고리 정보")
 	private IssueCategoryDto issueCategory;
@@ -62,7 +60,7 @@ public class IssueExtraDto {
 	/**
 	 * [2023.05.09/asher.shin/요약 완료 여부]
 	 */
-	@Schema(description = "요약 완료 여부")
+	@Schema(description = "요약 완료 여부 ( 요약 완료 : true , 요약 미완료 : false )")
 	private boolean summaryCompleted;
 
 //	/**
@@ -76,7 +74,7 @@ public class IssueExtraDto {
 	 */
 	@Schema(description = "유입 경로")
 	private String inflow;
-	@Schema(description = "유입경로 수정일시")
+	@Schema(description = "유입 경로 수정 일시")
 	private ZonedDateTime inflowModified;
 	
 	/**

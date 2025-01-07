@@ -20,16 +20,16 @@ public class RoleByMenuDto {
 
 	@NotNull
 	@Positive
-	@Schema(description = "메뉴 아이디")
+	@Schema(description = "메뉴 아이디(PK)")
 	private Long menuId;
 
-	@Schema(description = "메뉴명1")
+	@Schema(description = "대메뉴")
 	private String menuName1;
 
-	@Schema(description = "메뉴명2")
+	@Schema(description = "중메뉴")
 	private String menuName2;
 
-	@Schema(description = "메뉴명3")
+	@Schema(description = "소메뉴")
 	private String menuName3;
 
 	@Schema(description = "메뉴명4")
@@ -38,9 +38,9 @@ public class RoleByMenuDto {
 	@Schema(description = "메뉴 뎁스")
 	private Integer menuDepth;
 
-	@Schema(description = "역할 아이디 셋")
+	@Schema(description = "메뉴 권한 가지고 있는 역할 아이디 (Set 형태)")
 	private Set<Long> roleIds;
 
-	@Schema(description = "")
+	@Schema(description = "선택 불가 레벨 목록 ( OPERATOR : 상담원 , MANAGER : 매니저 , ADMIN : 관리자 ) - ','를 구분자로 사용하며 다건 입력 가능")
 	private Set<String> disabledLevels;
 }

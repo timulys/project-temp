@@ -22,11 +22,8 @@ import java.util.List;
 @Builder
 public class TeamDto {
 
-    /**
-     * BranchTeam pk
-     */
     @Positive
-    @Schema(description = "브랜치 팀 아이디(PK)")
+    @Schema(description = "팀 아이디(PK)")
     private Long id;
 
     @Positive

@@ -34,7 +34,7 @@ import java.util.Map;
 public class MemberDto {
 
 	@Positive
-	@Schema(description = "멤버 아이디")
+	@Schema(description = "멤버 아이디", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Long id;
 
 	@Positive
@@ -47,7 +47,7 @@ public class MemberDto {
 
 	@NotEmpty
 	@Length(max = 255)
-	@Schema(description = "닉네임", requiredMode = Schema.RequiredMode.REQUIRED)
+	@Schema(description = "닉네임")
 	private String nickname;
 	
 	//BNK 상담직원번호 추가
@@ -61,13 +61,13 @@ public class MemberDto {
 	@Schema(description = "비밀번호")
 	private String password;
 
-	@Schema(description = "사용여부")
+	@Schema(description = "계정상태 ( true : 운영중 , false : 운영중단 )")
 	private Boolean enabled;
 
 	@Schema(description = "프로필")
 	private String profile;
 
-	@Schema(description = "메세지")
+	@Schema(name = "첫 인사말" , description = "첫 인사말" , implementation = IssuePayload.class)
 	private IssuePayload firstMessage;
 
 	@Schema(description = "수정자")
@@ -118,32 +118,27 @@ public class MemberDto {
 	@Schema(description = "역할 목록")
 	private List<RoleDto> roles;
 
-	@Schema(description = "")
+	@Schema(description = "상담 유입경로")
 	private List<CounselInflowEnvDto> inflowEnvs;
 
-
-	//상담분야
 	@Schema(description = "상담 카테고리")
 	private String counselCategory;
-
-
 
 	/**
 	 * 상담원 개별 설정
 	 */
-	@Schema(description = "상담원 개별 설정")
+	@Schema(description = "상담직원 환경설정 (enter_message_enabled : 엔터로 메세지 전송 여부 , forbidden_word_enabled : 금지어 사용 여부 ,  use_hotkey_enabled : 자주 사용하는 문구 사용 여부)")
 	private Map<String , Object> setting;
-
 
 	/**
 	 * 첫 인사말 사용 여부 설정
 	 * 기본적으로는 사용 여부는 false
 	 */
 	@Builder.Default
-	@Schema(description = "첫 인사말 사용 여부 (default : false)")
+	@Schema(description = "첫 인사말 사용 여부 ( true : 사용 , false : 미사용 / default : false)")
 	private Boolean usedMessage = false;
 
-	@Schema(description = "관리 가능 여부")
+	@Schema(description = "관리 가능 여부 (UI 상에서 추가하는 계정의 경우 보통 true이며 master 계정의 경우 false로 사용 / default : true )")
 	private Boolean managed;
 
 }
