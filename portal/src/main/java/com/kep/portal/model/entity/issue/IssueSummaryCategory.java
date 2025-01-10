@@ -1,0 +1,108 @@
+package com.kep.portal.model.entity.issue;
+
+import lombok.Builder;
+import lombok.Getter;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
+import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
+import java.time.ZonedDateTime;
+
+/**
+ * 상담 요약(후처리) 카테고리
+ *
+ * @author volka
+ */
+@DynamicInsert
+@DynamicUpdate
+@Getter
+@Entity
+public class IssueSummaryCategory {
+
+    @Id @GeneratedValue(strategy = GenerationType.AUTO)
+    @Comment("PK")
+    @Positive
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent")
+    @Comment("부모 카테고리")
+    private IssueSummaryCategory parent;
+
+    @Column(nullable = false, length = 100)
+    @NotBlank
+    private String name;
+
+    @Column(nullable = false)
+    @Positive
+    private Integer sort;
+
+    @Column(nullable = false)
+    @Positive
+    private Integer depth;
+
+    @ColumnDefault("true")
+    @Column(nullable = false, length = 1)
+    private Boolean enabled;
+
+
+    @Column(nullable = false)
+    private Long creator;
+    @Column(nullable = false)
+    private ZonedDateTime createdAt;
+
+    @Column(nullable = false)
+    private Long modifier;
+    @Column(nullable = false)
+    private ZonedDateTime modifiedAt;
+
+    protected IssueSummaryCategory() {}
+
+    @PrePersist
+    private void prePersist() {
+        ZonedDateTime now = ZonedDateTime.now();
+        this.createdAt = now;
+        this.modifiedAt = now;
+    }
+
+    @PreUpdate
+    private void preUpdate() {
+        this.modifiedAt = ZonedDateTime.now();
+    }
+
+    @Builder
+    private IssueSummaryCategory(Long id, IssueSummaryCategory parent, String name, Integer sort, Integer depth, Boolean enabled, Long memberId) {
+        this.id = id;
+        this.parent = parent;
+        this.name = name;
+        this.sort = sort;
+        this.depth = depth;
+        this.enabled = enabled;
+        this.creator = memberId;
+        this.modifier = memberId;
+    }
+
+    public static IssueSummaryCategory create(Long id, IssueSummaryCategory parent, String name, Integer sort, Integer depth, Boolean enabled, Long memberId) {
+        return IssueSummaryCategory.builder()
+                .id(id)
+                .parent(parent)
+                .name(name)
+                .sort(sort)
+                .depth(depth)
+                .enabled(enabled)
+                .memberId(memberId)
+                .build();
+    }
+
+    public void modify(String name, Integer sort, Boolean enabled, Long memberId) {
+        this.name = name;
+        this.sort = sort;
+        this.enabled = enabled;
+        this.modifier = memberId;
+    }
+
+}

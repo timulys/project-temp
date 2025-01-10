@@ -49,6 +49,10 @@ public class IssueExtra {
 	@Comment("후처리 요약")
 	@Size(max = 1000)
 	private String summary;
+
+	@OneToOne(fetch = FetchType.LAZY)
+	private IssueSummaryCategory issueSummaryCategory;
+
 	/**
 	 * 후처리 분류
 	 */
