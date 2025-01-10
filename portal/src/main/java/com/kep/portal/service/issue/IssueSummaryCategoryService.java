@@ -43,10 +43,12 @@ public class IssueSummaryCategoryService {
      */
     private List<IssueSummaryCategoryDto> processTree(List<IssueSummaryCategory> issueSummaryCategoriesWithParent) {
         Map<Long, List<IssueSummaryCategoryDto>> childrenMap = issueSummaryCategoriesWithParent.stream()
-                .map(this::parseToDto)
-                .collect(Collectors.groupingBy(IssueSummaryCategoryDto::getParentId, Collectors.toList()));
+                .map(IssueSummaryCategoryDto::from)
+                .collect(Collectors.groupingBy(item -> {
+                    return item.getParentId() == null ? -1L : item.getParentId();
+                }, Collectors.toList()));
 
-        List<IssueSummaryCategoryDto> topCategoryDtos = childrenMap.get(null);
+        List<IssueSummaryCategoryDto> topCategoryDtos = childrenMap.get(-1L);
         recurProcessTree(topCategoryDtos, childrenMap);
 
         return topCategoryDtos;
@@ -64,10 +66,6 @@ public class IssueSummaryCategoryService {
         }
     }
 
-
-    private IssueSummaryCategoryDto parseToDto(IssueSummaryCategory entity) {
-        return null;
-    }
 
     @Transactional
     public void save(SaveIssueSummaryCategoryRequest requestDto) {

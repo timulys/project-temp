@@ -56,15 +56,15 @@ public class IssueSummaryCategoryController {
     @Tag(name = "상담 요약(후처리) 관리 API")
     @Operation(summary = "요약(후처리) 카테고리 저장")
     @PostMapping
-    public ResponseEntity<ApiResult<IssueSummaryCategoryResponse>> save(@RequestBody @Valid SaveIssueSummaryCategoryRequest requestDto) {
+    public ResponseEntity<ApiResult<String>> save(@RequestBody @Valid SaveIssueSummaryCategoryRequest requestDto) {
         issueSummaryCategoryService.save(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResult<>(ApiResultCode.succeed));
     }
 
     @Tag(name = "상담 요약(후처리) 관리 API")
-    @Operation(summary = "요약(후처리) 카테고리 저장")
+    @Operation(summary = "요약(후처리) 카테고리 삭제(사용여부 X)")
     @PatchMapping("/{issueSummaryCategoryId}")
-    public ResponseEntity<ApiResult<IssueSummaryCategoryResponse>> save(@PathVariable("issueSummaryCategoryId") Long issueSummaryCategoryId) {
+    public ResponseEntity<ApiResult<String>> delete(@PathVariable("issueSummaryCategoryId") Long issueSummaryCategoryId) {
         issueSummaryCategoryService.delete(issueSummaryCategoryId);
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResult<>(ApiResultCode.succeed));
     }

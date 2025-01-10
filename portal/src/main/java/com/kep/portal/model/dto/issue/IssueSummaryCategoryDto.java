@@ -1,10 +1,12 @@
 package com.kep.portal.model.dto.issue;
 
+import com.kep.portal.model.entity.issue.IssueSummaryCategory;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Builder
@@ -36,4 +38,21 @@ public class IssueSummaryCategoryDto {
     @Schema(description = "")
     private ZonedDateTime modifiedAt;
 
+
+
+    public static IssueSummaryCategoryDto from(IssueSummaryCategory entity) {
+        return IssueSummaryCategoryDto.builder()
+                .issueSummaryCategoryId(entity.getId())
+                .name(entity.getName())
+                .sort(entity.getSort())
+                .depth(entity.getDepth())
+                .enabled(entity.getEnabled())
+                .parentId(entity.getParent() == null ? null : entity.getParent().getId())
+                .children(new ArrayList<>())
+                .creator(entity.getCreator())
+                .createdAt(entity.getCreatedAt())
+                .modifier(entity.getModifier())
+                .modifiedAt(entity.getModifiedAt())
+                .build();
+    }
 }
