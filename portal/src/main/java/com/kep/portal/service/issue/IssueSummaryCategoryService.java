@@ -9,11 +9,15 @@ import com.kep.portal.repository.issue.IssueSummaryCategoryRepository;
 import com.kep.portal.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
@@ -113,36 +117,42 @@ public class IssueSummaryCategoryService {
     public void saveExcel(MultipartFile file) {
         // TODO :: file size check?
 //        if (file.getSize() > 2020202020) throw new BizException("");
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()));) {
 
-            List<IssueSummaryCategory> records = issueSummaryCategoryRepository.findAll();
+        List<IssueSummaryCategory> records = issueSummaryCategoryRepository.findAll();
 
-            Integer initSortVal = 0;
-            Boolean initEnabled = Boolean.TRUE;
-            Long memberId = securityUtils.getMemberId();
+        Integer initSortVal = 0;
+        Boolean initEnabled = Boolean.TRUE;
+        Long memberId = securityUtils.getMemberId();
 
-            Map<String, IssueSummaryCategory> recordMap = records.stream().collect(Collectors.toMap(IssueSummaryCategory::getName, item -> item));
-            Map<String, Integer> childrenSizeMap = new HashMap<>(); // 부모 카테고리명 : 자식 노드 사이즈
+        Map<String, IssueSummaryCategory> recordMap = records.isEmpty() ? new HashMap<>() : records.stream().collect(Collectors.toMap(IssueSummaryCategory::getName, item -> item));
+        Map<String, Integer> childrenSizeMap = new HashMap<>(); // 부모 카테고리명 : 자식 노드 사이즈
 
+        if (!records.isEmpty()) {
             for (IssueSummaryCategory record : records) {
                 if (record.getDepth() < 3 && childrenSizeMap.putIfAbsent(record.getName(), initSortVal) != null) {
                     childrenSizeMap.compute(record.getName(), (k, v) -> v + 1);
                 }
             }
+        }
 
-            String line = null;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()));) {
+            String line = reader.readLine(); // 첫 라인은 분류 구분명 (대분류, 중분류, 소분류)
+            if (!isCategoryTemplate(line)) throw new BizException("it's not issue summary category template");
 
-            while ((line = reader.readLine()) != null) {
+            while ((line = reader.readLine()) != null && !line.isEmpty()) {
                 String[] sep = line.split(",");
 
                 IssueSummaryCategory record = null;
                 String name = null;
                 String parentName = null;
+                int depth = 0;
 
+                // i + 1 이 depth
                 for (int i = 0; i < sep.length; i++) {
                     name = sep[i];
                     record = recordMap.get(name);
                     parentName = i == 0 ? null : sep[i - 1];
+                    depth = i + 1;
 
                     if (record == null) {
 
@@ -152,14 +162,14 @@ public class IssueSummaryCategoryService {
                                         recordMap.getOrDefault(parentName, null), // 최상위 카테고리는 부모 없음
                                         name,
                                         childrenSizeMap.getOrDefault(parentName, initSortVal) + 1,
-                                        i + 1,
+                                        depth,
                                         initEnabled, // 엑셀 업로드시 enable true 고정
                                         memberId
                                 )
                         );
 
                         recordMap.put(name, record);
-                        if (i == 0) { // depth 1
+                        if (depth < 3) { // depth 1,2
                             childrenSizeMap.put(name, initSortVal);
                         } else {
                             childrenSizeMap.compute(parentName, (k, v) -> v + 1);
@@ -174,4 +184,31 @@ public class IssueSummaryCategoryService {
         }
     }
 
+    /**
+     * .csv 템플릿 파일 첫 라인 검증
+     * @param firstLine
+     * @return
+     */
+    private boolean isCategoryTemplate(String firstLine) {
+        if (firstLine == null) return false;
+        String[] sep = firstLine.split(",");
+        return sep[0].equals("대분류") && sep[1].equals("중분류") && sep[2].equals("소분류");
+    }
+
+    /**
+     * TODO :: 템플릿 파일명 등 정해지면 리팩토링. 현재는 테스트 용도로 하드코딩.
+     * @return
+     */
+    public Resource downloadExcelTemplate() {
+        ClassPathResource classPathResource = new ClassPathResource("issue_summary_category_template.csv");
+        if (!classPathResource.exists()) throw new IllegalStateException("not found template");
+
+        try {
+            return new InputStreamResource(classPathResource.getInputStream());
+
+        } catch (IOException e) {
+            log.error(e.getLocalizedMessage());
+            throw new BizException("error");
+        }
+    }
 }

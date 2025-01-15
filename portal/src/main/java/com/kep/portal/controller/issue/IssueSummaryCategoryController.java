@@ -2,7 +2,6 @@ package com.kep.portal.controller.issue;
 
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
-import com.kep.core.model.exception.BizException;
 import com.kep.portal.model.dto.issue.IssueSummaryCategoryResponse;
 import com.kep.portal.model.dto.issue.SaveIssueSummaryCategoryRequest;
 import com.kep.portal.service.issue.IssueSummaryCategoryService;
@@ -11,13 +10,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.nio.charset.StandardCharsets;
 
 
 @Tag(name = "상담 요약(후처리) 관리 API", description = "/api/v1/issue/extra/summary/categories")
@@ -73,11 +72,29 @@ public class IssueSummaryCategoryController {
     }
 
 
+    /**
+     * TODO :: FileUtil 적용 시 리팩토링
+     * @return
+     */
     @Tag(name = "상담 요약(후처리) 관리 API")
     @Operation(summary = "요약(후처리) 템플릿 다운로드 (FileUtil 적용 이후 진행)")
     @GetMapping("/template")
     public ResponseEntity<Resource> downloadExcelTemplate() {
-        return null;
+        Resource resource = issueSummaryCategoryService.downloadExcelTemplate();
+        HttpHeaders headers = new HttpHeaders();
+
+        ContentDisposition contentDisposition = ContentDisposition
+                .attachment()
+                .filename(new String("상담_후처리_카테고리.csv".getBytes(), StandardCharsets.UTF_8), StandardCharsets.UTF_8)
+                .build();
+
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDisposition(contentDisposition);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .headers(headers)
+                .body(resource);
     }
 
     @Tag(name = "상담 요약(후처리) 관리 API")
@@ -87,7 +104,7 @@ public class IssueSummaryCategoryController {
 
         // TODO :: 예외 메시지, 파일 검증 등 모바일 1차 후 fileUtil 재설계 적용하면서 리팩토링
         if (file == null || file.isEmpty()) throw new IllegalArgumentException("csv file must not be null or empty");
-        if (!file.getOriginalFilename().toLowerCase().endsWith(".csv")) throw new IllegalArgumentException("only can be .csv file");
+        if (file.getOriginalFilename() == null || !file.getOriginalFilename().toLowerCase().endsWith(".csv")) throw new IllegalArgumentException("only can be .csv file");
 
         issueSummaryCategoryService.saveExcel(file);
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResult<>(ApiResultCode.succeed));
