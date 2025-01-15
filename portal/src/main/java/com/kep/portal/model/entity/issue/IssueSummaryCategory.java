@@ -9,6 +9,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.time.ZonedDateTime;
 
@@ -33,7 +34,7 @@ public class IssueSummaryCategory {
     @Comment("부모 카테고리")
     private IssueSummaryCategory parent;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 100, unique = true)
     @NotBlank
     private String name;
 
@@ -86,7 +87,7 @@ public class IssueSummaryCategory {
         this.modifier = memberId;
     }
 
-    public static IssueSummaryCategory create(Long id, IssueSummaryCategory parent, String name, Integer sort, Integer depth, Boolean enabled, Long memberId) {
+    public static IssueSummaryCategory create(Long id, IssueSummaryCategory parent, @NotBlank String name, @NotNull Integer sort, @NotNull Integer depth, @NotNull Boolean enabled, @NotNull Long memberId) {
         return IssueSummaryCategory.builder()
                 .id(id)
                 .parent(parent)
@@ -98,7 +99,7 @@ public class IssueSummaryCategory {
                 .build();
     }
 
-    public void modify(String name, Integer sort, Boolean enabled, Long memberId) {
+    public void modify(@NotBlank String name, @NotNull Integer sort, @NotNull Boolean enabled, @NotNull Long memberId) {
         this.name = name;
         this.sort = sort;
         this.enabled = enabled;
