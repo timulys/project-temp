@@ -1,4 +1,4 @@
-package com.kep.portal.model.dto.issue;
+package com.kep.portal.model.dto.issue.summary;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

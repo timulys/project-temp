@@ -51,9 +51,9 @@ public class IssueSummaryCategory {
     private Boolean enabled;
 
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private Long creator;
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private ZonedDateTime createdAt;
 
     @Column(nullable = false)

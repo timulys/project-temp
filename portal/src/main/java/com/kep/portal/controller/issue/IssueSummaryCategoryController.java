@@ -2,10 +2,13 @@ package com.kep.portal.controller.issue;
 
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
-import com.kep.portal.model.dto.issue.IssueSummaryCategoryResponse;
-import com.kep.portal.model.dto.issue.SaveIssueSummaryCategoryRequest;
+import com.kep.portal.model.dto.issue.summary.IssueSummaryCategoryDto;
+import com.kep.portal.model.dto.issue.summary.IssueSummaryCategoryResponse;
+import com.kep.portal.model.dto.issue.summary.SaveIssueSummaryCategoryRequest;
 import com.kep.portal.service.issue.IssueSummaryCategoryService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,9 +48,12 @@ public class IssueSummaryCategoryController {
     @Tag(name = "상담 요약(후처리) 관리 API")
     @Operation(summary = "요약(후처리) 카테고리 단건 조회 (트리)")
     @GetMapping("/{issueSummaryCategoryId}")
-    public ResponseEntity<ApiResult<IssueSummaryCategoryResponse>> getOne(@PathVariable("issueSummaryCategoryId") Long issueSummaryCategoryId) {
+    public ResponseEntity<ApiResult<IssueSummaryCategoryDto>> getOne(
+            @Parameter(description = "상담 후처리 카테고리 아이디 (최하위 뎁스 ID)", in = ParameterIn.PATH, required = true)
+            @PathVariable("issueSummaryCategoryId") Long issueSummaryCategoryId
+    ) {
 
-        ApiResult<IssueSummaryCategoryResponse> response = ApiResult.<IssueSummaryCategoryResponse>builder()
+        ApiResult<IssueSummaryCategoryDto> response = ApiResult.<IssueSummaryCategoryDto>builder()
                 .code(ApiResultCode.succeed)
                 .payload(issueSummaryCategoryService.getOne(issueSummaryCategoryId))
                 .build();

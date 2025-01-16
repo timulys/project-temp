@@ -1,4 +1,4 @@
-package com.kep.portal.model.dto.issue;
+package com.kep.portal.model.dto.issue.summary;
 
 import com.kep.portal.model.entity.issue.IssueSummaryCategory;
 import io.swagger.v3.oas.annotations.media.Schema;

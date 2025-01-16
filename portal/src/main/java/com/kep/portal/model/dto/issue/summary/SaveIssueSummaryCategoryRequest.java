@@ -1,8 +1,9 @@
-package com.kep.portal.model.dto.issue;
+package com.kep.portal.model.dto.issue.summary;
 
 import com.kep.portal.model.entity.issue.IssueSummaryCategory;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.lang.Nullable;
 
 import javax.validation.constraints.NotBlank;
@@ -20,10 +21,12 @@ public class SaveIssueSummaryCategoryRequest {
     private String name;
 
     @Schema(description = "")
+    @Range(min = 1)
     @Positive
     private Integer sort;
 
-    @Schema(description = "")
+    @Schema(description = "단계")
+    @Range(min = 1, max = 3)
     @Positive
     private Integer depth;
 

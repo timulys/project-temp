@@ -1,9 +1,9 @@
 package com.kep.portal.service.issue;
 
 import com.kep.core.model.exception.BizException;
-import com.kep.portal.model.dto.issue.IssueSummaryCategoryDto;
-import com.kep.portal.model.dto.issue.IssueSummaryCategoryResponse;
-import com.kep.portal.model.dto.issue.SaveIssueSummaryCategoryRequest;
+import com.kep.portal.model.dto.issue.summary.IssueSummaryCategoryDto;
+import com.kep.portal.model.dto.issue.summary.IssueSummaryCategoryResponse;
+import com.kep.portal.model.dto.issue.summary.SaveIssueSummaryCategoryRequest;
 import com.kep.portal.model.entity.issue.IssueSummaryCategory;
 import com.kep.portal.repository.issue.IssueSummaryCategoryRepository;
 import com.kep.portal.util.SecurityUtils;
@@ -19,9 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -76,6 +74,9 @@ public class IssueSummaryCategoryService {
 
     @Transactional
     public void save(SaveIssueSummaryCategoryRequest requestDto) {
+
+        validSave(requestDto);
+
         if (requestDto.getIssueSummaryCategoryId() == null) {
             add(requestDto);
         } else {
@@ -104,13 +105,28 @@ public class IssueSummaryCategoryService {
         issueSummaryCategoryRepository.delete(entity);
     }
 
-    public IssueSummaryCategoryResponse getOne(Long issueSummaryCategoryId) {
-        List<IssueSummaryCategory> categories = issueSummaryCategoryRepository.findByIdWithParent(issueSummaryCategoryId);
+    public IssueSummaryCategoryDto getOne(Long issueSummaryCategoryId) {
+        IssueSummaryCategory category = issueSummaryCategoryRepository.findByIdWithParent(issueSummaryCategoryId)
+                .orElseThrow(() -> new IllegalArgumentException("not found issueSummaryCategory"));
 
-        if (categories == null || categories.isEmpty()) throw new IllegalArgumentException("not found issueSummaryCategory");
-        List<IssueSummaryCategoryDto> categoryTree = processTree(categories);
+        if (!category.getDepth().equals(3)) throw new IllegalArgumentException("this must be lowest depth category");
 
-        return new IssueSummaryCategoryResponse(categoryTree);
+//        IssueSummaryCategory current = category;
+        IssueSummaryCategoryDto currentDto = null;
+        IssueSummaryCategoryDto result = null;
+
+        // 현재 요건 카테고리는 3뎁스 고정. 가변 요건 사라짐
+        for (int i = 0; i < 2; i++) {
+            if (currentDto == null) currentDto = IssueSummaryCategoryDto.from(category);
+
+            result = IssueSummaryCategoryDto.from(category.getParent());
+            result.getChildren().add(currentDto);
+
+            category = category.getParent();
+            currentDto = result;
+        }
+
+        return result;
     }
 
     @Transactional
@@ -182,6 +198,13 @@ public class IssueSummaryCategoryService {
             log.error(e.getLocalizedMessage());
             throw new BizException(e.getMessage());
         }
+    }
+
+    private void validSave(SaveIssueSummaryCategoryRequest requestDto) {
+        Integer depth = requestDto.getDepth();
+
+        if (depth.equals(1) && requestDto.getParentId() != null) throw new IllegalArgumentException("top depth category must not have parent");
+        if (depth > 1 && requestDto.getParentId() == null) throw new IllegalArgumentException("mid and low depth category must have parent");
     }
 
     /**
