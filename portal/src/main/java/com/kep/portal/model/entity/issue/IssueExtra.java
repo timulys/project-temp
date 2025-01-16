@@ -46,11 +46,13 @@ public class IssueExtra {
 	/**
 	 * 후처리 요약
 	 */
-	@Comment("후처리 요약")
+	@Comment("후처리 요약 내용")
 	@Size(max = 1000)
 	private String summary;
 
-	@OneToOne(fetch = FetchType.LAZY)
+	@Comment("후처리 요약 카테고리")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "issueSummaryCategoryId", referencedColumnName = "id", foreignKey = @ForeignKey(name = "FK_ISSUE_EXTRA__ISSUE_SUMMARY_CATEGORY"))
 	private IssueSummaryCategory issueSummaryCategory;
 
 	/**
