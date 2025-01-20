@@ -18,6 +18,7 @@ import java.util.Map;
 /**
  * 솔루션 메세지 포맷
  */
+@Schema(description = "카카오톡 메시지")
 @Builder
 @Data
 @NoArgsConstructor
@@ -27,15 +28,15 @@ public class IssuePayload {
 
 	public static final String CURRENT_VERSION = "0.1";
 
+	@Schema(description = "버전")
 	@NotEmpty
 	@Size(max = 10)
 	@Builder.Default
-	@Schema(description = "버전")
 	private String version = CURRENT_VERSION;
 
 
-	@NotEmpty
 	@Schema(description = "메시지 목록")
+	@NotEmpty
 	private List<Chapter> chapters;
 
 	// 플랫폼 고유 데이터
@@ -69,12 +70,14 @@ public class IssuePayload {
 	/**
 	 * 말풍선, 캐러셀은 배열로 표현
 	 */
+	@Schema(name = "IssuePayload.Chapter", description = "메시지 말풍선")
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
 	@Builder
 	public static class Chapter {
 
+		@Schema(description = "말풍선 내 실제 컨텐츠 데이터 목록")
 		@NotEmpty
 		private List<Section> sections;
 
@@ -91,7 +94,7 @@ public class IssuePayload {
 	/**
 	 * 말풍선 안에서 실제 컨텐츠를 감싸는 컨테이너
 	 */
-	@Schema(description = "말풍선 내 실제 컨텐츠 컨테이너")
+	@Schema(name = "IssuePayload.Section", description = "말풍선 내 실제 컨텐츠 컨테이너")
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
@@ -109,7 +112,7 @@ public class IssuePayload {
 		private String extra;
 		@Schema(description = "")
 		private Map<String, Object> params;
-		@Schema(description = "액션 목록")
+		@Schema(description = "액션 목록 (버튼 등 이벤트가 가능한 엘리먼트)")
 		private List<Action> actions;
 
 		/**
@@ -127,7 +130,7 @@ public class IssuePayload {
 	/**
 	 * 버튼 (이벤트가 가능한 엘리먼트)
 	 */
-	@Schema(description = "버튼 (이벤트가 가능한 엘리먼트)")
+	@Schema(name = "IssuePayload.Action", description = "버튼 (이벤트가 가능한 엘리먼트)")
 	@Data
 	@NoArgsConstructor
 	@AllArgsConstructor
