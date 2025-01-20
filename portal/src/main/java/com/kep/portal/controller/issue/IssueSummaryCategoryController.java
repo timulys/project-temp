@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
 import java.nio.charset.StandardCharsets;
 
 
@@ -50,7 +51,7 @@ public class IssueSummaryCategoryController {
     @GetMapping("/{issueSummaryCategoryId}")
     public ResponseEntity<ApiResult<IssueSummaryCategoryDto>> getOne(
             @Parameter(description = "상담 후처리 카테고리 아이디 (최하위 뎁스 ID)", in = ParameterIn.PATH, required = true)
-            @PathVariable("issueSummaryCategoryId") Long issueSummaryCategoryId
+            @PathVariable("issueSummaryCategoryId") @Positive Long issueSummaryCategoryId
     ) {
 
         ApiResult<IssueSummaryCategoryDto> response = ApiResult.<IssueSummaryCategoryDto>builder()
@@ -72,7 +73,7 @@ public class IssueSummaryCategoryController {
     @Tag(name = "상담 요약(후처리) 관리 API")
     @Operation(summary = "요약(후처리) 카테고리 삭제(사용여부 X)")
     @PatchMapping("/{issueSummaryCategoryId}")
-    public ResponseEntity<ApiResult<String>> delete(@PathVariable("issueSummaryCategoryId") Long issueSummaryCategoryId) {
+    public ResponseEntity<ApiResult<String>> delete(@PathVariable("issueSummaryCategoryId") @Positive Long issueSummaryCategoryId) {
         issueSummaryCategoryService.delete(issueSummaryCategoryId);
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResult<>(ApiResultCode.succeed));
     }
