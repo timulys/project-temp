@@ -260,29 +260,20 @@ public class IssueExtraService {
 							.guestId(issue.getGuest().getId())
 							.summary(summary == null || summary.isEmpty() ? null : summary)
 							.summaryModified(ZonedDateTime.now())
-							.summaryCompleted(saveIssueExtraSummaryRequest.getSummaryCompleted())
-//							.issueCategoryId(category.getId())
+							.summaryCompleted(Boolean.TRUE)
+//							.issueCategoryId(category.getId()) // 기존 상담 카테고리 -> 유입 카테고리로 변경 20240120
 							.issueSummaryCategory(category)
 							.build()
 			);
 
 		} else {
 			issueExtra = issue.getIssueExtra();
-			issueExtra.setSummaryCompleted(saveIssueExtraSummaryRequest.getSummaryCompleted());
+			issueExtra.setSummaryCompleted(Boolean.TRUE);
 //			issueExtra.setIssueCategoryId(category.getId());
 			issueExtra.setIssueSummaryCategory(category);
 			issueExtra.setSummary(saveIssueExtraSummaryRequest.getSummary());
 			issueExtra.setSummaryModified(ZonedDateTime.now());
 		}
-
-		if (saveIssueExtraSummaryRequest.getMemo() != null && !saveIssueExtraSummaryRequest.getMemo().isEmpty()) {
-			issueExtra.setMemo(saveIssueExtraSummaryRequest.getMemo());
-			issueExtra.setMemoModified(ZonedDateTime.now());
-		}
-
-//		if (issueExtraSummaryDto.getInflow() != null && !issueExtraSummaryDto.getInflow().isEmpty()) {
-//			issueExtra.setInflowModified(ZonedDateTime.now());
-//		}
 
 		issue.setIssueExtra(issueExtra);
 
@@ -290,6 +281,11 @@ public class IssueExtraService {
 		simpMessagingTemplate.convertAndSend(socketProperty.getIssuePath(), issueMapper.map(issue));
 	}
 
+	/**
+	 * 상담 요약 조회
+	 * @param issueId
+	 * @return
+	 */
 	public IssueExtraSummaryResponse getExtraSummary(Long issueId) {
 		Issue issue = issueRepository.findById(issueId).orElseThrow(() -> new BizException("Not found issue"));
 		IssueExtra issueExtra = issue.getIssueExtra();
@@ -303,7 +299,7 @@ public class IssueExtraService {
 		return IssueExtraSummaryResponse.builder()
 				.channelId(channel.getId())
 				.channelName(channel.getName())
-				.maxIssueCategoryDepth(channelEnv.getMaxIssueCategoryDepth()) // FIXME :: 가변 뎁스 렌더링을 위한 분류 단계 응답 변수 제거. 기존엔 가변이었으나 고도화 시 3단계 고정 volka
+				.maxIssueCategoryDepth(channelEnv.getMaxIssueCategoryDepth()) // FIXME :: 가변 뎁스 렌더링을 위한 분류 단계 응답 변수 제거 해야함 -> 기존엔 가변이었으나 고도화 시 3단계 고정 volka
 				.issueCategory(issueExtra.getIssueCategoryId() == null ? null : issueCategoryService.getIssueCategoryTreeByLowestOne(channel.getId(), issueExtra.getIssueCategoryId()))
 				.issueId(issueExtra.getId())
 				.summary(issueExtra.getSummary())
