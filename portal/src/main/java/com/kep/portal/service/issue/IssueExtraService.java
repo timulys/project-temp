@@ -5,8 +5,8 @@ import com.kep.core.model.exception.BizException;
 import com.kep.portal.client.LegacyClient;
 import com.kep.portal.config.property.SocketProperty;
 import com.kep.portal.model.dto.subject.IssueCategoryChildrenDto;
-import com.kep.portal.model.dto.summary.IssueExtraSummaryDetailDto;
-import com.kep.portal.model.dto.summary.IssueExtraSummaryDto;
+import com.kep.portal.model.dto.summary.IssueExtraSummaryResponse;
+import com.kep.portal.model.dto.summary.SaveIssueExtraSummaryRequest;
 import com.kep.portal.model.entity.channel.Channel;
 import com.kep.portal.model.entity.channel.ChannelEnv;
 import com.kep.portal.model.entity.issue.*;
@@ -15,10 +15,12 @@ import com.kep.portal.model.entity.subject.IssueCategoryMapper;
 import com.kep.portal.repository.channel.ChannelEnvRepository;
 import com.kep.portal.repository.issue.IssueExtraRepository;
 import com.kep.portal.repository.issue.IssueRepository;
+import com.kep.portal.repository.issue.IssueSummaryCategoryRepository;
 import com.kep.portal.repository.subject.IssueCategoryRepository;
 import com.kep.portal.service.channel.ChannelService;
 import com.kep.portal.service.subject.IssueCategoryService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -79,6 +81,11 @@ public class IssueExtraService {
 
 	@Resource
 	private ChannelService channelService;
+
+	@Resource
+	private IssueSummaryCategoryService issueSummaryCategoryService;
+    @Autowired
+    private IssueSummaryCategoryRepository issueSummaryCategoryRepository;
 
 	public IssueExtraDto getByIssueId(@NotNull @Positive Long issueId) {
 
@@ -226,20 +233,25 @@ public class IssueExtraService {
 
 	/**
 	 * 요약 저장
-	 * @param issueExtraSummaryDto
+	 * @param saveIssueExtraSummaryRequest
 	 * @return
 	 */
-	public void saveExtraSummary(IssueExtraSummaryDto issueExtraSummaryDto) {
-		Issue issue = issueRepository.findById(issueExtraSummaryDto.getIssueId())
+	public void saveExtraSummary(SaveIssueExtraSummaryRequest saveIssueExtraSummaryRequest) {
+		Issue issue = issueRepository.findById(saveIssueExtraSummaryRequest.getIssueId())
 				.orElseThrow(() -> new BizException("Not found issue"));
 
 		Integer issueCategoryMaxDepth = channelEnvRepository.findByChannel(issue.getChannel()).getMaxIssueCategoryDepth();
 
-		IssueCategory category = issueCategoryRepository.findById(issueExtraSummaryDto.getIssueCategoryId())
-				.orElseThrow(() -> new BizException("Not found issueCategory"));
+		// NOTE :: 상담 카테고리 아이디는 인입 시 매핑하여 저장. 기존 요약(후처리)용도였으나 후처리 카테고리가 따로 생김 volka
+//		IssueCategory category = issueCategoryRepository.findById(saveIssueExtraSummaryRequest.getIssueCategoryId())
+//				.orElseThrow(() -> new BizException("Not found issueCategory"));
+		IssueSummaryCategory category = issueSummaryCategoryRepository.findById(saveIssueExtraSummaryRequest.getIssueSummaryCategoryId())
+				.orElseThrow(() -> new IllegalArgumentException("Not found IssueSummaryCategory"));
+
+		if (!category.getDepth().equals(3)) throw new IllegalArgumentException("must be lowest depth category");
 		Assert.isTrue(category.getDepth().equals(issueCategoryMaxDepth), "issue category only can be max depth category");
 
-		String summary = issueExtraSummaryDto.getSummary();
+		String summary = saveIssueExtraSummaryRequest.getSummary();
 		IssueExtra issueExtra = null;
 
 		if (issue.getIssueExtra() == null) {
@@ -248,27 +260,20 @@ public class IssueExtraService {
 							.guestId(issue.getGuest().getId())
 							.summary(summary == null || summary.isEmpty() ? null : summary)
 							.summaryModified(ZonedDateTime.now())
-							.summaryCompleted(issueExtraSummaryDto.getSummaryCompleted())
-							.issueCategoryId(category.getId())
+							.summaryCompleted(Boolean.TRUE)
+//							.issueCategoryId(category.getId()) // 기존 상담 카테고리 -> 유입 카테고리로 변경 20240120
+							.issueSummaryCategory(category)
 							.build()
 			);
 
 		} else {
 			issueExtra = issue.getIssueExtra();
-			issueExtra.setSummaryCompleted(issueExtraSummaryDto.getSummaryCompleted());
-			issueExtra.setIssueCategoryId(category.getId());
-			issueExtra.setSummary(issueExtraSummaryDto.getSummary());
+			issueExtra.setSummaryCompleted(Boolean.TRUE);
+//			issueExtra.setIssueCategoryId(category.getId());
+			issueExtra.setIssueSummaryCategory(category);
+			issueExtra.setSummary(saveIssueExtraSummaryRequest.getSummary());
 			issueExtra.setSummaryModified(ZonedDateTime.now());
 		}
-
-		if (issueExtraSummaryDto.getMemo() != null && !issueExtraSummaryDto.getMemo().isEmpty()) {
-			issueExtra.setMemo(issueExtraSummaryDto.getMemo());
-			issueExtra.setMemoModified(ZonedDateTime.now());
-		}
-
-//		if (issueExtraSummaryDto.getInflow() != null && !issueExtraSummaryDto.getInflow().isEmpty()) {
-//			issueExtra.setInflowModified(ZonedDateTime.now());
-//		}
 
 		issue.setIssueExtra(issueExtra);
 
@@ -276,22 +281,47 @@ public class IssueExtraService {
 		simpMessagingTemplate.convertAndSend(socketProperty.getIssuePath(), issueMapper.map(issue));
 	}
 
-	public IssueExtraSummaryDetailDto getExtraSummary(Long issueId) {
+	/**
+	 * 상담 요약 조회
+	 * @param issueId
+	 * @return
+	 */
+	public IssueExtraSummaryResponse getExtraSummary(Long issueId) {
 		Issue issue = issueRepository.findById(issueId).orElseThrow(() -> new BizException("Not found issue"));
 		IssueExtra issueExtra = issue.getIssueExtra();
 
 		if (issueExtra == null) return null;
 
-		IssueExtraSummaryDetailDto result = new IssueExtraSummaryDetailDto();
+//		IssueExtraSummaryResponse result = new IssueExtraSummaryResponse();
 		Channel channel = issue.getChannel();
 		ChannelEnv channelEnv = channelEnvRepository.findByChannel(channel);
 
-		result.setChannelId(channel.getId());
-		result.setChannelName(channel.getName());
-		result.setMaxIssueCategoryDepth(channelEnv.getMaxIssueCategoryDepth());
-		result.setIssueCategory(issueExtra.getIssueCategoryId() == null ? null : issueCategoryService.getIssueCategoryTreeByLowestOne(channel.getId(), issueExtra.getIssueCategoryId()));
-		result.setIssueExtraSummary(IssueExtraSummaryDto.of(issueExtra));
+		return IssueExtraSummaryResponse.builder()
+				.channelId(channel.getId())
+				.channelName(channel.getName())
+				.maxIssueCategoryDepth(channelEnv.getMaxIssueCategoryDepth()) // FIXME :: 가변 뎁스 렌더링을 위한 분류 단계 응답 변수 제거 해야함 -> 기존엔 가변이었으나 고도화 시 3단계 고정 volka
+				.issueCategory(issueExtra.getIssueCategoryId() == null ? null : issueCategoryService.getIssueCategoryTreeByLowestOne(channel.getId(), issueExtra.getIssueCategoryId()))
+				.issueId(issueExtra.getId())
+				.summary(issueExtra.getSummary())
+				.inflow(issueExtra.getInflow())
+				.memo(issueExtra.getMemo())
+				.memoModified(issueExtra.getMemoModified())
+				.summaryCompleted(issueExtra.isSummaryCompleted())
+				.issueSummaryCategory(issueExtra.getIssueSummaryCategory() == null ? null : issueSummaryCategoryService.getOne(issueExtra.getIssueSummaryCategory().getId()))
+				.build();
 
-		return result;
+//		result.setChannelId(channel.getId());
+//		result.setChannelName(channel.getName());
+//		result.setMaxIssueCategoryDepth(channelEnv.getMaxIssueCategoryDepth());
+//		result.setIssueCategory(issueExtra.getIssueCategoryId() == null ? null : issueCategoryService.getIssueCategoryTreeByLowestOne(channel.getId(), issueExtra.getIssueCategoryId()));
+//		result.setIssueId(issueExtra.getId());
+//		result.setSummary(issueExtra.getSummary());
+//		result.setInflow(issueExtra.getInflow());
+//		result.setMemo(issueExtra.getMemo());
+//		result.setMemoModified(issueExtra.getMemoModified());
+//		result.setSummaryCompleted(issueExtra.isSummaryCompleted());
+
+//		result.setIssueSummaryCategoryId(issueExtra.getIssueSummaryCategory() == null ? null : issueExtra.getIssueSummaryCategory().getId()); // 상담 후처리 카테고리 추가) =
+//		result.setIssueExtraSummary(SaveIssueExtraSummaryRequest.of(issueExtra));
 	}
 }
