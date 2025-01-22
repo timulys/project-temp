@@ -29,10 +29,11 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class TemplateController {
-    /** Autowired Components */
+    /** Autowired Components **/
     private final TemplateExternalService templateExternalService;
     private final TemplateSearchService templateSearchService;
 
+    /** Create APIs **/
     @Tag(name = "템플릿 등록")
     @Operation(summary = "템플릿 등록")
     @PostMapping
@@ -41,6 +42,7 @@ public class TemplateController {
         return response;
     }
 
+    /** Retrieve APIs **/
     @Tag(name = "템플릿 조회")
     @Operation(summary = "템플릿 조회")
     @GetMapping
@@ -82,11 +84,22 @@ public class TemplateController {
         return response;
     }
 
+    /** Update APIs **/
     @Tag(name = "템플릿 수정")
     @Operation(summary = "템플릿 수정")
     @PutMapping
     public ResponseEntity<? super BizTalkResponseDto> updateTemplate(@RequestBody @Valid KakaoBizMessageTemplatePayload requestDto) {
         ResponseEntity<? super BizTalkResponseDto> response = templateExternalService.updateTemplate(requestDto);
+        return response;
+    }
+
+    /** Delete APIs **/
+    @Tag(name = "템플릿 검수요청 취소")
+    @Operation(summary = "템플릿 검수요청 취소")
+    @PutMapping("/cancel/request")
+    public ResponseEntity<? super BizTalkResponseDto> cancelTemplate(@RequestParam(name = "profileKey") String profileKey,
+                                                               @RequestParam(name = "templateCode") String templateCode) {
+        ResponseEntity<? super BizTalkResponseDto> response = templateExternalService.cancelTemplate(profileKey, templateCode);
         return response;
     }
 }

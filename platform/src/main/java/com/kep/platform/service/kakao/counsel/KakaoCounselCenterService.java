@@ -104,7 +104,7 @@ public class KakaoCounselCenterService {
 			log.info("SYSTEM MESSAGE KAKAO MESSAGE:{}", systemMessage);
 
 			Assert.notNull(systemMessage, "NOT NULL KAKAO SYSTEM MESSAGE");
-			if ("200".equals(systemMessage.getCode())) {
+			if (systemMessage.getCode().contains("200")) {
 				if (!ObjectUtils.isEmpty(systemMessage.getData())) {
 					systemMessage.getData().stream().peek(item -> {
 						item.getMessages().stream().peek(message -> {

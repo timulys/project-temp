@@ -639,8 +639,10 @@ public class PlatformClient {
 
         HttpEntity request = new HttpEntity<>(headers);
 
-        String baseUrl = coreProperty.getPlatformServiceUri() + platformProperty.getApiBasePath();
-        String requestUrl = baseUrl + "/template/cancel/request/" + profileKey + "/" + templateCode;
+        String baseUrl = coreProperty.getTalkServiceUri() + talkProperty.getApiBasePath();
+        String requestUrl = String.format("%s/%s?profileKey=%s&templateCode=%s", baseUrl, "template/cancel/request", profileKey, templateCode);
+//        String baseUrl = coreProperty.getPlatformServiceUri() + platformProperty.getApiBasePath();
+//        String requestUrl = baseUrl + "/template/cancel/request/" + profileKey + "/" + templateCode;
 
         try {
             log.info("SEND TO PLATFORM, CANCEL REQUEST KAKAO BIZ TEMPLATE, TRACK KEY: {}, HEADER: {}, PROFILE KEY: {}, TEMPLATE CODE: {}",
@@ -688,7 +690,7 @@ public class PlatformClient {
         return new KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>();
     }
 
-    public KakaoBizTemplateResponse uploadFriendTemplateImage(UploadPlatformRequestDto uploadDto) throws Exception {
+    public BizTalkResponseDto uploadFriendTemplateImage(UploadPlatformRequestDto uploadDto) throws Exception {
         Long trackKey = System.currentTimeMillis();
 
         HttpHeaders headers = getKakaoBizUploadHeaders(trackKey);
@@ -698,24 +700,26 @@ public class PlatformClient {
 
         HttpEntity<MultiValueMap> request = new HttpEntity<>(multiValueMap, headers);
 
-        String baseUrl = coreProperty.getPlatformServiceUri() + platformProperty.getApiBasePath();
-        String requestUrl = baseUrl + "/friend-talk/upload/image";
+//        String baseUrl = coreProperty.getPlatformServiceUri() + platformProperty.getApiBasePath();
+//        String requestUrl = baseUrl + "/friend-talk/upload/image";
+        String baseUrl = coreProperty.getTalkServiceUri() + talkProperty.getApiBasePath();
+        String requestUrl = baseUrl + "/friendtalk/upload";
 
         try {
             log.info("SEND TO PLATFORM, UPLOAD TEMPLATE IMAGE, TRACK KEY: {}, HEADER: {}, BODY: {}",
                     trackKey, headers, uploadDto);
-            ResponseEntity<ApiResult<KakaoBizTemplateResponse>> responseEntity = restTemplate.exchange(
-                    requestUrl, HttpMethod.POST, request, new ParameterizedTypeReference<ApiResult<KakaoBizTemplateResponse>>() {
+            ResponseEntity<BizTalkResponseDto> responseEntity = restTemplate.exchange(
+                    requestUrl, HttpMethod.POST, request, new ParameterizedTypeReference<BizTalkResponseDto>() {
                     });
             log.info("SEND TO PLATFORM, UPLOAD TEMPLATE IMAGE, TRACK KEY: {}, RETURN CODE: {}, RESPONSE BODY: {}",
                     trackKey, responseEntity.getStatusCode(), responseEntity.getBody());
             // TODO: 실패, 플랫폼 규격, 네트워크 문제 등
             if (responseEntity.getBody() != null) {
-                return responseEntity.getBody().getPayload();
+                return responseEntity.getBody();
             }
         } catch (Exception e) {
             log.error(e.getLocalizedMessage(), e);
         }
-        return new KakaoBizTemplateResponse();
+        return new BizTalkResponseDto();
     }
 }

@@ -3,6 +3,7 @@ package com.dkt.always.talk.service.template;
 import com.kep.core.model.dto.platform.kakao.KakaoBizMessageTemplatePayload;
 import com.kep.core.model.dto.platform.kakao.bizTalk.response.BizTalkResponseDto;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 
 public interface TemplateExternalService {
     /** create methods */
@@ -16,5 +17,5 @@ public interface TemplateExternalService {
     ResponseEntity<? super BizTalkResponseDto> updateTemplate(KakaoBizMessageTemplatePayload requestDto);
 
     /** delete methods */
-
+    ResponseEntity<? super BizTalkResponseDto> cancelTemplate(@Nullable String profileKey, @Nullable String templateCode);
 }

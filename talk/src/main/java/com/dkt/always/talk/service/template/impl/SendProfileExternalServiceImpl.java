@@ -23,7 +23,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Slf4j
 public class SendProfileExternalServiceImpl extends BizTalkCommonService implements SendProfileExternalService {
     /** Send Profile Management URL */
-    public static final String TEMPLATE_PROFILE_SELECT_PATH = "/sendProfile/select";    // 발신프로필 조회
+    // 발신프로필 조회
+    public static final String TEMPLATE_PROFILE_SELECT_PATH = "/sendProfile/select";
 
     /** Autowired Components */
     private final PlatformProperty platformProperty;

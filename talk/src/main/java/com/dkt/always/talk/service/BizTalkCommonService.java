@@ -16,8 +16,13 @@ public abstract class BizTalkCommonService {
         return makeUrl(endPoint, version, platform);
     }
 
-    public String getAlimTalkRequesetUrl(PlatformProperty platformProperty, @NotNull String endPoint, @NotNull String version) {
+    public String getAlimTalkRequestUrl(PlatformProperty platformProperty, @NotNull String endPoint, @NotNull String version) {
         Platform platform = platformProperty.getPlatforms().get("kakao_alim_talk");
+        return makeUrl(endPoint, version, platform);
+    }
+
+    public String getFriendTalkRequestUrl(PlatformProperty platformProperty, @NotNull String endPoint, @NotNull String version) {
+        Platform platform = platformProperty.getPlatforms().get("kakao_friend_talk");
         return makeUrl(endPoint, version, platform);
     }
 

@@ -248,7 +248,12 @@ public class KakaoBizTalkTemplateService {
 
     public KakaoBizTemplateResponse cancelRequest(Long trackKey, String profileKey, String templateCode) {
         log.info("KAKAO TEMPLATE, CANCEL REQUEST, TRACK KEY: {}, PROFILE KEY: {}, TEMPLATE CODE: {}", trackKey, profileKey, templateCode);
-        KakaoBizTemplateResponse templateResponse = externalOAuthWebClient.put().uri(getRequestUrl(TEMPLATE_CANCEL_REQUEST_PATH, "v2") + "/" + profileKey + "/" + templateCode).attributes(ServerOAuth2AuthorizedClientExchangeFilterFunction.clientRegistrationId("kakao-template")).retrieve().bodyToMono(KakaoBizTemplateResponse.class).block();
+        KakaoBizTemplateResponse templateResponse = externalOAuthWebClient.put()
+                .uri(getRequestUrl(TEMPLATE_CANCEL_REQUEST_PATH, "v2") + "/" + profileKey + "/" + templateCode)
+                .attributes(ServerOAuth2AuthorizedClientExchangeFilterFunction.clientRegistrationId("kakao-template"))
+                .retrieve()
+                .bodyToMono(KakaoBizTemplateResponse.class)
+                .block();
         log.info("templateResponse = {}", templateResponse);
 
         return templateResponse;

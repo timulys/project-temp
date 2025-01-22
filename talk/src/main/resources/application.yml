@@ -55,8 +55,20 @@ spring:
         registration:
           kakao-bizmsg:
             authorization-grant-type: client_credentials
-#            client-id: RCDKCI0000_001
-#            client-secret: RCDKCI0000_DGGMsl6CR8S+UJLjpoHKUQ
+            client-id: RCDKCI0000
+            client-secret: RCDKCI0000_FdZGtR0uTcecOX7PVwVW+g
+            scope:
+              - read
+              - write
+          kakao-alimtalk:
+            authorization-grant-type: client_credentials
+            client-id: RCDKCI0000
+            client-secret: RCDKCI0000_FdZGtR0uTcecOX7PVwVW+g
+            scope:
+              - read
+              - write
+          kakao-friendtalk:
+            authorization-grant-type: client_credentials
             client-id: RCDKCI0000
             client-secret: RCDKCI0000_FdZGtR0uTcecOX7PVwVW+g
             scope:
@@ -65,6 +77,10 @@ spring:
         provider:
           kakao-bizmsg:
             token-uri: https://web1.dktechinmsg.com/mng/v1/oauth/token
+          kakao-alimtalk:
+            token-uri: https://web1.dktechinmsg.com/v2/oauth/token
+          kakao-friendtalk:
+            token-uri: https://web1.dktechinmsg.com/v2/oauth/token
 
 application:
   platform:

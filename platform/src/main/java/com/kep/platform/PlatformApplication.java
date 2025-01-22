@@ -17,7 +17,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 	PlatformProperty.class, 
 	PortalProperty.class,
 	KaKaoSyncProperties.class // bnk 커스트텀 url 추가된 부분
-	})
+})
 @EnableScheduling
 @EnableFeignClients
 public class PlatformApplication {

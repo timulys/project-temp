@@ -331,6 +331,9 @@ public class AssignConsumer implements ChannelAwareMessageListener {
 		// TODO : 첫 인사말 전송 시 배정 상태가 assign에서 변경되는지 확인이 필요함(대화 중 등으로)
 		// TODO : saveWelcome을 통해 issue를 받아온 후 send로직은 따로 구현해야 할 듯
 		// TODO : 문제는 saveWelcome을 사용할 경우 별도의 log를 남기지 않는 다는 것. 해당 부분에 대한 수정이 필요함.
+		// TODO : 기능 추가 된다면 EventByOperatorService의 message의 첫 인사말 송신 비즈니스는 삭제해야 함.
+		// 자동메시지 (첫인사말)
+//		eventBySystemService.saveWelcome(issue);
 
 		// send issue by socket
 		IssueDto issueDto = issueMapper.map(issue);

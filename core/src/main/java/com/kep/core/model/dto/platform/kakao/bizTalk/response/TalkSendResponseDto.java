@@ -2,16 +2,14 @@ package com.kep.core.model.dto.platform.kakao.bizTalk.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.kep.core.model.dto.ResponseDto;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
 @Getter
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TalkSendResponseDto extends ResponseDto {
     private String uid;

@@ -6,7 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.event.PlatformEventDto;
 import com.kep.core.model.dto.platform.kakao.KakaoAlertSendEvent;
 import com.kep.core.model.dto.platform.kakao.KakaoBizTalkSendResponse;
+import com.kep.core.model.dto.platform.kakao.bizTalk.request.TalkSendRequestDto;
 import com.kep.core.model.dto.platform.kakao.bizTalk.response.TalkSendResponseDto;
+import com.kep.core.model.dto.platform.kakao.vo.Result;
 import com.kep.platform.client.PortalClient;
 import com.kep.platform.client.TalkServiceClient;
 import com.rabbitmq.client.Channel;
@@ -22,10 +24,8 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 카카오 알림톡 이벤트 전송 컨슈머
@@ -98,25 +98,16 @@ public class SendToKakaoAlertTalkConsumer implements ChannelAwareMessageListener
      * 발송 이벤트 처리
      */
     private void handleMessageEvent(@NotNull @Valid PlatformEventDto platformEventDto) throws Exception {
+        KakaoAlertSendEvent requestDto = objectMapper.readValue(platformEventDto.getPayload(), KakaoAlertSendEvent.class);
+        log.debug("KAKAO ALIM TALK SEND MESSAGE = {}", requestDto);
 
-        KakaoAlertSendEvent alertPayload = objectMapper.readValue(platformEventDto.getPayload(), KakaoAlertSendEvent.class);
-        log.debug("{}", objectMapper.writeValueAsString(alertPayload));
+        ResponseEntity<List<? super TalkSendResponseDto>> response = talkServiceClient.alimTalkSend(requestDto);
 
-        // TODO : 추후 정식 개발 시 해당 내용 어떻게 수정할 것인지 판단 필요
-        // FIXME : 일자(8) + 일련번호(9)
-        String serialNumber = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        serialNumber += "-" + UUID.randomUUID().toString().replace("-", "").substring(0, 9);
-        alertPayload.setSerialNumber(serialNumber);
-        alertPayload.setTemplateCode(alertPayload.getSendMessages().get(0).getTemplateCode());
-        alertPayload.setPhoneNumber(alertPayload.getSendMessages().get(0).getPhoneNumber());
-        alertPayload.setMessage(alertPayload.getSendMessages().get(0).getMessage());
-        alertPayload.setResponseMethod("push");
-
-        // TODO : AlimTalk Controller로 WebClient? Feign Client?
-        ResponseEntity<? super TalkSendResponseDto> response = talkServiceClient.send(alertPayload);
-//        KakaoBizTalkSendResponse send = kakaoAlertTalkService.send(alertPayload, platformEventDto.getTrackKey());
-
-        portalClient.sendMessageResponse(objectMapper.convertValue(response.getBody(), KakaoBizTalkSendResponse.class));
+        if (response.hasBody()) {
+            KakaoBizTalkSendResponse sendResponse =
+                    new KakaoBizTalkSendResponse(objectMapper.convertValue(response.getBody(), new TypeReference<List<Result>>() {}));
+            portalClient.sendMessageResponse(sendResponse);
+        }
     }
 
     /**

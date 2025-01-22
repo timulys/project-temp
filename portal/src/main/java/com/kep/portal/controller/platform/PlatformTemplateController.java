@@ -395,10 +395,10 @@ public class PlatformTemplateController {
 			"카카오 비즈 메세지 유저웹과 동일하게 이미지 파일 선택 시 즉시 업로드 되도록 처리")
 	@PostMapping("/upload/friend-talk/image")
 	@PreAuthorize("hasAnyAuthority('WRITE_KAKAO_FRIEND_TALK', 'WRITE_PLATFORM_TEMPLATE')")
-	public ResponseEntity<ApiResult<KakaoBizTemplateResponse>> uploadFriendImage(
+	public ResponseEntity<ApiResult<BizTalkResponseDto>> uploadFriendImage(
 			UploadPlatformRequestDto uploadDto) throws Exception {
-		KakaoBizTemplateResponse kakaoBizTemplateResponse = platformTemplateService.uploadFriendTemplateImage(uploadDto);
-		ApiResult<KakaoBizTemplateResponse> response = ApiResult.<KakaoBizTemplateResponse>builder()
+		BizTalkResponseDto kakaoBizTemplateResponse = platformTemplateService.uploadFriendTemplateImage(uploadDto);
+		ApiResult<BizTalkResponseDto> response = ApiResult.<BizTalkResponseDto>builder()
 				.code(ApiResultCode.succeed)
 				.payload(kakaoBizTemplateResponse)
 				.build();

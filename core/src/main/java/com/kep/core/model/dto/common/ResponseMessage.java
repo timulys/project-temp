@@ -14,5 +14,6 @@ public interface ResponseMessage {
     String BZM_CALL_FAILED = "BizMessageCenter Call Failed";
     String ALIM_TALK_CALL_FAILED = "AlimTalk Service Call Failed";
     String FRIEND_TALK_CALL_FAILED = "FriendTalk Service Call Failed";
+    String FRIEND_TALK_UNAVAILABLE_TIME = "FriendTalk Service Unavailable Time";
     String SERVER_ERROR = "Server Error";
 }

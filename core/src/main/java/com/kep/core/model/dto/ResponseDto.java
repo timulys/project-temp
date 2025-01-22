@@ -57,6 +57,15 @@ public class ResponseDto {
     }
 
     /**
+     * FriendTalk Service APi Call Failed Response
+     * @return
+     */
+    public static ResponseEntity<ResponseDto> friendTalkFailedMessage() {
+        return ResponseEntity.badRequest()
+                .body(new ResponseDto((ResponseCode.FRIEND_TALK_CALL_FAILED), ResponseMessage.FRIEND_TALK_CALL_FAILED));
+    }
+
+    /**
      * Biz Message Center API Processing Failed Response
      *
      * @return
