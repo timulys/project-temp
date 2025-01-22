@@ -157,7 +157,7 @@ public class EventBySystemService {
 	}
 
 	/**
-	 * 상담시작 공통 인사말, 플랫폼/소켓 전송은 안함
+	 * 상담시작 인사말 (공통 / 상담사), 플랫폼/소켓 전송은 안함
 	 */
 	@Nullable
 	public IssueLog saveWelcome(@NotNull Issue issue) {
