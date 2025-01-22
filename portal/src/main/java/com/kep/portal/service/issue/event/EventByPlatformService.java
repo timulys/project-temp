@@ -197,7 +197,7 @@ public class EventByPlatformService {
 		// TODO: 상담 요청시, 웰컴 메세지 필요한 경우
 		// AS-IS: 상담원이 첫 응대시, 웰컴 메세지 먼저 전송
 
-		log.info("EVNET BY PLATFORM, OPEN, RELAY OPTION: {}", modeProperty.getSaveBotHistoryWhenOpen());
+		log.info("EVENT BY PLATFORM, OPEN, RELAY OPTION: {}", modeProperty.getSaveBotHistoryWhenOpen());
 
 		// 카카오 상담톡인 경우, 봇 이력 수집
 		if (PlatformType.kakao_counsel_talk.equals(channel.getPlatform()) && modeProperty.getSaveBotHistoryWhenOpen()) {
