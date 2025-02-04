@@ -1,10 +1,6 @@
 package com.kep.portal.service.assign;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kep.portal.model.entity.customer.Customer;
-import com.kep.portal.repository.customer.CustomerRepository;
-import com.kep.portal.service.issue.IssueService;
-import com.rabbitmq.client.Channel;
 import com.kep.core.model.dto.issue.IssueDto;
 import com.kep.core.model.dto.issue.IssueStatus;
 import com.kep.core.model.dto.issue.IssueSupportStatus;
@@ -12,6 +8,7 @@ import com.kep.core.model.dto.notification.*;
 import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.config.property.SocketProperty;
 import com.kep.portal.model.dto.notification.NotificationInfoDto;
+import com.kep.portal.model.entity.customer.Customer;
 import com.kep.portal.model.entity.issue.Issue;
 import com.kep.portal.model.entity.issue.IssueAssign;
 import com.kep.portal.model.entity.issue.IssueMapper;
@@ -19,6 +16,7 @@ import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.model.entity.subject.IssueCategoryMember;
 import com.kep.portal.model.entity.team.Team;
 import com.kep.portal.model.entity.team.TeamMember;
+import com.kep.portal.repository.customer.CustomerRepository;
 import com.kep.portal.repository.issue.IssueRepository;
 import com.kep.portal.repository.issue.IssueSupportHistoryRepository;
 import com.kep.portal.repository.issue.IssueSupportRepository;
@@ -26,8 +24,10 @@ import com.kep.portal.repository.member.MemberRepository;
 import com.kep.portal.repository.subject.IssueCategoryMemberRepository;
 import com.kep.portal.repository.team.TeamMemberRepository;
 import com.kep.portal.repository.team.TeamRepository;
+import com.kep.portal.service.issue.IssueService;
 import com.kep.portal.service.issue.event.EventBySystemService;
 import com.kep.portal.service.notification.NotificationService;
+import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
@@ -93,8 +93,15 @@ public class AssignConsumer implements ChannelAwareMessageListener {
 	@Resource
 	private EventBySystemService eventBySystemService;
 
+	// TODO : 서브 담당자 요건 적용 시 주석 제거 volka
+//	@Resource
+//	private CustomerAssignMemberRepository customerAssignMemberRepository;
+
 	/**
 	 * 배정 프로세스
+	 *
+	 * 현재 IssueAssign 메시지가 issue.id 만 넘겨주게 되어 있으므로, 하위의 memberList 생성 로직은 의미 없음 volka
+	 *
 	 */
 	@Transactional
 	@Override
@@ -193,6 +200,26 @@ public class AssignConsumer implements ChannelAwareMessageListener {
 	}
 
 	/**
+	 * TODO :: 서브담당자 요건 확정 시 주석 제거
+	 * Customer 메인 담당자 (최근 상담사) 저장
+	 * @param customer
+	 * @param member
+	 */
+//	private void saveCustomerAssignMember(Customer customer, @NotNull Member member) {
+//		if (customer == null) return;
+//
+//		CustomerAssignMember assignMember = customerAssignMemberRepository.findByCustomer(customer)
+//				.orElse(null);
+//
+//		if (assignMember == null) {
+//			customerAssignMemberRepository.save(CustomerAssignMember.create(null, customer, member, null));
+//		} else {
+//			assignMember.modifyMainMember(member);
+//		}
+//	}
+
+
+	/**
 	 * 배정 성공시 프로세스
 	 * [2023.05.16/asher.shin/url 추가]
 	 */
@@ -235,6 +262,21 @@ public class AssignConsumer implements ChannelAwareMessageListener {
 				url = customer.getProfile();
 			}
 		}
+
+		/**
+		 * TODO : 지정 담당자 / 서브 담당자 추가 시 위 customer 로직 제거 후 아래 주석 제거
+		 * 배정 최근 상담사 저장 및 프로필 URL 지정
+ 		 */
+//		if (issue.getCustomerId() != null){
+//			Customer customer = customerRepository.findById(issue.getCustomerId())
+//					.orElse(issue.getGuest().getCustomer());
+//
+//			if (customer != null) {
+//				saveCustomerAssignMember(customer, member); // 최근 상담사 변경 (main)
+//				url = customer.getProfile();
+//			}
+//		}
+
 
 		// 상담 지원 요청에 의한 배정
 		// 상담 지원 요청에 따른 알림 처리 및 이력 저장 처리

@@ -96,4 +96,8 @@ public interface IssueRepository extends JpaRepository<Issue, Long>, IssueSearch
 	List<Issue> findByMemberIdAndCreatedGreaterThanEqual(Long memberId, ZonedDateTime startDateTime);
 
 	List<Issue> findAllByCreatedBetween(ZonedDateTime start , ZonedDateTime end);
+
+	// FIXME :: 가장 최근 상담사 조회용. member 정보만 사용할 거. 향후 담당자 지정, 서브 담당자 개념 도입시 해당 쿼리 제거 202402024 volka
+	@EntityGraph(attributePaths = "member")
+    Optional<Issue> findTopByCustomerIdAndStatusOrderByCreatedDesc(Long id, IssueStatus status);
 }

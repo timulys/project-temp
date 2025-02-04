@@ -39,14 +39,14 @@ public class SaveIssueSummaryCategoryRequest {
     private Long parentId;
 
     public IssueSummaryCategory toEntity(Long memberId, IssueSummaryCategory parent) {
-        return IssueSummaryCategory.builder()
-                .id(issueSummaryCategoryId)
-                .name(name)
-                .sort(sort)
-                .depth(depth)
-                .enabled(enabled)
-                .parent(parent)
-                .memberId(memberId)
-                .build();
+        return IssueSummaryCategory.create(
+                issueSummaryCategoryId,
+                parent,
+                name,
+                sort,
+                depth,
+                enabled,
+                memberId
+        );
     }
 }
