@@ -417,6 +417,7 @@ public class KakaoCounselParser {
 		}
 
 		return contents.stream().map(content -> IssuePayload.Section.builder()
+				.type(getSectionType(messageType))
 				.display(getDisplayOfFileSection(messageType))
 				.data(((Map<String, String>) content).get("url"))
 				.name(((Map<String, String>) content).get("comment"))
