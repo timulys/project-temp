@@ -2,6 +2,7 @@ package com.kep.platform.util;
 
 import com.kep.platform.config.property.CoreProperty;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Set;
 
 /**
  * 파일 유틸리티
@@ -20,6 +22,10 @@ public class FileUtils {
 
 	@Resource
 	private CoreProperty coreProperty;
+
+	@Value("${spring.cloud.discovery.client.simple.instances.portal-service[0].uri}")
+	private String portalServiceUrl;
+
 
 	private static final int CONNECTION_TIME_OUT = 1000 * 2;
 	private static final int READ_TIME_OUT = 1000 * 5;
@@ -52,7 +58,7 @@ public class FileUtils {
 	}
 
 	private URL createPortalServiceUrl(String sourceUrl) throws MalformedURLException {
-		return new URL(sourceUrl.replace(coreProperty.getPortalDomain(), coreProperty.getPortalServiceUri()));
+		return new URL(sourceUrl.replace(coreProperty.getPortalDomain(), portalServiceUrl));
 	}
 
 
