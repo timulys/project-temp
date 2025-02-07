@@ -17,6 +17,8 @@ public class CoreProperty {
 
 	@NotEmpty
 	private String portalServiceUri;
+	@NotEmpty
+	private String portalDomain;
 
 	private ProxyServer proxyServer;
 
