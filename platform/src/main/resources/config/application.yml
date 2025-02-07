@@ -149,6 +149,7 @@ management:
 application:
   core:
     portal-service-uri: http://portal-service/portal
+    portal-domain: https://always-talk.kakaoiconnect.ai/portal
     proxy-server:
       host: kep-talk2.codeclick.co.kr
       port: 8888
