@@ -33,8 +33,8 @@ public class KakaoCounselReceiveEvent {
 	 */
 	@NotEmpty
 	@Schema(description = "메시지를 수신한 발신프로필 키")
-	private String serviceKey;
-//	private String senderKey;
+//	private String serviceKey;
+	private String senderKey;
 
 	// ////////////////////////////////////////////////////////////////////////
 	// Message Event Only
