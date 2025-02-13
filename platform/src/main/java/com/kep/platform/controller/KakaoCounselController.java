@@ -148,7 +148,7 @@ public class KakaoCounselController {
 		KakaoCounselReceiveEvent kakaoCounselReceiveEvent = objectMapper.readValue(requestBody, KakaoCounselReceiveEvent.class);
 		return PlatformEventDto.builder()
 				.platformType(PlatformType.kakao_counsel_talk)
-				.serviceKey(kakaoCounselReceiveEvent.getSenderKey())
+				.serviceKey(kakaoCounselReceiveEvent.getServiceKey())
 				.userKey(kakaoCounselReceiveEvent.getUserKey())
 				.eventKey(String.valueOf(kakaoCounselReceiveEvent.getSerialNumber()))
 				.payload(requestBody)

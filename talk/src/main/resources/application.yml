@@ -12,41 +12,17 @@ server:
 spring:
   application:
     name: talk
+  config:
+    import:
+      - optional:./mysql-dev.yml
+#      - optional:./mysql-local.yml
 
   jackson:
     property-naming-strategy: SNAKE_CASE
 
-  zipkin:
-    base-url: http://localhost:9411
-    enabled: true
-
-  datasource:
-    url: jdbc:mysql://localhost:3306/always
-    username: root
-    password: always23!
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      maximum-pool-size: 30
-    sql:
-      init:
-        mode: never
-        platform: mysql
-    jpa:
-      database-platform: org.hibernate.dialect.MySQL57Dialect
-      show-sql: true
-      open-in-view: false
-      defer-datasource-initialization: true
-      hibernate:
-        ddl-auto: update
-      generate-ddl: false
-      properties:
-        hibernate:
-          globally_quoted_identifiers: true
-          format_sql: true
-          use_sql_comments: true
-          default_batch_fetch_size: 1000
-          temp:
-            use_jdbc_metadata_defaults: false
+#  zipkin:
+#    base-url: http://localhost:9411
+#    enabled: true
 
   security:
     debug: true
@@ -90,11 +66,9 @@ application:
         api-key: ${KAKAO_BIZ_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
       kakao_friend_talk:
         api-base-url: https://web1.dktechinmsg.com
-#        api-base-url: https://bzm-api.kakao.com
         api-key: ${KAKAO_BIZ_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
       kakao_template:
         api-base-url: https://web1.dktechinmsg.com/mng
-#        api-base-url: https://bzm-center.kakao.com/api
         api-key: ${KAKAO_BIZ_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
 
 logging:
@@ -106,15 +80,15 @@ logging:
     correlation: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'
 
 management:
-  tracing:
-    sampling:
-      probability: 1.0
-    propagation:
-      consume: B3
-      produce: B3
-  zipkin:
-    tracing:
-      endpoint: http://localhost:9411/api/v2/spans
+#  tracing:
+#    sampling:
+#      probability: 1.0
+#    propagation:
+#      consume: B3
+#      produce: B3
+#  zipkin:
+#    tracing:
+#      endpoint: http://localhost:9411/api/v2/spans
   endpoints:
     web:
       exposure:

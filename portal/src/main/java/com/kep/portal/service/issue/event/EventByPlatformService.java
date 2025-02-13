@@ -117,36 +117,25 @@ public class EventByPlatformService {
 	 * 상담 요청 이벤트
 	 */
 	public IssueDto open(@NotNull PlatformType platform, @NotEmpty String serviceKey, @NotEmpty String userKey, @NotNull Map<String, Object> options, Long trackKey) {
-
 		// 채널 검색
 		Channel channel = verifyChannel(platform, serviceKey);
-
 		// 비식별 고객 검색 및 생성
 		Guest guestSearch = Guest.builder().channelId(channel.getId()).userKey(userKey).build();
 		Guest guest = guestService.findOne(Example.of(guestSearch));
 		if (guest == null) {
-			guestSearch.setPlatformUserId((String) options.get("appUserId"));
+			// appUserId : Bot이 비즈니스 앱과 연결되어 있는 경우 Bot을 실행한 사용자가 해당 앱의 가입자일 때, 앱에서 발급된 계정의 userId
+			// 즉 해당 Guest가 챗봇으로 대화를 실행한 경우 appUserId가 발행됨.
+			// TODO : 현재는 appUserId를 별도로 사용하고 있지 않음. 그러니 해당 내용은 주석, 추후 해당 내용이 필요해진다면 그때 다시 비즈니스 분석 해볼 것
 			guest = guestService.save(guestSearch);
 			Assert.notNull(guest, "failed create guest");
-		} else {
-			if(ObjectUtils.isEmpty(guest.getPlatformUserId())) {
-				guest.setPlatformUserId((String) options.get("appUserId"));
-				guest = guestService.save(guest);
-				Assert.notNull(guest, "failed update guest");
-			}
 		}
 		
-		// 식별 고객 검색
-		Long customerId = guest.getCustomer() != null ? guest.getCustomer().getId() : null;
-		if(!ObjectUtils.isEmpty(guest.getPlatformUserId())) {
-			List<CustomerAuthorized> customerAuthorizedList = customerAuthorizedRepository.findByPlatformUserIdOrderByIdDesc(guest.getPlatformUserId());
-			if(!customerAuthorizedList.isEmpty()) {
-				customerId = customerAuthorizedList.stream().findFirst().get().getCustomerId();
-				guest.setCustomer(Customer.builder().id(customerId).build());
-				guest = guestService.save(guest);
-			}
+		// 식별 고객 여부 확인
+		Long customerId = null; //guest.getCustomer() != null ? guest.getCustomer().getId() : null;
+		if(guest.getCustomer() != null) {
+			customerId = guest.getCustomer().getId();
 		}
-		
+
 		// 진행중 이슈 검색
 		// NOTE: 채널당 한 개 이슈만 진행 가능 (카카오 상담톡 기준)
 		Issue issue = issueService.findOngoingByPlatform(channel.getId(), guest.getId());
@@ -155,13 +144,13 @@ public class EventByPlatformService {
 			log.warn("EVENT BY PLATFORM, OPEN, EXIST ONGOING ISSUE: {}, TRACK KEY: {}", issue.getId(), trackKey);
 			return issueMapper.map(issue);
 		}
+
 		// 브랜치 파라미터
 		Long branchId = getBranch(options);
 		// 분류 파라미터
 		IssueCategory issueCategory = getIssueCategory(options);
 		// 유입 경로 파라미터
 		String inflow = getInflow(branchId, channel.getServiceId(), options);
-
 		// 이슈 생성
 		issue = createIssueByOpen(branchId, channel, guest, issueCategory, customerId);
 
@@ -206,10 +195,6 @@ public class EventByPlatformService {
 
 		// 소켓으로 이슈 전송
 		simpMessagingTemplate.convertAndSend(socketProperty.getIssuePath(), issueDto);
-		// 배정 스케줄에 추가
-//		assignProducer.sendMessage(IssueAssign.builder()
-//				.id(issueDto.getId())
-//				.build());
 
 		// 배정 스케줄러 다이렉트 호출 안하도록 수정 (로직 자체는 유지)
 		// 채팅 요청 이후 스케줄러가 돌아서 상담원 매칭 전에 고객이 채팅 입력 하는 경우 방지를 위해서

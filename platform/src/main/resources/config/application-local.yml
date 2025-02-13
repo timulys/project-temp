@@ -51,7 +51,8 @@ application:
         api-base-url: https://bzm-center.kakao.com/api
         api-key: ${KAKAO_BIZ_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
 serviceIdKey:
-  bnk: /open/@mtk27zwymtu3oou?extra=
+  always: /@ntezrdc3njvlvcb
+#  bnk: /open/@mtk27zwymtu3oou?extra=
 
 #Swagger
 springdoc:

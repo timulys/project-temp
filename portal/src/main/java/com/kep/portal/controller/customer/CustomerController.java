@@ -97,46 +97,15 @@ public class CustomerController {
      * @param id
      * @return
      */
-//    @Tag(name = "고객 API")
-//    @GetMapping(value = "/{id}")
-//    public ResponseEntity<ApiResult<CustomerDto>> show(@PathVariable("id") String idString) {
-//        log.info("CUSTOMER, SEARCH ID :{}", idString);
-//        try {
-//            if(idString == null || idString.trim().isEmpty() || !idString.matches("\\d+")) {
-//                // id가 null, 빈 문자열이거나 숫자가 아닌 경우
-//                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-//            }
-//            Long id = Long.parseLong(idString);
-//
-//            CustomerDto entity = customerService.show(id);
-//            ApiResult<CustomerDto> response = ApiResult.<CustomerDto>builder()
-//                    .code(ApiResultCode.succeed)
-//                    .payload(entity)
-//                    .build();
-//            return new ResponseEntity<>(response, HttpStatus.OK);
-//        } catch (EntityNotFoundException e) {
-//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-//        } catch (NumberFormatException e) {
-//            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-//        }
-//    }
-
-    /**
-     * 고객 정보
-     * @param id
-     * @return
-     */
     @Tag(name = "고객 API")
     @Operation(summary = "고객 정보 단건 조회", description = "고객 정보 단건 조회")
     @GetMapping(value = "/{id}")
     public ResponseEntity<ApiResult<CustomerDto>> show(
             @Parameter(description = "고객 아이디", in = ParameterIn.PATH, required = true)
-            @PathVariable("id") Long id
-            ,@Parameter(description = "이슈 아이디", in = ParameterIn.QUERY)
-            @RequestParam(required = false) Long issueId) {
+            @PathVariable("id") Long id) {
 
-        CustomerDto entity = customerService.show(id,issueId);
-        log.info("[customerId]:{}",entity);
+        CustomerDto entity = customerService.show(id);
+        log.info("[customer]:{}", entity);
         ApiResult<CustomerDto> response = ApiResult.<CustomerDto>builder()
                 .code(ApiResultCode.succeed)
                 .payload(entity)

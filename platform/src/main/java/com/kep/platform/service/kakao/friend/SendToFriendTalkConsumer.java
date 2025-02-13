@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.event.PlatformEventDto;
 import com.kep.core.model.dto.platform.kakao.KakaoBizTalkSendResponse;
 import com.kep.core.model.dto.platform.kakao.KakaoFriendSendEvent;
-import com.kep.core.model.dto.platform.kakao.bizTalk.request.TalkSendRequestDto;
 import com.kep.core.model.dto.platform.kakao.bizTalk.response.TalkSendResponseDto;
 import com.kep.core.model.dto.platform.kakao.vo.Result;
 import com.kep.platform.client.PortalClient;
@@ -24,7 +23,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 카카오 친구톡 이벤트 전송 컨슈머

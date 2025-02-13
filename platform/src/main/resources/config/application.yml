@@ -48,9 +48,6 @@ spring:
           enabled: true
           jitter: 0.5
 
-
-
-
   #    sentinel:
   #      master: ${spring.application.name}
   #      nodes:
@@ -75,19 +72,17 @@ spring:
               - message.write
           kakao-bizmsg:
             authorization-grant-type: client_credentials
+            # tim.c : DKT Biz Message API Key
             client-id: RCDKCI0000
             client-secret: RCDKCI0000_FdZGtR0uTcecOX7PVwVW+g
-#            client-id: R000000071
-#            client-secret: R000000071_uFkrhKtpTVeca4fZnn2GiA
             scope:
               - read
               - write
           kakao-template:
             authorization-grant-type: client_credentials
+            # tim.c : DKT Biz Message API Key
             client-id: RCDKCI0000_001
             client-secret: RCDKCI0000_DGGMsl6CR8S+UJLjpoHKUQ
-#            client-id: R000000071
-#            client-secret: R000000071_uFkrhKtpTVeca4fZnn2GiA
             scope:
               - read
               - write
@@ -106,10 +101,8 @@ spring:
             token-uri: http://localhost:9001/oauth2/token
           kakao-bizmsg:
             token-uri: https://web1.dktechinmsg.com/v1/oauth/token
-#            token-uri: https://bizmsg-web.kakaoenterprise.com/v1/oauth/token
           kakao-template:
             token-uri: https://web1.dktechinmsg.com/mng/v1/oauth/token
-#            token-uri: https://bizmsg-web.kakaoenterprise.com/mng/v1/oauth/token
           kakao-sync:
             authorization-uri: https://kauth.kakao.com/oauth/authorize
             token-uri: https://kauth.kakao.com/oauth/token
@@ -152,6 +145,7 @@ management:
         include: '*'
 
 application:
+  talk: http://localhost:8090/talk
   core:
     portal-service-uri: http://portal-service/portal
     proxy-server:
@@ -175,11 +169,9 @@ application:
       kakao_counsel_talk:
         api-base-url: https://bzc-api.kakao.com
         api-key: ${KAKAO_COUNSEL_API_KEY:75255f38d08ff785b5695b43e4d2fdc6819c77de}
-      #        api-key: ${KAKAO_COUNSEL_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
       kakao_counsel_center:
         api-base-url: https://bzm-center.kakao.com/api
         api-key: ${KAKAO_COUNSEL_API_KEY:75255f38d08ff785b5695b43e4d2fdc6819c77de}
-      #        api-key: ${KAKAO_COUNSEL_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
       kakao_alert_talk:
         api-base-url: https://bizmsg-web.kakaoenterprise.com
         api-key: ${KAKAO_BIZ_API_KEY:1234}
@@ -188,7 +180,6 @@ application:
         api-key: ${KAKAO_BIZ_API_KEY:1234}
       kakao_template:
         api-base-url: https://web1.dktechinmsg.com/
-#        api-base-url: https://bizmsg-web.kakaoenterprise.com
         api-key: ${KAKAO_BIZ_API_KEY:1234}
     # TODO: 저장소 및 관리
     clients:
