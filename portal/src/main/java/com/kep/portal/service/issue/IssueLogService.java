@@ -2,6 +2,7 @@ package com.kep.portal.service.issue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.issue.IssueLogDto;
+import com.kep.core.model.dto.issue.IssueLogStatus;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
 import com.kep.portal.config.property.ModeProperty;
 import com.kep.portal.config.property.PortalProperty;
@@ -165,7 +166,12 @@ public class IssueLogService {
 				for (IssuePayload.Chapter chapter : issuePayload.getChapters()) {
 					for (IssuePayload.Section section : chapter.getSections()){
 						if(section.getType().equals(IssuePayload.SectionType.text)){
-							String data = forbiddenService.changeForbiddenToMasking(section.getData());
+							String data = null;
+							if(dto.getStatus().equals(IssueLogStatus.receive)) {
+								data = forbiddenService.changeForbiddenToMasking(section.getData());
+							} else {
+								data = section.getData();
+							}
 							section.setData(data);
 						}
 					}
