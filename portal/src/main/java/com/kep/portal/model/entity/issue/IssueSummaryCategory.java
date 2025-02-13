@@ -1,5 +1,6 @@
 package com.kep.portal.model.entity.issue;
 
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import org.hibernate.annotations.ColumnDefault;
@@ -75,16 +76,16 @@ public class IssueSummaryCategory {
         this.modifiedAt = ZonedDateTime.now();
     }
 
-    @Builder
-    private IssueSummaryCategory(Long id, IssueSummaryCategory parent, String name, Integer sort, Integer depth, Boolean enabled, Long memberId) {
+    @Builder(access = AccessLevel.PRIVATE)
+    private IssueSummaryCategory(Long id, IssueSummaryCategory parent, String name, Integer sort, Integer depth, Boolean enabled, Long creator, Long modifier) {
         this.id = id;
         this.parent = parent;
         this.name = name;
         this.sort = sort;
         this.depth = depth;
         this.enabled = enabled;
-        this.creator = memberId;
-        this.modifier = memberId;
+        this.creator = creator;
+        this.modifier = modifier;
     }
 
     public static IssueSummaryCategory create(Long id, IssueSummaryCategory parent, @NotBlank String name, @NotNull Integer sort, @NotNull Integer depth, @NotNull Boolean enabled, @NotNull Long memberId) {
@@ -95,9 +96,11 @@ public class IssueSummaryCategory {
                 .sort(sort)
                 .depth(depth)
                 .enabled(enabled)
-                .memberId(memberId)
+                .creator(id == null ? memberId : null)
+                .modifier(memberId)
                 .build();
     }
+
 
     public void modify(@NotBlank String name, @NotNull Integer sort, @NotNull Boolean enabled, @NotNull Long memberId) {
         this.name = name;
