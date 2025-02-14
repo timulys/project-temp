@@ -1,0 +1,95 @@
+server:
+  port: ${SERVER_PORT:8090}
+  servlet:
+    context-path: /${spring.application.name}
+  error:
+    whitelabel:
+      enabled: false
+    include-exception: true
+  tomcat:
+    max-http-request-size: 100MB
+
+spring:
+  application:
+    name: talk
+  config:
+    import:
+      - optional:./mysql-dev.yml
+#      - optional:./mysql-local.yml
+
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+
+#  zipkin:
+#    base-url: http://localhost:9411
+#    enabled: true
+
+  security:
+    debug: true
+    oauth2:
+      client:
+        registration:
+          kakao-bizmsg:
+            authorization-grant-type: client_credentials
+            client-id: RCDKCI0000
+            client-secret: RCDKCI0000_FdZGtR0uTcecOX7PVwVW+g
+            scope:
+              - read
+              - write
+          kakao-alimtalk:
+            authorization-grant-type: client_credentials
+            client-id: RCDKCI0000
+            client-secret: RCDKCI0000_FdZGtR0uTcecOX7PVwVW+g
+            scope:
+              - read
+              - write
+          kakao-friendtalk:
+            authorization-grant-type: client_credentials
+            client-id: RCDKCI0000
+            client-secret: RCDKCI0000_FdZGtR0uTcecOX7PVwVW+g
+            scope:
+              - read
+              - write
+        provider:
+          kakao-bizmsg:
+            token-uri: https://web1.dktechinmsg.com/mng/v1/oauth/token
+          kakao-alimtalk:
+            token-uri: https://web1.dktechinmsg.com/v2/oauth/token
+          kakao-friendtalk:
+            token-uri: https://web1.dktechinmsg.com/v2/oauth/token
+
+application:
+  platform:
+    platforms:
+      kakao_alim_talk:
+        api-base-url: https://web1.dktechinmsg.com
+        api-key: ${KAKAO_BIZ_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
+      kakao_friend_talk:
+        api-base-url: https://web1.dktechinmsg.com
+        api-key: ${KAKAO_BIZ_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
+      kakao_template:
+        api-base-url: https://web1.dktechinmsg.com/mng
+        api-key: ${KAKAO_BIZ_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
+
+logging:
+  level:
+    com.dkt.always.talk: debug
+    org.springframework.security: debug
+    org.springframework.web.reactive.function.client: debug
+  pattern:
+    correlation: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'
+
+management:
+#  tracing:
+#    sampling:
+#      probability: 1.0
+#    propagation:
+#      consume: B3
+#      produce: B3
+#  zipkin:
+#    tracing:
+#      endpoint: http://localhost:9411/api/v2/spans
+  endpoints:
+    web:
+      exposure:
+        include: health, httptrace, info, metrics, prometheus

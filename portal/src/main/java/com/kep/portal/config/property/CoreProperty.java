@@ -23,6 +23,9 @@ public class CoreProperty {
 	
 	private String syncClientId;
 
+	@NotEmpty
+	private String talkServiceUri;
+
 	@Validated
 	@Data
 	public static class Server {

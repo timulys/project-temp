@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.kep.core.model.dto.platform.BizTalkMessageType;
 import com.kep.core.model.dto.platform.PlatformTemplateStatus;
+import com.kep.core.model.dto.platform.kakao.vo.Comment;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,6 +19,7 @@ import java.util.List;
 
 /**
  * 카카오 비즈톡 템플릿 포맷
+ * FIXME : 추후 DTO 객체 개선 진행 예정(jhchoi)
  * <p>
  * https://stg-web.bizmsg.kakaoenterprise.com/api-docs/index.html#
  */
@@ -122,8 +124,18 @@ public class KakaoBizMessageTemplatePayload {
     /**
      * 검수 상태
      */
+    @Deprecated // FIXME : 추후 삭제 예정
     @Schema(description = "검수 상태")
     private String kepStatus;
+    /**
+     * 검수 상태
+     * REG: 등록
+     * REQ: 심사요청
+     * APR: 승인
+     * REJ: 반려
+     */
+    @Schema(description = "검수상태")
+    private String inspectionStatus;
 
     /**
      * 템플릿 메시지 유형(BA: 기본형, EX: 부가 정보형, AD: 광고 추가형, MI: 복합형)
@@ -138,6 +150,7 @@ public class KakaoBizMessageTemplatePayload {
             "MI : templateExtra, templateAd 필드 필수, 그룹 템플릿 사용 불가")
     private TemplateMessageType templateMessageType;
 
+    @Deprecated // TODO : 삭제 예정
     public enum TemplateMessageType {
         BA, EX, AD, MI
     }
@@ -194,6 +207,8 @@ public class KakaoBizMessageTemplatePayload {
     private TemplateItem templateItem;
     @Schema(description = "")
     private List<TemplateComment> templateComments;
+    @Schema(description = "검수결과 댓글리스트")
+    private List<Comment> comments;
 
 
     /**

@@ -25,6 +25,7 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,8 +82,7 @@ public class PlatformAuthController {
 		if (!ObjectUtils.isEmpty(code)) {
 			syncRedirectUrl = kakaoSyncService.authorized(code, requestParams);
 		}
-		
-		
+
 		if(!ObjectUtils.isEmpty(syncRedirectUrl)) {
 			HttpHeaders headers = new HttpHeaders();
 	        headers.setLocation(new URI(syncRedirectUrl));
@@ -98,6 +98,7 @@ public class PlatformAuthController {
 		ApiResult<Map<String, Object>> apiResult = ApiResult.<Map<String, Object>>builder()
 				.code(ApiResultCode.succeed)
 				.build();
+
 		return new ResponseEntity<>(apiResult, HttpStatus.OK);
 	}
 
@@ -105,8 +106,9 @@ public class PlatformAuthController {
 	@Operation(summary = "카카오 OAuth 인증 페이지 리다이렉트")
 	@GetMapping(value = "/kakao-sync/getSync")
 	public String customSyncRequest(@RequestHeader HttpHeaders httpHeaders, @RequestParam String state){
-	log.info("▶▶▶::카카오 커스텀 싱크 요청 URL: {}", state);
+		log.info("▶▶▶::카카오 커스텀 싱크 요청 URL: {}", state);
 		String jsonState = convertStateToJson(state);
+
 		// URL 인코딩을 추가
 	    try {
 	        jsonState = URLEncoder.encode(jsonState, StandardCharsets.UTF_8.toString());
@@ -120,40 +122,21 @@ public class PlatformAuthController {
 	            "&response_type=code&redirect_uri=" + kaKaoSyncProperties.getRedirectUri() +
 	            "&state=" + jsonState; 
 
-//	    log.info("▶▶▶::OAuth URL로 리다이렉트: {}", oauthUrl);
-
 	    return "redirect:" + oauthUrl;
 	}
 	
 	private String convertStateToJson(String state) {
-	    String[] pairs = state.split("__");
 	    Map<String, String> stateMap = new HashMap<>();
 
-	    for(String pair : pairs) {
-	        // 각 행에서 키와 값을 분리하기 위해 '_'를 기준으로 문자열을 분할
-	        String[] keyValue = pair.split("_", 2);
-	        if (keyValue.length == 2) {
-	            // 키에 '_'가 포함되어 있는 경우 처리
-	            String key = keyValue[0];
-	            String value = keyValue[1];
+		Arrays.stream(state.split("__")) // TODO : State 값이 많아지면 어떻게 Split 기준을 삼을 것인지 파악 필요
+				.map(pair -> pair.split("_")) // Key : Value
+				.forEach(arr -> stateMap.put(arr[0], arr[1]));
 
-	            // "mgt"와 "ymd"를 "mgt_ymd"로 결합
-	            if (key.equals("mgt") && value.startsWith("ym")) {
-	                key = "mgt_ym";
-	                value = value.substring(4); // "ymd_" 다음의 값을 가져옴
-	            }
-	            // "vndr"와 "cust_no"를 "vndr_cust_no"로 결합
-	            if (key.equals("vndr") && value.startsWith("cust_no")) {
-	                key = "vndr_cust_no";
-	                value = value.substring(8); // "cust_no_" 다음의 값을 가져옴
-	            }
-	            stateMap.put(key, value);
-	        }
-	    }
 	    try {
 	        // Map을 JSON 문자열로 변환
 	        String jsonResult = new ObjectMapper().writeValueAsString(stateMap);
 	        log.info("Converted JSON: {}", jsonResult);
+
 	        return jsonResult;
 	    } catch (JsonProcessingException e) {
 	        log.error("Error converting state to JSON", e);

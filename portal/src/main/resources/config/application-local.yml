@@ -25,6 +25,9 @@ spring:
             platform-service:
               - uri: http://localhost:9000/platform
               - uri: http://127.0.0.1:9000/platform
+            talk-service:
+              - uri: http://localhost:8090/talk
+              - uri: http://127.0.0.1:8090/talk
 
   rabbitmq:
     host: localhost

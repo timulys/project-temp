@@ -9,8 +9,6 @@ import javax.validation.constraints.NotNull;
 
 public interface PlatformTemplateSearchRepository {
 
-    Long selectKey();
-
     Page<PlatformTemplate> search(PlatformTemplateCondition platformTemplateCondition, @NotNull Pageable pageable);
 
 }

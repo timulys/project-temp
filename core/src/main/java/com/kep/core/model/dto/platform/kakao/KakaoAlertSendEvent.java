@@ -22,14 +22,24 @@ import java.util.List;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class KakaoAlertSendEvent {
-
     /**
      * 고객사 ID
      */
     private String clientId;
 
+    /**
+     * 알림톡 메시지 타입
+     * AT	알림톡
+     * AI	이미지 알림톡
+     */
     @NotNull
     private BizTalkMessageType messageType;
+
+    /**
+     * 메시지 고유 일련번호
+     * 일자-일련번호
+     */
+    private String serialNumber;
 
     /**
      * 발신 프로필 키
@@ -37,6 +47,37 @@ public class KakaoAlertSendEvent {
     @NotEmpty
     private String senderKey;
 
+    /**
+     * 사용자 전화번호
+     */
+    @NotEmpty
+    @Size(max = 16)
+    private String phoneNumber;
+
+    /**
+     * 템플릿 코드
+     */
+    @NotEmpty
+    @Size(max = 30)
+    private String templateCode;
+
+    /**
+     * 메시지 본문
+     * 최대 1000자 (공백포함)
+     * TODO : 채널추가 버튼이 있는 경우 960자로 제한
+     */
+    @NotEmpty
+    @Size(max = 1000)
+    private String message;
+
+    /**
+     * 응답 수신 메소드
+     * push (권장)
+     * polling
+     * realtime
+     */
+    @NotEmpty
+    private String responseMethod;
 
     @NotEmpty
     private List<Message> sendMessages;
@@ -60,7 +101,6 @@ public class KakaoAlertSendEvent {
          */
         @Size(max = 50)
         private String kkoTitle;
-
 
         @NotEmpty
         @Size(max = 16)

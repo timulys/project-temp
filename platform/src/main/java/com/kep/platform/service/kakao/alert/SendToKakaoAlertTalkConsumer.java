@@ -4,14 +4,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.event.PlatformEventDto;
-import com.kep.core.model.dto.platform.PlatformType;
 import com.kep.core.model.dto.platform.kakao.KakaoAlertSendEvent;
 import com.kep.core.model.dto.platform.kakao.KakaoBizTalkSendResponse;
+import com.kep.core.model.dto.platform.kakao.bizTalk.response.TalkSendResponseDto;
+import com.kep.core.model.dto.platform.kakao.vo.Result;
 import com.kep.platform.client.PortalClient;
+import com.kep.platform.client.TalkServiceClient;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.StopWatch;
@@ -35,6 +38,8 @@ public class SendToKakaoAlertTalkConsumer implements ChannelAwareMessageListener
     private ObjectMapper objectMapper;
     @Resource
     private PortalClient portalClient;
+    @Resource
+    private TalkServiceClient talkServiceClient;
 
     /**
      * 큐서버에서 받은 이벤트 처리
@@ -90,14 +95,17 @@ public class SendToKakaoAlertTalkConsumer implements ChannelAwareMessageListener
     /**
      * 발송 이벤트 처리
      */
-    private void handleMessageEvent(
-            @NotNull @Valid PlatformEventDto platformEventDto) throws Exception {
+    private void handleMessageEvent(@NotNull @Valid PlatformEventDto platformEventDto) throws Exception {
+        KakaoAlertSendEvent requestDto = objectMapper.readValue(platformEventDto.getPayload(), KakaoAlertSendEvent.class);
+        log.debug("KAKAO ALIM TALK SEND MESSAGE = {}", requestDto);
 
-        KakaoAlertSendEvent alertPayload = objectMapper.readValue(platformEventDto.getPayload(), KakaoAlertSendEvent.class);
-        log.debug("{}", objectMapper.writeValueAsString(alertPayload));
-        KakaoBizTalkSendResponse send = kakaoAlertTalkService.send(alertPayload, platformEventDto.getTrackKey());
+        ResponseEntity<List<? super TalkSendResponseDto>> response = talkServiceClient.alimTalkSend(requestDto);
 
-        portalClient.sendMessageResponse(send);
+        if (response.hasBody()) {
+            KakaoBizTalkSendResponse sendResponse =
+                    new KakaoBizTalkSendResponse(objectMapper.convertValue(response.getBody(), new TypeReference<List<Result>>() {}));
+            portalClient.sendMessageResponse(sendResponse);
+        }
     }
 
     /**

@@ -64,6 +64,9 @@ application:
     api-version: 1
     api-base-path: /legacy/api/v1
     customer-path: /customer
+  talk:
+    api-version: 2
+    api-base-path: /api/v${application.talk.api-version}
   socket:
     endpoint: /${spring.application.name}-ws
     general-path: /topic/general

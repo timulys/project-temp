@@ -294,7 +294,9 @@ public class PortalController {
 
     /**
      * 클라이언트 ID
+     * @Deprecated
      */
+    @Deprecated
     @Tag(name = "포탈 수신 API")
     @Operation(summary = "클라이언트 ID 조회")
     @GetMapping("selectKakaoTemplateClientId")
@@ -332,9 +334,7 @@ public class PortalController {
     @Tag(name = "포탈 수신 API")
     @Operation(summary = "알림톡 발송")
     @PostMapping("/alert-talk")
-    public ResponseEntity<ApiResult<KakaoBizTalkSendResponse>> sendAlertTalk(
-            @RequestBody String alertEventBody
-    ) {
+    public ResponseEntity<ApiResult<KakaoBizTalkSendResponse>> sendAlertTalk(@RequestBody String alertEventBody) {
         PlatformEventDto platformEventDto = PlatformEventDto.builder()
                 .platformType(PlatformType.kakao_alert_talk)
                 .platformEventType(PlatformEventType.MESSAGE)
@@ -356,8 +356,7 @@ public class PortalController {
     @GetMapping("/alert-talk")
     public ResponseEntity<ApiResult<KakaoBizTalkSendResponse>> getAlertTalkResults(
             @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
-            @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey
-    ) {
+            @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey) {
         KakaoBizTalkSendResponse result = kakaoAlertTalkService.result(trackKey);
         ApiResult<KakaoBizTalkSendResponse> response = ApiResult.<KakaoBizTalkSendResponse>builder()
                 .code(ApiResultCode.succeed)
@@ -373,8 +372,7 @@ public class PortalController {
             @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") @NotNull Long trackKey,
             @Parameter(description = "리포트 그룹 번호", in = ParameterIn.PATH, required = true)
-            @PathVariable(value = "reportGroupNo") String reportGroupNo
-    ) {
+            @PathVariable(value = "reportGroupNo") String reportGroupNo) {
         KakaoBizTalkSendResponse complete = kakaoAlertTalkService.complete(trackKey, reportGroupNo);
         ApiResult<KakaoBizTalkSendResponse> response = ApiResult.<KakaoBizTalkSendResponse>builder()
                 .code(ApiResultCode.succeed)
@@ -520,7 +518,9 @@ public class PortalController {
      * 템플릿 카테고리 리스트 조회
      * @param trackKey
      * @return
+     * @Deprecated
      */
+    @Deprecated
     @Tag(name = "포탈 수신 API")
     @Operation(summary = "템플릿 카테고리 리스트 조회")
     @GetMapping("/template/category/all")
@@ -558,7 +558,9 @@ public class PortalController {
 
     /**
      * 템플릿 등록
+     * @Deprecated
      */
+    @Deprecated
     @Tag(name = "포탈 수신 API")
     @Operation(summary = "템플릿 등록")
     @PostMapping("/template/{profileKey}")
@@ -620,6 +622,7 @@ public class PortalController {
     /**
      * 템플릿 수정
      */
+    @Deprecated
     @Tag(name = "포탈 수신 API")
     @Operation(summary = "템플릿 수정")
     @PutMapping("/template/{profileKey}")
@@ -824,7 +827,9 @@ public class PortalController {
 
     /**
      * 발신프로필 조회
+     * @Deprecated
      */
+    @Deprecated
     @Tag(name = "포탈 수신 API")
     @Operation(summary = "발신프로필 조회")
     @GetMapping("/send-profile/select/{profileKey}")

@@ -39,7 +39,7 @@ public class KakaoBizTalkTemplateService {
     public static final String TEMPLATE_DORMANT_PATH = "/mng/v1/resell/template/dormant/release"; // {sendProfileKey}/{templateCode} 템플릿 휴면 해제
     public static final String TEMPLATE_CANCEL_REQUEST_PATH = "/mng/v1/resell/template/cancel/request"; // {sendProfileKey}/{templateCode} 템플릿 검수요청 취소
     public static final String TEMPLATE_CANCEL_APPROVAL_PATH = "/mng/v1/resell/template/cancel/approval"; // {sendProfileKey}/{templateCode} 템플릿 승인 취소
-    public static final String TEMPLATE_CREATE_PATH = "/mng/v1/resell/template/create"; // {sendProfileKey} POST 템플릿 등록
+//    public static final String TEMPLATE_CREATE_PATH = "/mng/v1/resell/template/create"; // {sendProfileKey} POST 템플릿 등록
 //    public static final String TEMPLATE_SELECT_PATH = "/mng/v1/resell/template/select"; // {sendProfileKey} or {sendProfileKey}/{templateCode} GET 템플릿 검색
 //    public static final String TEMPLATE_LAST_MODIFY_PATH = "/mng/v1/resell/template/lastModified/select"; // {sendProfileKey} GET 변경된 템플릿 검색
 //    public static final String TEMPLATE_CATEGORY_ALL_PATH = "/mng/v1/resell/template/category/all"; // GET 카테고리 전체 조회(Deprecated)
@@ -62,6 +62,8 @@ public class KakaoBizTalkTemplateService {
      * 신규 버전(DKT MSG) Template APIs
      */
     /* AlimTalk Template URL */
+    public static final String TEMPLATE_CREATE_PATH = "/alimtalk/template/create";              // {sendProfileKey} POST 템플릿 등록
+    public static final String TEMPLATE_REQUEST_PATH = "alimtalk/template/request";             // 템플릿 검수 요청
     public static final String TEMPLATE_SELECT_PATH = "/alimtalk/template";                     // 템플릿 검색
     public static final String TEMPLATE_LAST_MODIFY_PATH = "/alimtalk/template/last_modified";  // 최근 변경 템플릿 조회
     /* AlimTalk Template Category URL */
@@ -142,10 +144,11 @@ public class KakaoBizTalkTemplateService {
      * 템플릿 등록
      */
     public KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload> create(@Positive Long trackKey, KakaoBizMessageTemplatePayload dto, String profileKey) {
-
         log.info("KAKAO TEMPLATE, CREATE, TRACK KEY: {}", trackKey);
-        KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload> templateResponse = externalOAuthWebClient.post().uri(getRequestUrl(TEMPLATE_CREATE_PATH, "v2") + "/" + profileKey).bodyValue(dto).attributes(ServerOAuth2AuthorizedClientExchangeFilterFunction.clientRegistrationId("kakao-template")).retrieve().bodyToMono(new ParameterizedTypeReference<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>>() {
-        }).block();
+        // biz-center v2 대응
+        KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload> templateResponse =
+                kakaoTemplateWebClient.post().uri(getRequestUrl(TEMPLATE_CREATE_PATH, "v2"))
+                        .bodyValue(dto).retrieve().bodyToMono(new ParameterizedTypeReference<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>>() {}).block();
         log.info("templateResponse = {}", templateResponse);
         return templateResponse;
     }
@@ -245,7 +248,12 @@ public class KakaoBizTalkTemplateService {
 
     public KakaoBizTemplateResponse cancelRequest(Long trackKey, String profileKey, String templateCode) {
         log.info("KAKAO TEMPLATE, CANCEL REQUEST, TRACK KEY: {}, PROFILE KEY: {}, TEMPLATE CODE: {}", trackKey, profileKey, templateCode);
-        KakaoBizTemplateResponse templateResponse = externalOAuthWebClient.put().uri(getRequestUrl(TEMPLATE_CANCEL_REQUEST_PATH, "v2") + "/" + profileKey + "/" + templateCode).attributes(ServerOAuth2AuthorizedClientExchangeFilterFunction.clientRegistrationId("kakao-template")).retrieve().bodyToMono(KakaoBizTemplateResponse.class).block();
+        KakaoBizTemplateResponse templateResponse = externalOAuthWebClient.put()
+                .uri(getRequestUrl(TEMPLATE_CANCEL_REQUEST_PATH, "v2") + "/" + profileKey + "/" + templateCode)
+                .attributes(ServerOAuth2AuthorizedClientExchangeFilterFunction.clientRegistrationId("kakao-template"))
+                .retrieve()
+                .bodyToMono(KakaoBizTemplateResponse.class)
+                .block();
         log.info("templateResponse = {}", templateResponse);
 
         return templateResponse;
@@ -295,10 +303,6 @@ public class KakaoBizTalkTemplateService {
                 kakaoTemplateWebClient.get().uri(String.format("%s?senderKey=%s", getRequestUrl(TEMPLATE_PROFILE_SELECT_PATH, "v3"), profileKey))
                         .retrieve().bodyToMono(new ParameterizedTypeReference<KakaoBizTemplateResponse<KakaoSendProfileResponse>>() {}).block();
 
-//        KakaoBizTemplateResponse<KakaoSendProfileResponse> sendProfileResponse = externalOAuthWebClient.get().uri(getRequestUrl(TEMPLATE_PROFILE_SELECT_PATH, "v3") + "/" + profileKey).attributes(ServerOAuth2AuthorizedClientExchangeFilterFunction.clientRegistrationId("kakao-template"))
-//                .retrieve().bodyToMono(new ParameterizedTypeReference<KakaoBizTemplateResponse<KakaoSendProfileResponse>>() {
-//                }).block();
-
         return sendProfileResponse;
     }
 
@@ -327,7 +331,6 @@ public class KakaoBizTalkTemplateService {
         PlatformProperty.Platform platform = platformProperty.getPlatforms().get(PlatformType.kakao_template.name());
         Assert.notNull(platform, "PLATFORM IS NULL");
         return platform.getApiBaseUrl() + "/" + version + "/" + platform.getApiKey() + endPoint;
-//        return platform.getApiBaseUrl() + endPoint;
     }
 
     private String getBaseUrl() {
