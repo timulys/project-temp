@@ -142,9 +142,13 @@ public class ChannelService {
 	public Page<ChannelDto> getAllByPlatform(@NotNull PlatformType platform, @NotNull Pageable pageable) {
 		// 본인이 소속된 브랜치의 전체 채널 정보 조회
 		Page<BranchChannel> branchChannels = branchChannelService.findAllByBranchId(securityUtils.getBranchId(), pageable);
-
+		log.info("Branch Channel Length: {}", branchChannels.getSize());
 		List<ChannelDto> channels = branchChannelMapper.mapChannel(branchChannels.getContent())
-												.stream().filter(item->platform.equals(item.getPlatform())).collect(Collectors.toList());
+				.stream()
+				.filter(item -> platform.equals(item.getPlatform()))
+				.peek(item -> log.info("Channel Name : {}", item.getName()))
+				.collect(Collectors.toList());
+
 		return new PageImpl<>(channels, branchChannels.getPageable(), branchChannels.getTotalElements());
 	}
 
