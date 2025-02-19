@@ -432,7 +432,7 @@ public class PlatformTemplateService {
                 // TODO: 매 저장/수정 요청 시 검수요청이 바로 되므로 검수요청취소를 임시적으로 실행함 추후 삭제해야함.
                 // FIXME : 그럼 검수 요청이라는 버튼을 쓰면 안되는거 아님? 추후 수정 필요함.
                 // FIXME : 또한 Transactional 처리가 되어 있지 않아 update가 정상적으로 이루지지 않고 있으므로 해당 기능 임시 주석
-                platformClient.cancelKakaoBizTemplateRequest(senderProfileKey, templatePayload.getTemplateCode());
+//                platformClient.cancelKakaoBizTemplateRequest(senderProfileKey, templatePayload.getTemplateCode());
             }
         }
 
