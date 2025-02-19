@@ -8,8 +8,8 @@ spring:
               - uri: http://localhost:8080/portal
               - uri: http://127.0.0.1:8080/portal
             talk-service:
-              - uri: http://localhost:8090/talk
-              - uri: http://127.0.0.1:8090/talk
+              - uri: http://localhost:8080/talk
+              - uri: http://127.0.0.1:8080/talk
 
   #lookup third party server
   rabbitmq:
