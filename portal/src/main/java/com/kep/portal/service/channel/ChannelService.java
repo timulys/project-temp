@@ -139,17 +139,16 @@ public class ChannelService {
 		return new PageImpl<>(channels, branchChannels.getPageable(), branchChannels.getTotalElements());
 	}
 
-	public Page<ChannelDto> getAllByPlatform(@NotNull PlatformType platform, @NotNull Pageable pageable) {
+	public List<ChannelDto> getAllByPlatform(@NotNull PlatformType platform) {
 		// 본인이 소속된 브랜치의 전체 채널 정보 조회
-		Page<BranchChannel> branchChannels = branchChannelService.findAllByBranchId(securityUtils.getBranchId(), pageable);
-		log.info("Branch Channel Length: {}", branchChannels.getSize());
-		List<ChannelDto> channels = branchChannelMapper.mapChannel(branchChannels.getContent())
-				.stream()
+		List<BranchChannel> branchChannels = branchChannelService.findAllByBranchId(securityUtils.getBranchId());
+		log.info("Branch Channel Length: {}", branchChannels.size());
+		List<ChannelDto> channels = branchChannelMapper.mapChannel(branchChannels).stream()
 				.filter(item -> platform.equals(item.getPlatform()))
 				.peek(item -> log.info("Channel Name : {}", item.getName()))
 				.collect(Collectors.toList());
 
-		return new PageImpl<>(channels, branchChannels.getPageable(), branchChannels.getTotalElements());
+		return channels;
 	}
 
 	public ChannelDto store(@NotNull @Valid ChannelDto dto) {

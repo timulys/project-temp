@@ -74,13 +74,11 @@ public class ChannelController {
 
 		Assert.notNull(platform, "platform can not be null");
 
-		Page<ChannelDto> page = channelService.getAllByPlatform(platform, pageable);
+		List<ChannelDto> channelDtoList = channelService.getAllByPlatform(platform);
+//		Page<ChannelDto> page = channelService.getAllByPlatform(platform, pageable);
 		ApiResult<List<ChannelDto>> response = ApiResult.<List<ChannelDto>>builder()
 				.code(ApiResultCode.succeed)
-				.payload(page.getContent())
-				.totalPage(page.getTotalPages())
-				.totalElement(page.getTotalElements())
-				.currentPage(page.getNumber())
+				.payload(channelDtoList)
 				.build();
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
