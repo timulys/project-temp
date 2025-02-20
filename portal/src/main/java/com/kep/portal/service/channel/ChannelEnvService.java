@@ -490,29 +490,24 @@ public class ChannelEnvService {
 	 */
 	public ChannelEnvDto syncSystemMessage(Long channelId) {
 		ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId).orElseThrow(() -> new IllegalArgumentException("not found channel"));
-		ChannelEnvDto channelEnvDto = channelEnvMapper.map(channelEnv);
-		List<IssuePayload> issuePayloads = null;
+		List<IssuePayload> bzmSystemMessages = null;
 
 		try {
-			issuePayloads = systemMessageService.getSystemMessage(channelEnv.getChannel().getServiceKey());
+			bzmSystemMessages = systemMessageService.getSystemMessage(channelEnv.getChannel().getServiceKey());
 		} catch (Exception e) {
 			log.error("ERROR :: SYNC SYSTEM MESSAGE :: ", e);
 			throw new BizException("sync system message error");
 		}
 
-		if (issuePayloads == null || issuePayloads.isEmpty()) throw new BizException("not found any system messages");
-		processConvertSystemMessage(channelEnvDto, issuePayloads);
-
-		return channelEnvDto;
-	}
-
-
-	private void processConvertSystemMessage(@NotNull ChannelEnvDto channelEnvDto, @NotEmpty List<IssuePayload> bzmSystemMessages) {
+		if (bzmSystemMessages == null || bzmSystemMessages.isEmpty()) throw new BizException("not found any system messages");
 		Map<String , IssuePayload> chapter = systemMessageService.setSystemMessage(bzmSystemMessages);
-		channelEnvDto.getStart().getSt().setMessage(chapter.get("ST"));
-		channelEnvDto.getStart().getUnable().setMessage(chapter.get("S1"));
-		channelEnvDto.getStart().getAbsence().setMessage(chapter.get("S2"));
-		channelEnvDto.getStart().getWaiting().setMessage(chapter.get("S4"));
-		channelEnvDto.setImpossibleMessage(chapter.get("S3"));
+		channelEnv.getStart().getSt().setMessage(chapter.get("ST"));
+		channelEnv.getStart().getUnable().setMessage(chapter.get("S1"));
+		channelEnv.getStart().getAbsence().setMessage(chapter.get("S2"));
+		channelEnv.getStart().getWaiting().setMessage(chapter.get("S4"));
+		channelEnv.setImpossibleMessage(chapter.get("S3"));
+
+		return channelEnvMapper.map(channelEnv);
 	}
+
 }
