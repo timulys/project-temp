@@ -5,6 +5,7 @@ import com.kep.core.model.dto.channel.*;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
 import com.kep.core.model.dto.system.SystemEnvEnum;
 import com.kep.core.model.dto.system.SystemEventHistoryActionType;
+import com.kep.core.model.exception.BizException;
 import com.kep.portal.config.property.SystemMessageProperty;
 import com.kep.portal.model.entity.branch.Branch;
 import com.kep.portal.model.entity.branch.BranchChannel;
@@ -32,6 +33,7 @@ import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.time.ZonedDateTime;
@@ -338,26 +340,34 @@ public class ChannelEnvService {
 		return channelEnvMapper.map(entity);
 	}
 
+	// backup
+//	@Transactional(readOnly = true)
+//	public ChannelEnvDto getByChannelView(@NotNull Channel channel){
+//		ChannelEnv channelEnv = channelEnvRepository.findByChannel(channel);
+////		Assert.notNull(entity , "channel env message null");
+//		if (channelEnv == null) {
+//			log.error("CHANNEL ENV NOT FOUND: CHANNEL: {}", channel.getId());
+//			return new ChannelEnvDto();
+//		}
+//		ChannelEnvDto channelEnvDto = channelEnvMapper.map(channelEnv);
+//		List<IssuePayload> issuePayloads = systemMessageService.getSystemMessage(channel.getServiceKey());
+//		if(ObjectUtils.isEmpty(issuePayloads)){
+//			issuePayloads = systemMessageService.createSystemMessage();
+//		}
+//		Map<String , IssuePayload> chapter = systemMessageService.setSystemMessage(issuePayloads);
+//		channelEnvDto.getStart().getSt().setMessage(chapter.get("ST"));
+//		channelEnvDto.getStart().getUnable().setMessage(chapter.get("S1"));
+//		channelEnvDto.getStart().getAbsence().setMessage(chapter.get("S2"));
+//		channelEnvDto.getStart().getWaiting().setMessage(chapter.get("S4"));
+//		channelEnvDto.setImpossibleMessage(chapter.get("S3"));
+//		return channelEnvDto;
+//	}
+
 	@Transactional(readOnly = true)
-	public ChannelEnvDto getByChannelView(@NotNull Channel channel){
-		ChannelEnv channelEnv = channelEnvRepository.findByChannel(channel);
-//		Assert.notNull(entity , "channel env message null");
-		if (channelEnv == null) {
-			log.error("CHANNEL ENV NOT FOUND: CHANNEL: {}", channel.getId());
-			return new ChannelEnvDto();
-		}
-		ChannelEnvDto channelEnvDto = channelEnvMapper.map(channelEnv);
-		List<IssuePayload> issuePayloads = systemMessageService.getSystemMessage(channel.getServiceKey());
-		if(ObjectUtils.isEmpty(issuePayloads)){
-			issuePayloads = systemMessageService.createSystemMessage();
-		}
-		Map<String , IssuePayload> chapter = systemMessageService.setSystemMessage(issuePayloads);
-		channelEnvDto.getStart().getSt().setMessage(chapter.get("ST"));
-		channelEnvDto.getStart().getUnable().setMessage(chapter.get("S1"));
-		channelEnvDto.getStart().getAbsence().setMessage(chapter.get("S2"));
-		channelEnvDto.getStart().getWaiting().setMessage(chapter.get("S4"));
-		channelEnvDto.setImpossibleMessage(chapter.get("S3"));
-		return channelEnvDto;
+	public ChannelEnvDto getByChannelView(@NotNull Long channelId){
+		return channelEnvRepository.findByChannelId(channelId)
+				.map(channelEnvMapper::map)
+				.orElseThrow(() -> new IllegalArgumentException("not found channel"));
 	}
 
 	/**
@@ -471,5 +481,38 @@ public class ChannelEnvService {
 	public Integer getCategoryDepth(Channel channel) {
 		ChannelEnv entity = channelEnvRepository.findByChannel(channel);
 		return entity.getMaxIssueCategoryDepth();
+	}
+
+	/**
+	 * BZM 시스템 메시지 동기화
+	 * @param channelId
+	 * @return
+	 */
+	public ChannelEnvDto syncSystemMessage(Long channelId) {
+		ChannelEnv channelEnv = channelEnvRepository.findByChannelId(channelId).orElseThrow(() -> new IllegalArgumentException("not found channel"));
+		ChannelEnvDto channelEnvDto = channelEnvMapper.map(channelEnv);
+		List<IssuePayload> issuePayloads = null;
+
+		try {
+			issuePayloads = systemMessageService.getSystemMessage(channelEnv.getChannel().getServiceKey());
+		} catch (Exception e) {
+			log.error("ERROR :: SYNC SYSTEM MESSAGE :: ", e);
+			throw new BizException("sync system message error");
+		}
+
+		if (issuePayloads == null || issuePayloads.isEmpty()) throw new BizException("not found any system messages");
+		processConvertSystemMessage(channelEnvDto, issuePayloads);
+
+		return channelEnvDto;
+	}
+
+
+	private void processConvertSystemMessage(@NotNull ChannelEnvDto channelEnvDto, @NotEmpty List<IssuePayload> bzmSystemMessages) {
+		Map<String , IssuePayload> chapter = systemMessageService.setSystemMessage(bzmSystemMessages);
+		channelEnvDto.getStart().getSt().setMessage(chapter.get("ST"));
+		channelEnvDto.getStart().getUnable().setMessage(chapter.get("S1"));
+		channelEnvDto.getStart().getAbsence().setMessage(chapter.get("S2"));
+		channelEnvDto.getStart().getWaiting().setMessage(chapter.get("S4"));
+		channelEnvDto.setImpossibleMessage(chapter.get("S3"));
 	}
 }

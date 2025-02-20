@@ -291,19 +291,32 @@ public class ChannelController {
 			@Parameter(description = "채널 아이디", in = ParameterIn.PATH, required = true)
 			@PathVariable(name = "id") @NotNull Long channelId) {
 
-		Channel channel = channelService.findById(channelId);
-		if(channel == null){
-			ApiResult<ChannelEnvDto> response = ApiResult.<ChannelEnvDto>builder()
-					.code(ApiResultCode.failed)
-					.build();
-			return new ResponseEntity<>(response , HttpStatus.NOT_FOUND);
-		}
+//		Channel channel = channelService.findById(channelId);
+//		if(channel == null){
+//			ApiResult<ChannelEnvDto> response = ApiResult.<ChannelEnvDto>builder()
+//					.code(ApiResultCode.failed)
+//					.build();
+//			return new ResponseEntity<>(response , HttpStatus.NOT_FOUND);
+//		}
 
 		ApiResult<ChannelEnvDto> response = ApiResult.<ChannelEnvDto>builder()
 				.code(ApiResultCode.succeed)
-				.payload(channelEnvService.getByChannelView(channel))
+				.payload(channelEnvService.getByChannelView(channelId))
 				.build();
 		return new ResponseEntity<>(response , HttpStatus.OK);
+	}
+
+	@Tag(name = "채널 API")
+	@Operation(summary = "시스템 메시지 BZM 싱크", description = "자동 메시지 중 BZM 시스템 메시지 동기화")
+	@PutMapping(value = "/{channelId}/sync-message")
+	@PreAuthorize("hasAnyAuthority('WRITE_AUTO_MESSAGE') or hasAnyRole('ROLE_MASTER')")
+	public ResponseEntity<ApiResult<ChannelEnvDto>> syncSystemMessage(@PathVariable Long channelId) {
+		return ResponseEntity.ok(
+				ApiResult.<ChannelEnvDto>builder()
+						.code(ApiResultCode.succeed)
+						.payload(channelEnvService.syncSystemMessage(channelId))
+						.build()
+		);
 	}
 
 	/**
