@@ -153,17 +153,24 @@ public class KakaoCounselBuilder {
 						break;
 
 					case platform_answer:
-						if (IssuePayload.PlatformAnswer.off.name().equals(section.getData())) {
-							event.setAutoAnswer("S1");
-						} else if (IssuePayload.PlatformAnswer.no_operator.name().equals(section.getData())) {
-							event.setAutoAnswer("S2");
-						} else if (IssuePayload.PlatformAnswer.no_answer.name().equals(section.getData())) {
-							event.setAutoAnswer("S3");
-						} else if (IssuePayload.PlatformAnswer.wait.name().equals(section.getData())) {
-							event.setAutoAnswer("S4");
-						} else {
+//						if (IssuePayload.PlatformAnswer.off.name().equals(section.getData())) {
+//							event.setAutoAnswer("S1");
+//						} else if (IssuePayload.PlatformAnswer.no_operator.name().equals(section.getData())) {
+//							event.setAutoAnswer("S2");
+//						} else if (IssuePayload.PlatformAnswer.no_answer.name().equals(section.getData())) {
+//							event.setAutoAnswer("S3");
+//						} else if (IssuePayload.PlatformAnswer.wait.name().equals(section.getData())) {
+//							event.setAutoAnswer("S4");
+//						} else {
+//							event.setAutoAnswer("S3");
+//							log.info("INVALID PLATFORM ANSWER: {}, USE 'S3'", section.getData());
+//						}
+
+						if (ObjectUtils.isEmpty(section.getExtra())) {
 							event.setAutoAnswer("S3");
 							log.info("INVALID PLATFORM ANSWER: {}, USE 'S3'", section.getData());
+						} else {
+							event.setAutoAnswer(section.getExtra());
 						}
 						break;
 
