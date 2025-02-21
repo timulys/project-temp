@@ -254,15 +254,7 @@ public class ChannelController {
 			@PathVariable(name = "id") @NotNull Long channelId ,
 			@RequestBody @Valid ChannelEnvDto dto) {
 
-		Channel channel = channelService.findById(channelId);
-		if(channel == null){
-			ApiResult<ChannelEnvDto> response = ApiResult.<ChannelEnvDto>builder()
-					.code(ApiResultCode.failed)
-					.build();
-			return new ResponseEntity<>(response , HttpStatus.BAD_REQUEST);
-		}
-
-		ChannelEnvDto result  = channelEnvService.storeByChannel(channel , dto);
+		ChannelEnvDto result  = channelEnvService.saveByChannel(channelId , dto);
 
 		if(result == null){
 			ApiResult<ChannelEnvDto> response = ApiResult.<ChannelEnvDto>builder()
