@@ -58,56 +58,57 @@ spring:
   session:
     store-type: none
 
-  security:
-    debug: true
-    oauth2:
-      client:
-        registration:
-          codeclick:
-            authorization-grant-type: client_credentials
-            client-id: messaging-client
-            client-secret: secret
-            scope:
-              - message.read
-              - message.write
-          kakao-bizmsg:
-            authorization-grant-type: client_credentials
-            # tim.c : DKT Biz Message API Key
-            client-id: RCDKCI0000
-            client-secret: RCDKCI0000_FdZGtR0uTcecOX7PVwVW+g
-            scope:
-              - read
-              - write
-          kakao-template:
-            authorization-grant-type: client_credentials
-            # tim.c : DKT Biz Message API Key
-            client-id: RCDKCI0000_001
-            client-secret: RCDKCI0000_DGGMsl6CR8S+UJLjpoHKUQ
-            scope:
-              - read
-              - write
-          kakao-sync:
-            authorization-grant-type: authorization_code
-            # tim.c : always channel rest key
-            client-id: 4685173414465be4d355d1a205ef52ad
-            # tim.c : always application secret key
-            client-secret: cK4Um8RpUIc7KIreVG5DULdRKJIqOvnE
-            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://always-talk.kakaoiconnect.ai/platform/auth/kakao-sync/authorized}
-            scope:
-              - read
-              - write
-        provider:
-          codeclick:
-            token-uri: http://localhost:9001/oauth2/token
-          kakao-bizmsg:
-            token-uri: https://web1.dktechinmsg.com/v1/oauth/token
-          kakao-template:
-            token-uri: https://web1.dktechinmsg.com/mng/v1/oauth/token
-          kakao-sync:
-            authorization-uri: https://kauth.kakao.com/oauth/authorize
-            token-uri: https://kauth.kakao.com/oauth/token
-            user-info-uri: https://kapi.kakao.com/v2/user/me
-            user-name-attribute: id
+#  security:
+#    debug: true
+#    oauth2:
+#      client:
+#        registration:
+#          codeclick:
+#            authorization-grant-type: client_credentials
+#            client-id: messaging-client
+#            client-secret: secret
+#            scope:
+#              - message.read
+#              - message.write
+#          kakao-bizmsg:
+#            authorization-grant-type: client_credentials
+#            # tim.c : DKT Biz Message API Key
+#            client-id: RCDKCI0000
+#            client-secret: RCDKCI0000_FdZGtR0uTcecOX7PVwVW+g
+#            scope:
+#              - read
+#              - write
+#          kakao-template:
+#            authorization-grant-type: client_credentials
+#            # tim.c : DKT Biz Message API Key
+#            client-id: RCDKCI0000_001
+#            client-secret: RCDKCI0000_DGGMsl6CR8S+UJLjpoHKUQ
+#            scope:
+#              - read
+#              - write
+#          kakao-sync:
+#            authorization-grant-type: authorization_code
+#            # tim.c : always channel rest key
+#            client-id: 4685173414465be4d355d1a205ef52ad
+#            # tim.c : always application secret key
+#            client-secret: cK4Um8RpUIc7KIreVG5DULdRKJIqOvnE
+##            redirect-uri: ${KAKAO_SYNC_RETYRN_URL:http://localhost:9000/portal/api/v1/auth/authorized}
+#            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://always-talk.kakaoiconnect.ai/platform/auth/kakao-sync/authorized}
+#            scope:
+#              - read
+#              - write
+#        provider:
+#          codeclick:
+#            token-uri: http://localhost:9001/oauth2/token
+#          kakao-bizmsg:
+#            token-uri: https://web1.dktechinmsg.com/v1/oauth/token
+#          kakao-template:
+#            token-uri: https://web1.dktechinmsg.com/mng/v1/oauth/token
+#          kakao-sync:
+#            authorization-uri: https://kauth.kakao.com/oauth/authorize
+#            token-uri: https://kauth.kakao.com/oauth/token
+#            user-info-uri: https://kapi.kakao.com/v2/user/me
+#            user-name-attribute: id
 
 jasypt:
   encryptor:

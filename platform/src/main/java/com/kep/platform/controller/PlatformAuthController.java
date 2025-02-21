@@ -87,8 +87,8 @@ public class PlatformAuthController {
 			HttpHeaders headers = new HttpHeaders();
 	        headers.setLocation(new URI(syncRedirectUrl));
 	        log.info("▶▶▶::카카오 인증 후 리다이렉트 URL: {} ",syncRedirectUrl);
-	        
-	        return new ResponseEntity<>(headers, HttpStatus.FOUND);
+
+			return ResponseEntity.status(HttpStatus.OK).body(syncRedirectUrl);
 		}
 		
 		Map<String, Object> response = new HashMap<>(requestParams);
@@ -105,7 +105,7 @@ public class PlatformAuthController {
 	@Tag(name = "플랫폼 인증 API")
 	@Operation(summary = "카카오 OAuth 인증 페이지 리다이렉트")
 	@GetMapping(value = "/kakao-sync/getSync")
-	public String customSyncRequest(@RequestHeader HttpHeaders httpHeaders, @RequestParam String state){
+	public ResponseEntity<String> customSyncRequest(@RequestHeader HttpHeaders httpHeaders, @RequestParam String state){
 		log.info("▶▶▶::카카오 커스텀 싱크 요청 URL: {}", state);
 		String jsonState = convertStateToJson(state);
 
@@ -120,9 +120,9 @@ public class PlatformAuthController {
 	    // 카카오 OAuth 인증 페이지로 리다이렉트할 URL을 생성
 	    String oauthUrl = kakaoAuthorizationUri + "?client_id=" + kaKaoSyncProperties.getClientId() +
 	            "&response_type=code&redirect_uri=" + kaKaoSyncProperties.getRedirectUri() +
-	            "&state=" + jsonState; 
+	            "&state=" + jsonState;
 
-	    return "redirect:" + oauthUrl;
+		return ResponseEntity.status(HttpStatus.OK).body(oauthUrl);
 	}
 	
 	private String convertStateToJson(String state) {
