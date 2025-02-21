@@ -66,7 +66,8 @@ public class SecurityConfig {
 				.permitAll()
 
 				.mvcMatchers("/api/v1/member/by-role/**",
-						"/api/v1/event-by-platform/**")
+						"/api/v1/event-by-platform/**",
+						"/portal/api/v1/auth/**")
 //				.hasAnyRole("SYS")
 //				.hasAnyAuthority("READ_ISSUE", "WRITE_ISSUE")
 				.permitAll()
