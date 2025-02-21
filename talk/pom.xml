@@ -11,7 +11,7 @@
 	<groupId>com.dkt.always</groupId>
 	<artifactId>talk</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
+<!--	<packaging>war</packaging>-->
 	<name>talk</name>
 	<description>talk</description>
 	<url/>
@@ -51,11 +51,11 @@
 		</dependency>
 
 		<!-- war 배포를 위함 -->
-		<dependency>
+		<!--<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-tomcat</artifactId>
 			<scope>provided</scope>
-		</dependency>
+		</dependency>-->
 
 		<!-- oAuth -->
 		<dependency>

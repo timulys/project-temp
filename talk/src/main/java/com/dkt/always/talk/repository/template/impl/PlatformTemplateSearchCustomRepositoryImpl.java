@@ -81,7 +81,7 @@ public class PlatformTemplateSearchCustomRepositoryImpl implements PlatformTempl
         return !ObjectUtils.isEmpty(status) ? platformTemplate.status.in(status) : null;
     }
 
-    private OrderSpecifier[] getOrderSpecifiers( Pageable pageable) {
+    private OrderSpecifier[] getOrderSpecifiers(Pageable pageable) {
         List<OrderSpecifier> orders = new ArrayList<>();
         if (!ObjectUtils.isEmpty(pageable.getSort())) {
             for (Sort.Order order : pageable.getSort()) {

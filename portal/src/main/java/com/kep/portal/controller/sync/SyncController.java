@@ -1,35 +1,37 @@
 package com.kep.portal.controller.sync;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.kep.portal.model.dto.sync.SyncInfo;
-import com.kep.portal.service.sync.SyncService;
+import com.kep.portal.client.SyncClient;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
+import java.util.Map;
 
 @Slf4j
-@Deprecated
-@RestController
-@RequestMapping("/api/v1/sync")
+@Controller
+@RequiredArgsConstructor
+@RequestMapping("/api/v1/auth")
 public class SyncController {
+    /** Kakao Sync Platform Call Service **/
+    private final SyncClient syncClient;
 
-    @Resource
-    private SyncService syncService;
+    /** Platform Kakao-Sync API **/
+    @GetMapping("/getSync")
+    public String getKakaoSync(@RequestParam String state) {
+        log.info("Request Kakao-Sync  {}", state);
+        ResponseEntity<String> result = syncClient.getSync(new HttpHeaders(), state);
+        return "redirect:" + result.getBody();
+    }
 
-    /**
-     * 싱크 콜백
-     * @param code
-     * @return
-     * @throws JsonProcessingException
-     */
-    @RequestMapping("/callback")
-    public SyncInfo syncCallback(@RequestParam("code") String code) throws JsonProcessingException {
-        log.info("code = {}", code);
-        String accessToken = syncService.getAccessToken(code);
-        SyncInfo userInfo = syncService.getKakaoUserInfo(accessToken);
-        return userInfo;
+    /** Platform Authorized API **/
+    @GetMapping("/authorized")
+    public String authorized(@RequestParam(required = false) Map<String, String> requestParams) {
+        ResponseEntity<String> result = syncClient.authorized(new HttpHeaders(), requestParams);
+        return "redirect:" + result.getBody();
     }
 }
