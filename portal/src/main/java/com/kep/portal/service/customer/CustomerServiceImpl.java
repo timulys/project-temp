@@ -19,6 +19,7 @@ import javax.validation.constraints.Positive;
 
 import com.kep.core.model.dto.customer.*;
 import com.kep.portal.model.converter.FixedCryptoConverter;
+import com.kep.portal.util.CommonUtils;
 import org.apache.poi.ss.formula.functions.Fixed;
 import org.jasypt.encryption.StringEncryptor;
 import org.springframework.data.domain.Example;
@@ -290,29 +291,27 @@ public class CustomerServiceImpl implements CustomerService {
 
 	/**
 	 * 고객 정보 저장
-	 * @param dto
+	 * @param customerDto
 	 */
-	public Customer save(CustomerDto dto){
+	public Customer save(CustomerDto customerDto){
 		Customer customer = customerRepository.findOne(
-						Example.of(Customer.builder().identifier(dto.getIdentifier()).build()))
+						Example.of(Customer.builder().identifier(customerDto.getIdentifier()).build()))
 				.orElse(null);
+
 		if(customer == null){
-			// 고객이 존재하지 않을 경우 신규 등록
-			customer = customerMapper.map(dto);
-		} else {
-			// 기존 identifier 고객이 존재할 경우 업데이트
-			Long existId = customer.getId();
-			customer = customerMapper.map(dto);
-			customer.setId(existId);
-			log.info("Customer ID: {}", customer.getId());
+			customer = customerMapper.map(customerDto);
 		}
+
+		CommonUtils.copyProperties(customerDto, customer);
+
+		// 고객 정보 저장
 		customerRepository.save(customer);
 		customerRepository.flush();
 
-		this.contactStore(customer, dto.getContacts());
-		if(Objects.nonNull(dto.getAnniversaries())){
-			this.anniversaryStore(customer, dto.getAnniversaries());
-		}
+		// 고객 개인 정보 저장
+		this.contactStore(customer, customerDto.getContacts());
+		this.anniversaryStore(customer, customerDto.getAnniversaries());
+
 		return customer;
 	}
 
