@@ -9,7 +9,10 @@ import com.kep.core.model.dto.guide.GuideDto;
 import com.kep.core.model.dto.guide.GuidePayload;
 import com.kep.core.model.dto.guide.GuideType;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
+import com.kep.core.model.dto.issue.payload.IssuePayload.Action;
+import com.kep.core.model.dto.issue.payload.IssuePayload.ActionType;
 import com.kep.core.model.exception.BizException;
+import com.kep.core.util.URLValidatorUtil;
 import com.kep.portal.config.property.SystemMessageProperty;
 import com.kep.portal.model.dto.guide.GuideSearchDto;
 import com.kep.portal.model.dto.guide.GuideSearchResponseDto;
@@ -546,15 +549,21 @@ public class GuideService {
                 } else if (chapter.getSections().size() > 1) {
                     IssuePayload.Section nextSection = chapter.getSections().get(1);
                     if (nextSection.getType().equals(IssuePayload.SectionType.action)) {
+                        List<Action> actions = nextSection.getActions();
                         // 파일 검색 조건 추가
                         if ("file".equals(nextSection.getExtra())) {
                             fileCondition.append(chapter.getSections().get(0).getData()).append(separator);
-
                         }
                         // 메시지 검색조건 추가
                         else {
                             messageCondition.append(chapter.getSections().get(0).getData()).append(separator);
                         }
+
+                        actions.stream().forEach(action -> {
+                            if(action.getType().equals(ActionType.link)) {
+                               URLValidatorUtil.isValidURL(action.getData());
+                            }
+                        });
                     }
                 }
             }
