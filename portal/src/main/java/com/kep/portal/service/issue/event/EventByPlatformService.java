@@ -354,11 +354,11 @@ public class EventByPlatformService {
 			}
 			// FIXME : memberId를 mid로 전달하고 있음, 개선 필요
 			if (kakaoCustomerDto.getExtra() != null) {
+				log.info("current extra data = {}", kakaoCustomerDto.getExtra());
 				memberId = (kakaoCustomerDto.getExtra().get("mid") != null)
 						? Long.parseLong(String.valueOf(kakaoCustomerDto.getExtra().get("mid"))) : 0L;
-
-				issueId = (kakaoCustomerDto.getExtra().get("issue_id") != null)
-						? Long.parseLong(String.valueOf(kakaoCustomerDto.getExtra().get("issue_id"))) : 0L;
+				issueId = (kakaoCustomerDto.getExtra().get("issue") != null)
+						? Long.parseLong(String.valueOf(kakaoCustomerDto.getExtra().get("issue"))) : 0L;
 			}
 		}
 
