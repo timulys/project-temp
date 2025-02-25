@@ -128,7 +128,9 @@ public class PlatformAuthController {
 	private String convertStateToJson(String state) {
 	    Map<String, String> stateMap = new HashMap<>();
 
-		Arrays.stream(state.split("__")) // TODO : State 값이 많아지면 어떻게 Split 기준을 삼을 것인지 파악 필요
+		// TODO : State 값이 많아지면 어떻게 Split 기준을 삼을 것인지 파악 필요
+		// FIXME : _로 구분된 key, value에 대한 구조적 재설계 필요
+		Arrays.stream(state.split("__"))
 				.map(pair -> pair.split("_")) // Key : Value
 				.forEach(arr -> stateMap.put(arr[0], arr[1]));
 

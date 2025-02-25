@@ -352,10 +352,10 @@ public class EventByPlatformService {
 								.build());
 				customerDto.setAnniversaries(customerAnniversaryDtos);
 			}
-
+			// FIXME : memberId를 mid로 전달하고 있음, 개선 필요
 			if (kakaoCustomerDto.getExtra() != null) {
-				memberId = (kakaoCustomerDto.getExtra().get("member_id") != null)
-						? Long.parseLong(String.valueOf(kakaoCustomerDto.getExtra().get("member_id"))) : 0L;
+				memberId = (kakaoCustomerDto.getExtra().get("mid") != null)
+						? Long.parseLong(String.valueOf(kakaoCustomerDto.getExtra().get("mid"))) : 0L;
 
 				issueId = (kakaoCustomerDto.getExtra().get("issue_id") != null)
 						? Long.parseLong(String.valueOf(kakaoCustomerDto.getExtra().get("issue_id"))) : 0L;
