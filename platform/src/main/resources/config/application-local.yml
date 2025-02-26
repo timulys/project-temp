@@ -50,7 +50,7 @@ spring:
             authorization-grant-type: authorization_code
             client-id: 4685173414465be4d355d1a205ef52ad
             client-secret: cK4Um8RpUIc7KIreVG5DULdRKJIqOvnE
-            redirect-uri: ${KAKAO_SYNC_RETYRN_URL:http://localhost:8080/portal/api/v1/auth/authorized}
+            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://always-talk.kakaoiconnect.ai/portal/api/v1/auth/authorized}
             scope:
               - read
               - write
