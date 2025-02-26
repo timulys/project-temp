@@ -19,6 +19,7 @@ import javax.validation.constraints.Positive;
 
 import com.kep.core.model.dto.customer.*;
 import com.kep.portal.model.converter.FixedCryptoConverter;
+import com.kep.portal.util.CommonUtils;
 import org.apache.poi.ss.formula.functions.Fixed;
 import org.jasypt.encryption.StringEncryptor;
 import org.springframework.data.domain.Example;
@@ -157,18 +158,15 @@ public class CustomerServiceImpl implements CustomerService {
 	/**
 	 * 고객 정보
 	 * @param id
-	 * @param issueId
 	 * @return
 	 */
-	public CustomerDto show(@NotNull @Positive Long id, Long issueId) {
+	@Transactional
+	public CustomerDto show(@NotNull @Positive Long id) {
 		Customer customer = this.findById(id);
 		if(customer == null) {
 			throw new RuntimeException("Customer associated with customer ID" + id +"not found");
 		}
-		// BNK 고객 정보 요청 전에 sendFlag 설정 및 업데이트
-		String sendFlag = issueRepository.findById(issueId)
-				.map(issue -> issue.getSendFlag())
-				.orElse("Y"); // issueId에 해당하는 sendFlag 조회
+
 		try {
 			customer.setContacts(this.contactsGetAll(customer));
 			customer.setAuthorizeds(this.authorizedGetAll(customer));
@@ -183,53 +181,19 @@ public class CustomerServiceImpl implements CustomerService {
 						item.getType().equals(AuthorizeType.kakao_sync)).count();
 			}
 
-			// BNK 응답데이터 => custNo와 custNm 추출 및 customer_guest DB에 저장
-//			LegacyCustomerDto legacyCustomerDto = legacyClient.getCustomerInfo(customerDto,sendFlag);
-//			log.info("[알림요청정보: [{}]▶▶▶:::BNK Response Data : {}]", sendFlag, legacyCustomerDto);
-
-//			String custNo = legacyCustomerDto.getCustNo();
-//			String custName = legacyCustomerDto.getCustNm();
-
-			// custNo가 비어있는 경우에 대한 처리
-//			if (custNo == null || custNo.trim().isEmpty()) {
-//				custNo = "9999999";
-//				log.warn("CustNo가 null이거나 빈 문자열입니다. 임시 고객 ID: {} 가 할당되었습니다.", custNo);
-//			}
-
 			// 데이터베이스에서 해당 고객을 조회
-			Guest guest = guestRepository.findByCustomer(customer);
+			// FIXME : 임의로 등록된 Customer를 다시 Guest로 저장하는 로직에서 Not Null Value들이 많아 추후 해당 로직은 재검토가 필요함.
+			/*Guest guest = guestRepository.findByCustomer(customer);
 			if (guest == null) {
 				guest = new Guest();
 				guest.setCustomer(customer);
 			}
 
-//			guest.setCustNo(custNo); // 고객 번호 저장
-//			log.info("[API 통신 후 받아온 고객명]: {}", custName); // API 통신 후 받아온 고객명
-//			customer.setName(custName); // 고객 이름 저장
-			guestRepository.save(guest); // 변경 사항을 DB에 저장
-//			customerDto.setLegacyCustomerData(legacyCustomerDto);
-
-			// 고객 정보가 성공적으로 처리된 경우, sendFlag를 'N'으로 업데이트
-			updateIssueSendFlag(issueId, "N");
+			guestRepository.save(guest); // 변경 사항을 DB에 저장*/
 			return customerDto;
 		} catch (Exception e) {
 			log.error("Error occurred while processing customer details for guest ID: {}", id, e);
 			throw new RuntimeException("Error occurred while processing customer details", e);
-		}
-	}
-	// BNK sendFlag 값 업데이트 메서드
-	private void updateIssueSendFlag(Long issueId, String updateFlag) {
-		if (issueId != null && issueRepository.findById(issueId).isPresent()) {
-			Issue issue = issueRepository.findById(issueId).get();
-			if ("Y".equals(issue.getSendFlag())) {
-				issue.setSendFlag(updateFlag);
-				issueRepository.save(issue);
-				log.info("Issue ID {}의 sendFlag를 '{}'으로 업데이트 완료", issueId, updateFlag);
-			} else {
-				log.info("Issue ID {}의 sendFlag는 이미 '{}' 상태입니다.", issueId, issue.getSendFlag());
-			}
-		} else {
-			log.warn("updateIssueSendFlag: issueId가 null입니다.");
 		}
 	}
 
@@ -327,29 +291,27 @@ public class CustomerServiceImpl implements CustomerService {
 
 	/**
 	 * 고객 정보 저장
-	 * @param dto
+	 * @param customerDto
 	 */
-	public Customer save(CustomerDto dto){
+	public Customer save(CustomerDto customerDto){
 		Customer customer = customerRepository.findOne(
-						Example.of(Customer.builder().identifier(dto.getIdentifier()).build()))
+						Example.of(Customer.builder().identifier(customerDto.getIdentifier()).build()))
 				.orElse(null);
+
 		if(customer == null){
-			// 고객이 존재하지 않을 경우 신규 등록
-			customer = customerMapper.map(dto);
-		} else {
-			// 기존 identifier 고객이 존재할 경우 업데이트
-			Long existId = customer.getId();
-			customer = customerMapper.map(dto);
-			customer.setId(existId);
-			log.info("Customer ID: {}", customer.getId());
+			customer = customerMapper.map(customerDto);
 		}
+
+		CommonUtils.copyProperties(customerDto, customer);
+
+		// 고객 정보 저장
 		customerRepository.save(customer);
 		customerRepository.flush();
 
-		this.contactStore(customer, dto.getContacts());
-		if(Objects.nonNull(dto.getAnniversaries())){
-			this.anniversaryStore(customer, dto.getAnniversaries());
-		}
+		// 고객 개인 정보 저장
+		this.contactStore(customer, customerDto.getContacts());
+		this.anniversaryStore(customer, customerDto.getAnniversaries());
+
 		return customer;
 	}
 

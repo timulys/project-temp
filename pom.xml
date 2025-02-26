@@ -15,5 +15,6 @@
 		<module>portal</module>
 		<module>platform</module>
 		<module>legacy</module>
+		<module>talk</module>
 	</modules>
 </project>

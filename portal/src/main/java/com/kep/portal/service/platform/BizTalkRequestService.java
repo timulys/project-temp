@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.channel.ChannelDto;
+import com.kep.core.model.dto.common.ResponseCode;
+import com.kep.core.model.dto.common.ResponseMessage;
 import com.kep.core.model.dto.customer.CustomerContactType;
 import com.kep.core.model.dto.customer.CustomerDto;
 import com.kep.core.model.dto.env.CounselEnvDto;
@@ -14,6 +16,7 @@ import com.kep.core.model.dto.platform.kakao.KakaoAlertSendEvent;
 import com.kep.core.model.dto.platform.kakao.KakaoBizMessageTemplatePayload;
 import com.kep.core.model.dto.platform.kakao.KakaoBizTalkSendResponse;
 import com.kep.core.model.dto.platform.kakao.KakaoFriendSendEvent;
+import com.kep.core.model.exception.BizException;
 import com.kep.portal.client.PlatformClient;
 import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.model.dto.notification.NotificationInfoDto;
@@ -160,7 +163,7 @@ public class BizTalkRequestService {
         LocalTime time = reservedDateTime.toLocalTime();
 
         if (now.toLocalDate().isBefore(date) || time.isBefore(startTime) || time.isAfter(endTime)) {
-            throw new IllegalArgumentException("Transfer exception time");
+            throw new BizException(ResponseCode.FRIEND_TALK_CALL_FAILED, ResponseMessage.FRIEND_TALK_UNAVAILABLE_TIME);
         }
     }
 
@@ -182,8 +185,7 @@ public class BizTalkRequestService {
                 .teamId(securityUtils.getTeamId())
                 .customers(dto.getToCustomers())
                 .creator(securityUtils.getMemberId())
-                .modifier(securityUtils.getMemberId())
-                ;
+                .modifier(securityUtils.getMemberId());
 
         if (!ObjectUtils.isEmpty(dto.getReserveDate())) {
             ZonedDateTime reserveDate = WorkDateTimeUtils.stringToDateTime(dto.getReserveDate());

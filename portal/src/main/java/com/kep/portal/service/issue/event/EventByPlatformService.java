@@ -1,36 +1,13 @@
 package com.kep.portal.service.issue.event;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.annotation.Nullable;
-import javax.annotation.Resource;
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
-
-import com.kep.core.model.dto.issue.*;
-import com.kep.portal.model.entity.issue.*;
-import com.kep.portal.repository.issue.IssueSupportRepository;
-import com.kep.portal.service.forbidden.ForbiddenService;
-import org.springframework.data.domain.Example;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kep.core.model.dto.customer.*;
+import com.kep.core.model.dto.issue.*;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
 import com.kep.core.model.dto.issue.payload.IssuerType;
+import com.kep.core.model.dto.platform.AuthorizeType;
 import com.kep.core.model.dto.platform.PlatformType;
+import com.kep.core.model.dto.platform.kakao.profile.KakaoCustomerDto;
 import com.kep.core.util.TimeUtils;
 import com.kep.portal.client.PlatformClient;
 import com.kep.portal.config.property.ModeProperty;
@@ -39,24 +16,45 @@ import com.kep.portal.config.property.SocketProperty;
 import com.kep.portal.model.entity.branch.Branch;
 import com.kep.portal.model.entity.channel.Channel;
 import com.kep.portal.model.entity.customer.Customer;
-import com.kep.portal.model.entity.customer.CustomerAuthorized;
 import com.kep.portal.model.entity.customer.Guest;
 import com.kep.portal.model.entity.env.CounselInflowEnv;
+import com.kep.portal.model.entity.issue.*;
 import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.model.entity.subject.IssueCategory;
 import com.kep.portal.repository.customer.CustomerAuthorizedRepository;
+import com.kep.portal.repository.customer.GuestRepository;
 import com.kep.portal.repository.env.CounselInflowEnvRepository;
 import com.kep.portal.repository.issue.IssueExtraRepository;
 import com.kep.portal.scheduler.TryAssignOpenedIssueJob;
 import com.kep.portal.service.assign.AssignProducer;
 import com.kep.portal.service.branch.BranchService;
 import com.kep.portal.service.channel.ChannelService;
+import com.kep.portal.service.customer.CustomerServiceImpl;
 import com.kep.portal.service.customer.GuestService;
+import com.kep.portal.service.forbidden.ForbiddenService;
 import com.kep.portal.service.issue.IssueLogService;
 import com.kep.portal.service.issue.IssueService;
 import com.kep.portal.service.subject.IssueCategoryService;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Example;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
+
+import javax.annotation.Nullable;
+import javax.annotation.Resource;
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 플랫폼에서 전달된 고객 이벤트
@@ -80,6 +78,8 @@ public class EventByPlatformService {
 	private BranchService branchService;
 	@Resource
 	private ChannelService channelService;
+	@Resource
+	private CustomerServiceImpl customerService;
 	@Resource
 	private GuestService guestService;
 	@Resource
@@ -106,6 +106,8 @@ public class EventByPlatformService {
 	private EventBySystemService eventBySystemService;
 	@Resource
 	private CounselInflowEnvRepository counselInflowEnvRepository;
+	@Resource
+	private GuestRepository guestRepository;
 
 	@Resource
 	private ForbiddenService forbiddenService;
@@ -117,36 +119,25 @@ public class EventByPlatformService {
 	 * 상담 요청 이벤트
 	 */
 	public IssueDto open(@NotNull PlatformType platform, @NotEmpty String serviceKey, @NotEmpty String userKey, @NotNull Map<String, Object> options, Long trackKey) {
-
 		// 채널 검색
 		Channel channel = verifyChannel(platform, serviceKey);
-
 		// 비식별 고객 검색 및 생성
 		Guest guestSearch = Guest.builder().channelId(channel.getId()).userKey(userKey).build();
 		Guest guest = guestService.findOne(Example.of(guestSearch));
 		if (guest == null) {
-			guestSearch.setPlatformUserId((String) options.get("appUserId"));
+			// appUserId : Bot이 비즈니스 앱과 연결되어 있는 경우 Bot을 실행한 사용자가 해당 앱의 가입자일 때, 앱에서 발급된 계정의 userId
+			// 즉 해당 Guest가 챗봇으로 대화를 실행한 경우 appUserId가 발행됨.
+			// TODO : 현재는 appUserId를 별도로 사용하고 있지 않음. 그러니 해당 내용은 주석, 추후 해당 내용이 필요해진다면 그때 다시 비즈니스 분석 해볼 것
 			guest = guestService.save(guestSearch);
 			Assert.notNull(guest, "failed create guest");
-		} else {
-			if(ObjectUtils.isEmpty(guest.getPlatformUserId())) {
-				guest.setPlatformUserId((String) options.get("appUserId"));
-				guest = guestService.save(guest);
-				Assert.notNull(guest, "failed update guest");
-			}
 		}
 		
-		// 식별 고객 검색
-		Long customerId = guest.getCustomer() != null ? guest.getCustomer().getId() : null;
-		if(!ObjectUtils.isEmpty(guest.getPlatformUserId())) {
-			List<CustomerAuthorized> customerAuthorizedList = customerAuthorizedRepository.findByPlatformUserIdOrderByIdDesc(guest.getPlatformUserId());
-			if(!customerAuthorizedList.isEmpty()) {
-				customerId = customerAuthorizedList.stream().findFirst().get().getCustomerId();
-				guest.setCustomer(Customer.builder().id(customerId).build());
-				guest = guestService.save(guest);
-			}
+		// 식별 고객 여부 확인
+		Long customerId = null; //guest.getCustomer() != null ? guest.getCustomer().getId() : null;
+		if(guest.getCustomer() != null) {
+			customerId = guest.getCustomer().getId();
 		}
-		
+
 		// 진행중 이슈 검색
 		// NOTE: 채널당 한 개 이슈만 진행 가능 (카카오 상담톡 기준)
 		Issue issue = issueService.findOngoingByPlatform(channel.getId(), guest.getId());
@@ -155,13 +146,13 @@ public class EventByPlatformService {
 			log.warn("EVENT BY PLATFORM, OPEN, EXIST ONGOING ISSUE: {}, TRACK KEY: {}", issue.getId(), trackKey);
 			return issueMapper.map(issue);
 		}
+
 		// 브랜치 파라미터
 		Long branchId = getBranch(options);
 		// 분류 파라미터
 		IssueCategory issueCategory = getIssueCategory(options);
 		// 유입 경로 파라미터
 		String inflow = getInflow(branchId, channel.getServiceId(), options);
-
 		// 이슈 생성
 		issue = createIssueByOpen(branchId, channel, guest, issueCategory, customerId);
 
@@ -206,10 +197,6 @@ public class EventByPlatformService {
 
 		// 소켓으로 이슈 전송
 		simpMessagingTemplate.convertAndSend(socketProperty.getIssuePath(), issueDto);
-		// 배정 스케줄에 추가
-//		assignProducer.sendMessage(IssueAssign.builder()
-//				.id(issueDto.getId())
-//				.build());
 
 		// 배정 스케줄러 다이렉트 호출 안하도록 수정 (로직 자체는 유지)
 		// 채팅 요청 이후 스케줄러가 돌아서 상담원 매칭 전에 고객이 채팅 입력 하는 경우 방지를 위해서
@@ -315,6 +302,94 @@ public class EventByPlatformService {
 //			eventBySystemService.sendOfficeHours(issue);
 
 		return issueDto;
+	}
+
+	/**
+	 * 고객 인증 정보 관리 메소드
+	 */
+	public CustomerDto authorized(AuthorizeType authorizeType, String authorizedInfo) throws Exception {
+		String identifier = null;
+		CustomerDto customerDto = null;
+
+		List<CustomerContactDto> customerContactDtos = new ArrayList<>();
+		List<CustomerAnniversaryDto> customerAnniversaryDtos = new ArrayList<>();
+
+		long memberId = 0L;
+		long issueId = 0L;
+		String platformUserId = null;
+
+		// Kakao Sync로 인증
+		if (AuthorizeType.kakao_sync.equals(authorizeType)) {
+			KakaoCustomerDto kakaoCustomerDto = objectMapper.readValue(authorizedInfo, KakaoCustomerDto.class);
+			identifier = kakaoCustomerDto.getKakaoAccount().getEmail();
+			platformUserId = kakaoCustomerDto.getId();
+			customerDto = CustomerDto.builder().identifier(identifier).build();
+
+			// TODO : 고객 정보 저장 여부에 대한 체크가 필요함
+			customerDto.setAge(kakaoCustomerDto.getKakaoAccount().getAgeRange());
+			customerDto.setName(kakaoCustomerDto.getKakaoAccount().getName());
+
+			customerContactDtos.add(CustomerContactDto.builder()
+					.type(CustomerContactType.email)
+					.payload(kakaoCustomerDto.getKakaoAccount().getEmail())
+					.build());
+			customerContactDtos.add(CustomerContactDto.builder()
+					.type(CustomerContactType.call)
+					.payload(kakaoCustomerDto.getKakaoAccount().getPhoneNumber())
+					.build());
+			customerDto.setContacts(customerContactDtos);
+			// TODO : 추후 실제 프로필 이미지를 다운로드 하도록 수정 -> 이를 통해 프로필 이미지 확대 기능 제공 필요
+			customerDto.setProfile(kakaoCustomerDto.getKakaoAccount().getProfile().getProfileImageUrl());
+
+			if (kakaoCustomerDto.getKakaoAccount().getBirthday() != null) {
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+				LocalDate anniversary = LocalDate.parse(kakaoCustomerDto.getKakaoAccount().getBirthyear()
+						+ kakaoCustomerDto.getKakaoAccount().getBirthday(), formatter);
+				// TODO : 해당 기념일이 여러개일 수 있는가? 생일이라면 하나 뿐 아닌가?
+				customerAnniversaryDtos.add(CustomerAnniversaryDto.builder()
+								.type(AnniversaryType.birthday)
+								.anniversary(anniversary.toString())
+								.build());
+				customerDto.setAnniversaries(customerAnniversaryDtos);
+			}
+			// FIXME : memberId를 mid로 전달하고 있음, 개선 필요
+			if (kakaoCustomerDto.getExtra() != null) {
+				log.info("current extra data = {}", kakaoCustomerDto.getExtra());
+				memberId = (kakaoCustomerDto.getExtra().get("mid") != null)
+						? Long.parseLong(String.valueOf(kakaoCustomerDto.getExtra().get("mid"))) : 0L;
+				issueId = (kakaoCustomerDto.getExtra().get("issue") != null)
+						? Long.parseLong(String.valueOf(kakaoCustomerDto.getExtra().get("issue"))) : 0L;
+			}
+		}
+
+		// 고객 데이터가 존재한다면 고객 정보 저장
+		if (customerDto != null) {
+			Customer customer = customerService.save(customerDto);
+			// 고객 정보가 있으며 고객과의 대화 내용이 있을 경우
+			if (customer != null && issueId != 0L) {
+				Issue issue = issueService.findById(issueId);
+				Guest guest = issue.getGuest();
+				log.info("issue id - {}, guest id - {}", issueId, guest.getId());
+				// 인증 고객 정보(Customer)가 비어있다면
+				if (guest.getCustomer() == null) {
+					guest.setCustomer(customer);
+					guestRepository.saveAndFlush(guest);
+					log.info("guest customer flush = {}", guest.getCustomer().getId());
+				}
+			}
+
+			// 고객 인증 정보와 상담원 ID 저장(고객목록 식별용)
+			customerService.customerMemberStore(customer, memberId);
+
+			// 인증 히스토리 업데이트
+			CustomerAuthorizedDto customerAuthorizedDto = CustomerAuthorizedDto.builder()
+					.platformUserId(platformUserId)
+					.type(authorizeType)
+					.build();
+			customerService.authorizedStore(customer, customerAuthorizedDto);
+		}
+
+		return customerDto;
 	}
 
 	/**

@@ -44,7 +44,7 @@ public class KakaoSyncService {
 	@Resource
 	private SendToPortalProducer producer;
 
-	@Value("${serviceIdKey.bnk}")
+	@Value("${serviceIdKey.always}")
 	private String serviceIdKey;
 
 	public String authorized(@NotEmpty String code, @NotNull Map<String, String> params) throws Exception {
@@ -60,8 +60,13 @@ public class KakaoSyncService {
 			Map<String, Object> extra = processExtraParams(params, userInfo);
 			// 사용자 정보 인증
 			portalClient.authorized(AuthorizeType.kakao_sync, userInfo, System.currentTimeMillis());
-			// 추가 파라미터를 기반으로 반환 URL 생성
-			return generateReturnUrl(extra);
+
+			// 'extra'가 비어 있지 않으면 반환 URL 생성
+			// 추가된 데이터로 URL 파라미터를 준비
+			// application.yml 내 'serviceIdKey' 값을 활용해서 URL 생성
+			// 이 URL의 양식은 개인 URL 생성 시 발생하는 값과 동일함
+			return ObjectUtils.isEmpty(extra) ?
+					"" : String.format("%s/open%s?extra=%s", coreProperty.kakaoCounselTalkBaseUrl, serviceIdKey, prepareUrlParam(extra));
 		}
 		return "";
 	}
@@ -98,11 +103,16 @@ public class KakaoSyncService {
 	}
 
 	private String generateReturnUrl(Map<String, Object> extra) {
-		// 'extra'가 비어 있지 않으면 반환 URL 생성
+
 		if(!ObjectUtils.isEmpty(extra)) {
+			// 'extra'가 비어 있지 않으면 반환 URL 생성
 			// 추가된 데이터로 URL 파라미터를 준비
-			String urlParam = prepareUrlParam(extra);
-//			return coreProperty.kakaoCounselTalkBaseUrl + serviceIdKey + urlParam;
+			// application.yml 내 'serviceIdKey' 값을 활용해서 URL 생성
+			// 이 URL의 양식은 개인 URL 생성 시 발생하는 값과 동일함
+			return String.format("%s/open/%s?extra=%s",
+					coreProperty.kakaoCounselTalkBaseUrl,
+					serviceIdKey,
+					prepareUrlParam(extra));
 		}
 		return "";
 	}

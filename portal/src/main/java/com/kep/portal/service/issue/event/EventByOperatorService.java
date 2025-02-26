@@ -120,6 +120,7 @@ public class EventByOperatorService {
 
         List<IssueLogDto> issueLogs = new ArrayList<>();
 
+        // FIXME : AssignConsumer에서 첫 인사말 즉시 발송 기능이 들어가면 해당 부분은 삭제되어야 함
         // 자동메세지 (상담시작 공통 인사말)
         if (IssueStatus.assign.equals(issue.getStatus())) {
             IssueLog welcomeMessage = eventBySystemService.saveWelcome(issue);
@@ -129,6 +130,7 @@ public class EventByOperatorService {
             // 통계 데이터 수집 응답
             issue.setMemberFirstAsked(ZonedDateTime.now());
         }
+        // FIXME : AssignConsumer에서 첫 인사말 즉시 발송 기능이 들어가면 해당 부분은 삭제되어야 함
 
         // TODO: 2023-08-18 018 issuePayload에 있는 변수 치환?
         for (IssuePayload.Chapter chapter : issuePayload.getChapters()) {

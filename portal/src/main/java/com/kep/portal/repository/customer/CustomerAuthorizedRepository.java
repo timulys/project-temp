@@ -23,4 +23,6 @@ public interface CustomerAuthorizedRepository extends JpaRepository<CustomerAuth
     CustomerAuthorized findByPlatformUserId(@NotNull Object platformUserId);
     
     List<CustomerAuthorized> findByPlatformUserIdOrderByIdDesc(@NotNull Object platformUserId);
+
+    List<CustomerAuthorized> findByCustomerIdOrderByIdDesc(@NotNull Long customerId);
 }

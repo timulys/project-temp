@@ -290,7 +290,11 @@ public class IssueExtraService {
 		Issue issue = issueRepository.findById(issueId).orElseThrow(() -> new BizException("Not found issue"));
 		IssueExtra issueExtra = issue.getIssueExtra();
 
-		if (issueExtra == null) return null;
+		if (issueExtra == null) {
+			return IssueExtraSummaryResponse.builder()
+					.summaryCompleted(false)
+					.build();
+		}
 
 //		IssueExtraSummaryResponse result = new IssueExtraSummaryResponse();
 		Channel channel = issue.getChannel();

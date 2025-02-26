@@ -228,11 +228,14 @@ public class EventByPlatformController {
             @RequestHeader(value = "X-Authorize-Type") AuthorizeType authorizeType,
             @Parameter(description = "트랙 키", in = ParameterIn.HEADER, required = true)
             @RequestHeader(value = "X-Track-Key") Long trackKey,
-            @RequestBody(required = false) Map<String, Object> authorizedInfo) throws Exception {
+            @RequestBody(required = false) String authorizedInfo) throws Exception {
 
         log.info("EVENT BY PLATFORM, AUTHORIZED, TRACK KEY: {}, TYPE: {}, BODY: {}",
                 trackKey, authorizeType, authorizedInfo);
+        CustomerDto customerDto = eventByPlatformService.authorized(authorizeType, authorizedInfo);
 
+        // FIXME : 컨트롤러 레벨에 선언된 비즈니스 로직은 모두 Service Layer로 이관, 아래 코드는 테스트 완료 후 삭제 예정
+        /*
         // API 결과 코드, 고객 CI, bnk 고객 번호 등 초기 변수설정
         ApiResultCode code = ApiResultCode.failed;
         String custCi = null;
@@ -248,7 +251,7 @@ public class EventByPlatformController {
         // 추가적인 고객 ID, 멤버 ID, 이슈 ID
         Long customerId = 0L;
         Long memberId = 0L;
-        String vndrCustNo = null; 
+        String vndrCustNo = null;
         Long issueId = 0L;
 
         //kakao sync(카카오 동기화 처리)
@@ -258,7 +261,7 @@ public class EventByPlatformController {
             log.info("KakaoCustomerDto :::::{}",dto);
             custCi = dto.getKakaoAccount().getCi();
             platformUserId = dto.getId();
-            
+
             //연락처 정보 설정 : 이메일, 전화번호
             customerContactDtos.add(CustomerContactDto.builder()
                     .type(CustomerContactType.email)
@@ -294,18 +297,18 @@ public class EventByPlatformController {
             if (!customerAnniversaryDtos.isEmpty()) {
                 customerDto.setAnniversaries(customerAnniversaryDtos);
             }
-            
+
             if (dto.getExtra() != null) {
                 customerId = (dto.getExtra().get("customer_id") != null)
                         ? Long.valueOf(String.valueOf(dto.getExtra().get("customer_id"))) : 0L;
 
                 memberId = (dto.getExtra().get("member_id") != null)
                         ? Long.valueOf(String.valueOf(dto.getExtra().get("member_id"))) : 0L;
-                
+
                 // 문자열로 변환
                 vndrCustNo = (dto.getExtra().get("vndr_cust_no") != null)
                         ? String.valueOf(dto.getExtra().get("vndr_cust_no")) : null;
-            	
+
                 issueId = (dto.getExtra().get("issue_id") != null)
                         ? Long.valueOf(String.valueOf(dto.getExtra().get("issue_id"))) : 0L;
             }
@@ -315,7 +318,7 @@ public class EventByPlatformController {
         	log.info("Saving customerDto: {}", customerDto);
             Customer customer = customerService.save(customerDto);
             log.info("Saved customer: {}", customer);
-            
+
             if (customer != null) {
                 if (issueId != 0L) {
                     Issue issue = issueService.findById(issueId);
@@ -347,9 +350,10 @@ public class EventByPlatformController {
             }
             code = ApiResultCode.succeed;
         }
-        log.info("Ending authorized endpoint with customerDto: {}", customerDto);
+        log.info("Ending authorized endpoint with customerDto: {}", customerDto);*/
+
         return new ResponseEntity<>(ApiResult.<CustomerDto>builder()
-                .code(code)
+                .code(ApiResultCode.succeed)
                 .payload(customerDto)
                 .build(), HttpStatus.CREATED);
         

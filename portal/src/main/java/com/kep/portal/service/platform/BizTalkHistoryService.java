@@ -13,6 +13,7 @@ import com.kep.core.model.dto.member.MemberDto;
 import com.kep.core.model.dto.platform.*;
 import com.kep.core.model.dto.platform.kakao.KakaoBizMessageTemplatePayload;
 import com.kep.core.model.dto.platform.kakao.KakaoBizTalkSendResponse;
+import com.kep.core.model.dto.platform.kakao.vo.Result;
 import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.model.dto.platform.*;
 import com.kep.portal.model.entity.channel.Channel;
@@ -258,7 +259,7 @@ public class BizTalkHistoryService {
         List<BizTalkHistory> histories = bizTalkHistoryRepository.findAllByCidIn(cidList);
         for (BizTalkHistory history : histories) {
 
-            KakaoBizTalkSendResponse.Result result = dto.getResults().stream().filter(item -> item.getCid().equals(history.getCid())).findFirst().orElse(null);
+            Result result = dto.getResults().stream().filter(item -> item.getCid().equals(history.getCid())).findFirst().orElse(null);
             Assert.notNull(result, "Not Found Cid");
             history.setMessageId(result.getUid());
 
@@ -267,6 +268,7 @@ public class BizTalkHistoryService {
                     history.setStatus(BizTalkSendStatus.send);
                     break;
                 case "API_200":
+                case "200":
                     history.setStatus(BizTalkSendStatus.succeed);
                     break;
                 default:

@@ -1,30 +1,30 @@
 package com.kep.portal.repository.guide;
 
 
-import static com.kep.portal.model.entity.guide.QGuide.guide;
-
-import java.util.List;
-import java.util.Optional;
-
-import com.kep.portal.model.entity.guide.QGuideCategory;
-import com.kep.portal.model.entity.privilege.Level;
-import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-
 import com.kep.portal.model.dto.guide.GuideSearchDto;
 import com.kep.portal.model.entity.branch.QBranch;
 import com.kep.portal.model.entity.guide.Guide;
 import com.kep.portal.model.entity.guide.QGuide;
 import com.kep.portal.model.entity.guide.QGuideBlock;
+import com.kep.portal.model.entity.guide.QGuideCategory;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
+import java.util.List;
+import java.util.Optional;
+
+import static com.kep.portal.model.entity.guide.QGuide.guide;
 
 @Slf4j
 public class GuideSearchRepositoryImpl implements GuideSearchRepository {

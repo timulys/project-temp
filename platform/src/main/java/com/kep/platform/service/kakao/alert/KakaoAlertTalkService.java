@@ -29,11 +29,16 @@ import javax.validation.constraints.Positive;
 @Slf4j
 public class KakaoAlertTalkService {
 
-    private static final String ALERT_TALK_SEND_PATH = "/v1/message/multi/send"; // POST 알림톡 발송
+//    private static final String ALERT_TALK_SEND_PATH = "/v1/message/multi/send"; // POST 알림톡 발송
     private static final String ALERT_TALK_RESULT_PATH = "/v1/info/message/results"; // GET 알림톡 결과 요청
     private static final String ALERT_TALK_COMPLETE_PATH = "/v1/info/message/results/complete"; //  {reportGroupNo} PUT 결과 처리 완료
     private static final String ALERT_TALK_SEARCH_PATH = "/v1/info/message/search"; // POST 발송 내역 조회
     private static final String ALERT_TALK_DETAIL_PATH = "/v1/info/message/search/detail"; // {uid} GET 발송 내역 상세 조회
+
+    /**
+     * V3 이상 BZM API
+     */
+    private static final String ALERT_TALK_SEND_PATH = "/alimtalk/send"; // (V3)알림톡 발송
 
     @Resource
     private PlatformProperty platformProperty;
@@ -41,6 +46,8 @@ public class KakaoAlertTalkService {
     private ObjectMapper objectMapper;
     @Resource
     private WebClient externalOAuthWebClient;
+    @Resource
+    private WebClient kakaoTemplateWebClient;
 
     /**
      * 알림톡 발송
@@ -55,9 +62,13 @@ public class KakaoAlertTalkService {
             throw new RuntimeException(e);
         }
 
-        KakaoBizTalkSendResponse talkResponse = externalOAuthWebClient.post().uri(getRequestUrl(ALERT_TALK_SEND_PATH))
+        KakaoBizTalkSendResponse talkResponse = kakaoTemplateWebClient.post()
+                .uri(getRequestUrl(ALERT_TALK_SEND_PATH, "v3"))
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .body(BodyInserters.fromValue(bodyJson)).retrieve().bodyToMono(KakaoBizTalkSendResponse.class).block();
+                .body(BodyInserters.fromValue(bodyJson))
+                .retrieve()
+                .bodyToMono(KakaoBizTalkSendResponse.class)
+                .block();
         log.info("talkResponse = {}", talkResponse);
 
         return talkResponse;
@@ -69,7 +80,7 @@ public class KakaoAlertTalkService {
     public KakaoBizTalkSendResponse result(@Positive Long trackKey) {
         log.info("KAKAO ALERT TALK, RESULT, TRACK KEY: {}", trackKey);
 
-        KakaoBizTalkSendResponse sendResponse = externalOAuthWebClient.get().uri(getRequestUrl(ALERT_TALK_RESULT_PATH)).retrieve().bodyToMono(KakaoBizTalkSendResponse.class).block();
+        KakaoBizTalkSendResponse sendResponse = externalOAuthWebClient.get().uri(getRequestUrl(ALERT_TALK_RESULT_PATH, "v3")).retrieve().bodyToMono(KakaoBizTalkSendResponse.class).block();
 
         log.info("sendResponse = {}", sendResponse);
 
@@ -84,7 +95,7 @@ public class KakaoAlertTalkService {
 
         log.info("KAKAO ALERT TALK, COMPLETE, TRACK KEY: {}", trackKey);
 
-        KakaoBizTalkSendResponse sendResponse = externalOAuthWebClient.put().uri(getRequestUrl(ALERT_TALK_COMPLETE_PATH) + "/" + reportGroupNo).retrieve().bodyToMono(KakaoBizTalkSendResponse.class).block();
+        KakaoBizTalkSendResponse sendResponse = externalOAuthWebClient.put().uri(getRequestUrl(ALERT_TALK_COMPLETE_PATH, "v3") + "/" + reportGroupNo).retrieve().bodyToMono(KakaoBizTalkSendResponse.class).block();
 
         log.info("sendResponse = {}", sendResponse);
 
@@ -100,7 +111,7 @@ public class KakaoAlertTalkService {
 
         log.info("KAKAO ALERT TALK, SEARCH, TRACK KEY: {}", trackKey);
 
-        KakaoBizSearchResponse searchResponse = externalOAuthWebClient.post().uri(getRequestUrl(ALERT_TALK_SEARCH_PATH)).bodyValue(dto).retrieve().bodyToMono(KakaoBizSearchResponse.class).block();
+        KakaoBizSearchResponse searchResponse = externalOAuthWebClient.post().uri(getRequestUrl(ALERT_TALK_SEARCH_PATH, "v3")).bodyValue(dto).retrieve().bodyToMono(KakaoBizSearchResponse.class).block();
 
         log.info("searchResponse = {}", searchResponse);
 
@@ -116,18 +127,18 @@ public class KakaoAlertTalkService {
 
         log.info("KAKAO ALERT TALK, SEARCH DETAIL, TRACK KEY: {}", trackKey);
 
-        KakaoBizDetailResponse detailResponse = externalOAuthWebClient.get().uri(getRequestUrl(ALERT_TALK_DETAIL_PATH) + "/" + uid).retrieve().bodyToMono(KakaoBizDetailResponse.class).block();
+        KakaoBizDetailResponse detailResponse = externalOAuthWebClient.get().uri(getRequestUrl(ALERT_TALK_DETAIL_PATH, "v3") + "/" + uid).retrieve().bodyToMono(KakaoBizDetailResponse.class).block();
 
         log.info("detailResponse = {}", detailResponse);
         return detailResponse;
 
     }
 
-    private String getRequestUrl(@NotNull String endPoint) {
+    private String getRequestUrl(@NotNull String endPoint, @NotNull String version) {
 
         PlatformProperty.Platform platform = platformProperty.getPlatforms().get(PlatformType.kakao_alert_talk.name());
         Assert.notNull(platform, "PLATFORM IS NULL");
 
-        return platform.getApiBaseUrl() + endPoint;
+        return String.format("%s/%s/%s%s", platform.getApiBaseUrl(), version, platform.getApiKey(), endPoint);
     }
 }

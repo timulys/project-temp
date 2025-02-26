@@ -4,6 +4,8 @@ package com.kep.core.model.dto.platform;
  * <h2> 알림톡
  * <li> AT: 알림톡
  * <li> AI: 알림톡 이미지
+ * <hr>
+ * <h2> 대체 메시지
  * <li> SM: SMS
  * <li> LM: LMS
  * <li> MM: MMS

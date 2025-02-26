@@ -7,7 +7,10 @@ import com.kep.core.model.dto.platform.PlatformTemplateStatus;
 import com.kep.core.model.dto.platform.PlatformType;
 import com.kep.core.model.dto.platform.kakao.KakaoBizMessageTemplatePayload;
 import com.kep.core.model.dto.platform.kakao.KakaoBizTemplateResponse;
+import com.kep.core.model.dto.platform.kakao.bizTalk.response.BizTalkResponseDto;
+import com.kep.core.model.dto.platform.kakao.bizTalk.response.SendProfileResponseDto;
 import com.kep.core.model.dto.platform.kakao.profile.KakaoSendProfileResponse;
+import com.kep.core.model.dto.platform.kakao.bizTalk.response.TemplateCategoryResponseDto;
 import com.kep.core.model.dto.upload.UploadPlatformRequestDto;
 import com.kep.portal.model.dto.platform.PlatformTemplateCondition;
 import com.kep.portal.model.dto.platform.PlatformTemplateResponseDto;
@@ -18,6 +21,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -29,6 +33,7 @@ import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.persistence.Version;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -97,6 +102,7 @@ public class PlatformTemplateController {
 	@Operation(summary = "상담관리 > 템플릿 관리 목록")
 	@GetMapping("/manager")
     @PreAuthorize("hasAnyAuthority('WRITE_PLATFORM_TEMPLATE')")
+	@Deprecated
 	public ResponseEntity<ApiResult<List<PlatformTemplateResponseDto>>> getManager(
 			@Parameter(description = "플랫폼 타입(solution_web, kakao_counsel_talk, kakao_alert_talk, kakao_friend_talk, kakao_template,\n" +
 					"legacy_web, legacy_app , kakao_counsel_center)")
@@ -149,11 +155,10 @@ public class PlatformTemplateController {
 			"상담포털 > 알림톡/친구톡 > 템플릿 목록 팝업 > 템플릿 상세 조회")
 	@GetMapping({"/manager/{id}", "/{id}"})
 	@PreAuthorize("hasAnyAuthority('WRITE_KAKAO_ALERT_TALK', 'WRITE_KAKAO_FRIEND_TALK', 'WRITE_PLATFORM_TEMPLATE')")
+	@Deprecated
 	public ResponseEntity<ApiResult<PlatformTemplateResponseDto>> detail(
 				@Parameter(description = "플랫폼 템플릿 아이디", in = ParameterIn.PATH, required = true)
-				@PathVariable("id") Long id
-	) throws Exception {
-
+				@PathVariable("id") Long id) throws Exception {
 		Assert.notNull(id, "id can not be null");
 
 		PlatformTemplateResponseDto responseDto = platformTemplateService.detail(id);
@@ -212,25 +217,25 @@ public class PlatformTemplateController {
 	 * @return
 	 * @throws Exception
 	 */
-	@Tag(name = "플랫폼 템플릿 API")
+	@Tag(name = "플랫폼 템플릿 API : V3")
 	@Operation(summary = "템플릿 등록/수정 시 발신프로필 등록여부 체크", description = "상담관리 > 템플릿 관리 > 등록/수정 시 발신프로필 등록여부 체크")
 	@GetMapping("/checkProfileKey")
 	@PreAuthorize("hasAnyAuthority('WRITE_KAKAO_ALERT_TALK', 'WRITE_KAKAO_FRIEND_TALK', 'WRITE_PLATFORM_TEMPLATE')")
-	public ResponseEntity<ApiResult<KakaoSendProfileResponse>> checkProfileKey(
+	public ResponseEntity<ApiResult<SendProfileResponseDto>> checkProfileKey(
 			@Parameter(description = "발신 프로필 키", required = true)
 			@RequestParam(name = "senderProfileKey") String senderProfileKey) throws Exception {
-		KakaoSendProfileResponse profileResponse = platformTemplateService.checkProfileKey(senderProfileKey);
+		SendProfileResponseDto profileResponse = platformTemplateService.checkProfileKey(senderProfileKey);
 
 		/**
 		 * FIXME :: 프로필 키 미존재시 응답처리 정해서 리턴 20240715 volka
 		 */
 		if(null == profileResponse){
-			ApiResult<KakaoSendProfileResponse> response = ApiResult.<KakaoSendProfileResponse>builder()
+			ApiResult<SendProfileResponseDto> response = ApiResult.<SendProfileResponseDto>builder()
 					.code(ApiResultCode.failed)
 					.build();
 		}
 
-		ApiResult<KakaoSendProfileResponse> response = ApiResult.<KakaoSendProfileResponse>builder()
+		ApiResult<SendProfileResponseDto> response = ApiResult.<SendProfileResponseDto>builder()
 				.code(ApiResultCode.succeed)
 				.payload(profileResponse)
 				.build();
@@ -261,14 +266,14 @@ public class PlatformTemplateController {
 	 * @return
 	 * @throws Exception
 	 */
-	@Tag(name = "플랫폼 템플릿 API")
+	@Tag(name = "플랫폼 템플릿 API : V2")
 	@Operation(summary = "등록/수정 시 카테고리 목록", description = "상담관리 > 템플릿 관리 > 등록/수정 시 카테고리 목록")
 	@GetMapping("/getCategoryList")
 	@PreAuthorize("hasAnyAuthority('WRITE_KAKAO_ALERT_TALK', 'WRITE_KAKAO_FRIEND_TALK', 'WRITE_PLATFORM_TEMPLATE')")
-	public ResponseEntity<ApiResult<List<KakaoBizTemplateResponse.TemplateCategory>>> getCategoryList() throws Exception {
-		List<KakaoBizTemplateResponse.TemplateCategory> profileKeyList = platformTemplateService.getCategoryList();
+	public ResponseEntity<ApiResult<List<TemplateCategoryResponseDto>>> getCategoryList() throws Exception {
+		List<TemplateCategoryResponseDto> profileKeyList = platformTemplateService.getCategoryList();
 
-		ApiResult<List<KakaoBizTemplateResponse.TemplateCategory>> response = ApiResult.<List<KakaoBizTemplateResponse.TemplateCategory>>builder()
+		ApiResult<List<TemplateCategoryResponseDto>> response = ApiResult.<List<TemplateCategoryResponseDto>>builder()
 				.code(ApiResultCode.succeed)
 				.payload(profileKeyList)
 				.build();
@@ -332,14 +337,14 @@ public class PlatformTemplateController {
 	@Operation(summary = "알림톡 템플릿 등록 후 검수요청", description = "상담 관리 > 템플릿 관리 > 알림톡 템플릿 등록 후 검수요청")
 	@PostMapping("/save/alert-talk/{senderProfileKey}")
 	@PreAuthorize("hasAnyAuthority('WRITE_PLATFORM_TEMPLATE')")
-	public ResponseEntity<ApiResult<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>>> save_alert_talk(
+	public ResponseEntity<ApiResult<BizTalkResponseDto<KakaoBizMessageTemplatePayload>>> save_alert_talk(
 			@Parameter(description = "발신자 프로필 키", in = ParameterIn.PATH, required = true)
 			@PathVariable("senderProfileKey") String senderProfileKey,
 			@RequestBody KakaoBizMessageTemplatePayload templatePayload) throws Exception {
 
-		KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload> res = platformTemplateService.saveAlertTemplate(senderProfileKey, null, templatePayload);
+		BizTalkResponseDto<KakaoBizMessageTemplatePayload> res = platformTemplateService.saveAlertTemplate(senderProfileKey, null, templatePayload);
 
-		ApiResult<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>> response = ApiResult.<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>>builder()
+		ApiResult<BizTalkResponseDto<KakaoBizMessageTemplatePayload>> response = ApiResult.<BizTalkResponseDto<KakaoBizMessageTemplatePayload>>builder()
 				.code(ApiResultCode.succeed)
 				.payload(res)
 				.build();
@@ -357,16 +362,16 @@ public class PlatformTemplateController {
 	@Operation(summary = "알림톡 템플릿 수정 후 재검수요청", description = "상담 관리 > 템플릿 관리 > 알림톡 템플릿 수정 후 재검수요청")
 	@PutMapping("/save/alert-talk/{senderProfileKey}/{id}")
 	@PreAuthorize("hasAnyAuthority('WRITE_PLATFORM_TEMPLATE')")
-	public ResponseEntity<ApiResult<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>>> put_alert_talk(
+	public ResponseEntity<ApiResult<BizTalkResponseDto<KakaoBizMessageTemplatePayload>>> put_alert_talk(
 			@Parameter(description = "발신 프로필 키", in = ParameterIn.PATH, required = true)
 			@PathVariable("senderProfileKey") String senderProfileKey,
 			@Parameter(description = "플랫폼 템플릿 아이디", in = ParameterIn.PATH, required = true)
 			@PathVariable("id") Long id,
 			@RequestBody KakaoBizMessageTemplatePayload templatePayload) throws Exception {
 
-		KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload> res = platformTemplateService.saveAlertTemplate(senderProfileKey, id, templatePayload);
+		BizTalkResponseDto<KakaoBizMessageTemplatePayload> res = platformTemplateService.saveAlertTemplate(senderProfileKey, id, templatePayload);
 
-		ApiResult<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>> response = ApiResult.<KakaoBizTemplateResponse<KakaoBizMessageTemplatePayload>>builder()
+		ApiResult<BizTalkResponseDto<KakaoBizMessageTemplatePayload>> response = ApiResult.<BizTalkResponseDto<KakaoBizMessageTemplatePayload>>builder()
 				.code(ApiResultCode.succeed)
 				.payload(res)
 				.build();
@@ -390,10 +395,10 @@ public class PlatformTemplateController {
 			"카카오 비즈 메세지 유저웹과 동일하게 이미지 파일 선택 시 즉시 업로드 되도록 처리")
 	@PostMapping("/upload/friend-talk/image")
 	@PreAuthorize("hasAnyAuthority('WRITE_KAKAO_FRIEND_TALK', 'WRITE_PLATFORM_TEMPLATE')")
-	public ResponseEntity<ApiResult<KakaoBizTemplateResponse>> uploadFriendImage(
+	public ResponseEntity<ApiResult<BizTalkResponseDto>> uploadFriendImage(
 			UploadPlatformRequestDto uploadDto) throws Exception {
-		KakaoBizTemplateResponse kakaoBizTemplateResponse = platformTemplateService.uploadFriendTemplateImage(uploadDto);
-		ApiResult<KakaoBizTemplateResponse> response = ApiResult.<KakaoBizTemplateResponse>builder()
+		BizTalkResponseDto kakaoBizTemplateResponse = platformTemplateService.uploadFriendTemplateImage(uploadDto);
+		ApiResult<BizTalkResponseDto> response = ApiResult.<BizTalkResponseDto>builder()
 				.code(ApiResultCode.succeed)
 				.payload(kakaoBizTemplateResponse)
 				.build();

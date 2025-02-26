@@ -3,11 +3,7 @@ package com.kep.portal.service.channel;
 import com.kep.core.model.dto.branch.BranchChannelDto;
 import com.kep.core.model.dto.branch.BranchDto;
 import com.kep.core.model.dto.channel.ChannelDto;
-import com.kep.core.model.dto.channel.ChannelEnvDto;
-import com.kep.core.model.dto.issue.payload.IssuePayload;
 import com.kep.core.model.dto.platform.PlatformType;
-import com.kep.core.model.dto.system.SystemEnvEnum;
-import com.kep.core.model.dto.system.SystemIssuePayloadDto;
 import com.kep.core.model.exception.BizException;
 import com.kep.portal.config.property.SystemMessageProperty;
 import com.kep.portal.model.entity.branch.Branch;
@@ -139,13 +135,16 @@ public class ChannelService {
 		return new PageImpl<>(channels, branchChannels.getPageable(), branchChannels.getTotalElements());
 	}
 
-	public Page<ChannelDto> getAllByPlatform(@NotNull PlatformType platform, @NotNull Pageable pageable) {
+	public List<ChannelDto> getAllByPlatform(@NotNull PlatformType platform) {
 		// 본인이 소속된 브랜치의 전체 채널 정보 조회
-		Page<BranchChannel> branchChannels = branchChannelService.findAllByBranchId(securityUtils.getBranchId(), pageable);
+		List<BranchChannel> branchChannels = branchChannelService.findAllByBranchId(securityUtils.getBranchId());
+		log.info("Branch Channel Length: {}", branchChannels.size());
+		List<ChannelDto> channels = branchChannelMapper.mapChannel(branchChannels).stream()
+				.filter(item -> platform.equals(item.getPlatform()))
+				.peek(item -> log.info("Channel Name : {}", item.getName()))
+				.collect(Collectors.toList());
 
-		List<ChannelDto> channels = branchChannelMapper.mapChannel(branchChannels.getContent())
-												.stream().filter(item->platform.equals(item.getPlatform())).collect(Collectors.toList());
-		return new PageImpl<>(channels, branchChannels.getPageable(), branchChannels.getTotalElements());
+		return channels;
 	}
 
 	public ChannelDto store(@NotNull @Valid ChannelDto dto) {
@@ -183,32 +182,10 @@ public class ChannelService {
 		this.branchChannelSave(dto.getBranchId() , entity , true);
 
 		//채널 환경 설정
-		ChannelEnvDto channelEnvDto = ChannelEnvDto.builder()
-				.customerConnection(SystemEnvEnum.CustomerConnection.category)
-				.memberAssign(SystemEnvEnum.MemberAssign.category)
-				.memberDirectEnabled(true)
-				.requestBlockEnabled(false)
-				.impossibleMessage(IssuePayload.builder()
-						.version(IssuePayload.CURRENT_VERSION)
-						.chapters(new IssuePayload(IssuePayload.PlatformAnswer.no_answer).getChapters())
-						.build())
-				.assignStandby(SystemIssuePayloadDto.EnabledNumberMessage.builder()
-						.number(50)
-						.enabled(true)
-						.message(IssuePayload.builder()
-								.version(IssuePayload.CURRENT_VERSION)
-								.chapters(new IssuePayload(systemMessageProperty.getChannel().getAssignStandby().getMessage()).getChapters())
-								.build())
-						.build())
-				.evaluation(SystemIssuePayloadDto.EnabledMessage.builder()
-						.enabled(false)
-						.message(IssuePayload.builder()
-								.version(IssuePayload.CURRENT_VERSION)
-								.chapters(new IssuePayload(systemMessageProperty.getChannel().getEvaluation().getMessage()).getChapters())
-								.build())
-						.build())
-				.build();
-		channelEnvService.saveByChannel(entity,channelEnvService.saveStart(null) , channelEnvService.saveEnd(null) , channelEnvDto);
+//		ChannelEnvDto channelEnvDto = channelEnvService.createDefaultChannelEnv();
+//		channelEnvService.saveByChannel(entity,channelEnvService.saveStart(null) , channelEnvService.saveEnd(null) , channelEnvDto);
+		// 채널 환경설정 디폴트 세팅
+		channelEnvService.saveInitChannelEnv(entity);
 		return entity;
 	}
 
