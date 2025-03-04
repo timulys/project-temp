@@ -5,6 +5,11 @@ import java.util.List;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
+import com.kep.portal.model.dto.customer.request.PatchCustomerRequestDto;
+import com.kep.portal.model.dto.customer.response.PatchCustomerResponseDto;
+import com.kep.portal.model.dto.customer.request.PostCustomerRequestDto;
+import com.kep.portal.model.dto.customer.response.PostCustomerResponseDto;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.kep.portal.model.entity.customer.Customer;
@@ -23,4 +28,6 @@ public interface CustomerService {
 
 	List<Customer> search(@NotNull String subject, @NotNull String query);
 
+	ResponseEntity<? super PostCustomerResponseDto> createCustomer(PostCustomerRequestDto requestDto);
+	ResponseEntity<? super PatchCustomerResponseDto> updateCustomer(PatchCustomerRequestDto requestDto);
 }

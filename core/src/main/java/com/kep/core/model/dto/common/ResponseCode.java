@@ -7,6 +7,10 @@ public interface ResponseCode {
     // Http Status 40x
     String VALIDATION_FAILED = "VLF";
     String NOT_EXISTED_DATA = "NED";
+    String NOT_EXISTED_MEMBER = "NEM";
+    String NOT_EXISTED_CUSTOMER = "NEC";
+    String NOT_EXISTED_CUSTOMER_GROUP = "NEG";
+    String DUPLICATED_DATA = "DPD";
     String NO_PERMISSION = "NPE";
 
     // Http Status 50x

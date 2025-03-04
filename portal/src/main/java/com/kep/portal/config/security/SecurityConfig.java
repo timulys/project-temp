@@ -80,7 +80,7 @@ public class SecurityConfig {
 				//.authenticated() //stg용
 				.and()
 				.formLogin()
-//				.loginPage("/login")
+				.loginPage("/login")
 				.successHandler(restAuthenticationSuccessHandler)
 				.failureHandler(restAuthenticationFailureHandler)
 //				.and()

@@ -50,6 +50,11 @@ public class Customer {
 	@Convert(converter = FixedCryptoConverter.class)
 	@Comment("연령대")
 	private String age;
+
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "customerGroupId", foreignKey = @ForeignKey(name = "FK_CUSTOMER__CUSTOMER_GROOUP"))
+	@Comment("고객 관리 그룹")
+	private CustomerGroup customerGroup;
 	
 	@OneToMany(fetch = FetchType.EAGER)
 	@JoinColumn(name = "customerId", updatable = false, foreignKey = @ForeignKey(name="FK_CUSTOMER__CUSTOMER_ANNIVERSARY"))

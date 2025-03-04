@@ -1,6 +1,7 @@
 package com.kep.portal.repository.customer;
 
 import com.kep.portal.model.entity.customer.Customer;
+import com.kep.portal.model.entity.customer.CustomerGroup;
 import com.kep.portal.model.entity.customer.Guest;
 import com.kep.portal.model.entity.issue.Issue;
 
@@ -23,6 +24,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
 	List<Customer> findAllByName(@NotEmpty String name);
 	
+	List<Customer> findAllByCustomerGroup(CustomerGroup customerGroup);
 	/**
 	 * 고객 이메일 정보
 	 * @param identifier
@@ -31,9 +33,9 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 	Customer findByIdentifier(@NotEmpty String identifier);
 
     List<Customer> findAllByIdIn(List<Long> guestId);
-    
+
     Customer findAllById(Long Id);
 
 	Optional<Customer> findById(Long Id);
-	
+
 }

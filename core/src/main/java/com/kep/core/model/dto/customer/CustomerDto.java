@@ -35,6 +35,8 @@ public class CustomerDto {
 	@Schema(description = "나이")
 	private String age;
 
+	private Long customerGroupId;
+
 	@Schema(description = "고객 연락 정보 목록")
 	private List<CustomerContactDto> contacts;
 

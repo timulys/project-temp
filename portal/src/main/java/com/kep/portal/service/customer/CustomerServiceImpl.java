@@ -3,29 +3,30 @@ package com.kep.portal.service.customer;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.Objects;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
+import com.kep.core.model.dto.ResponseDto;
 import com.kep.core.model.dto.customer.*;
-import com.kep.portal.model.converter.FixedCryptoConverter;
+import com.kep.portal.model.dto.customer.request.PatchCustomerRequestDto;
+import com.kep.portal.model.dto.customer.response.PatchCustomerResponseDto;
+import com.kep.portal.model.dto.customer.request.PostCustomerRequestDto;
+import com.kep.portal.model.dto.customer.response.PostCustomerResponseDto;
+import com.kep.portal.model.entity.customer.*;
+import com.kep.portal.repository.customer.*;
 import com.kep.portal.util.CommonUtils;
-import org.apache.poi.ss.formula.functions.Fixed;
+import lombok.RequiredArgsConstructor;
 import org.jasypt.encryption.StringEncryptor;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -33,26 +34,9 @@ import org.springframework.util.ObjectUtils;
 import com.kep.core.model.dto.legacy.LegacyCustomerDto;
 import com.kep.core.model.dto.platform.AuthorizeType;
 import com.kep.portal.client.LegacyClient;
-import com.kep.portal.model.entity.customer.Customer;
-import com.kep.portal.model.entity.customer.CustomerAnniversary;
-import com.kep.portal.model.entity.customer.CustomerAnniversaryMapper;
-import com.kep.portal.model.entity.customer.CustomerAuthorized;
-import com.kep.portal.model.entity.customer.CustomerAuthorizedMapper;
-import com.kep.portal.model.entity.customer.CustomerContact;
-import com.kep.portal.model.entity.customer.CustomerContactMapper;
-import com.kep.portal.model.entity.customer.CustomerMapper;
-import com.kep.portal.model.entity.customer.CustomerMember;
-import com.kep.portal.model.entity.customer.CustomerMemberMapper;
-import com.kep.portal.model.entity.customer.Guest;
 import com.kep.portal.model.entity.issue.Issue;
 import com.kep.portal.model.entity.issue.IssueExtra;
 import com.kep.portal.model.entity.platform.PlatformSubscribe;
-import com.kep.portal.repository.customer.CustomerAnniversaryRepository;
-import com.kep.portal.repository.customer.CustomerAuthorizedRepository;
-import com.kep.portal.repository.customer.CustomerContactRepository;
-import com.kep.portal.repository.customer.CustomerMemberRepository;
-import com.kep.portal.repository.customer.CustomerRepository;
-import com.kep.portal.repository.customer.GuestRepository;
 import com.kep.portal.repository.issue.IssueRepository;
 import com.kep.portal.repository.member.MemberRepository;
 import com.kep.portal.service.platform.PlatformSubscribeService;
@@ -61,9 +45,10 @@ import com.kep.portal.util.SecurityUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Service
 @Slf4j
+@Service
 @Transactional
+@RequiredArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
 
 	@Resource
@@ -116,6 +101,8 @@ public class CustomerServiceImpl implements CustomerService {
 
 	@Resource
 	private LegacyClient legacyClient;
+
+	private final CustomerGroupRepository customerGroupRepository;
 
 
 	/**
@@ -174,11 +161,16 @@ public class CustomerServiceImpl implements CustomerService {
 			List<IssueExtra> extras = this.getAllInflow(customer);
 			customer.setInflows(this.getAllInflow(customer));
 
-			//싱크없는 고객 체크
+			// 싱크없는 고객 체크
 			CustomerDto customerDto = customerMapper.map(customer);
 			if(!ObjectUtils.isEmpty(customerDto.getAuthorizeds()) && customerDto.getAuthorizeds().size() > 0){
 				customerDto.getAuthorizeds().stream().filter(item ->
 						item.getType().equals(AuthorizeType.kakao_sync)).count();
+			}
+
+			// 소속된 그룹 존재 유무 확인
+			if (customer.getCustomerGroup() != null) {
+				customerDto.setCustomerGroupId(customer.getCustomerGroup().getId());
 			}
 
 			// 데이터베이스에서 해당 고객을 조회
@@ -318,26 +310,96 @@ public class CustomerServiceImpl implements CustomerService {
 	/**
 	 * 고객 정보 저장
 	 */
-	public CustomerDto store(@NotNull CustomerDto dto) {
+	@Override
+	public ResponseEntity<? super PostCustomerResponseDto> createCustomer(PostCustomerRequestDto requestDto) {
+		try {
+			// 고객 등록 시 선택된 그룹 ID로 고객 그룹 조회
+			boolean existedCustomerGroup = customerGroupRepository.existsById(requestDto.getCustomerGroupId());
+			if (!existedCustomerGroup) return ResponseDto.notExistedCustomerGroup();
 
-		Customer customer = customerRepository.save(customerMapper.map(dto));
-		List<CustomerContact> contacts = customerContactMapper.mapDto(dto.getContacts());
-		for (CustomerContact contact : contacts) {
-			contact.setCustomerId(customer.getId());
+			CustomerGroup customerGroup = customerGroupRepository.findById(requestDto.getCustomerGroupId()).get();
+
+			Customer customer = customerRepository.save(Customer.builder()
+					.name(requestDto.getName())
+					.customerGroup(customerGroup)
+					.build());
+
+			// 고객 Contact 데이터 추가
+			List<CustomerContact> contactList = Optional.ofNullable(requestDto.getContacts())
+					.orElse(Collections.emptyList())
+					.stream()
+					.map(contact -> CustomerContact.builder()
+							.customerId(customer.getId())
+							.type(contact.getType())
+							.payload(contact.getPayload())
+							.build()
+					).collect(Collectors.toList());
+			customerContactRepository.saveAll(contactList);
+
+			// 실제 저장할 고객 객체 생성 및 저장
+
+			// 고객 저장과 함께 상담원 ID 연결 및 저장
+			if (securityUtils.getMemberId() == null)
+				return ResponseDto.notExistedMember();
+
+			customerMemberRepository.save(CustomerMember.builder()
+					.customer(customer)
+					.memberId(securityUtils.getMemberId())
+					.favorite(false)
+					.build());
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseDto.databaseErrorMessage();
 		}
-
-		contacts = customerContactRepository.saveAll(contacts);
-		customer.setContacts(contacts);
-
-		CustomerMember customerMember = CustomerMember.builder()
-				.customer(customer)
-				.memberId(securityUtils.getMemberId())
-				.favorite(false)
-				.build();
-		customerMemberRepository.save(customerMember);
-
-		return customerMapper.map(customer);
+		return PostCustomerResponseDto.success();
 	}
+
+	/**
+	 * 고객 정보 수정
+	 */
+	@Override
+	public ResponseEntity<? super PatchCustomerResponseDto> updateCustomer(PatchCustomerRequestDto requestDto) {
+		try {
+			// 변경 수정할 Group 조회
+			boolean existedByCustomerGroup = customerGroupRepository.existsById(requestDto.getCustomerGroupId());
+			if (!existedByCustomerGroup) return ResponseDto.notExistedCustomerGroup();
+
+			// 고객 정보 조회
+			boolean existedByCustomer = customerRepository.existsById(requestDto.getId());
+			if (!existedByCustomer) return ResponseDto.notExistedCustomer();
+
+			Customer customer = customerRepository.findById(requestDto.getId()).get();
+
+			// 고객 관리 그룹이 추가/변경 되었을 경우에만 데이터 변경
+			if (customer.getCustomerGroup() == null ||
+					!customer.getCustomerGroup().getId().equals(requestDto.getCustomerGroupId())) {
+				CustomerGroup customerGroup = customerGroupRepository.findById(requestDto.getCustomerGroupId()).get();
+				customer.setCustomerGroup(customerGroup);
+			}
+
+			// 고객 Contact 데이터 변경
+			// 기존 Contact 데이터 삭제 후 재등록
+			// TODO : 추후 다건의 연락처 데이터 수렴 가능 여부 확인 후 수정할 것
+			customerContactRepository.deleteByCustomerId(customer.getId());
+			List<CustomerContact> contactList = Optional.ofNullable(requestDto.getContacts())
+					.orElse(Collections.emptyList())
+					.stream()
+					.map(contact -> CustomerContact.builder()
+							.customerId(customer.getId())
+							.type(contact.getType())
+							.payload(contact.getPayload())
+							.build()
+					).collect(Collectors.toList());
+			customerContactRepository.saveAll(contactList);
+
+			customerRepository.save(customer);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseDto.databaseErrorMessage();
+		}
+		return PatchCustomerResponseDto.success();
+	}
+
 
 	/**
 	 * 연락처 저장
@@ -482,7 +544,6 @@ public class CustomerServiceImpl implements CustomerService {
 					.map(CustomerMember::getCustomer)
 					.collect(Collectors.toList()));
 		}
-
 
 		List<Customer> customers = page.getContent();
 		if(!page.getContent().isEmpty()){
