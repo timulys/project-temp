@@ -16,19 +16,19 @@ import java.util.stream.Collectors;
 public class GetCustomerGroupListResponseDto extends ResponseDto {
     private List<CustomerGroupDto> customerGroupResponseDtoList;
 
-    private GetCustomerGroupListResponseDto(List<CustomerGroup> customerGroupList) {
-        super(ResponseCode.SUCCESS, ResponseMessage.SUCCESS);
+    private GetCustomerGroupListResponseDto(String message, List<CustomerGroup> customerGroupList) {
+        super(ResponseCode.SUCCESS, message);
         this.customerGroupResponseDtoList =
                 customerGroupList.stream().map(CustomerGroupDto::of).collect(Collectors.toList());
     }
 
-    public static ResponseEntity<ResponseDto> noExistCustomerGroupList() {
-        ResponseDto result = new ResponseDto(ResponseCode.NOT_EXISTED_DATA, ResponseMessage.NOT_EXISTED_DATA);
+    public static ResponseEntity<ResponseDto> noExistCustomerGroupList(String message) {
+        ResponseDto result = new ResponseDto(ResponseCode.NOT_EXISTED_DATA, message);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
-    public static ResponseEntity<? super GetCustomerGroupListResponseDto> success(List<CustomerGroup> customerGroupList) {
-        GetCustomerGroupListResponseDto result = new GetCustomerGroupListResponseDto(customerGroupList);
+    public static ResponseEntity<? super GetCustomerGroupListResponseDto> success(String message, List<CustomerGroup> customerGroupList) {
+        GetCustomerGroupListResponseDto result = new GetCustomerGroupListResponseDto(message, customerGroupList);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 }

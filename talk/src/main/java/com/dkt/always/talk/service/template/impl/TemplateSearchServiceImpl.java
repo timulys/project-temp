@@ -5,6 +5,7 @@ import com.dkt.always.talk.client.MemberServiceClient;
 import com.dkt.always.talk.entity.template.PlatformTemplate;
 import com.dkt.always.talk.repository.template.TemplateSearchRepository;
 import com.dkt.always.talk.service.template.TemplateSearchService;
+import com.dkt.always.talk.utils.MessageSourceUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
@@ -41,6 +42,9 @@ public class TemplateSearchServiceImpl implements TemplateSearchService {
     private final MemberServiceClient memberServiceClient;
     private final ChannelServiceClient channelServiceClient;
 
+    /** Message Source Util **/
+    private final MessageSourceUtil messageUtil;
+
     @Override
     @Transactional(readOnly = true)
     @CircuitBreaker(name = "default", fallbackMethod = "portalServiceCallFailed")
@@ -63,10 +67,6 @@ public class TemplateSearchServiceImpl implements TemplateSearchService {
     @CircuitBreaker(name = "default", fallbackMethod = "portalServiceCallFailed")
     public ResponseEntity<? super ApiResult<TemplateResponseDto>> getTemplate(Long id) throws Exception {
         PlatformTemplate entity = templateSearchRepository.findById(id).orElse(null);
-
-        if (entity == null) { // Business Failed
-            return ResponseDto.databaseErrorMessage();
-        }
 
         TemplateResponseDto responseDto = makeTemplateResponseDto(entity);
         responseDto.updateDetail(objectMapper.readValue(entity.getPayload(), KakaoBizMessageTemplatePayload.class));
@@ -106,6 +106,6 @@ public class TemplateSearchServiceImpl implements TemplateSearchService {
     /////////////////////////// circuit breaker methods ///////////////////////////
     private ResponseEntity<ResponseDto> portalServiceCallFailed(Throwable throwable) {
         log.error("Portal Service API Call Failed Fallback: {}", throwable.getMessage());
-        return ResponseDto.bizCenterCallFailedMessage();
+        return ResponseDto.bizCenterCallFailedMessage(messageUtil.getMessage("bzm_call_failed"));
     }
 }

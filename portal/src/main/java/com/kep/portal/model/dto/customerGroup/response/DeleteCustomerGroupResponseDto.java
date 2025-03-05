@@ -9,12 +9,12 @@ import org.springframework.http.ResponseEntity;
 
 @Getter
 public class DeleteCustomerGroupResponseDto extends ResponseDto {
-    private DeleteCustomerGroupResponseDto() {
-        super(ResponseCode.SUCCESS, ResponseMessage.SUCCESS);
+    private DeleteCustomerGroupResponseDto(String message) {
+        super(ResponseCode.SUCCESS, message);
     }
 
-    public static ResponseEntity<DeleteCustomerGroupResponseDto> success() {
-        DeleteCustomerGroupResponseDto result = new DeleteCustomerGroupResponseDto();
+    public static ResponseEntity<DeleteCustomerGroupResponseDto> success(String message) {
+        DeleteCustomerGroupResponseDto result = new DeleteCustomerGroupResponseDto(message);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 }

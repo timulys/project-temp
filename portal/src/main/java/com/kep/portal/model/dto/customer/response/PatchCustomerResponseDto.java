@@ -12,12 +12,12 @@ import org.springframework.http.ResponseEntity;
  */
 @Getter
 public class PatchCustomerResponseDto extends ResponseDto {
-    private PatchCustomerResponseDto() {
-        super(ResponseCode.SUCCESS, ResponseMessage.SUCCESS);
+    private PatchCustomerResponseDto(String message) {
+        super(ResponseCode.SUCCESS, message);
     }
 
-    public static ResponseEntity<PatchCustomerResponseDto> success() {
-        PatchCustomerResponseDto result = new PatchCustomerResponseDto();
+    public static ResponseEntity<PatchCustomerResponseDto> success(String message) {
+        PatchCustomerResponseDto result = new PatchCustomerResponseDto(message);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 }

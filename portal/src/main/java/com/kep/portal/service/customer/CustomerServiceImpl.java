@@ -20,6 +20,7 @@ import com.kep.portal.model.dto.customer.response.PostCustomerResponseDto;
 import com.kep.portal.model.entity.customer.*;
 import com.kep.portal.repository.customer.*;
 import com.kep.portal.util.CommonUtils;
+import com.kep.portal.util.MessageSourceUtil;
 import lombok.RequiredArgsConstructor;
 import org.jasypt.encryption.StringEncryptor;
 import org.springframework.data.domain.Example;
@@ -103,6 +104,9 @@ public class CustomerServiceImpl implements CustomerService {
 	private LegacyClient legacyClient;
 
 	private final CustomerGroupRepository customerGroupRepository;
+
+	/** Message Source Util **/
+	private final MessageSourceUtil messageUtil;
 
 
 	/**
@@ -314,7 +318,7 @@ public class CustomerServiceImpl implements CustomerService {
 	public ResponseEntity<? super PostCustomerResponseDto> createCustomer(PostCustomerRequestDto requestDto) {
 		// 고객 등록 시 선택된 그룹 ID로 고객 그룹 조회
 		boolean existedCustomerGroup = customerGroupRepository.existsById(requestDto.getCustomerGroupId());
-		if (!existedCustomerGroup) return ResponseDto.notExistedCustomerGroup();
+		if (!existedCustomerGroup) return ResponseDto.notExistedCustomerGroup(messageUtil.getMessage("not_existed_customer_group"));
 
 		CustomerGroup customerGroup = customerGroupRepository.findById(requestDto.getCustomerGroupId()).get();
 
@@ -335,19 +339,15 @@ public class CustomerServiceImpl implements CustomerService {
 				).collect(Collectors.toList());
 		customerContactRepository.saveAll(contactList);
 
-		// 실제 저장할 고객 객체 생성 및 저장
-
-		// 고객 저장과 함께 상담원 ID 연결 및 저장
-		if (securityUtils.getMemberId() == null)
-			return ResponseDto.notExistedMember();
-
+		// 고객-상담원 ID 연결 & 실제 저장할 CustomerMember 객체 생성 및 저장
+		if (securityUtils.getMemberId() == null) return ResponseDto.notExistedMember(messageUtil.getMessage("not_existed_member"));
 		customerMemberRepository.save(CustomerMember.builder()
 				.customer(customer)
 				.memberId(securityUtils.getMemberId())
 				.favorite(false)
 				.build());
 
-		return PostCustomerResponseDto.success();
+		return PostCustomerResponseDto.success(messageUtil.success());
 	}
 
 	/**
@@ -357,23 +357,21 @@ public class CustomerServiceImpl implements CustomerService {
 	public ResponseEntity<? super PatchCustomerResponseDto> updateCustomer(PatchCustomerRequestDto requestDto) {
 		// 변경 수정할 Group 조회
 		boolean existedByCustomerGroup = customerGroupRepository.existsById(requestDto.getCustomerGroupId());
-		if (!existedByCustomerGroup) return ResponseDto.notExistedCustomerGroup();
+		if (!existedByCustomerGroup) return ResponseDto.notExistedCustomerGroup(messageUtil.getMessage("not_existed_customer_group"));
 
 		// 고객 정보 조회
 		boolean existedByCustomer = customerRepository.existsById(requestDto.getId());
-		if (!existedByCustomer) return ResponseDto.notExistedCustomer();
+		if (!existedByCustomer) return ResponseDto.notExistedCustomer(messageUtil.getMessage("not_existed_customer"));
 
 		Customer customer = customerRepository.findById(requestDto.getId()).get();
 
 		// 고객 관리 그룹이 추가/변경 되었을 경우에만 데이터 변경
-		if (customer.getCustomerGroup() == null ||
-				!customer.getCustomerGroup().getId().equals(requestDto.getCustomerGroupId())) {
+		if (customer.getCustomerGroup() == null || !customer.getCustomerGroup().getId().equals(requestDto.getCustomerGroupId())) {
 			CustomerGroup customerGroup = customerGroupRepository.findById(requestDto.getCustomerGroupId()).get();
 			customer.setCustomerGroup(customerGroup);
 		}
 
-		// 고객 Contact 데이터 변경
-		// 기존 Contact 데이터 삭제 후 재등록
+		// 고객 Contact 데이터 변경, 기존 데이터 삭제 후 재등록
 		customerContactRepository.deleteByCustomerId(customer.getId());
 		List<CustomerContact> contactList = Optional.ofNullable(requestDto.getContacts())
 				.orElse(Collections.emptyList())
@@ -386,9 +384,10 @@ public class CustomerServiceImpl implements CustomerService {
 				).collect(Collectors.toList());
 		customerContactRepository.saveAll(contactList);
 
+		// 고객 데이터 저장
 		customerRepository.save(customer);
 
-		return PatchCustomerResponseDto.success();
+		return PatchCustomerResponseDto.success(messageUtil.success());
 	}
 	
 	/**

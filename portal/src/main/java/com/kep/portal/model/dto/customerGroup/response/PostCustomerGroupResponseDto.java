@@ -9,17 +9,17 @@ import org.springframework.http.ResponseEntity;
 
 @Getter
 public class PostCustomerGroupResponseDto extends ResponseDto {
-    private PostCustomerGroupResponseDto() {
-        super(ResponseCode.SUCCESS, ResponseMessage.SUCCESS);
+    private PostCustomerGroupResponseDto(String message) {
+        super(ResponseCode.SUCCESS, message);
     }
 
-    public static ResponseEntity<PostCustomerGroupResponseDto> success() {
-        PostCustomerGroupResponseDto result = new PostCustomerGroupResponseDto();
+    public static ResponseEntity<PostCustomerGroupResponseDto> success(String message) {
+        PostCustomerGroupResponseDto result = new PostCustomerGroupResponseDto(message);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
-    public static ResponseEntity<ResponseDto> existedGroupName() {
-        ResponseDto result = new ResponseDto(ResponseCode.DUPLICATED_DATA, ResponseMessage.DUPLICATED_DATA);
+    public static ResponseEntity<ResponseDto> existedGroupName(String message) {
+        ResponseDto result = new ResponseDto(ResponseCode.DUPLICATED_DATA, message);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(result);
     }
 }

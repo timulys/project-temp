@@ -3,6 +3,7 @@ package com.dkt.always.talk.service.alimTalk.impl;
 import com.dkt.always.talk.config.property.PlatformProperty;
 import com.dkt.always.talk.service.BizTalkCommonService;
 import com.dkt.always.talk.service.alimTalk.AlimTalkExternalService;
+import com.dkt.always.talk.utils.MessageSourceUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.ResponseDto;
@@ -27,9 +28,9 @@ import java.util.stream.Collectors;
 /**
  * AlimTalk External Service
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AlimTalkExternalServiceImpl extends BizTalkCommonService implements AlimTalkExternalService {
     /** AlimTalk API URLs */
     // 알림톡 발송
@@ -37,6 +38,7 @@ public class AlimTalkExternalServiceImpl extends BizTalkCommonService implements
 
     /** Autowired Components */
     private final ObjectMapper objectMapper;
+    private final MessageSourceUtil messageUtil;
     private final WebClient kakaoBizTalkWebClient;
     private final PlatformProperty platformProperty;
 
@@ -73,6 +75,6 @@ public class AlimTalkExternalServiceImpl extends BizTalkCommonService implements
     /////////////////////////// private methods ///////////////////////////
     private ResponseEntity<ResponseDto> alimTalkExternalCallFailedMethod(Throwable throwable) {
         log.error("BizMessageCenter Alim-Talk API Call Failed Fallback: {}", throwable.getMessage());
-        return ResponseDto.alimTalkFailedMessage();
+        return ResponseDto.alimTalkFailedMessage(messageUtil.getMessage("alim_talk_call_failed"));
     }
 }

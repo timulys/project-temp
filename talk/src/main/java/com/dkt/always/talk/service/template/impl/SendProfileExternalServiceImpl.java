@@ -3,6 +3,7 @@ package com.dkt.always.talk.service.template.impl;
 import com.dkt.always.talk.config.property.PlatformProperty;
 import com.dkt.always.talk.service.BizTalkCommonService;
 import com.dkt.always.talk.service.template.SendProfileExternalService;
+import com.dkt.always.talk.utils.MessageSourceUtil;
 import com.kep.core.model.dto.ResponseDto;
 import com.kep.core.model.dto.platform.kakao.bizTalk.response.BizTalkResponseDto;
 import com.kep.core.model.dto.platform.kakao.bizTalk.response.SendProfileResponseDto;
@@ -30,6 +31,9 @@ public class SendProfileExternalServiceImpl extends BizTalkCommonService impleme
     private final PlatformProperty platformProperty;
     private final WebClient kakaoBizTalkWebClient;
 
+    /** Message Source Util **/
+    private final MessageSourceUtil messageUtil;
+
     @Override
     @CircuitBreaker(name = "default", fallbackMethod = "sendProfileExternalCallFailed")
     public ResponseEntity<? super BizTalkResponseDto> getSendProfileKey(@NotNull String sendProfileKey) {
@@ -53,6 +57,6 @@ public class SendProfileExternalServiceImpl extends BizTalkCommonService impleme
     /////////////////////////// private methods ///////////////////////////
     private ResponseEntity<ResponseDto> sendProfileExternalCallFailed(Throwable throwable) {
         log.error("BizMessageCenter API Call Failed Fallback: {}", throwable.getMessage());
-        return ResponseDto.bizCenterCallFailedMessage();
+        return ResponseDto.bizCenterCallFailedMessage(messageUtil.getMessage("bzm_call_failed"));
     }
 }
