@@ -13,6 +13,7 @@ import javax.validation.constraints.Positive;
 
 import com.kep.core.model.dto.ResponseDto;
 import com.kep.core.model.dto.customer.*;
+import com.kep.core.model.enums.MessageCode;
 import com.kep.portal.model.dto.customer.request.PatchCustomerRequestDto;
 import com.kep.portal.model.dto.customer.response.PatchCustomerResponseDto;
 import com.kep.portal.model.dto.customer.request.PostCustomerRequestDto;
@@ -318,7 +319,7 @@ public class CustomerServiceImpl implements CustomerService {
 	public ResponseEntity<? super PostCustomerResponseDto> createCustomer(PostCustomerRequestDto requestDto) {
 		// 고객 등록 시 선택된 그룹 ID로 고객 그룹 조회
 		boolean existedCustomerGroup = customerGroupRepository.existsById(requestDto.getCustomerGroupId());
-		if (!existedCustomerGroup) return ResponseDto.notExistedCustomerGroup(messageUtil.getMessage("not_existed_customer_group"));
+		if (!existedCustomerGroup) return ResponseDto.notExistedCustomerGroup(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER_GROUP));
 
 		CustomerGroup customerGroup = customerGroupRepository.findById(requestDto.getCustomerGroupId()).get();
 
@@ -340,7 +341,8 @@ public class CustomerServiceImpl implements CustomerService {
 		customerContactRepository.saveAll(contactList);
 
 		// 고객-상담원 ID 연결 & 실제 저장할 CustomerMember 객체 생성 및 저장
-		if (securityUtils.getMemberId() == null) return ResponseDto.notExistedMember(messageUtil.getMessage("not_existed_member"));
+		if (securityUtils.getMemberId() == null) return ResponseDto.notExistedMember(messageUtil.getMessage(MessageCode.NOT_EXISTED_MEMBER));
+
 		customerMemberRepository.save(CustomerMember.builder()
 				.customer(customer)
 				.memberId(securityUtils.getMemberId())
@@ -357,11 +359,11 @@ public class CustomerServiceImpl implements CustomerService {
 	public ResponseEntity<? super PatchCustomerResponseDto> updateCustomer(PatchCustomerRequestDto requestDto) {
 		// 변경 수정할 Group 조회
 		boolean existedByCustomerGroup = customerGroupRepository.existsById(requestDto.getCustomerGroupId());
-		if (!existedByCustomerGroup) return ResponseDto.notExistedCustomerGroup(messageUtil.getMessage("not_existed_customer_group"));
+		if (!existedByCustomerGroup) return ResponseDto.notExistedCustomerGroup(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER_GROUP));
 
 		// 고객 정보 조회
 		boolean existedByCustomer = customerRepository.existsById(requestDto.getId());
-		if (!existedByCustomer) return ResponseDto.notExistedCustomer(messageUtil.getMessage("not_existed_customer"));
+		if (!existedByCustomer) return ResponseDto.notExistedCustomer(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER));
 
 		Customer customer = customerRepository.findById(requestDto.getId()).get();
 

@@ -1,6 +1,7 @@
 package com.kep.portal.service.customer.impl;
 
 import com.kep.core.model.dto.ResponseDto;
+import com.kep.core.model.enums.MessageCode;
 import com.kep.portal.model.dto.customerGroup.request.PostCustomerGroupRequestDto;
 import com.kep.portal.model.dto.customerGroup.request.PutCustomerGroupRequestDto;
 import com.kep.portal.model.dto.customerGroup.response.DeleteCustomerGroupResponseDto;
@@ -29,12 +30,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CustomerGroupServiceImpl implements CustomerGroupService {
     /** repositories **/
+    private final MessageSourceUtil messageUtil;
     private final MemberRepository memberRepository;
     private final CustomerRepository customerRepository;
     private final CustomerGroupRepository customerGroupRepository;
-
-    /** Message Source Util**/
-    private final MessageSourceUtil messageUtil;
 
     /**
      * 고객 그룹 등록
@@ -44,10 +43,10 @@ public class CustomerGroupServiceImpl implements CustomerGroupService {
     @Override
     public ResponseEntity<? super PostCustomerGroupResponseDto> createCustomerGroup(PostCustomerGroupRequestDto dto) {
         boolean exitedGroupName = customerGroupRepository.existsByGroupName(dto.getGroupName());
-        if (exitedGroupName) return PostCustomerGroupResponseDto.existedGroupName(messageUtil.getMessage("duplicated_data"));
+        if (exitedGroupName) return PostCustomerGroupResponseDto.existedGroupName(messageUtil.getMessage(MessageCode.DUPLICATED_DATA));
 
         boolean existedMember = memberRepository.existsById(dto.getMemberId());
-        if (!existedMember) return ResponseDto.notExistedMember(messageUtil.getMessage("not_existed_member"));
+        if (!existedMember) return ResponseDto.notExistedMember(messageUtil.getMessage(MessageCode.NOT_EXISTED_MEMBER));
 
         Member member = memberRepository.findById(dto.getMemberId()).get();
 
@@ -65,7 +64,7 @@ public class CustomerGroupServiceImpl implements CustomerGroupService {
     @Override
     public ResponseEntity<? super GetCustomerGroupListResponseDto> findAllCustomerGroupByMemberId(Long memberId) {
         boolean existedMember = memberRepository.existsById(memberId);
-        if (!existedMember) return ResponseDto.notExistedMember(messageUtil.getMessage("not_existed_member"));
+        if (!existedMember) return ResponseDto.notExistedMember(messageUtil.getMessage(MessageCode.NOT_EXISTED_MEMBER));
 
         List<CustomerGroup> customerGroupList = customerGroupRepository.findAllByMemberId(memberId);
 
@@ -80,16 +79,16 @@ public class CustomerGroupServiceImpl implements CustomerGroupService {
     @Override
     public ResponseEntity<? super PutCustomerGroupResponseDto> updateCustomerGroup(PutCustomerGroupRequestDto dto) {
         boolean existedMemberId = memberRepository.existsById(dto.getMemberId());
-        if (!existedMemberId) return ResponseDto.notExistedMember(messageUtil.getMessage("not_existed_member"));
+        if (!existedMemberId) return ResponseDto.notExistedMember(messageUtil.getMessage(MessageCode.NOT_EXISTED_MEMBER));
 
         boolean existedCustomerGroup = customerGroupRepository.existsById(dto.getId());
-        if (!existedCustomerGroup) return ResponseDto.notExistedCustomerGroup(messageUtil.getMessage("not_existed_customer_group"));
+        if (!existedCustomerGroup) return ResponseDto.notExistedCustomerGroup(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER_GROUP));
 
         boolean existedCustomerGroupName = customerGroupRepository.existsByGroupName(dto.getGroupName());
-        if (existedCustomerGroupName) return PutCustomerGroupResponseDto.existedGroupName(messageUtil.getMessage("duplicated_data"));
+        if (existedCustomerGroupName) return PutCustomerGroupResponseDto.existedGroupName(messageUtil.getMessage(MessageCode.DUPLICATED_DATA));
 
         CustomerGroup customerGroup = customerGroupRepository.findById(dto.getId()).get();
-        if (!customerGroup.getMember().getId().equals(dto.getMemberId())) return ResponseDto.noPermission(messageUtil.getMessage("no_permission"));
+        if (!customerGroup.getMember().getId().equals(dto.getMemberId())) return ResponseDto.noPermission(messageUtil.getMessage(MessageCode.NO_PERMISSION));
 
         customerGroup.updateGroupName(dto.getGroupName());
         customerGroupRepository.save(customerGroup);
@@ -106,7 +105,7 @@ public class CustomerGroupServiceImpl implements CustomerGroupService {
     public ResponseEntity<? super DeleteCustomerGroupResponseDto> deleteCustomerGroup(Long customerGroupId) {
         boolean existedCustomerGroup = customerGroupRepository.existsById(customerGroupId);
         if (!existedCustomerGroup)
-            return ResponseDto.notExistedCustomerGroup(messageUtil.getMessage("not_existed_customer_group"));
+            return ResponseDto.notExistedCustomerGroup(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER_GROUP));
 
         CustomerGroup customerGroup = customerGroupRepository.findById(customerGroupId).get();
 
