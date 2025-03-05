@@ -39,12 +39,6 @@ import java.util.Map;
 @RestControllerAdvice(annotations = RestController.class)
 @Slf4j
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
-
-
-    // timeout 이슈로 인하여 주석처리
-    // @Resource
-    // private WatcherService watcherService;
-
     /**
      * 권한 없는 요청시 예외 처리
      */
@@ -55,7 +49,6 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     })
     @Nullable
     protected ResponseEntity<Object> handleAccessDeniedRequest(Exception ex, WebRequest request) {
-
         log.error("AccessDenied Exception Handler: {}", ex.getLocalizedMessage());
         return handleExceptionInternal(ex, ex.getCause(), new HttpHeaders(), HttpStatus.FORBIDDEN, request);
     }
@@ -71,7 +64,6 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     })
     @Nullable
     protected ResponseEntity<Object> handleBadRequest(Exception ex, WebRequest request) {
-
         log.error("BadRequest Exception Handler: {}", ex.getLocalizedMessage());
         return handleExceptionInternal(ex, ex.getCause(), new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
     }
@@ -86,7 +78,6 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     })
     @Nullable
     protected ResponseEntity<Object> handlePersistence(DataAccessException ex, WebRequest request) {
-
         log.error("DataAccess Exception Handler: {}", ex.getLocalizedMessage());
         return handleExceptionInternal(ex, ex.getCause(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
@@ -99,7 +90,6 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     })
     @Nullable
     protected ResponseEntity<Object> handleNotImplement(RuntimeException ex, WebRequest request) {
-
         log.error("NotImplement Exception Handler: {}", ex.getLocalizedMessage());
         return handleExceptionInternal(ex, ex.getCause(), new HttpHeaders(), HttpStatus.NOT_IMPLEMENTED, request);
     }
@@ -112,7 +102,6 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     })
     @Nullable
     protected ResponseEntity<Object> handleDefault(BizException ex, WebRequest request) {
-        //watcherService.exceptionWatcherSendMsgGroupKakaowork(ex,request);
         log.error("Biz Exception Handler: {}", ex.getLocalizedMessage());
         return handleExceptionInternal(ex, ex.getCause(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
@@ -125,7 +114,6 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     })
     @Nullable
     protected ResponseEntity<Object> handleDefault(Exception ex, WebRequest request) {
-        //watcherService.exceptionWatcherSendMsgGroupKakaowork(ex,request);
         return handleExceptionInternal(ex, ex.getCause(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 

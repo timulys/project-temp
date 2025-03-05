@@ -312,45 +312,41 @@ public class CustomerServiceImpl implements CustomerService {
 	 */
 	@Override
 	public ResponseEntity<? super PostCustomerResponseDto> createCustomer(PostCustomerRequestDto requestDto) {
-		try {
-			// 고객 등록 시 선택된 그룹 ID로 고객 그룹 조회
-			boolean existedCustomerGroup = customerGroupRepository.existsById(requestDto.getCustomerGroupId());
-			if (!existedCustomerGroup) return ResponseDto.notExistedCustomerGroup();
+		// 고객 등록 시 선택된 그룹 ID로 고객 그룹 조회
+		boolean existedCustomerGroup = customerGroupRepository.existsById(requestDto.getCustomerGroupId());
+		if (!existedCustomerGroup) return ResponseDto.notExistedCustomerGroup();
 
-			CustomerGroup customerGroup = customerGroupRepository.findById(requestDto.getCustomerGroupId()).get();
+		CustomerGroup customerGroup = customerGroupRepository.findById(requestDto.getCustomerGroupId()).get();
 
-			Customer customer = customerRepository.save(Customer.builder()
-					.name(requestDto.getName())
-					.customerGroup(customerGroup)
-					.build());
+		Customer customer = customerRepository.save(Customer.builder()
+				.name(requestDto.getName())
+				.customerGroup(customerGroup)
+				.build());
 
-			// 고객 Contact 데이터 추가
-			List<CustomerContact> contactList = Optional.ofNullable(requestDto.getContacts())
-					.orElse(Collections.emptyList())
-					.stream()
-					.map(contact -> CustomerContact.builder()
-							.customerId(customer.getId())
-							.type(contact.getType())
-							.payload(contact.getPayload())
-							.build()
-					).collect(Collectors.toList());
-			customerContactRepository.saveAll(contactList);
+		// 고객 Contact 데이터 추가
+		List<CustomerContact> contactList = Optional.ofNullable(requestDto.getContacts())
+				.orElse(Collections.emptyList())
+				.stream()
+				.map(contact -> CustomerContact.builder()
+						.customerId(customer.getId())
+						.type(contact.getType())
+						.payload(contact.getPayload())
+						.build()
+				).collect(Collectors.toList());
+		customerContactRepository.saveAll(contactList);
 
-			// 실제 저장할 고객 객체 생성 및 저장
+		// 실제 저장할 고객 객체 생성 및 저장
 
-			// 고객 저장과 함께 상담원 ID 연결 및 저장
-			if (securityUtils.getMemberId() == null)
-				return ResponseDto.notExistedMember();
+		// 고객 저장과 함께 상담원 ID 연결 및 저장
+		if (securityUtils.getMemberId() == null)
+			return ResponseDto.notExistedMember();
 
-			customerMemberRepository.save(CustomerMember.builder()
-					.customer(customer)
-					.memberId(securityUtils.getMemberId())
-					.favorite(false)
-					.build());
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ResponseDto.databaseErrorMessage();
-		}
+		customerMemberRepository.save(CustomerMember.builder()
+				.customer(customer)
+				.memberId(securityUtils.getMemberId())
+				.favorite(false)
+				.build());
+
 		return PostCustomerResponseDto.success();
 	}
 
@@ -359,48 +355,42 @@ public class CustomerServiceImpl implements CustomerService {
 	 */
 	@Override
 	public ResponseEntity<? super PatchCustomerResponseDto> updateCustomer(PatchCustomerRequestDto requestDto) {
-		try {
-			// 변경 수정할 Group 조회
-			boolean existedByCustomerGroup = customerGroupRepository.existsById(requestDto.getCustomerGroupId());
-			if (!existedByCustomerGroup) return ResponseDto.notExistedCustomerGroup();
+		// 변경 수정할 Group 조회
+		boolean existedByCustomerGroup = customerGroupRepository.existsById(requestDto.getCustomerGroupId());
+		if (!existedByCustomerGroup) return ResponseDto.notExistedCustomerGroup();
 
-			// 고객 정보 조회
-			boolean existedByCustomer = customerRepository.existsById(requestDto.getId());
-			if (!existedByCustomer) return ResponseDto.notExistedCustomer();
+		// 고객 정보 조회
+		boolean existedByCustomer = customerRepository.existsById(requestDto.getId());
+		if (!existedByCustomer) return ResponseDto.notExistedCustomer();
 
-			Customer customer = customerRepository.findById(requestDto.getId()).get();
+		Customer customer = customerRepository.findById(requestDto.getId()).get();
 
-			// 고객 관리 그룹이 추가/변경 되었을 경우에만 데이터 변경
-			if (customer.getCustomerGroup() == null ||
-					!customer.getCustomerGroup().getId().equals(requestDto.getCustomerGroupId())) {
-				CustomerGroup customerGroup = customerGroupRepository.findById(requestDto.getCustomerGroupId()).get();
-				customer.setCustomerGroup(customerGroup);
-			}
-
-			// 고객 Contact 데이터 변경
-			// 기존 Contact 데이터 삭제 후 재등록
-			// TODO : 추후 다건의 연락처 데이터 수렴 가능 여부 확인 후 수정할 것
-			customerContactRepository.deleteByCustomerId(customer.getId());
-			List<CustomerContact> contactList = Optional.ofNullable(requestDto.getContacts())
-					.orElse(Collections.emptyList())
-					.stream()
-					.map(contact -> CustomerContact.builder()
-							.customerId(customer.getId())
-							.type(contact.getType())
-							.payload(contact.getPayload())
-							.build()
-					).collect(Collectors.toList());
-			customerContactRepository.saveAll(contactList);
-
-			customerRepository.save(customer);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ResponseDto.databaseErrorMessage();
+		// 고객 관리 그룹이 추가/변경 되었을 경우에만 데이터 변경
+		if (customer.getCustomerGroup() == null ||
+				!customer.getCustomerGroup().getId().equals(requestDto.getCustomerGroupId())) {
+			CustomerGroup customerGroup = customerGroupRepository.findById(requestDto.getCustomerGroupId()).get();
+			customer.setCustomerGroup(customerGroup);
 		}
+
+		// 고객 Contact 데이터 변경
+		// 기존 Contact 데이터 삭제 후 재등록
+		customerContactRepository.deleteByCustomerId(customer.getId());
+		List<CustomerContact> contactList = Optional.ofNullable(requestDto.getContacts())
+				.orElse(Collections.emptyList())
+				.stream()
+				.map(contact -> CustomerContact.builder()
+						.customerId(customer.getId())
+						.type(contact.getType())
+						.payload(contact.getPayload())
+						.build()
+				).collect(Collectors.toList());
+		customerContactRepository.saveAll(contactList);
+
+		customerRepository.save(customer);
+
 		return PatchCustomerResponseDto.success();
 	}
-
-
+	
 	/**
 	 * 연락처 저장
 	 * @param entity
