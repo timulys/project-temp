@@ -6,6 +6,8 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
 import com.kep.portal.model.dto.customer.request.PatchCustomerRequestDto;
+import com.kep.portal.model.dto.customer.response.DeleteCustomerResponseDto;
+import com.kep.portal.model.dto.customer.response.GetCustomerResponseDto;
 import com.kep.portal.model.dto.customer.response.PatchCustomerResponseDto;
 import com.kep.portal.model.dto.customer.request.PostCustomerRequestDto;
 import com.kep.portal.model.dto.customer.response.PostCustomerResponseDto;
@@ -29,5 +31,7 @@ public interface CustomerService {
 	List<Customer> search(@NotNull String subject, @NotNull String query);
 
 	ResponseEntity<? super PostCustomerResponseDto> createCustomer(PostCustomerRequestDto requestDto);
+	ResponseEntity<? super GetCustomerResponseDto> findCustomer(Long customerId);
 	ResponseEntity<? super PatchCustomerResponseDto> updateCustomer(PatchCustomerRequestDto requestDto);
+	ResponseEntity<? super DeleteCustomerResponseDto> deleteCustomer(Long customerId);
 }

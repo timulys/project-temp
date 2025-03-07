@@ -2,7 +2,6 @@ package com.kep.portal.model.dto.customerGroup.response;
 
 import com.kep.core.model.dto.ResponseDto;
 import com.kep.core.model.dto.common.ResponseCode;
-import com.kep.core.model.dto.common.ResponseMessage;
 import com.kep.portal.model.dto.customerGroup.CustomerGroupDto;
 import com.kep.portal.model.entity.customer.CustomerGroup;
 import lombok.Getter;

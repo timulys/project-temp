@@ -1,0 +1,23 @@
+package com.kep.portal.model.dto.customer.response;
+
+import com.kep.core.model.dto.ResponseDto;
+import com.kep.core.model.dto.common.ResponseCode;
+import com.kep.core.model.dto.customer.CustomerDto;
+import lombok.Getter;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+@Getter
+public class GetCustomerResponseDto extends ResponseDto {
+    private CustomerDto customerDto;
+
+    private GetCustomerResponseDto(CustomerDto customerDto, String message) {
+        super(ResponseCode.SUCCESS, message);
+        this.customerDto = customerDto;
+    }
+
+    public static ResponseEntity<GetCustomerResponseDto> success(CustomerDto customerDto, String message) {
+        GetCustomerResponseDto result = new GetCustomerResponseDto(customerDto, message);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+}

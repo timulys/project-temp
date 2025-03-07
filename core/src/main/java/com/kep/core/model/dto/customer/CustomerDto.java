@@ -57,4 +57,6 @@ public class CustomerDto {
 	 */
 	@Schema(description = "기존 사용자 정보")
 	private LegacyCustomerDto legacyCustomerData;
+
+
 }

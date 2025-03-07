@@ -5,9 +5,11 @@ import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.customer.CustomerDto;
 import com.kep.core.model.dto.customer.CustomerMemberDto;
 import com.kep.core.model.dto.legacy.LegacyCustomerDto;
-import com.kep.portal.model.dto.customer.*;
+import com.kep.portal.model.dto.customer.GuestMemoDto;
 import com.kep.portal.model.dto.customer.request.PatchCustomerRequestDto;
 import com.kep.portal.model.dto.customer.request.PostCustomerRequestDto;
+import com.kep.portal.model.dto.customer.response.DeleteCustomerResponseDto;
+import com.kep.portal.model.dto.customer.response.GetCustomerResponseDto;
 import com.kep.portal.model.dto.customer.response.PatchCustomerResponseDto;
 import com.kep.portal.model.dto.customer.response.PostCustomerResponseDto;
 import com.kep.portal.service.customer.CustomerServiceImpl;
@@ -117,8 +119,6 @@ public class CustomerController {
                 .build();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
-    // TODO : 고객 그룹 추가 API
 
     /**
      * 선택된 고객의 계약 정보 조회
@@ -230,32 +230,6 @@ public class CustomerController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    /**
-     * TODO: 해당 기능은 원래 기획에 없던 기능임, 이 부분은 추후 상황을 고려하여 삭제되어야 함
-     * TODO: 정규 기능으로 유지해야 하는지에 대한 판단 필요 - by, tim.c
-     * 고객 정보 저장(수동)
-     */
-    @Tag(name = "고객 API")
-    @Operation(summary = "(시연용) 고객 정보 저장")
-    @PostMapping
-    public ResponseEntity<? super PostCustomerResponseDto> post(@RequestBody @Valid PostCustomerRequestDto requestBody) {
-        log.info("CUSTOMER, POST, BODY: {}", requestBody);
-        ResponseEntity<? super PostCustomerResponseDto> response = customerService.createCustomer(requestBody);
-        return response;
-    }
-
-    /**
-     * 고객 정보 수정
-     */
-    @Tag(name = "고객 API")
-    @Operation(summary = "고객 정보 수정(그룹 수정)")
-    @PatchMapping
-    public ResponseEntity<? super PatchCustomerResponseDto> patch(@RequestBody @Valid PatchCustomerRequestDto requestBody) {
-        log.info("CUSTOMER, PATCH, BODY : {}", requestBody);
-        ResponseEntity<? super PatchCustomerResponseDto> response = customerService.updateCustomer(requestBody);
-        return response;
-    }
-
     @Tag(name = "고객 API")
     @Operation(summary = "고객 메모 조회")
     @GetMapping("/memo/{id}")
@@ -291,5 +265,57 @@ public class CustomerController {
                 .payload(resultDto)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+
+
+    /** V2 **/
+    /**
+     * 고객 정보 단건 조회
+     * @param customerId
+     * @return
+     */
+    @Tag(name = "고객 API")
+    @Operation(summary = "고객 정보 단건 조회(V2)", description = "고객 정보 단건 조회(V2)")
+    @GetMapping("/v2/{customerId}")
+    public ResponseEntity<? super GetCustomerResponseDto> getCustomer(@PathVariable("customerId") Long customerId) {
+        log.info("Customer Get One, Customer ID : {}", customerId);
+        ResponseEntity<? super GetCustomerResponseDto> response = customerService.findCustomer(customerId);
+        return response;
+    }
+
+    /**
+     * TODO: 해당 기능은 원래 기획에 없던 기능임, 이 부분은 추후 상황을 고려하여 삭제되어야 함
+     * TODO: 정규 기능으로 유지해야 하는지에 대한 판단 필요 - by, tim.c
+     * 고객 정보 저장(수동)
+     */
+    @Tag(name = "고객 API")
+    @Operation(summary = "(시연용) 고객 정보 저장")
+    @PostMapping
+    public ResponseEntity<? super PostCustomerResponseDto> postCustomer(@RequestBody @Valid PostCustomerRequestDto requestBody) {
+        log.info("Customer Create, Body: {}", requestBody);
+        ResponseEntity<? super PostCustomerResponseDto> response = customerService.createCustomer(requestBody);
+        return response;
+    }
+
+    /**
+     * 고객 정보 수정
+     */
+    @Tag(name = "고객 API")
+    @Operation(summary = "고객 정보 수정")
+    @PatchMapping
+    public ResponseEntity<? super PatchCustomerResponseDto> patchCustomer(@RequestBody @Valid PatchCustomerRequestDto requestBody) {
+        log.info("Customer Update, Body : {}", requestBody);
+        ResponseEntity<? super PatchCustomerResponseDto> response = customerService.updateCustomer(requestBody);
+        return response;
+    }
+
+    @Tag(name = "고객 API")
+    @Operation(summary = "고객 정보 삭제")
+    @DeleteMapping("/{customerId}")
+    public ResponseEntity<? super DeleteCustomerResponseDto> deleteCustomer(@PathVariable Long customerId) {
+        log.info("Customer Delete, Customer ID : {}", customerId);
+        ResponseEntity<? super DeleteCustomerResponseDto> response = customerService.deleteCustomer(customerId);
+        return response;
     }
 }

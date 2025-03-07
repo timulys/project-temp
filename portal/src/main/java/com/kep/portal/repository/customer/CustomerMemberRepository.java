@@ -16,5 +16,5 @@ public interface CustomerMemberRepository extends JpaRepository<CustomerMember, 
     Page<CustomerMember> findAllByMemberId(Long memberId , Pageable pageable);
 
 
-
+    void deleteByCustomerId(Long customerId);
 }
