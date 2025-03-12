@@ -31,6 +31,7 @@ public class SyncController {
     /** Platform Authorized API **/
     @GetMapping("/authorized")
     public String authorized(@RequestParam(required = false) Map<String, String> requestParams) {
+        log.info("Request Authorized : {}", requestParams);
         ResponseEntity<String> result = syncClient.authorized(new HttpHeaders(), requestParams);
         return "redirect:" + result.getBody();
     }

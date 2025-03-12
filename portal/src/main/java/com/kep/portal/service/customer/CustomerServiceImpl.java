@@ -1,30 +1,31 @@
 package com.kep.portal.service.customer;
 
-import java.time.LocalDate;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-import javax.transaction.Transactional;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
-
 import com.kep.core.model.dto.ResponseDto;
 import com.kep.core.model.dto.customer.*;
+import com.kep.core.model.dto.legacy.LegacyCustomerDto;
+import com.kep.core.model.dto.platform.AuthorizeType;
 import com.kep.core.model.enums.MessageCode;
+import com.kep.portal.client.LegacyClient;
 import com.kep.portal.model.dto.customer.request.PatchCustomerRequestDto;
+import com.kep.portal.model.dto.customer.request.PostCustomerRequestDto;
 import com.kep.portal.model.dto.customer.response.DeleteCustomerResponseDto;
 import com.kep.portal.model.dto.customer.response.GetCustomerResponseDto;
 import com.kep.portal.model.dto.customer.response.PatchCustomerResponseDto;
-import com.kep.portal.model.dto.customer.request.PostCustomerRequestDto;
 import com.kep.portal.model.dto.customer.response.PostCustomerResponseDto;
 import com.kep.portal.model.entity.customer.*;
+import com.kep.portal.model.entity.issue.Issue;
+import com.kep.portal.model.entity.issue.IssueExtra;
+import com.kep.portal.model.entity.issue.IssueMapper;
+import com.kep.portal.model.entity.platform.PlatformSubscribe;
 import com.kep.portal.repository.customer.*;
+import com.kep.portal.repository.issue.IssueRepository;
+import com.kep.portal.repository.member.MemberRepository;
+import com.kep.portal.service.platform.PlatformSubscribeService;
 import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.MessageSourceUtil;
+import com.kep.portal.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jasypt.encryption.StringEncryptor;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -35,19 +36,15 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import com.kep.core.model.dto.legacy.LegacyCustomerDto;
-import com.kep.core.model.dto.platform.AuthorizeType;
-import com.kep.portal.client.LegacyClient;
-import com.kep.portal.model.entity.issue.Issue;
-import com.kep.portal.model.entity.issue.IssueExtra;
-import com.kep.portal.model.entity.platform.PlatformSubscribe;
-import com.kep.portal.repository.issue.IssueRepository;
-import com.kep.portal.repository.member.MemberRepository;
-import com.kep.portal.service.platform.PlatformSubscribeService;
-import com.kep.portal.util.SecurityUtils;
-
-
-import lombok.extern.slf4j.Slf4j;
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -106,6 +103,7 @@ public class CustomerServiceImpl implements CustomerService {
 	@Resource
 	private LegacyClient legacyClient;
 
+	private final IssueMapper issueMapper;
 	private final CustomerGroupRepository customerGroupRepository;
 
 	/** Message Source Util **/
@@ -180,6 +178,11 @@ public class CustomerServiceImpl implements CustomerService {
 				customerDto.setCustomerGroupId(customer.getCustomerGroup().getId());
 			}
 
+			// 고객의 마지막 대화 이력 확인(고객 상세 조회용)
+			Issue issue = issueRepository.findTopByCustomerIdOrderByStatusModifiedDesc(customerDto.getId())
+					.orElseThrow(() -> new RuntimeException("Customer last issue not founr : " + customerDto.getId()));
+			customerDto.setLastIssueId(issue.getId());
+
 			// 데이터베이스에서 해당 고객을 조회
 			// FIXME : 임의로 등록된 Customer를 다시 Guest로 저장하는 로직에서 Not Null Value들이 많아 추후 해당 로직은 재검토가 필요함.
 			/*Guest guest = guestRepository.findByCustomer(customer);
@@ -187,8 +190,8 @@ public class CustomerServiceImpl implements CustomerService {
 				guest = new Guest();
 				guest.setCustomer(customer);
 			}
-
 			guestRepository.save(guest); // 변경 사항을 DB에 저장*/
+
 			return customerDto;
 		} catch (Exception e) {
 			log.error("Error occurred while processing customer details for guest ID: {}", id, e);

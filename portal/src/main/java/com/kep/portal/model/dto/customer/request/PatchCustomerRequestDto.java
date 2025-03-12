@@ -16,7 +16,7 @@ public class PatchCustomerRequestDto {
     private Long id;
     @NotBlank
     private String name;
-    @NotNull
+
     private Long customerGroupId;
 
     private List<CustomerContactDto> contacts;
