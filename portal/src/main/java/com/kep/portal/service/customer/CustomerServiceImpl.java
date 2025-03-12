@@ -8,10 +8,8 @@ import com.kep.core.model.enums.MessageCode;
 import com.kep.portal.client.LegacyClient;
 import com.kep.portal.model.dto.customer.request.PatchCustomerRequestDto;
 import com.kep.portal.model.dto.customer.request.PostCustomerRequestDto;
-import com.kep.portal.model.dto.customer.response.DeleteCustomerResponseDto;
-import com.kep.portal.model.dto.customer.response.GetCustomerResponseDto;
-import com.kep.portal.model.dto.customer.response.PatchCustomerResponseDto;
-import com.kep.portal.model.dto.customer.response.PostCustomerResponseDto;
+import com.kep.portal.model.dto.customer.request.PatchFavoriteCustomerRequestDto;
+import com.kep.portal.model.dto.customer.response.*;
 import com.kep.portal.model.entity.customer.*;
 import com.kep.portal.model.entity.issue.Issue;
 import com.kep.portal.model.entity.issue.IssueExtra;
@@ -182,15 +180,6 @@ public class CustomerServiceImpl implements CustomerService {
 			Issue issue = issueRepository.findTopByCustomerIdOrderByStatusModifiedDesc(customerDto.getId())
 					.orElseThrow(() -> new RuntimeException("Customer last issue not founr : " + customerDto.getId()));
 			customerDto.setLastIssueId(issue.getId());
-
-			// 데이터베이스에서 해당 고객을 조회
-			// FIXME : 임의로 등록된 Customer를 다시 Guest로 저장하는 로직에서 Not Null Value들이 많아 추후 해당 로직은 재검토가 필요함.
-			/*Guest guest = guestRepository.findByCustomer(customer);
-			if (guest == null) {
-				guest = new Guest();
-				guest.setCustomer(customer);
-			}
-			guestRepository.save(guest); // 변경 사항을 DB에 저장*/
 
 			return customerDto;
 		} catch (Exception e) {
@@ -380,6 +369,8 @@ public class CustomerServiceImpl implements CustomerService {
 
 		return customerMemberMapper.map(customerMember);
 	}
+
+
 
 	/**
 	 * 상담원 고객목록 가져오기
@@ -650,36 +641,6 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 
 	/** V2 Service Methods **/
-
-	/**
-	 * 고객 정보 단건 조회
-	 * TODO : 객체 <-> 엔티티간 전환 내용 정리 후 리팩토링
-	 */
-	@Override
-	public ResponseEntity<? super GetCustomerResponseDto> findCustomer(Long customerId) {
-		boolean existedByCustomerId = customerRepository.existsById(customerId);
-		if (!existedByCustomerId) return ResponseDto.notExistedCustomer(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER));
-
-		Customer customer = customerRepository.findById(customerId).get();
-		customer.setContacts(this.contactsGetAll(customer));
-		customer.setAuthorizeds(this.authorizedGetAll(customer));
-		customer.setPlatformSubscribes(platformSubscribeService.getAll(this.getAllPlatformUserId(customer.getAuthorizeds())));
-		customer.setInflows(this.getAllInflow(customer));
-
-		CustomerDto customerDto = customerMapper.map(customer);
-		if(!ObjectUtils.isEmpty(customerDto.getAuthorizeds()) && customerDto.getAuthorizeds().size() > 0){
-			customerDto.getAuthorizeds().stream().filter(item ->
-					item.getType().equals(AuthorizeType.kakao_sync)).count();
-		}
-
-		// 소속된 그룹 존재 유무 확인
-		if (customer.getCustomerGroup() != null) {
-			customerDto.setCustomerGroupId(customer.getCustomerGroup().getId());
-		}
-
-		return GetCustomerResponseDto.success(customerDto, messageUtil.success());
-	}
-
 	/**
 	 * 고객 정보 저장
 	 */
@@ -721,17 +682,106 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 
 	/**
+	 * 즐겨찾기 고객 수정
+	 * @param requestDto
+	 * @return
+	 */
+	@Override
+	public ResponseEntity<? super PatchFavoriteCustomerResponseDto> patchFavoriteCustomer(PatchFavoriteCustomerRequestDto requestDto) {
+		boolean existedByCustomer = customerRepository.existsById(requestDto.getCustomerId());
+		if (!existedByCustomer) return ResponseDto.notExistedCustomer(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER));
+
+		CustomerMember customerMember = customerMemberRepository.findOne(
+				Example.of(CustomerMember.builder()
+						.memberId(requestDto.getMemberId())
+						.customer(Customer.builder()
+								.id(requestDto.getCustomerId())
+								.build())
+						.build()
+				)
+		).orElse(null);
+		if (customerMember == null) return PatchFavoriteCustomerResponseDto.notExistedCustomerMember(messageUtil.getMessage(MessageCode.NOT_EXISTED_DATA));
+
+		customerMember.setFavorite(!customerMember.getFavorite());
+
+		return PatchFavoriteCustomerResponseDto.success(messageUtil.success());
+	}
+
+	/**
+	 * 고객 정보 전체 조회
+	 * @return
+	 */
+	@Override
+	public ResponseEntity<? super GetCustomerListResponseDto> findAllCustomer(Long memberId) {
+		boolean existedByMemberId = memberRepository.existsById(memberId);
+		if (!existedByMemberId) return ResponseDto.notExistedMember(messageUtil.getMessage(MessageCode.NOT_EXISTED_MEMBER));
+
+		List<CustomerDto> customerDtoList = customerMemberRepository.findAllByMemberId(memberId)
+				.stream().map(customerMember -> customerMapper.map(customerMember.getCustomer())).collect(Collectors.toList());
+
+		return GetCustomerListResponseDto.success(customerDtoList, messageUtil.success());
+	}
+
+	/**
+	 * 고객 정보 단건 조회
+	 * TODO : 객체 <-> 엔티티간 전환 내용 정리 후 리팩토링
+	 */
+	@Override
+	public ResponseEntity<? super GetCustomerResponseDto> findCustomer(Long customerId) {
+		boolean existedByCustomerId = customerRepository.existsById(customerId);
+		if (!existedByCustomerId) return ResponseDto.notExistedCustomer(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER));
+
+		Customer customer = customerRepository.findById(customerId).get();
+		customer.setContacts(this.contactsGetAll(customer));
+		customer.setAuthorizeds(this.authorizedGetAll(customer));
+		customer.setPlatformSubscribes(platformSubscribeService.getAll(this.getAllPlatformUserId(customer.getAuthorizeds())));
+		customer.setInflows(this.getAllInflow(customer));
+
+		CustomerDto customerDto = customerMapper.map(customer);
+		if(!ObjectUtils.isEmpty(customerDto.getAuthorizeds()) && customerDto.getAuthorizeds().size() > 0){
+			customerDto.getAuthorizeds().stream().filter(item ->
+					item.getType().equals(AuthorizeType.kakao_sync)).count();
+		}
+
+		// 소속된 그룹 존재 유무 확인
+		if (customer.getCustomerGroup() != null) {
+			customerDto.setCustomerGroupId(customer.getCustomerGroup().getId());
+		}
+
+		return GetCustomerResponseDto.success(customerDto, messageUtil.success());
+	}
+
+	/**
+	 * 즐겨찾기 고객 목록 조회
+	 * @param memberId
+	 * @return
+	 */
+	@Override
+	public ResponseEntity<? super GetFavoriteCustomerListResponseDto> findAllFavoriteCustomerList(Long memberId) {
+		boolean existedByMemberId = memberRepository.existsById(memberId);
+		if (!existedByMemberId) return ResponseDto.notExistedMember(messageUtil.getMessage(MessageCode.NOT_EXISTED_MEMBER));
+
+		List<CustomerDto> favoriteCustomerDtoList = customerMapper.map(this.entire(
+				customerMemberRepository.findAllByMemberIdAndFavorite(memberId, true)
+				.stream()
+				.map(CustomerMember::getCustomer)
+				.collect(Collectors.toList())));
+
+		return GetFavoriteCustomerListResponseDto.success(favoriteCustomerDtoList, messageUtil.success());
+	}
+
+	/**
 	 * 고객 정보 수정
 	 */
 	@Override
 	public ResponseEntity<? super PatchCustomerResponseDto> updateCustomer(PatchCustomerRequestDto requestDto) {
 		// 변경 수정할 Group 조회
-		boolean existedByCustomerGroup = customerGroupRepository.existsById(requestDto.getCustomerGroupId());
-		if (!existedByCustomerGroup) return ResponseDto.notExistedCustomerGroup(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER_GROUP));
+		boolean existedByCustomerGroupId = customerGroupRepository.existsById(requestDto.getCustomerGroupId());
+		if (!existedByCustomerGroupId) return ResponseDto.notExistedCustomerGroup(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER_GROUP));
 
 		// 고객 정보 조회
-		boolean existedByCustomer = customerRepository.existsById(requestDto.getId());
-		if (!existedByCustomer) return ResponseDto.notExistedCustomer(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER));
+		boolean existedByCustomerId = customerRepository.existsById(requestDto.getId());
+		if (!existedByCustomerId) return ResponseDto.notExistedCustomer(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER));
 
 		Customer customer = customerRepository.findById(requestDto.getId()).get();
 
@@ -752,8 +802,8 @@ public class CustomerServiceImpl implements CustomerService {
 	 */
 	@Override
 	public ResponseEntity<? super DeleteCustomerResponseDto> deleteCustomer(Long customerId) {
-		boolean existedByCustomer = customerRepository.existsById(customerId);
-		if (!existedByCustomer) return ResponseDto.notExistedCustomer(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER));
+		boolean existedByCustomerId = customerRepository.existsById(customerId);
+		if (!existedByCustomerId) return ResponseDto.notExistedCustomer(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER));
 
 		// 고객 관련 데이터 삭제
 		customerContactRepository.deleteByCustomerId(customerId);

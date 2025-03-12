@@ -116,6 +116,8 @@ public class IssueService {
             issueDto.setCustomer(customerMapper.map(customerService.findById(issueDto.getCustomerId())));
         }
 
+        // FIXME : 고객 대화 검토 요청 내용도 함께 조회 issueDto의 support에 데이터 추가
+
         return issueDto;
     }
 

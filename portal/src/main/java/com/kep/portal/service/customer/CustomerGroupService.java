@@ -9,12 +9,19 @@ import com.kep.portal.model.dto.customerGroup.response.PutCustomerGroupResponseD
 import org.springframework.http.ResponseEntity;
 
 public interface CustomerGroupService {
+    /** Create Methods **/
     // 그룹 등록
     ResponseEntity<? super PostCustomerGroupResponseDto> createCustomerGroup(PostCustomerGroupRequestDto dto);
+
+    /** Retrieve Methods **/
     // 상담사별 관리 그룹 목록
     ResponseEntity<? super GetCustomerGroupListResponseDto> findAllCustomerGroupByMemberId(Long memberId);
+
+    /** Update Methods **/
     // 그룹 수정
     ResponseEntity<? super PutCustomerGroupResponseDto> updateCustomerGroup(PutCustomerGroupRequestDto dto);
+
+    /** Delete Methods **/
     // 그룹 삭제
     ResponseEntity<? super DeleteCustomerGroupResponseDto> deleteCustomerGroup(Long customerGroupId);
 }

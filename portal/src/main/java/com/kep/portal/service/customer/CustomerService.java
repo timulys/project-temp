@@ -6,11 +6,9 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
 import com.kep.portal.model.dto.customer.request.PatchCustomerRequestDto;
-import com.kep.portal.model.dto.customer.response.DeleteCustomerResponseDto;
-import com.kep.portal.model.dto.customer.response.GetCustomerResponseDto;
-import com.kep.portal.model.dto.customer.response.PatchCustomerResponseDto;
+import com.kep.portal.model.dto.customer.request.PatchFavoriteCustomerRequestDto;
+import com.kep.portal.model.dto.customer.response.*;
 import com.kep.portal.model.dto.customer.request.PostCustomerRequestDto;
-import com.kep.portal.model.dto.customer.response.PostCustomerResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -25,13 +23,18 @@ import com.kep.portal.model.entity.customer.Customer;
  *  
  */
 public interface CustomerService {
-
 	Customer findById(@NotNull @Positive Long id);
-
 	List<Customer> search(@NotNull String subject, @NotNull String query);
 
+	/** Create Methods **/
 	ResponseEntity<? super PostCustomerResponseDto> createCustomer(PostCustomerRequestDto requestDto);
+	ResponseEntity<? super PatchFavoriteCustomerResponseDto> patchFavoriteCustomer(PatchFavoriteCustomerRequestDto requestDto);
+	/** Retrieve Methods **/
 	ResponseEntity<? super GetCustomerResponseDto> findCustomer(Long customerId);
+	ResponseEntity<? super GetCustomerListResponseDto> findAllCustomer(Long memberId);
+	ResponseEntity<? super GetFavoriteCustomerListResponseDto> findAllFavoriteCustomerList(Long memberId);
+	/** Update Methods **/
 	ResponseEntity<? super PatchCustomerResponseDto> updateCustomer(PatchCustomerRequestDto requestDto);
+	/** Delete Methods **/
 	ResponseEntity<? super DeleteCustomerResponseDto> deleteCustomer(Long customerId);
 }
