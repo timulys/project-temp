@@ -4,6 +4,7 @@ import com.kep.core.model.dto.ResponseDto;
 import com.kep.core.model.dto.common.ResponseCode;
 import com.kep.portal.model.dto.customerGroup.CustomerGroupDto;
 import com.kep.portal.model.entity.customer.CustomerGroup;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 
 @Getter
 public class GetCustomerGroupListResponseDto extends ResponseDto {
+    @Schema(description = "고객 그룹 목록")
     private List<CustomerGroupDto> customerGroupResponseDtoList;
 
     private GetCustomerGroupListResponseDto(String message, List<CustomerGroup> customerGroupList) {

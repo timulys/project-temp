@@ -1,6 +1,7 @@
 package com.kep.portal.model.dto.customer.request;
 
 import com.kep.core.model.dto.customer.CustomerContactDto;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -13,11 +14,13 @@ import java.util.List;
 @Data
 public class PatchCustomerRequestDto {
     @NotNull
+    @Schema(description = "고객 ID")
     private Long id;
     @NotBlank
+    @Schema(description = "고객 이름")
     private String name;
-
+    @Schema(description = "고객 그룹 ID")
     private Long customerGroupId;
-
+    @Schema(description = "고객 연락처 목록")
     private List<CustomerContactDto> contacts;
 }

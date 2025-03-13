@@ -24,6 +24,6 @@ public class CustomerContactDto {
 	private CustomerDto customer;
 
 	@Size(max = 1000)
-	@Schema(description = "limit?")
+	@Schema(description = "연락처 데이터")
 	private String payload;
 }
