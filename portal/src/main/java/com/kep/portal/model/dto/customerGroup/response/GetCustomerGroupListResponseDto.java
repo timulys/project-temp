@@ -15,12 +15,11 @@ import java.util.stream.Collectors;
 @Getter
 public class GetCustomerGroupListResponseDto extends ResponseDto {
     @Schema(description = "고객 그룹 목록")
-    private List<CustomerGroupDto> customerGroupResponseDtoList;
+    private List<CustomerGroupDto> customerGroupList;
 
-    private GetCustomerGroupListResponseDto(String message, List<CustomerGroup> customerGroupList) {
+    private GetCustomerGroupListResponseDto(String message, List<CustomerGroupDto> customerGroupList) {
         super(ResponseCode.SUCCESS, message);
-        this.customerGroupResponseDtoList =
-                customerGroupList.stream().map(CustomerGroupDto::of).collect(Collectors.toList());
+        this.customerGroupList = customerGroupList;
     }
 
     public static ResponseEntity<ResponseDto> noExistCustomerGroupList(String message) {
@@ -28,7 +27,7 @@ public class GetCustomerGroupListResponseDto extends ResponseDto {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
-    public static ResponseEntity<? super GetCustomerGroupListResponseDto> success(String message, List<CustomerGroup> customerGroupList) {
+    public static ResponseEntity<? super GetCustomerGroupListResponseDto> success(String message, List<CustomerGroupDto> customerGroupList) {
         GetCustomerGroupListResponseDto result = new GetCustomerGroupListResponseDto(message, customerGroupList);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }

@@ -81,23 +81,6 @@ public class CustomerController {
     }
 
     /**
-     * 회원(상담원) 기념일 고객 목록
-     * @return
-     */
-    @Tag(name = "고객 API")
-    @Operation(summary = "회원(상담원) 기념일 고객 목록 조회", description = "회원(상담원) 기념일 고객 목록 조회")
-    @GetMapping(value = "/anniversarie")
-    public ResponseEntity<ApiResult<List<CustomerDto>>> anniversaries() {
-//        Long memberId = securityUtils.getMemberId();
-        List<CustomerDto> entities = customerService.anniversaries();
-        ApiResult<List<CustomerDto>> response = ApiResult.<List<CustomerDto>>builder()
-                .code(ApiResultCode.succeed)
-                .payload(entities)
-                .build();
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    /**
      * 선택된 고객의 계약 정보 조회
      * @param cntrtNum
      * @return
@@ -247,6 +230,7 @@ public class CustomerController {
 
 
     /** V2 **/
+    /** Create Methods **/
     /**
      * TODO: 해당 기능은 원래 기획에 없던 기능임, 이 부분은 추후 상황을 고려하여 삭제되어야 함
      * TODO: 정규 기능으로 유지해야 하는지에 대한 판단 필요 - by, tim.c
@@ -261,6 +245,8 @@ public class CustomerController {
         return response;
     }
 
+
+    /** Retrieve Methods **/
     /**
      * 고객 정보 전체 조회
      * @param memberId
@@ -298,11 +284,28 @@ public class CustomerController {
     @Operation(summary = "즐겨찾기 고객 조회(V2)", description = "즐겨찾기 고객 조회(V2)")
     @GetMapping("/favorite/{memberId}")
     public ResponseEntity<? super GetFavoriteCustomerListResponseDto> getFavoriteCustomer(@PathVariable("memberId") Long memberId) {
-        log.info("Get Favorite Customer List");
+        log.info("Get Favorite Customer List, Member ID : {}", memberId);
         ResponseEntity<? super GetFavoriteCustomerListResponseDto> response = customerService.findAllFavoriteCustomerList(memberId);
         return response;
     }
 
+    /**
+     * 기념일 고객 목록 조회(V2)
+     * @param memberId
+     * @return
+     */
+    @Tag(name = "고객 API")
+    @Operation(summary = "기념일 고객 목록 조회(V2)", description = "기념일 고객 목록 조회(V2)")
+    @GetMapping("/anniversaries/{memberId}")
+    public ResponseEntity<? super GetAnniversariesCustomerListResponseDto> getAllAnniversariesCustomer(@PathVariable("memberId") Long memberId) {
+        log.info("Get Anniversary Customer List, Member ID : {}", memberId);
+        ResponseEntity<? super GetAnniversariesCustomerListResponseDto> response = customerService.findAllAnniversariesCustomerList(memberId);
+        return response;
+    }
+
+
+
+    /** Update Methods **/
     /**
      * 고객 정보 수정
      */
@@ -329,6 +332,8 @@ public class CustomerController {
         return response;
     }
 
+
+    /** Delete Methods **/
     /**
      * 고객 정보 삭제
      * @param customerId

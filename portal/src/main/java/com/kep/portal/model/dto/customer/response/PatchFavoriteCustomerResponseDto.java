@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 
 @Getter
 public class PatchFavoriteCustomerResponseDto extends ResponseDto {
-
     private PatchFavoriteCustomerResponseDto(String message) {
         super(ResponseCode.SUCCESS, message);
     }

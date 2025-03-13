@@ -2,6 +2,7 @@ package com.kep.portal.service.customer.impl;
 
 import com.kep.core.model.dto.ResponseDto;
 import com.kep.core.model.enums.MessageCode;
+import com.kep.portal.model.dto.customerGroup.CustomerGroupDto;
 import com.kep.portal.model.dto.customerGroup.request.PostCustomerGroupRequestDto;
 import com.kep.portal.model.dto.customerGroup.request.PutCustomerGroupRequestDto;
 import com.kep.portal.model.dto.customerGroup.response.DeleteCustomerGroupResponseDto;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -66,7 +68,8 @@ public class CustomerGroupServiceImpl implements CustomerGroupService {
         boolean existedMember = memberRepository.existsById(memberId);
         if (!existedMember) return ResponseDto.notExistedMember(messageUtil.getMessage(MessageCode.NOT_EXISTED_MEMBER));
 
-        List<CustomerGroup> customerGroupList = customerGroupRepository.findAllByMemberId(memberId);
+        List<CustomerGroupDto> customerGroupList = customerGroupRepository.findAllByMemberId(memberId)
+                .stream().map(customerGroup -> CustomerGroupDto.of(customerGroup)).collect(Collectors.toList());
 
         return GetCustomerGroupListResponseDto.success(messageUtil.success(), customerGroupList);
     }

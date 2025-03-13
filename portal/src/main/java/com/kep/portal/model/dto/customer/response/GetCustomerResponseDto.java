@@ -11,11 +11,11 @@ import org.springframework.http.ResponseEntity;
 @Getter
 public class GetCustomerResponseDto extends ResponseDto {
     @Schema(description = "고객 정보")
-    private CustomerDto customerDto;
+    private CustomerDto customer;
 
-    private GetCustomerResponseDto(CustomerDto customerDto, String message) {
+    private GetCustomerResponseDto(CustomerDto customer, String message) {
         super(ResponseCode.SUCCESS, message);
-        this.customerDto = customerDto;
+        this.customer = customer;
     }
 
     public static ResponseEntity<GetCustomerResponseDto> success(CustomerDto customerDto, String message) {

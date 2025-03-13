@@ -33,8 +33,10 @@ public interface CustomerService {
 	ResponseEntity<? super GetCustomerResponseDto> findCustomer(Long customerId);
 	ResponseEntity<? super GetCustomerListResponseDto> findAllCustomer(Long memberId);
 	ResponseEntity<? super GetFavoriteCustomerListResponseDto> findAllFavoriteCustomerList(Long memberId);
+    ResponseEntity<? super GetAnniversariesCustomerListResponseDto> findAllAnniversariesCustomerList(Long memberId);
 	/** Update Methods **/
 	ResponseEntity<? super PatchCustomerResponseDto> updateCustomer(PatchCustomerRequestDto requestDto);
 	/** Delete Methods **/
 	ResponseEntity<? super DeleteCustomerResponseDto> deleteCustomer(Long customerId);
+
 }

@@ -107,44 +107,6 @@ public class CustomerServiceImpl implements CustomerService {
 	/** Message Source Util **/
 	private final MessageSourceUtil messageUtil;
 
-
-	/**
-	 * 상담원 고객 기념일 목록
-	 * @return
-	 */
-	public List<CustomerDto> anniversaries(){
-
-		List<Customer> entities = this.getAllCustomerMember();
-
-		LocalDate startDate = LocalDate.now().minusWeeks(1);
-		LocalDate endDate = LocalDate.now().plusDays(2);
-
-		int startMonth = startDate.getMonthValue();
-		int startDay = startDate.getDayOfMonth();
-		int endMonth = endDate.getMonthValue();
-		int endDay = endDate.getDayOfMonth();
-
-		List<Customer> customers = new ArrayList<>();
-		for (Customer entity : entities){
-			for (CustomerAnniversary anniversary : entity.getAnniversaries()){
-				LocalDate date = anniversary.getAnniversary();
-				int dateMonth = date.getMonthValue();
-				int dateDay = date.getDayOfMonth();
-
-				boolean isWithinOneWeek = (dateMonth > startMonth || (dateMonth == startMonth && dateDay >= startDay))
-						&& (dateMonth < endMonth || (dateMonth == endMonth && dateDay <= endDay));
-
-				if(isWithinOneWeek){
-					customers.add(entity);
-				}
-			}
-		}
-		if(!customers.isEmpty()){
-			return customerMapper.map(this.entire(customers));
-		}
-		return Collections.emptyList();
-	}
-
 	/**
 	 * 고객 정보
 	 * @param id
@@ -768,6 +730,20 @@ public class CustomerServiceImpl implements CustomerService {
 				.collect(Collectors.toList())));
 
 		return GetFavoriteCustomerListResponseDto.success(favoriteCustomerDtoList, messageUtil.success());
+	}
+
+	@Override
+	public ResponseEntity<? super GetAnniversariesCustomerListResponseDto> findAllAnniversariesCustomerList(Long memberId) {
+		boolean existedByMemberId = memberRepository.existsById(memberId);
+		if (!existedByMemberId) return ResponseDto.notExistedMember(messageUtil.getMessage(MessageCode.NOT_EXISTED_MEMBER));
+
+		LocalDate today = LocalDate.now();
+		LocalDate startDate = today.minusDays(7);
+		LocalDate endDate = today.plusDays(7);
+		List<CustomerDto> customerList = customerRepository.findCustomersWithAnniversaries(memberId, startDate, endDate)
+				.stream().map(customer -> customerMapper.map(customer)).collect(Collectors.toList());
+
+		return GetAnniversariesCustomerListResponseDto.success(customerList, messageUtil.success());
 	}
 
 	/**
