@@ -1901,8 +1901,6 @@ VALUES (70, 'Y', '상담원 근무시간 체크', 'assignByMemberOfficeHours', 7
 INSERT INTO ASSIGN_METHOD (ID, ENABLED, NAME, SIGNATURE, SORT)
 VALUES (80, 'N', '상담원 근무외 시간 체크', 'assignOffDutyHours', 80);
 INSERT INTO ASSIGN_METHOD (ID, ENABLED, NAME, SIGNATURE, SORT)
-VALUES (1000, 'Y', '상담원 랜덤 한명구하기', 'assignByMemberRandom', 1000);
-
-VALUES (80, 'N', '상담원 근무외 시간 체크', 'assignOffDutyHours', 80);
+VALUES (90, 'Y', '이전 상담원 배정', 'assignByAssignHistory', 41);
 INSERT INTO ASSIGN_METHOD (ID, ENABLED, NAME, SIGNATURE, SORT)
 VALUES (1000, 'Y', '상담원 랜덤 한명구하기', 'assignByMemberRandom', 1000);
