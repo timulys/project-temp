@@ -1,6 +1,7 @@
 package com.kep.portal.repository.issue;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 
 import javax.validation.constraints.NotNull;
 
@@ -22,4 +23,6 @@ public interface IssueLogRepository extends JpaRepository<IssueLog, Long>, Issue
 	IssueLog findFirstByIssueIdOrderByCreatedDesc(@NotNull Long issueId);
 	
 	boolean existsByIssueIdAndStatusAndCreatorLessThan(Long issueId, IssueLogStatus status, Long creator);
+
+	List<IssueLog> findAllByIssueId(Long issueId);
 }

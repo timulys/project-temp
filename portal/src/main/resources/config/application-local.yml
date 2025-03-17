@@ -20,6 +20,8 @@ spring:
   cloud:
     discovery:
       client:
+        health-indicator:
+          enabled: false
         simple:
           instances:
             platform-service:

@@ -7,8 +7,8 @@ import com.kep.core.model.dto.platform.AuthorizeType;
 import com.kep.core.model.enums.MessageCode;
 import com.kep.portal.client.LegacyClient;
 import com.kep.portal.model.dto.customer.request.PatchCustomerRequestDto;
-import com.kep.portal.model.dto.customer.request.PostCustomerRequestDto;
 import com.kep.portal.model.dto.customer.request.PatchFavoriteCustomerRequestDto;
+import com.kep.portal.model.dto.customer.request.PostCustomerRequestDto;
 import com.kep.portal.model.dto.customer.response.*;
 import com.kep.portal.model.entity.customer.*;
 import com.kep.portal.model.entity.issue.Issue;
@@ -301,65 +301,6 @@ public class CustomerServiceImpl implements CustomerService {
 
 	}
 
-	/**
-	 * 상담원 고객 즐겨 찾기
-	 * @param dto
-	 * @return
-	 */
-	public CustomerMemberDto favoritesStore(CustomerMemberDto dto){
-
-		Customer customer = customerRepository.findById(dto.getCustomerId()).orElse(null);
-		if(customer == null){
-			return null;
-		}
-		CustomerMember customerMember = customerMemberRepository.findOne(
-						Example.of(CustomerMember.builder()
-								.memberId(securityUtils.getMemberId())
-								.customer(customer)
-								.build()))
-				.orElse(null);
-
-		//내 고객에 있으면
-		if(customerMember != null){
-			if(customerMember.getFavorite() == false){
-				customerMember.setFavorite(true);
-			} else {
-				customerMember.setFavorite(false);
-			}
-			customerMember = customerMemberRepository.save(customerMember);
-		}
-
-		return customerMemberMapper.map(customerMember);
-	}
-
-
-
-	/**
-	 * 상담원 고객목록 가져오기
-	 * @return
-	 */
-	public List<Customer> getAllCustomerMember(){
-		Long memberId = securityUtils.getMemberId();
-		return customerMemberRepository.findAll(Example.of(
-				CustomerMember.builder()
-						.memberId(memberId)
-						.build()
-		)).stream().map(CustomerMember::getCustomer).collect(Collectors.toList());
-	}
-
-
-	/**
-	 * 상담원 고객 즐겨 찾기
-	 * @return
-	 */
-	public List<CustomerDto> favorites(){
-		List<Customer> entities =
-				customerMemberRepository.findAllByMemberIdAndFavorite(securityUtils.getMemberId(), true)
-						.stream().map(CustomerMember::getCustomer)
-						.collect(Collectors.toList());
-		return customerMapper.map(this.entire(entities));
-	}
-
 	@Override
 	public Customer findById(Long id) {
 		return customerRepository.findById(id).orElse(null);
@@ -602,7 +543,9 @@ public class CustomerServiceImpl implements CustomerService {
 		return Collections.emptySet();
 	}
 
+
 	/** V2 Service Methods **/
+
 	/**
 	 * 고객 정보 저장
 	 */

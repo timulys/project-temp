@@ -47,6 +47,8 @@ public class IssueExtraController {
 	private IssueSummaryCategoryService issueSummaryCategoryService;
 
 
+
+
 	/**
 	 * 상담 포탈 > 상담창 > 상담 요약 조회
 	 * 상담 포탈 > 상담창 > 메모 조회
@@ -235,6 +237,5 @@ public class IssueExtraController {
 
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
-
 
 }

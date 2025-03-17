@@ -3,12 +3,11 @@ package com.kep.portal.controller.customer;
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.customer.CustomerDto;
-import com.kep.core.model.dto.customer.CustomerMemberDto;
 import com.kep.core.model.dto.legacy.LegacyCustomerDto;
 import com.kep.portal.model.dto.customer.GuestMemoDto;
 import com.kep.portal.model.dto.customer.request.PatchCustomerRequestDto;
-import com.kep.portal.model.dto.customer.request.PostCustomerRequestDto;
 import com.kep.portal.model.dto.customer.request.PatchFavoriteCustomerRequestDto;
+import com.kep.portal.model.dto.customer.request.PostCustomerRequestDto;
 import com.kep.portal.model.dto.customer.response.*;
 import com.kep.portal.service.customer.CustomerServiceImpl;
 import com.kep.portal.service.customer.GuestMemoService;
@@ -26,7 +25,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Tag(name = "고객 API", description = "/api/v1/customer")
@@ -125,67 +123,6 @@ public class CustomerController {
         ApiResult<List<CustomerDto>> response = ApiResult.<List<CustomerDto>>builder()
                 .code(ApiResultCode.succeed)
                 .payload(entities)
-                .build();
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-
-    /**
-     * 즐겨찾기 고객 목록
-     * @return
-     */
-    @Tag(name = "고객 API")
-    @Operation(summary = "즐겨찾기 고객 목록")
-    @GetMapping(value = "/favorite")
-    public ResponseEntity<ApiResult<List<CustomerDto>>> favorites () {
-        List<CustomerDto> entities = customerService.favorites();
-        ApiResult<List<CustomerDto>> response = ApiResult.<List<CustomerDto>>builder()
-                .code(ApiResultCode.succeed)
-                .payload(entities)
-                .build();
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    /**
-     * 상담원 고객 즐겨찾기
-     * @param dto
-     * @return
-     */
-    @Tag(name = "고객 API")
-    @Operation(summary = "상담원 고객 즐겨찾기")
-    @PostMapping(value = "/favorite")
-    public ResponseEntity<ApiResult<CustomerMemberDto>> favoriteStore (
-            @RequestBody @NotNull CustomerMemberDto dto) {
-        CustomerMemberDto entity = customerService.favoritesStore(dto);
-        ApiResultCode code = ApiResultCode.failed;
-        if(entity != null){
-            code = ApiResultCode.succeed;
-        }
-        ApiResult<CustomerMemberDto> response = ApiResult.<CustomerMemberDto>builder()
-                .code(code)
-                .payload(entity)
-                .build();
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    /**
-     * 상담원 고객 즐겨찾기 삭제
-     * @param dto
-     * @return
-     */
-    @Tag(name = "고객 API")
-    @Operation(summary = "상담원 고객 즐겨찾기 삭제")
-    @DeleteMapping(value = "/favorite")
-    public ResponseEntity<ApiResult<CustomerMemberDto>> favoriteDelete (
-            @RequestBody @NotNull CustomerMemberDto dto) {
-        CustomerMemberDto entity = customerService.favoritesStore(dto);
-        ApiResultCode code = ApiResultCode.failed;
-        if(entity != null){
-            code = ApiResultCode.succeed;
-        }
-        ApiResult<CustomerMemberDto> response = ApiResult.<CustomerMemberDto>builder()
-                .code(code)
-                .payload(entity)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

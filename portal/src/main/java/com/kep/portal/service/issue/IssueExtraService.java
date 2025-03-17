@@ -10,7 +10,6 @@ import com.kep.portal.model.dto.summary.SaveIssueExtraSummaryRequest;
 import com.kep.portal.model.entity.channel.Channel;
 import com.kep.portal.model.entity.channel.ChannelEnv;
 import com.kep.portal.model.entity.issue.*;
-import com.kep.portal.model.entity.subject.IssueCategory;
 import com.kep.portal.model.entity.subject.IssueCategoryMapper;
 import com.kep.portal.repository.channel.ChannelEnvRepository;
 import com.kep.portal.repository.issue.IssueExtraRepository;
@@ -19,6 +18,7 @@ import com.kep.portal.repository.issue.IssueSummaryCategoryRepository;
 import com.kep.portal.repository.subject.IssueCategoryRepository;
 import com.kep.portal.service.channel.ChannelService;
 import com.kep.portal.service.subject.IssueCategoryService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -38,9 +38,10 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @Transactional
-@Slf4j
+@RequiredArgsConstructor
 public class IssueExtraService {
 
 	@Resource
@@ -84,6 +85,7 @@ public class IssueExtraService {
 
 	@Resource
 	private IssueSummaryCategoryService issueSummaryCategoryService;
+
     @Autowired
     private IssueSummaryCategoryRepository issueSummaryCategoryRepository;
 
@@ -328,4 +330,5 @@ public class IssueExtraService {
 //		result.setIssueSummaryCategoryId(issueExtra.getIssueSummaryCategory() == null ? null : issueExtra.getIssueSummaryCategory().getId()); // 상담 후처리 카테고리 추가) =
 //		result.setIssueExtraSummary(SaveIssueExtraSummaryRequest.of(issueExtra));
 	}
+
 }
