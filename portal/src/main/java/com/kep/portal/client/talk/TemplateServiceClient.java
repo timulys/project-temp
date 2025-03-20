@@ -32,8 +32,9 @@ public interface TemplateServiceClient {
             @RequestParam(name = "branch_id", required = false) Long branchId,
             @RequestParam(name = "status", required = false) List<PlatformTemplateStatus> status,
             @RequestParam(name = "template_name", required = false) String templateName,
-            @SortDefault.SortDefaults({
-                    @SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable);
+            @RequestParam(name = "page") int page,
+            @RequestParam(name = "size") int size,
+            @RequestParam(name = "sort") String sort);
 
     @GetMapping("/api/v2/template/{id}")
     ResponseEntity<? super ApiResult<TemplateResponseDto>> getTemplate(@PathVariable("id") Long id);

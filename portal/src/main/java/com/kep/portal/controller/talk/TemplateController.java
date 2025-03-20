@@ -54,14 +54,15 @@ public class TemplateController {
             @RequestParam(name = "branch_id", required = false) Long branchId,
             @RequestParam(name = "status", required = false) List<PlatformTemplateStatus> status,
             @RequestParam(name = "template_name", required = false) String templateName,
-            @SortDefault.SortDefaults({
-                    @SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable) {
+            @RequestParam(name = "page") int page,
+            @RequestParam(name = "size") int size,
+            @RequestParam(name = "sort") String sort) {
         log.info("Kakao Biz Message Template, Template List, platform : {}", platform);
         log.info("Kakao Biz Message Template, Template List, branch_id : {}", branchId);
         log.info("Kakao Biz Message Template, Template List, status : {}", status);
         log.info("Kakao Biz Message Template, Template List, template_name : {}", templateName);
         ResponseEntity<? super ApiResult<List<TemplateSearchResponseDto>>> response =
-                templateServiceClient.getTemplateList(platform, branchId, status, templateName, pageable);
+                templateServiceClient.getTemplateList(platform, branchId, status, templateName, page, size, sort);
         return response;
     }
 
