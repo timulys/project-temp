@@ -4,9 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.kep.core.model.dto.common.ResponseCode;
 import com.kep.core.model.dto.common.ResponseMessage;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -14,63 +17,108 @@ public class ResponseDto {
     /**
      * 결과 코드
      */
-    private String code;
+    private String responseCode;
     /**
      * 결과 메시지
      */
     private String message;
 
     /**
-     * Database Error 공통 Response
+     * Biz Message Center API Processing Failed Response
      * @return
      */
-    public static ResponseEntity<ResponseDto> databaseErrorMessage() {
-        return ResponseEntity.internalServerError()
-                .body(new ResponseDto(ResponseCode.DATABASE_ERROR, ResponseMessage.DATABASE_ERROR));
+    public static ResponseEntity<ResponseDto> customFailedMessage(String code, String message) {
+        ResponseDto result = new ResponseDto(code, message);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
 
     /**
-     * Validation Failed 공통 Response
+     * Internal Server Error Response
+     * @param message
      * @return
      */
-    public static ResponseEntity<ResponseDto> validationFailedMessage() {
-        return ResponseEntity.badRequest()
-                .body(new ResponseDto(ResponseCode.VALIDATION_FAILED, ResponseMessage.VALIDATION_FAILED));
+    public static ResponseEntity<ResponseDto> serverErrorMessage(String message) {
+        ResponseDto result = new ResponseDto(ResponseCode.SERVER_ERROR, message);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
+    /**
+     * Database Error Response
+     * @return
+     */
+    public static ResponseEntity<ResponseDto> databaseErrorMessage(String message) {
+        ResponseDto result = new ResponseDto(ResponseCode.DATABASE_ERROR, message);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
+
+    /**
+     * Validation Failed Response
+     * @return
+     */
+    public static ResponseEntity<ResponseDto> validationFailedMessage(String message) {
+        ResponseDto result = new ResponseDto(ResponseCode.VALIDATION_FAILED, message);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
     /**
      * Biz Message Center API Call Failed Response
      * @return
      */
-    public static ResponseEntity<ResponseDto> bizCenterCallFailedMessage() {
-        return ResponseEntity.badRequest()
-                .body(new ResponseDto(ResponseCode.BZM_CALL_FAILED, ResponseMessage.BZM_CALL_FAILED));
+    public static ResponseEntity<ResponseDto> bizCenterCallFailedMessage(String message) {
+        ResponseDto result = new ResponseDto(ResponseCode.BZM_CALL_FAILED, message);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
 
     /**
      * AlimTalk Service API Call Failed Response
      * @return
      */
-    public static ResponseEntity<ResponseDto> alimTalkFailedMessage() {
-        return ResponseEntity.badRequest()
-                .body(new ResponseDto(ResponseCode.ALIM_TALK_CALL_FAILED, ResponseMessage.ALIM_TALK_CALL_FAILED));
+    public static ResponseEntity<ResponseDto> alimTalkFailedMessage(String message) {
+        ResponseDto result = new ResponseDto(ResponseCode.ALIM_TALK_CALL_FAILED, message);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
     /**
      * FriendTalk Service APi Call Failed Response
      * @return
      */
-    public static ResponseEntity<ResponseDto> friendTalkFailedMessage() {
-        return ResponseEntity.badRequest()
-                .body(new ResponseDto((ResponseCode.FRIEND_TALK_CALL_FAILED), ResponseMessage.FRIEND_TALK_CALL_FAILED));
+    public static ResponseEntity<ResponseDto> friendTalkFailedMessage(String message) {
+        ResponseDto result = new ResponseDto(ResponseCode.FRIEND_TALK_CALL_FAILED, message);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
     /**
-     * Biz Message Center API Processing Failed Response
-     *
+     * Member Not Existed Response
      * @return
      */
-    public static ResponseEntity<ResponseDto> customFailedMessage(String code, String message) {
-        return ResponseEntity.ok(new ResponseDto(code, message));
+    public static ResponseEntity<ResponseDto> notExistedMember(String message) {
+        ResponseDto result = new ResponseDto(ResponseCode.NOT_EXISTED_MEMBER, message);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+    }
+
+    /**
+     * Customer Not Existed Response
+     * @return
+     */
+    public static ResponseEntity<ResponseDto> notExistedCustomer(String message) {
+        ResponseDto result = new ResponseDto(ResponseCode.NOT_EXISTED_CUSTOMER, message);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+    }
+
+    /**
+     * Customer Group Not Existed Response
+     * @return
+     */
+    public static ResponseEntity<ResponseDto> notExistedCustomerGroup(String message) {
+        ResponseDto result = new ResponseDto(ResponseCode.NOT_EXISTED_CUSTOMER_GROUP, message);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+    }
+
+    /**
+     * No Permission Response
+     * @return
+     */
+    public static ResponseEntity<ResponseDto> noPermission(String message) {
+        ResponseDto result = new ResponseDto(ResponseCode.NO_PERMISSION, message);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
     }
 }

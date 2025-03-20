@@ -3,6 +3,7 @@ package com.dkt.always.talk.service.friendTalk.impl;
 import com.dkt.always.talk.config.property.PlatformProperty;
 import com.dkt.always.talk.service.BizTalkCommonService;
 import com.dkt.always.talk.service.friendTalk.FriendTalkExternalService;
+import com.dkt.always.talk.utils.MessageSourceUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.ResponseDto;
@@ -27,9 +28,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class FriendTalkExternalServiceImpl extends BizTalkCommonService implements FriendTalkExternalService {
     /** FriendTalk API URLs **/
     // 친구톡 발송
@@ -41,6 +42,7 @@ public class FriendTalkExternalServiceImpl extends BizTalkCommonService implemen
 
     /** Autowired Components **/
     private final ObjectMapper objectMapper;
+    private final MessageSourceUtil messageUtil;
     private final WebClient kakaoBizTalkWebClient;
     private final PlatformProperty platformProperty;
 
@@ -105,6 +107,6 @@ public class FriendTalkExternalServiceImpl extends BizTalkCommonService implemen
     /////////////////////////// private methods ///////////////////////////
     private ResponseEntity<ResponseDto> friendTalkExternalCallFailedMethod(Throwable throwable) {
         log.error("BizMessageCenter Friend-Talk API Call Failed Fallback: {}", throwable.getMessage());
-        return ResponseDto.friendTalkFailedMessage();
+        return ResponseDto.friendTalkFailedMessage(messageUtil.getMessage("friend_talk_call_failed"));
     }
 }

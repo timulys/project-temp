@@ -29,6 +29,7 @@ import java.util.List;
 @Transactional
 public class BranchChannelService {
 
+
 	@Resource
 	private BranchChannelRepository branchChannelRepository;
 

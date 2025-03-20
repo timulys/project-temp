@@ -3,9 +3,12 @@ package com.kep.portal.controller.customer;
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.customer.CustomerDto;
-import com.kep.core.model.dto.customer.CustomerMemberDto;
 import com.kep.core.model.dto.legacy.LegacyCustomerDto;
 import com.kep.portal.model.dto.customer.GuestMemoDto;
+import com.kep.portal.model.dto.customer.request.PatchCustomerRequestDto;
+import com.kep.portal.model.dto.customer.request.PatchFavoriteCustomerRequestDto;
+import com.kep.portal.model.dto.customer.request.PostCustomerRequestDto;
+import com.kep.portal.model.dto.customer.response.*;
 import com.kep.portal.service.customer.CustomerServiceImpl;
 import com.kep.portal.service.customer.GuestMemoService;
 import com.kep.portal.util.SecurityUtils;
@@ -21,7 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.validation.constraints.NotNull;
+import javax.validation.Valid;
 import java.util.List;
 
 @Tag(name = "고객 API", description = "/api/v1/customer")
@@ -76,46 +79,6 @@ public class CustomerController {
     }
 
     /**
-     * 회원(상담원) 기념일 고객 목록
-     * @return
-     */
-    @Tag(name = "고객 API")
-    @Operation(summary = "회원(상담원) 기념일 고객 목록 조회", description = "회원(상담원) 기념일 고객 목록 조회")
-    @GetMapping(value = "/anniversarie")
-    public ResponseEntity<ApiResult<List<CustomerDto>>> anniversaries() {
-//        Long memberId = securityUtils.getMemberId();
-        List<CustomerDto> entities = customerService.anniversaries();
-        ApiResult<List<CustomerDto>> response = ApiResult.<List<CustomerDto>>builder()
-                .code(ApiResultCode.succeed)
-                .payload(entities)
-                .build();
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    /**
-     * 고객 정보
-     * @param id
-     * @return
-     */
-    @Tag(name = "고객 API")
-    @Operation(summary = "고객 정보 단건 조회", description = "고객 정보 단건 조회")
-    @GetMapping(value = "/{id}")
-    public ResponseEntity<ApiResult<CustomerDto>> show(
-            @Parameter(description = "고객 아이디", in = ParameterIn.PATH, required = true)
-            @PathVariable("id") Long id) {
-
-        CustomerDto entity = customerService.show(id);
-        log.info("[customer]:{}", entity);
-        ApiResult<CustomerDto> response = ApiResult.<CustomerDto>builder()
-                .code(ApiResultCode.succeed)
-                .payload(entity)
-                .build();
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-
-
-    /**
      * 선택된 고객의 계약 정보 조회
      * @param cntrtNum
      * @return
@@ -164,87 +127,6 @@ public class CustomerController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-
-    /**
-     * 즐겨찾기 고객 목록
-     * @return
-     */
-    @Tag(name = "고객 API")
-    @Operation(summary = "즐겨찾기 고객 목록")
-    @GetMapping(value = "/favorite")
-    public ResponseEntity<ApiResult<List<CustomerDto>>> favorites () {
-        List<CustomerDto> entities = customerService.favorites();
-        ApiResult<List<CustomerDto>> response = ApiResult.<List<CustomerDto>>builder()
-                .code(ApiResultCode.succeed)
-                .payload(entities)
-                .build();
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    /**
-     * 상담원 고객 즐겨찾기
-     * @param dto
-     * @return
-     */
-    @Tag(name = "고객 API")
-    @Operation(summary = "상담원 고객 즐겨찾기")
-    @PostMapping(value = "/favorite")
-    public ResponseEntity<ApiResult<CustomerMemberDto>> favoriteStore (
-            @RequestBody @NotNull CustomerMemberDto dto) {
-        CustomerMemberDto entity = customerService.favoritesStore(dto);
-        ApiResultCode code = ApiResultCode.failed;
-        if(entity != null){
-            code = ApiResultCode.succeed;
-        }
-        ApiResult<CustomerMemberDto> response = ApiResult.<CustomerMemberDto>builder()
-                .code(code)
-                .payload(entity)
-                .build();
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    /**
-     * 상담원 고객 즐겨찾기 삭제
-     * @param dto
-     * @return
-     */
-    @Tag(name = "고객 API")
-    @Operation(summary = "상담원 고객 즐겨찾기 삭제")
-    @DeleteMapping(value = "/favorite")
-    public ResponseEntity<ApiResult<CustomerMemberDto>> favoriteDelete (
-            @RequestBody @NotNull CustomerMemberDto dto) {
-        CustomerMemberDto entity = customerService.favoritesStore(dto);
-        ApiResultCode code = ApiResultCode.failed;
-        if(entity != null){
-            code = ApiResultCode.succeed;
-        }
-        ApiResult<CustomerMemberDto> response = ApiResult.<CustomerMemberDto>builder()
-                .code(code)
-                .payload(entity)
-                .build();
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    /**
-     * TODO: DELETEME, 고객 정보 저장 (시연용)
-     */
-    @Tag(name = "고객 API")
-    @Operation(summary = "(시연용) 고객 정보 저장")
-    @PostMapping
-    public ResponseEntity<ApiResult<CustomerDto>> post(
-            @RequestBody CustomerDto customer) {
-
-        log.info("CUSTOMER, POST, BODY: {}", customer);
-
-        customer = customerService.store(customer);
-        ApiResult<CustomerDto> response = ApiResult.<CustomerDto>builder()
-                .code(ApiResultCode.succeed)
-                .payload(customer)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
-    }
-
     @Tag(name = "고객 API")
     @Operation(summary = "고객 메모 조회")
     @GetMapping("/memo/{id}")
@@ -280,5 +162,126 @@ public class CustomerController {
                 .payload(resultDto)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+
+
+    /** V2 **/
+    /** Create Methods **/
+    /**
+     * TODO: 해당 기능은 원래 기획에 없던 기능임, 이 부분은 추후 상황을 고려하여 삭제되어야 함
+     * TODO: 정규 기능으로 유지해야 하는지에 대한 판단 필요 - by, tim.c
+     * 고객 정보 저장(수동)
+     */
+    @Tag(name = "고객 API")
+    @Operation(summary = "(시연용) 고객 정보 저장")
+    @PostMapping
+    public ResponseEntity<? super PostCustomerResponseDto> postCustomer(@RequestBody @Valid PostCustomerRequestDto requestBody) {
+        log.info("Customer Create, Body: {}", requestBody);
+        ResponseEntity<? super PostCustomerResponseDto> response = customerService.createCustomer(requestBody);
+        return response;
+    }
+
+
+    /** Retrieve Methods **/
+    /**
+     * 고객 정보 전체 조회
+     * @param memberId
+     * @return
+     */
+    @Tag(name = "고객 API")
+    @Operation(summary = "고객 목록 조회(V2)", description = "고객 목록 조회(V2)")
+    @GetMapping("/all/{memberId}")
+    public ResponseEntity<? super GetCustomerListResponseDto> getAllCustomer(@PathVariable("memberId") Long memberId) {
+        log.info("Get Customer All List, Member ID : {}", memberId);
+        ResponseEntity<? super GetCustomerListResponseDto> response = customerService.findAllCustomer(memberId);
+        return response;
+    }
+
+    /**
+     * 고객 정보 단건 조회
+     * @param customerId
+     * @return
+     */
+    @Tag(name = "고객 API")
+    @Operation(summary = "고객 정보 단건 조회(V2)", description = "고객 정보 단건 조회(V2)")
+    @GetMapping("/{customerId}")
+    public ResponseEntity<? super GetCustomerResponseDto> getCustomer(@PathVariable("customerId") Long customerId) {
+        log.info("Customer Get One, Customer ID : {}", customerId);
+        ResponseEntity<? super GetCustomerResponseDto> response = customerService.findCustomer(customerId);
+        return response;
+    }
+
+    /**
+     * 즐겨찾기 고객 조회
+     * @param memberId
+     * @return
+     */
+    @Tag(name = "고객 API")
+    @Operation(summary = "즐겨찾기 고객 조회(V2)", description = "즐겨찾기 고객 조회(V2)")
+    @GetMapping("/favorite/{memberId}")
+    public ResponseEntity<? super GetFavoriteCustomerListResponseDto> getFavoriteCustomer(@PathVariable("memberId") Long memberId) {
+        log.info("Get Favorite Customer List, Member ID : {}", memberId);
+        ResponseEntity<? super GetFavoriteCustomerListResponseDto> response = customerService.findAllFavoriteCustomerList(memberId);
+        return response;
+    }
+
+    /**
+     * 기념일 고객 목록 조회(V2)
+     * @param memberId
+     * @return
+     */
+    @Tag(name = "고객 API")
+    @Operation(summary = "기념일 고객 목록 조회(V2)", description = "기념일 고객 목록 조회(V2)")
+    @GetMapping("/anniversaries/{memberId}")
+    public ResponseEntity<? super GetAnniversariesCustomerListResponseDto> getAllAnniversariesCustomer(@PathVariable("memberId") Long memberId) {
+        log.info("Get Anniversary Customer List, Member ID : {}", memberId);
+        ResponseEntity<? super GetAnniversariesCustomerListResponseDto> response = customerService.findAllAnniversariesCustomerList(memberId);
+        return response;
+    }
+
+
+
+    /** Update Methods **/
+    /**
+     * 고객 정보 수정
+     */
+    @Tag(name = "고객 API")
+    @Operation(summary = "고객 정보 수정")
+    @PatchMapping
+    public ResponseEntity<? super PatchCustomerResponseDto> patchCustomer(@RequestBody @Valid PatchCustomerRequestDto requestBody) {
+        log.info("Customer Update, Body : {}", requestBody);
+        ResponseEntity<? super PatchCustomerResponseDto> response = customerService.updateCustomer(requestBody);
+        return response;
+    }
+
+    /**
+     * 즐겨찾기 고객 수정
+     * @param requestBody
+     * @return
+     */
+    @Tag(name = "고객 API")
+    @Operation(summary = "고객 즐겨찾기 수정(V2)", description = "고객 즐겨찾기 수정(V2)")
+    @PatchMapping("/v2/favorite")
+    public ResponseEntity<? super PatchFavoriteCustomerResponseDto> patchFavoriteCustomer(@RequestBody @Valid PatchFavoriteCustomerRequestDto requestBody) {
+        log.info("Register Favorite Customer, Body : {}", requestBody);
+        ResponseEntity<? super PatchFavoriteCustomerResponseDto> response = customerService.patchFavoriteCustomer(requestBody);
+        return response;
+    }
+
+
+    /** Delete Methods **/
+    /**
+     * 고객 정보 삭제
+     * @param customerId
+     * @return
+     */
+    @Tag(name = "고객 API")
+    @Operation(summary = "고객 정보 삭제")
+    @DeleteMapping("/{customerId}")
+    public ResponseEntity<? super DeleteCustomerResponseDto> deleteCustomer(@PathVariable Long customerId) {
+        log.info("Customer Delete, Customer ID : {}", customerId);
+        ResponseEntity<? super DeleteCustomerResponseDto> response = customerService.deleteCustomer(customerId);
+        return response;
     }
 }

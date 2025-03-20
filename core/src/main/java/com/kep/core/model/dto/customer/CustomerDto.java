@@ -1,6 +1,7 @@
 package com.kep.core.model.dto.customer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.kep.core.model.dto.issue.IssueDto;
 import com.kep.core.model.dto.issue.IssueExtraDto;
 import com.kep.core.model.dto.legacy.LegacyCustomerDto;
 import com.kep.core.model.dto.platform.PlatformSubscribeDto;
@@ -35,6 +36,9 @@ public class CustomerDto {
 	@Schema(description = "나이")
 	private String age;
 
+	@Schema(description = "고객 그룹 아이디")
+	private Long customerGroupId;
+
 	@Schema(description = "고객 연락 정보 목록")
 	private List<CustomerContactDto> contacts;
 
@@ -50,9 +54,13 @@ public class CustomerDto {
 	@Schema(description = "유입경로 목록")
 	private List<IssueExtraDto> inflows;
 
+	@Schema(description = "마지막 대화")
+	private Long lastIssueId;
+
 	/**
 	 * FIXME :: BNK 연동정보 20240715 volka
 	 */
 	@Schema(description = "기존 사용자 정보")
 	private LegacyCustomerDto legacyCustomerData;
+
 }

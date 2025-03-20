@@ -1,69 +1,53 @@
 package com.kep.portal.service.customer;
 
-import java.time.LocalDate;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.Objects;
-
-import javax.annotation.Resource;
-import javax.transaction.Transactional;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
-
+import com.kep.core.model.dto.ResponseDto;
 import com.kep.core.model.dto.customer.*;
-import com.kep.portal.model.converter.FixedCryptoConverter;
+import com.kep.core.model.dto.legacy.LegacyCustomerDto;
+import com.kep.core.model.dto.platform.AuthorizeType;
+import com.kep.core.model.enums.MessageCode;
+import com.kep.portal.client.LegacyClient;
+import com.kep.portal.model.dto.customer.request.PatchCustomerRequestDto;
+import com.kep.portal.model.dto.customer.request.PatchFavoriteCustomerRequestDto;
+import com.kep.portal.model.dto.customer.request.PostCustomerRequestDto;
+import com.kep.portal.model.dto.customer.response.*;
+import com.kep.portal.model.entity.customer.*;
+import com.kep.portal.model.entity.issue.Issue;
+import com.kep.portal.model.entity.issue.IssueExtra;
+import com.kep.portal.model.entity.issue.IssueMapper;
+import com.kep.portal.model.entity.platform.PlatformSubscribe;
+import com.kep.portal.repository.customer.*;
+import com.kep.portal.repository.issue.IssueRepository;
+import com.kep.portal.repository.member.MemberRepository;
+import com.kep.portal.service.platform.PlatformSubscribeService;
 import com.kep.portal.util.CommonUtils;
-import org.apache.poi.ss.formula.functions.Fixed;
+import com.kep.portal.util.MessageSourceUtil;
+import com.kep.portal.util.SecurityUtils;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jasypt.encryption.StringEncryptor;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import com.kep.core.model.dto.legacy.LegacyCustomerDto;
-import com.kep.core.model.dto.platform.AuthorizeType;
-import com.kep.portal.client.LegacyClient;
-import com.kep.portal.model.entity.customer.Customer;
-import com.kep.portal.model.entity.customer.CustomerAnniversary;
-import com.kep.portal.model.entity.customer.CustomerAnniversaryMapper;
-import com.kep.portal.model.entity.customer.CustomerAuthorized;
-import com.kep.portal.model.entity.customer.CustomerAuthorizedMapper;
-import com.kep.portal.model.entity.customer.CustomerContact;
-import com.kep.portal.model.entity.customer.CustomerContactMapper;
-import com.kep.portal.model.entity.customer.CustomerMapper;
-import com.kep.portal.model.entity.customer.CustomerMember;
-import com.kep.portal.model.entity.customer.CustomerMemberMapper;
-import com.kep.portal.model.entity.customer.Guest;
-import com.kep.portal.model.entity.issue.Issue;
-import com.kep.portal.model.entity.issue.IssueExtra;
-import com.kep.portal.model.entity.platform.PlatformSubscribe;
-import com.kep.portal.repository.customer.CustomerAnniversaryRepository;
-import com.kep.portal.repository.customer.CustomerAuthorizedRepository;
-import com.kep.portal.repository.customer.CustomerContactRepository;
-import com.kep.portal.repository.customer.CustomerMemberRepository;
-import com.kep.portal.repository.customer.CustomerRepository;
-import com.kep.portal.repository.customer.GuestRepository;
-import com.kep.portal.repository.issue.IssueRepository;
-import com.kep.portal.repository.member.MemberRepository;
-import com.kep.portal.service.platform.PlatformSubscribeService;
-import com.kep.portal.util.SecurityUtils;
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
-
-import lombok.extern.slf4j.Slf4j;
-
-@Service
 @Slf4j
+@Service
 @Transactional
+@RequiredArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
 
 	@Resource
@@ -117,43 +101,11 @@ public class CustomerServiceImpl implements CustomerService {
 	@Resource
 	private LegacyClient legacyClient;
 
+	private final IssueMapper issueMapper;
+	private final CustomerGroupRepository customerGroupRepository;
 
-	/**
-	 * 상담원 고객 기념일 목록
-	 * @return
-	 */
-	public List<CustomerDto> anniversaries(){
-
-		List<Customer> entities = this.getAllCustomerMember();
-
-		LocalDate startDate = LocalDate.now().minusWeeks(1);
-		LocalDate endDate = LocalDate.now().plusDays(2);
-
-		int startMonth = startDate.getMonthValue();
-		int startDay = startDate.getDayOfMonth();
-		int endMonth = endDate.getMonthValue();
-		int endDay = endDate.getDayOfMonth();
-
-		List<Customer> customers = new ArrayList<>();
-		for (Customer entity : entities){
-			for (CustomerAnniversary anniversary : entity.getAnniversaries()){
-				LocalDate date = anniversary.getAnniversary();
-				int dateMonth = date.getMonthValue();
-				int dateDay = date.getDayOfMonth();
-
-				boolean isWithinOneWeek = (dateMonth > startMonth || (dateMonth == startMonth && dateDay >= startDay))
-						&& (dateMonth < endMonth || (dateMonth == endMonth && dateDay <= endDay));
-
-				if(isWithinOneWeek){
-					customers.add(entity);
-				}
-			}
-		}
-		if(!customers.isEmpty()){
-			return customerMapper.map(this.entire(customers));
-		}
-		return Collections.emptyList();
-	}
+	/** Message Source Util **/
+	private final MessageSourceUtil messageUtil;
 
 	/**
 	 * 고객 정보
@@ -174,22 +126,23 @@ public class CustomerServiceImpl implements CustomerService {
 			List<IssueExtra> extras = this.getAllInflow(customer);
 			customer.setInflows(this.getAllInflow(customer));
 
-			//싱크없는 고객 체크
+			// 싱크없는 고객 체크
 			CustomerDto customerDto = customerMapper.map(customer);
 			if(!ObjectUtils.isEmpty(customerDto.getAuthorizeds()) && customerDto.getAuthorizeds().size() > 0){
 				customerDto.getAuthorizeds().stream().filter(item ->
 						item.getType().equals(AuthorizeType.kakao_sync)).count();
 			}
 
-			// 데이터베이스에서 해당 고객을 조회
-			// FIXME : 임의로 등록된 Customer를 다시 Guest로 저장하는 로직에서 Not Null Value들이 많아 추후 해당 로직은 재검토가 필요함.
-			/*Guest guest = guestRepository.findByCustomer(customer);
-			if (guest == null) {
-				guest = new Guest();
-				guest.setCustomer(customer);
+			// 소속된 그룹 존재 유무 확인
+			if (customer.getCustomerGroup() != null) {
+				customerDto.setCustomerGroupId(customer.getCustomerGroup().getId());
 			}
 
-			guestRepository.save(guest); // 변경 사항을 DB에 저장*/
+			// 고객의 마지막 대화 이력 확인(고객 상세 조회용)
+			Issue issue = issueRepository.findTopByCustomerIdOrderByStatusModifiedDesc(customerDto.getId())
+					.orElseThrow(() -> new RuntimeException("Customer last issue not founr : " + customerDto.getId()));
+			customerDto.setLastIssueId(issue.getId());
+
 			return customerDto;
 		} catch (Exception e) {
 			log.error("Error occurred while processing customer details for guest ID: {}", id, e);
@@ -316,30 +269,6 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 
 	/**
-	 * 고객 정보 저장
-	 */
-	public CustomerDto store(@NotNull CustomerDto dto) {
-
-		Customer customer = customerRepository.save(customerMapper.map(dto));
-		List<CustomerContact> contacts = customerContactMapper.mapDto(dto.getContacts());
-		for (CustomerContact contact : contacts) {
-			contact.setCustomerId(customer.getId());
-		}
-
-		contacts = customerContactRepository.saveAll(contacts);
-		customer.setContacts(contacts);
-
-		CustomerMember customerMember = CustomerMember.builder()
-				.customer(customer)
-				.memberId(securityUtils.getMemberId())
-				.favorite(false)
-				.build();
-		customerMemberRepository.save(customerMember);
-
-		return customerMapper.map(customer);
-	}
-
-	/**
 	 * 연락처 저장
 	 * @param entity
 	 * @param dtos
@@ -370,63 +299,6 @@ public class CustomerServiceImpl implements CustomerService {
 
 		return Collections.emptyList();
 
-	}
-
-	/**
-	 * 상담원 고객 즐겨 찾기
-	 * @param dto
-	 * @return
-	 */
-	public CustomerMemberDto favoritesStore(CustomerMemberDto dto){
-
-		Customer customer = customerRepository.findById(dto.getCustomerId()).orElse(null);
-		if(customer == null){
-			return null;
-		}
-		CustomerMember customerMember = customerMemberRepository.findOne(
-						Example.of(CustomerMember.builder()
-								.memberId(securityUtils.getMemberId())
-								.customer(customer)
-								.build()))
-				.orElse(null);
-
-		//내 고객에 있으면
-		if(customerMember != null){
-			if(customerMember.getFavorite() == false){
-				customerMember.setFavorite(true);
-			} else {
-				customerMember.setFavorite(false);
-			}
-			customerMember = customerMemberRepository.save(customerMember);
-		}
-
-		return customerMemberMapper.map(customerMember);
-	}
-
-	/**
-	 * 상담원 고객목록 가져오기
-	 * @return
-	 */
-	public List<Customer> getAllCustomerMember(){
-		Long memberId = securityUtils.getMemberId();
-		return customerMemberRepository.findAll(Example.of(
-				CustomerMember.builder()
-						.memberId(memberId)
-						.build()
-		)).stream().map(CustomerMember::getCustomer).collect(Collectors.toList());
-	}
-
-
-	/**
-	 * 상담원 고객 즐겨 찾기
-	 * @return
-	 */
-	public List<CustomerDto> favorites(){
-		List<Customer> entities =
-				customerMemberRepository.findAllByMemberIdAndFavorite(securityUtils.getMemberId(), true)
-						.stream().map(CustomerMember::getCustomer)
-						.collect(Collectors.toList());
-		return customerMapper.map(this.entire(entities));
 	}
 
 	@Override
@@ -482,7 +354,6 @@ public class CustomerServiceImpl implements CustomerService {
 					.map(CustomerMember::getCustomer)
 					.collect(Collectors.toList()));
 		}
-
 
 		List<Customer> customers = page.getContent();
 		if(!page.getContent().isEmpty()){
@@ -670,6 +541,204 @@ public class CustomerServiceImpl implements CustomerService {
 					.keySet();
 		}
 		return Collections.emptySet();
+	}
+
+
+	/** V2 Service Methods **/
+
+	/**
+	 * 고객 정보 저장
+	 */
+	@Override
+	public ResponseEntity<? super PostCustomerResponseDto> createCustomer(PostCustomerRequestDto requestDto) {
+		// 고객 등록 시 선택된 그룹 ID로 고객 그룹 조회
+		boolean existedCustomerGroup = customerGroupRepository.existsById(requestDto.getCustomerGroupId());
+		if (!existedCustomerGroup) return ResponseDto.notExistedCustomerGroup(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER_GROUP));
+
+		CustomerGroup customerGroup = customerGroupRepository.findById(requestDto.getCustomerGroupId()).get();
+
+		Customer customer = customerRepository.save(Customer.builder()
+				.name(requestDto.getName())
+				.customerGroup(customerGroup)
+				.build());
+
+		// 고객 Contact 데이터 추가
+		List<CustomerContact> contactList = Optional.ofNullable(requestDto.getContacts())
+				.orElse(Collections.emptyList())
+				.stream()
+				.map(contact -> CustomerContact.builder()
+						.customerId(customer.getId())
+						.type(contact.getType())
+						.payload(contact.getPayload())
+						.build()
+				).collect(Collectors.toList());
+		customerContactRepository.saveAll(contactList);
+
+		// 고객-상담원 ID 연결 & 실제 저장할 CustomerMember 객체 생성 및 저장
+		if (securityUtils.getMemberId() == null) return ResponseDto.notExistedMember(messageUtil.getMessage(MessageCode.NOT_EXISTED_MEMBER));
+
+		customerMemberRepository.save(CustomerMember.builder()
+				.customer(customer)
+				.memberId(securityUtils.getMemberId())
+				.favorite(false)
+				.build());
+
+		return PostCustomerResponseDto.success(messageUtil.success());
+	}
+
+	/**
+	 * 즐겨찾기 고객 수정
+	 * @param requestDto
+	 * @return
+	 */
+	@Override
+	public ResponseEntity<? super PatchFavoriteCustomerResponseDto> patchFavoriteCustomer(PatchFavoriteCustomerRequestDto requestDto) {
+		boolean existedByCustomer = customerRepository.existsById(requestDto.getCustomerId());
+		if (!existedByCustomer) return ResponseDto.notExistedCustomer(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER));
+
+		CustomerMember customerMember = customerMemberRepository.findOne(
+				Example.of(CustomerMember.builder()
+						.memberId(requestDto.getMemberId())
+						.customer(Customer.builder()
+								.id(requestDto.getCustomerId())
+								.build())
+						.build()
+				)
+		).orElse(null);
+		if (customerMember == null) return PatchFavoriteCustomerResponseDto.notExistedCustomerMember(messageUtil.getMessage(MessageCode.NOT_EXISTED_DATA));
+
+		customerMember.setFavorite(!customerMember.getFavorite());
+
+		return PatchFavoriteCustomerResponseDto.success(messageUtil.success());
+	}
+
+	/**
+	 * 고객 정보 전체 조회
+	 * @return
+	 */
+	@Override
+	public ResponseEntity<? super GetCustomerListResponseDto> findAllCustomer(Long memberId) {
+		boolean existedByMemberId = memberRepository.existsById(memberId);
+		if (!existedByMemberId) return ResponseDto.notExistedMember(messageUtil.getMessage(MessageCode.NOT_EXISTED_MEMBER));
+
+		List<CustomerDto> customerDtoList = customerMemberRepository.findAllByMemberId(memberId)
+				.stream().map(customerMember -> customerMapper.map(customerMember.getCustomer())).collect(Collectors.toList());
+
+		return GetCustomerListResponseDto.success(customerDtoList, messageUtil.success());
+	}
+
+	/**
+	 * 고객 정보 단건 조회
+	 * TODO : 객체 <-> 엔티티간 전환 내용 정리 후 리팩토링
+	 */
+	@Override
+	public ResponseEntity<? super GetCustomerResponseDto> findCustomer(Long customerId) {
+		boolean existedByCustomerId = customerRepository.existsById(customerId);
+		if (!existedByCustomerId) return ResponseDto.notExistedCustomer(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER));
+
+		Customer customer = customerRepository.findById(customerId).get();
+		customer.setContacts(this.contactsGetAll(customer));
+		customer.setAuthorizeds(this.authorizedGetAll(customer));
+		customer.setPlatformSubscribes(platformSubscribeService.getAll(this.getAllPlatformUserId(customer.getAuthorizeds())));
+		customer.setInflows(this.getAllInflow(customer));
+
+		CustomerDto customerDto = customerMapper.map(customer);
+		if(!ObjectUtils.isEmpty(customerDto.getAuthorizeds()) && customerDto.getAuthorizeds().size() > 0){
+			customerDto.getAuthorizeds().stream().filter(item ->
+					item.getType().equals(AuthorizeType.kakao_sync)).count();
+		}
+
+		// 소속된 그룹 존재 유무 확인
+		if (customer.getCustomerGroup() != null) {
+			customerDto.setCustomerGroupId(customer.getCustomerGroup().getId());
+		}
+
+		return GetCustomerResponseDto.success(customerDto, messageUtil.success());
+	}
+
+	/**
+	 * 즐겨찾기 고객 목록 조회
+	 * @param memberId
+	 * @return
+	 */
+	@Override
+	public ResponseEntity<? super GetFavoriteCustomerListResponseDto> findAllFavoriteCustomerList(Long memberId) {
+		boolean existedByMemberId = memberRepository.existsById(memberId);
+		if (!existedByMemberId) return ResponseDto.notExistedMember(messageUtil.getMessage(MessageCode.NOT_EXISTED_MEMBER));
+
+		List<CustomerDto> favoriteCustomerDtoList = customerMapper.map(this.entire(
+				customerMemberRepository.findAllByMemberIdAndFavorite(memberId, true)
+				.stream()
+				.map(CustomerMember::getCustomer)
+				.collect(Collectors.toList())));
+
+		return GetFavoriteCustomerListResponseDto.success(favoriteCustomerDtoList, messageUtil.success());
+	}
+
+	@Override
+	public ResponseEntity<? super GetAnniversariesCustomerListResponseDto> findAllAnniversariesCustomerList(Long memberId) {
+		boolean existedByMemberId = memberRepository.existsById(memberId);
+		if (!existedByMemberId) return ResponseDto.notExistedMember(messageUtil.getMessage(MessageCode.NOT_EXISTED_MEMBER));
+
+		LocalDate today = LocalDate.now();
+		LocalDate startDate = today.minusDays(7);
+		LocalDate endDate = today.plusDays(7);
+		List<CustomerDto> customerList = customerRepository.findCustomersWithAnniversaries(memberId, startDate, endDate)
+				.stream().map(customer -> customerMapper.map(customer)).collect(Collectors.toList());
+
+		return GetAnniversariesCustomerListResponseDto.success(customerList, messageUtil.success());
+	}
+
+	/**
+	 * 고객 정보 수정
+	 */
+	@Override
+	public ResponseEntity<? super PatchCustomerResponseDto> updateCustomer(PatchCustomerRequestDto requestDto) {
+		// 변경 수정할 Group 조회
+		boolean existedByCustomerGroupId = customerGroupRepository.existsById(requestDto.getCustomerGroupId());
+		if (!existedByCustomerGroupId) return ResponseDto.notExistedCustomerGroup(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER_GROUP));
+
+		// 고객 정보 조회
+		boolean existedByCustomerId = customerRepository.existsById(requestDto.getId());
+		if (!existedByCustomerId) return ResponseDto.notExistedCustomer(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER));
+
+		Customer customer = customerRepository.findById(requestDto.getId()).get();
+
+		// 고객 관리 그룹이 추가/변경 되었을 경우에만 데이터 변경
+		if (customer.getCustomerGroup() == null || !customer.getCustomerGroup().getId().equals(requestDto.getCustomerGroupId())) {
+			CustomerGroup customerGroup = customerGroupRepository.findById(requestDto.getCustomerGroupId()).get();
+			customer.setCustomerGroup(customerGroup);
+		}
+
+		// 고객 데이터 저장
+		customerRepository.save(customer);
+
+		return PatchCustomerResponseDto.success(messageUtil.success());
+	}
+
+	/**
+	 * 고객 정보 삭제
+	 */
+	@Override
+	public ResponseEntity<? super DeleteCustomerResponseDto> deleteCustomer(Long customerId) {
+		boolean existedByCustomerId = customerRepository.existsById(customerId);
+		if (!existedByCustomerId) return ResponseDto.notExistedCustomer(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER));
+
+		// 고객 관련 데이터 삭제
+		customerContactRepository.deleteByCustomerId(customerId);
+		customerAuthorizedRepository.deleteByCustomerId(customerId);
+		customerAnniversaryRepository.deleteByCustomerId(customerId);
+		customerMemberRepository.deleteByCustomerId(customerId);
+
+		// Guest와 Customer 관계 끊기
+		guestRepository.findAllByCustomerId(customerId).stream().forEach(customer -> customer.setCustomer(null));
+
+		// FIXME : 추가로 식별되는 Customer 비즈니스가 있다면 추가할 것
+
+		// 고객 정보 삭제
+		customerRepository.deleteById(customerId);
+
+		return DeleteCustomerResponseDto.success(messageUtil.success());
 	}
 
 }

@@ -104,6 +104,9 @@ public class IssueDto {
 
 	private Map<IssueSupportType, IssueSupportStatus> support;
 
+	@Schema(description = "마지막 지원 요청")
+	private IssueSupportDto lastIssueSupport;
+
 	@Schema(description = "상담직원 이력")
 	@JsonIncludeProperties({"id","username","nickname"})
 	private List<MemberDto> supportMembers;

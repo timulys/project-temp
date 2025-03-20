@@ -4,6 +4,7 @@ import com.dkt.always.talk.config.property.KakaoBizTalkProperty;
 import com.dkt.always.talk.config.property.PlatformProperty;
 import com.dkt.always.talk.service.BizTalkCommonService;
 import com.dkt.always.talk.service.template.TemplateExternalService;
+import com.dkt.always.talk.utils.MessageSourceUtil;
 import com.kep.core.model.dto.ResponseDto;
 import com.kep.core.model.dto.platform.kakao.KakaoBizMessageTemplatePayload;
 import com.kep.core.model.dto.platform.kakao.bizTalk.response.BizTalkResponseDto;
@@ -22,9 +23,9 @@ import java.util.List;
 /**
  * Biz Message Center Template API Call External Service
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class TemplateExternalServiceImpl extends BizTalkCommonService implements TemplateExternalService {
     /** Template API URL */
     // 템플릿 등록
@@ -37,6 +38,7 @@ public class TemplateExternalServiceImpl extends BizTalkCommonService implements
     public static final String TEMPLATE_CATEGORY_ALL_PATH = "/resell/template/category/all";
 
     /** Autowired Components */
+    private final MessageSourceUtil messageUtil;
     private final WebClient kakaoBizTalkWebClient;
     private final PlatformProperty platformProperty;
     private final KakaoBizTalkProperty kakaoBizTalkProperty;
@@ -121,6 +123,6 @@ public class TemplateExternalServiceImpl extends BizTalkCommonService implements
     /////////////////////////// private methods ///////////////////////////
     private ResponseEntity<ResponseDto> templateExternalCallFailedMethod(Throwable throwable) {
         log.error("BizMessageCenter API Call Failed Fallback: {}", throwable.getMessage());
-        return ResponseDto.bizCenterCallFailedMessage();
+        return ResponseDto.bizCenterCallFailedMessage(messageUtil.getMessage("bzm_call_failed"));
     }
 }

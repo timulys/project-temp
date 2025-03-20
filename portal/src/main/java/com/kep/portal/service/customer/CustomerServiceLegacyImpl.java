@@ -19,16 +19,14 @@ import javax.validation.constraints.NotNull;
  *  2023.04.12 / asher.shin   / 카테고리별 조회 및 즐겨찾기 변경 추가
  *
  */
-public class CustomerServiceLegacyImpl implements CustomerService {
+public class CustomerServiceLegacyImpl {
 
-	@Override
 	public Customer findById(Long id) {
 
 		log.error("NotImplementedException");
 		return null;
 	}
 
-	@Override
 	public List<Customer> search(String subject, String query) {
 
 		log.error("NotImplementedException");

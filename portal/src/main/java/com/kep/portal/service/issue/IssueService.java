@@ -22,6 +22,7 @@ import com.kep.portal.service.team.TeamMemberService;
 import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.SecurityUtils;
 import com.querydsl.core.Tuple;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Example;
@@ -47,16 +48,11 @@ import static java.util.Comparator.comparingLong;
 import static java.util.stream.Collectors.maxBy;
 import static java.util.stream.Collectors.toList;
 
+@Slf4j
 @Service
 @Transactional
-@Slf4j
+@RequiredArgsConstructor
 public class IssueService {
-    private final MemberRepository memberRepository;
-
-    public IssueService(MemberRepository memberRepository) {
-        this.memberRepository = memberRepository;
-    }
-
     @Resource
     private IssueRepository issueRepository;
     @Resource
@@ -74,11 +70,9 @@ public class IssueService {
 
     @Resource
     private SecurityUtils securityUtils;
-    @Resource
-    private TeamMemberService teamMemberService;
 
     @Resource
-    private IssueSupportRepository issueSupportRepository;
+    private TeamMemberService teamMemberService;
 
     @Resource
     private IssueSupportMapper issueSupportMapper;
@@ -94,6 +88,9 @@ public class IssueService {
 
     @Resource
     private IssueCategoryService issueCategoryService;
+
+    private final MemberRepository memberRepository;
+    private final IssueSupportRepository issueSupportRepository;
 
     public Issue findById(@NotNull Long id) {
 
@@ -114,6 +111,16 @@ public class IssueService {
 
         if (issueDto.getCustomerId() != null) {
             issueDto.setCustomer(customerMapper.map(customerService.findById(issueDto.getCustomerId())));
+        }
+
+        // FIXME : 고객 대화 검토 요청 내용도 함께 조회 issueDto의 support에 데이터 추가
+        List<IssueSupport> issueSupportList =
+                issueSupportRepository.findAllByIssueAndTypeAndStatus(issue, IssueSupportType.question, IssueSupportStatus.request);
+
+        IssueSupport issueSupport = issueSupportList.stream().findFirst().orElse(null);
+        if (issueSupport != null) {
+            IssueSupportDto issueSupportDto = issueSupportMapper.map(issueSupport);
+            issueDto.setLastIssueSupport(issueSupportDto);
         }
 
         return issueDto;

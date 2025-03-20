@@ -11,10 +11,10 @@ import java.util.List;
 @Repository
 public interface CustomerMemberRepository extends JpaRepository<CustomerMember, Long> {
 
-
+    List<CustomerMember> findAllByMemberId(Long memberId);
     List<CustomerMember> findAllByMemberIdAndFavorite(Long memberId , boolean favorite);
     Page<CustomerMember> findAllByMemberId(Long memberId , Pageable pageable);
 
 
-
+    void deleteByCustomerId(Long customerId);
 }

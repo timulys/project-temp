@@ -65,8 +65,8 @@ public interface IssueRepository extends JpaRepository<Issue, Long>, IssueSearch
 	//bnk 고객 ID 기반으로 guest_id를 가지고 오기 위한 커스텀 쿼리
 	List<Issue> findByGuestId(Long guestId);
 
-	//기간계 알림 플래그값 조회
-	List<Issue> findByCustomerId(Long customerId);
+	// Customer의 마지막 대화 1건
+	Optional<Issue> findTopByCustomerIdOrderByStatusModifiedDesc(Long customerId);
 
 	/**
 	 * 상담접수건
