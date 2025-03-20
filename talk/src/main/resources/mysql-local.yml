@@ -13,11 +13,11 @@ spring:
     jpa:
       database-platform: org.hibernate.dialect.MySQL57Dialect
       show-sql: true
-      open-in-view: true
+      open-in-view: false
       defer-datasource-initialization: true
       hibernate:
         ddl-auto: update
-      generate-ddl: false
+      generate-ddl: true
       properties:
         hibernate:
           globally_quoted_identifiers: true

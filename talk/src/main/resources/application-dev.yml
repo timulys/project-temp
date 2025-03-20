@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: talk
+  config:
+    import:
+      - optional:./mysql-dev.yml
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+  cloud:
+    discovery:
+      client:
+        health-indicator:
+          enabled: false
+        simple:
+          instances:
+            platform-service:
+              - uri: http://172.17.0.2:8080/platform
+              - uri: http://172.17.0.2:8080/platform
+            portal-service:
+              - uri: http://172.17.0.2:8080/portal
+              - uri: http://172.17.0.2:8080/portal

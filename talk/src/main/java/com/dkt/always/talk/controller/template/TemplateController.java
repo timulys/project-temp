@@ -54,6 +54,8 @@ public class TemplateController {
             @RequestParam(name = "template_name", required = false) String templateName,
             @SortDefault.SortDefaults({
                     @SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable) {
+        log.info("Kakao Biz Message Template, Platform Type : %s, Branch ID : %s, Status : %s, Template Name : %s"
+                .formatted(platform, branchId, status, templateName));
         TemplateSearchRequestDto requestDto = TemplateSearchRequestDto.of(platform, branchId, status, templateName);
         ResponseEntity<? super ApiResult<List<TemplateSearchResponseDto>>> response =
                 templateSearchService.getTemplateList(requestDto, pageable);

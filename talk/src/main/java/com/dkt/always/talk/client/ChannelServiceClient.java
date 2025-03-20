@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 /**
  * Portal channel service openfeign
  */
-@FeignClient(name = "channel-service", url = "http://localhost:8080/portal") // FIXME : url은 application.yml로 따로 관리 예정
+@FeignClient(name = "channel-service", url = "${spring.cloud.discovery.client.simple.instances.portal-service[0].uri}")
 public interface ChannelServiceClient {
     /** Client Methods */
     @GetMapping("/api/v1/channel/{id}")
