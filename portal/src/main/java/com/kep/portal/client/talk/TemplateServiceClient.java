@@ -29,7 +29,7 @@ public interface TemplateServiceClient {
     @GetMapping("/api/v2/template")
     ResponseEntity<? super ApiResult<List<TemplateSearchResponseDto>>> getTemplateList(
             @RequestParam(name = "platform") PlatformType platform,
-            @RequestParam(name = "branchId", required = false) Long branchId,
+            @RequestParam(name = "branch_id", required = false) Long branchId,
             @RequestParam(name = "status", required = false) List<PlatformTemplateStatus> status,
             @RequestParam(name = "template_name", required = false) String templateName,
             @SortDefault.SortDefaults({
