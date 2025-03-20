@@ -14,8 +14,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class NotificationInfoDto {
-    private Long senderId; // 보내는 맴버 PK
-    private Long receiverId; // 받는 맴버 PK
+    private Long senderId; // 알림/상담 보내는 멤버 PK
+    private Long receiverId; // 알림 받는 맴버 PK
+    private Long assigneeId; // 상담 받는 멤버 PK
     private Long delay; // 딜레이 시간
     private Long customerId; // 고객 PK
     private Long guestId; // 고객 PK - customerID가 없으면?

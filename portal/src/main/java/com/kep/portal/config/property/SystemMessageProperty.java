@@ -133,7 +133,6 @@ public class SystemMessageProperty {
             @Data
             @NoArgsConstructor
             public static class TitleMessage {
-
                 private String delayIssueRoom;
                 private String doneMemberAssignment;
                 private String requestMemberTransform;

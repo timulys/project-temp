@@ -287,6 +287,7 @@ public class AssignConsumer implements ChannelAwareMessageListener {
 					// 상담 지원 요청을 한 직원에게 완료 알림
 					notificationService.store(NotificationInfoDto.builder()
 							.receiverId(issueAssign.getIssueSupport().getQuestioner())
+							.assigneeId(issue.getMember().getId())
 //							.customerId(issue.getCustomer() != null ? issue.getCustomer().getId() : null)
 							.guestId(issue.getGuest().getId())
 							.senderId(portalProperty.getSystemMemberId())
@@ -297,6 +298,7 @@ public class AssignConsumer implements ChannelAwareMessageListener {
 						// 담당매니저에게 완료 알림
 						notificationService.store(NotificationInfoDto.builder()
 								.receiverId(issueAssign.getIssueSupport().getAnswerer())
+								.assigneeId(issue.getMember().getId())
 //								.customerId(issue.getCustomer() != null ? issue.getCustomer().getId() : null)
 								.guestId(issue.getGuest().getId())
 								.senderId(portalProperty.getSystemMemberId())
@@ -305,6 +307,7 @@ public class AssignConsumer implements ChannelAwareMessageListener {
 						// 전환받은 직원에게 완료 알림
 						notificationService.store(NotificationInfoDto.builder()
 								.receiverId(issue.getMember().getId())
+								.assigneeId(issue.getMember().getId())
 //								.customerId(issue.getCustomer() != null ? issue.getCustomer().getId() : null)
 								.guestId(issue.getGuest().getId())
 								.senderId(portalProperty.getSystemMemberId())
