@@ -13,29 +13,29 @@ import java.util.List;
 @Data
 public class IssueSummaryCategoryDto {
 
-    @Schema(description = "")
+    @Schema(description = "상담 후처리 카테고리 아이디")
     private Long issueSummaryCategoryId;
-    @Schema(description = "")
+    @Schema(description = "상담 후처리 카테고리명")
     private String name;
-    @Schema(description = "")
+    @Schema(description = "순서")
     private Integer sort;
-    @Schema(description = "")
+    @Schema(description = "뎁스")
     private Integer depth;
-    @Schema(description = "")
+    @Schema(description = "사용여부")
     private Boolean enabled;
 
-    @Schema(description = "")
+    @Schema(description = "부모 후처리 카테고리 아이디")
     private Long parentId;
-    @Schema(description = "")
+    @Schema(description = "자식 노드 리스트")
     private List<IssueSummaryCategoryDto> children;
 
-    @Schema(description = "")
+    @Schema(description = "생성자")
     private Long creator;
-    @Schema(description = "")
+    @Schema(description = "생성일시")
     private ZonedDateTime createdAt;
-    @Schema(description = "")
+    @Schema(description = "수정자")
     private Long modifier;
-    @Schema(description = "")
+    @Schema(description = "수정일시")
     private ZonedDateTime modifiedAt;
 
 

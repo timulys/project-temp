@@ -17,6 +17,7 @@ import com.kep.portal.model.dto.issue.IssueSupportDetailDto;
 import com.kep.portal.model.dto.issue.IssueSupportHistoryResponseDto;
 import com.kep.portal.model.dto.issue.IssueSupportSearchDetailDto;
 import com.kep.portal.model.dto.issue.IssueSupportSearchDto;
+import com.kep.portal.model.dto.issue.summary.IssueSummaryCategoryDto;
 import com.kep.portal.model.dto.member.MemberAssignDto;
 import com.kep.portal.model.dto.notification.NotificationInfoDto;
 import com.kep.portal.model.entity.branch.Branch;
@@ -177,6 +178,9 @@ public class IssueSupportService {
 
 	@Resource
 	private SystemMessageProperty systemMessageProperty;
+
+	@Resource
+	private IssueSummaryCategoryService issueSummaryCategoryService;
 
 	public IssueSupport save(@NotNull @Valid IssueSupport entity) {
 		return issueSupportRepository.save(entity);
@@ -726,8 +730,10 @@ public class IssueSupportService {
 
 		Assert.notNull(issue, "Not Found by IssueId");
 
+		IssueExtra issueExtra = issue.getIssueExtra();
+
 		// 이슈 상세 정보(메모, 요약, 분류 데이터 조회)
-		IssueExtraDto issueExtraDto = issueExtraMapper.map(issue.getIssueExtra());
+		IssueExtraDto issueExtraDto = issueExtraMapper.map(issueExtra);
 		if (!ObjectUtils.isEmpty(issueExtraDto)) {
 			// 요약 정보가 존재할 때
 			if (!ObjectUtils.isEmpty(issueExtraDto.getSummary())) {
@@ -756,6 +762,19 @@ public class IssueSupportService {
 
 		issueSupportHistoryResponseDto.setSupportList(supportDtoList);
 
+		IssueSummaryCategoryDto summaryCategoryDto = null;
+
+		if (issueExtra != null && issueExtra.getIssueSummaryCategory() != null) {
+			try {
+				summaryCategoryDto = issueSummaryCategoryService.getOne(issueExtra.getIssueSummaryCategory().getId());
+			} catch (IllegalArgumentException e) {
+				// 현재 지원요청 히스토리 조회 API 자체에 null일경우 데이터 빼고 내리고 있기 때문에, issueSummaryCategoryService.getOne()에서 예외 발생 시 null 반환 처리를 위해 에러 로그만 찍어둠.
+				// 추후 변경
+				log.error("ISSUE SUMMARY CATEGORY PROCESSING ERROR :: {}", e.getLocalizedMessage(), e);
+			}
+		}
+
+		issueSupportHistoryResponseDto.setIssueSummaryCategories(Arrays.asList(summaryCategoryDto));
 		return issueSupportHistoryResponseDto;
 	}
 
