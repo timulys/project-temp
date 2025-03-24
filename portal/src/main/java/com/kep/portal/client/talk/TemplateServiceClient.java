@@ -30,11 +30,7 @@ public interface TemplateServiceClient {
     ResponseEntity<? super ApiResult<List<TemplateSearchResponseDto>>> getTemplateList(
             @RequestParam(name = "platform") PlatformType platform,
             @RequestParam(name = "branch_id", required = false) Long branchId,
-            @RequestParam(name = "status", required = false) List<PlatformTemplateStatus> status,
-            @RequestParam(name = "template_name", required = false) String templateName,
-            @RequestParam(name = "page") int page,
-            @RequestParam(name = "size") int size,
-            @RequestParam(name = "sort") String sort);
+            @RequestParam(name = "template_name", required = false) String templateName);
 
     @GetMapping("/api/v2/template/{id}")
     ResponseEntity<? super ApiResult<TemplateResponseDto>> getTemplate(@PathVariable("id") Long id);
