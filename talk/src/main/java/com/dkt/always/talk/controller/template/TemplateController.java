@@ -45,26 +45,6 @@ public class TemplateController {
     }
 
     /** Retrieve APIs **/
-//    @Tag(name = "템플릿 조회")
-//    @Operation(summary = "템플릿 조회")
-//    @GetMapping
-//    // TODO : @PreAuthorize, 추후 Security&JWT 인증 로직 추가 예정
-//    public ResponseEntity<? super ApiResult<List<TemplateSearchResponseDto>>> getTemplateList(
-//            @RequestParam(name = "platform") PlatformType platform,
-//            @RequestParam(name = "branch_id", required = false) Long branchId,
-//            @RequestParam(name = "status", required = false) List<PlatformTemplateStatus> status,
-//            @RequestParam(name = "template_name", required = false) String templateName,
-//            @SortDefault.SortDefaults({
-//                    @SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable) {
-//        log.info("Kakao Biz Message Template, Platform Type : %s, Branch ID : %s, Status : %s, Template Name : %s"
-//                .formatted(platform, branchId, status, templateName));
-//        TemplateSearchRequestDto requestDto = TemplateSearchRequestDto.of(platform, branchId, status, templateName);
-//        ResponseEntity<? super ApiResult<List<TemplateSearchResponseDto>>> response =
-//                templateSearchService.getTemplateList(requestDto, pageable);
-//        return response;
-//    }
-
-
     @Tag(name = "템플릿 조회")
     @Operation(summary = "템플릿 조회")
     @GetMapping
@@ -72,29 +52,17 @@ public class TemplateController {
     public ResponseEntity<? super ApiResult<List<TemplateSearchResponseDto>>> getTemplateList(
             @RequestParam(name = "platform") PlatformType platform,
             @RequestParam(name = "branch_id", required = false) Long branchId,
-            @RequestParam(name = "template_name", required = false) String templateName) {
-        log.info("Kakao Biz Message Template, Platform Type : %s, Branch ID : %s, Template Name : %s"
-                .formatted(platform, branchId, templateName));
-        List<PlatformTemplateStatus> status = new ArrayList<>();
-        status.add(PlatformTemplateStatus.request);
-        status.add(PlatformTemplateStatus.approve);
-        status.add(PlatformTemplateStatus.reject);
-        status.add(PlatformTemplateStatus.temp);
+            @RequestParam(name = "status", required = false) List<PlatformTemplateStatus> status,
+            @RequestParam(name = "template_name", required = false) String templateName,
+            @SortDefault.SortDefaults({
+                    @SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable) {
+        log.info("Kakao Biz Message Template, Platform Type : %s, Branch ID : %s, Status : %s, Template Name : %s"
+                .formatted(platform, branchId, status, templateName));
         TemplateSearchRequestDto requestDto = TemplateSearchRequestDto.of(platform, branchId, status, templateName);
-
-        int page = 1; // 페이지 번호 (0부터 시작)
-        int size = 10; // 페이지 크기
-        String sortBy = "created"; // 정렬 기준 필드
-        Sort.Direction direction = Sort.Direction.DESC; // 내림차순 정렬
-
-        // Pageable 객체 생성 (Spring Data JPA)
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(direction, sortBy));
-
         ResponseEntity<? super ApiResult<List<TemplateSearchResponseDto>>> response =
                 templateSearchService.getTemplateList(requestDto, pageable);
         return response;
     }
-
 
     @Tag(name = "템플릿 상세 조회")
     @Operation(summary = "템플릿 상세 조회")

@@ -49,6 +49,8 @@ public class TemplateSearchServiceImpl implements TemplateSearchService {
     @Transactional(readOnly = true)
     @CircuitBreaker(name = "default", fallbackMethod = "portalServiceCallFailed")
     public ResponseEntity<? super ApiResult<List<TemplateSearchResponseDto>>> getTemplateList(TemplateSearchRequestDto requestDto, Pageable pageable) {
+        log.info("Call Get Template List = {}", requestDto);
+        log.info("Call Get Template List, Pageable = {}", pageable);
         Page<PlatformTemplate> searchResult = templateSearchRepository.search(requestDto, pageable);
         List<TemplateSearchResponseDto> result = searchResult.stream()
                 .map(this::makeTemplateSearchResponseDto).collect(Collectors.toList());

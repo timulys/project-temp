@@ -1,21 +1,14 @@
 package com.kep.portal.client.talk;
 
 import com.kep.core.model.dto.ApiResult;
-import com.kep.core.model.dto.platform.PlatformTemplateStatus;
-import com.kep.core.model.dto.platform.PlatformType;
 import com.kep.core.model.dto.platform.kakao.KakaoBizMessageTemplatePayload;
 import com.kep.core.model.dto.platform.kakao.bizTalk.response.BizTalkResponseDto;
 import com.kep.core.model.dto.platform.kakao.bizTalk.response.TemplateResponseDto;
-import com.kep.core.model.dto.platform.kakao.bizTalk.response.TemplateSearchResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.SortDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
 
 /**
  * Talk Template 비즈니즈 우회 API Feign Client(Portal -> Talk)
@@ -24,13 +17,6 @@ import java.util.List;
 public interface TemplateServiceClient {
     @PostMapping("/api/v2/template")
     ResponseEntity<? super BizTalkResponseDto> createTemplate(@RequestBody @Valid KakaoBizMessageTemplatePayload requestDto);
-
-
-    @GetMapping("/api/v2/template")
-    ResponseEntity<? super ApiResult<List<TemplateSearchResponseDto>>> getTemplateList(
-            @RequestParam(name = "platform") PlatformType platform,
-            @RequestParam(name = "branch_id", required = false) Long branchId,
-            @RequestParam(name = "template_name", required = false) String templateName);
 
     @GetMapping("/api/v2/template/{id}")
     ResponseEntity<? super ApiResult<TemplateResponseDto>> getTemplate(@PathVariable("id") Long id);
