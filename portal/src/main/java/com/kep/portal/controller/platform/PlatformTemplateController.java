@@ -79,6 +79,7 @@ public class PlatformTemplateController {
 				.status(Collections.singletonList(PlatformTemplateStatus.approve))
 				.name(templateName)
 				.build();
+		log.info("Platform Template Approve List = {}", platformTemplateCondition);
 
 		Page<PlatformTemplateResponseDto> page = platformTemplateService.search(platformTemplateCondition, pageable);
 
@@ -131,6 +132,7 @@ public class PlatformTemplateController {
 				.status(status)
 				.name(templateName)
 				.build();
+		log.info("Platform Template Manager List = {}", platformTemplateCondition);
 
 		Page<PlatformTemplateResponseDto> page = platformTemplateService.search(platformTemplateCondition, pageable);
 
