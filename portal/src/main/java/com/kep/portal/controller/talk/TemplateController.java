@@ -64,6 +64,7 @@ public class TemplateController {
     public ResponseEntity<? super ApiResult<TemplateResponseDto>> getTemplate(@PathVariable("id") Long id) {
         log.info("Kakao Biz Message Template, Template ID : {}", id);
         ResponseEntity<? super ApiResult<TemplateResponseDto>> response = templateServiceClient.getTemplate(id);
+        log.info("Kakao Biz Message Template, Api Result Response : {}", response);
         return response;
     }
 
