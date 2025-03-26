@@ -193,6 +193,14 @@ public class NotificationService {
                 titleTemplate = titleTemplate.replace("${요청 상담직원}", memberDto.getNickname());
             }
         }
+        if (titleTemplate.contains("${받는 상담직원}")) {
+            if (info.getSenderId() != null) {
+                MemberDto memberDto = memberService.get(info.getAssigneeId());
+
+                titleTemplate = titleTemplate.replace("${받는 상담직원}", memberDto.getNickname());
+            }
+        }
+
         if (titleTemplate.contains("${m}")) {
             if (info.getDelay() != null) {
                 titleTemplate = titleTemplate.replace("${m}", info.getDelay().toString());

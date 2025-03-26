@@ -16,12 +16,14 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.SortDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -49,11 +51,13 @@ public class TemplateController {
     // TODO : @PreAuthorize, 추후 Security&JWT 인증 로직 추가 예정
     public ResponseEntity<? super ApiResult<List<TemplateSearchResponseDto>>> getTemplateList(
             @RequestParam(name = "platform") PlatformType platform,
-            @RequestParam(name = "branchId", required = false) Long branchId,
+            @RequestParam(name = "branch_id", required = false) Long branchId,
             @RequestParam(name = "status", required = false) List<PlatformTemplateStatus> status,
             @RequestParam(name = "template_name", required = false) String templateName,
             @SortDefault.SortDefaults({
                     @SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable) {
+        log.info("Kakao Biz Message Template, Platform Type : %s, Branch ID : %s, Status : %s, Template Name : %s"
+                .formatted(platform, branchId, status, templateName));
         TemplateSearchRequestDto requestDto = TemplateSearchRequestDto.of(platform, branchId, status, templateName);
         ResponseEntity<? super ApiResult<List<TemplateSearchResponseDto>>> response =
                 templateSearchService.getTemplateList(requestDto, pageable);

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class MessageSourceUtil {
+public final class MessageSourceUtil {
     private final MessageSource messageSource;
 
     public String getMessage(String messageCode) {

@@ -59,6 +59,9 @@ application:
     close-path: /close
     relay-path: /relay
     redis-mode: ${REDIS_MODE:standalone}
+  talk:
+    api-version: 2
+    api-base-path: /api/v${application.talk.api-version}
   socket:
     endpoint: /${spring.application.name}-ws
     general-path: /topic/general

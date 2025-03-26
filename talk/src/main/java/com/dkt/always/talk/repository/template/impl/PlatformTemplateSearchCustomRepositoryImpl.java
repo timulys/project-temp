@@ -39,7 +39,7 @@ public class PlatformTemplateSearchCustomRepositoryImpl implements PlatformTempl
                 .from(qPlatformTemplate)
                 .where(getSearchCondition(requestDto))
                 .fetchFirst();
-
+        log.info("Total Elements = {}", totalElements);
         List<PlatformTemplate> platformTemplateList = Collections.emptyList();
 
         if (totalElements > 0) {
@@ -51,7 +51,7 @@ public class PlatformTemplateSearchCustomRepositoryImpl implements PlatformTempl
                     .limit(pageable.getPageSize())
                     .fetch();
         }
-
+        log.info("Platform Template List = {}", platformTemplateList);
         return new PageImpl<>(platformTemplateList, pageable, totalElements);
     }
 

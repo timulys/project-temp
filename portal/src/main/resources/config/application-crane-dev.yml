@@ -26,6 +26,9 @@ spring:
             legacy-service:
               - uri: http://localhost:8080/legacy
               - uri: http://localhost:8080/legacy
+            talk-service:
+              - uri: http://localhost:8080/talk
+              - uri: http://127.0.0.1:8080/talk
 
   #mq, redis -> lookup dev third party server
   rabbitmq:

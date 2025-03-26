@@ -1,25 +1,18 @@
 package com.kep.portal.controller.talk;
 
 import com.kep.core.model.dto.ApiResult;
-import com.kep.core.model.dto.platform.PlatformTemplateStatus;
-import com.kep.core.model.dto.platform.PlatformType;
 import com.kep.core.model.dto.platform.kakao.KakaoBizMessageTemplatePayload;
 import com.kep.core.model.dto.platform.kakao.bizTalk.response.BizTalkResponseDto;
 import com.kep.core.model.dto.platform.kakao.bizTalk.response.TemplateResponseDto;
-import com.kep.core.model.dto.platform.kakao.bizTalk.response.TemplateSearchResponseDto;
 import com.kep.portal.client.talk.TemplateServiceClient;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.SortDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
 
 /**
  * Biz Talk Module 우회 컨트롤러
@@ -46,21 +39,24 @@ public class TemplateController {
 
 
     /** Retrieve APIs **/
-    @Tag(name = "템플릿 조회")
-    @Operation(summary = "템플릿 조회(임시 우회용)")
-    @GetMapping
-    public ResponseEntity<? super ApiResult<List<TemplateSearchResponseDto>>> getTemplateList(
-            @RequestParam(name = "platform") PlatformType platform,
-            @RequestParam(name = "branchId", required = false) Long branchId,
-            @RequestParam(name = "status", required = false) List<PlatformTemplateStatus> status,
-            @RequestParam(name = "template_name", required = false) String templateName,
-            @SortDefault.SortDefaults({
-                    @SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable) {
-        log.info("Kakao Biz Message Template, Template List : {}", branchId);
-        ResponseEntity<? super ApiResult<List<TemplateSearchResponseDto>>> response =
-                templateServiceClient.getTemplateList(platform, branchId, status, templateName, pageable);
-        return response;
-    }
+//    @Tag(name = "템플릿 조회")
+//    @Operation(summary = "템플릿 조회(임시 우회용)")
+//    @GetMapping
+//    public ResponseEntity<? super ApiResult<List<TemplateSearchResponseDto>>> getTemplateList(
+//            @RequestParam(name = "platform") PlatformType platform,
+//            @RequestParam(name = "branch_id", required = false) Long branchId,
+//            @RequestParam(name = "status", required = false) List<PlatformTemplateStatus> status,
+//            @RequestParam(name = "template_name", required = false) String templateName) {
+//        log.info("Kakao Biz Message Template, Template List, platform : {}", platform);
+//        log.info("Kakao Biz Message Template, Template List, branch_id : {}", branchId);
+//        log.info("Kakao Biz Message Template, Template List, status : {}", status);
+//        log.info("Kakao Biz Message Template, Template List, template_name : {}", templateName);
+//        ResponseEntity<? super ApiResult<List<TemplateSearchResponseDto>>> response =
+//                templateServiceClient.getTemplateList(platform, branchId, templateName);
+//
+//        log.info("Template Search Response : {}", response);
+//        return response;
+//    }
 
     @Tag(name = "템플릿 상세 조회")
     @Operation(summary = "템플릿 상세 조회(임시 우회용)")
