@@ -2,6 +2,7 @@ package com.kep.portal.model.dto.issue;
 
 import com.kep.core.model.dto.issue.IssueMemoDto;
 import com.kep.core.model.dto.issue.IssueSupportHistoryDto;
+import com.kep.portal.model.dto.issue.summary.IssueSummaryCategoryDto;
 import com.kep.portal.model.dto.subject.IssueCategoryChildrenDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -44,6 +45,9 @@ public class IssueSupportHistoryResponseDto {
 
     @Schema(description = "상담 요약 카테고리 정보")
     private List<IssueCategoryChildrenDto> categoryInfo;
+
+    @Schema(description = "상담 요약(후처리) 카테고리 트리")
+    private List<IssueSummaryCategoryDto> issueSummaryCategories;
 
     @Schema(description = "상담 지원 이력")
     private List<IssueSupportHistoryDto> supportList;

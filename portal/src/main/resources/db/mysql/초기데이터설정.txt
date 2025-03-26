@@ -238,3 +238,6 @@ VALUES
 
 
 
+INSERT INTO `always`.branch_office_hours
+(id, created, creator, day_of_week, end_counsel_time, modified, modifier, start_counsel_time, branch_id)
+VALUES(1, '2024-07-10 08:53:07', 1, 'MON,TUE,WED,THUR', '23:0', '2024-11-28 15:52:34.788000', 1, '00:0', 1);
