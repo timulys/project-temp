@@ -202,6 +202,7 @@ public class IssueExtraController {
 		return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}
 
+
 	@Tag(name = "이슈 상세정보 API")
 	@Operation(summary = "상담 요약 처리 생성 및 수정 [상담종료 버튼 액션] (신규)", description = "상담 포탈 > 상담창 > 상담 요약 처리 생성 및 수정(상담종료 버튼)")
 	@PostMapping("/summary")
