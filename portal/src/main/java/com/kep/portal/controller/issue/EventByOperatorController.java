@@ -5,11 +5,14 @@ import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.issue.IssueCloseType;
 import com.kep.core.model.dto.issue.IssueDto;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
+import com.kep.portal.model.dto.issue.response.PostCustomerSyncResponseDto;
 import com.kep.portal.service.issue.event.EventByOperatorService;
+import com.kep.portal.service.issue.event.OperatorEventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.persistence.Table;
 import java.util.Map;
 
 /**
@@ -32,13 +36,14 @@ import java.util.Map;
  * </ul>
  */
 @Tag(name = "이벤트 API [오퍼레이터]", description = "/api/v1/issue/event-by-operator")
+@Slf4j
 @RestController
 @RequestMapping(("/api/v1/issue/{issueId}/event-by-operator"))
-@Slf4j
+@RequiredArgsConstructor
 public class EventByOperatorController {
-
     @Resource
     private EventByOperatorService eventByOperatorService;
+    private final OperatorEventService operatorEventService;
 
     /**
      * 메세지
@@ -136,5 +141,15 @@ public class EventByOperatorController {
                 .code(ApiResultCode.succeed)
                 .payload(issueDto)
                 .build(), HttpStatus.CREATED);
-        }
+    }
+
+    /** V2 Apis **/
+    @Tag(name = "이벤트 API [오퍼레이터]")
+    @Operation(summary = "고객 인증 요청 메시지 송신")
+    @PostMapping("/sync")
+    public ResponseEntity<? super PostCustomerSyncResponseDto> customerSync(@PathVariable("issueId") Long issueId) {
+        log.info("Request Customer Kakao Sync, Issue ID : {}", issueId);
+        ResponseEntity<? super PostCustomerSyncResponseDto> response = operatorEventService.customerSyncRequest(issueId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }

@@ -8,11 +8,13 @@ import com.kep.core.model.dto.issue.payload.IssuePayload;
 import com.kep.core.model.dto.notification.*;
 import com.kep.core.model.dto.system.SystemEnvEnum;
 import com.kep.portal.client.PlatformClient;
+import com.kep.portal.config.property.CoreProperty;
 import com.kep.portal.config.property.PortalProperty;
 import com.kep.portal.config.property.SocketProperty;
 import com.kep.portal.config.property.SystemMessageProperty;
 import com.kep.portal.model.dto.notification.NotificationInfoDto;
 import com.kep.portal.model.entity.channel.ChannelEndAuto;
+import com.kep.portal.model.entity.env.CounselInflowEnv;
 import com.kep.portal.model.entity.issue.*;
 import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.model.type.IssueStorageType;
@@ -47,13 +49,15 @@ import static com.kep.portal.model.entity.issue.QIssue.issue;
 /**
  * 시스템 이벤트, 로직 도중 호출되므로 Exception 던지지 말 것
  */
+@Slf4j
 @Service
 @Transactional
-@Slf4j
 public class EventBySystemService {
 
 	@Resource
 	private ChannelEnvService channelEnvService;
+	@Resource
+	private CoreProperty coreProperty;
 	@Resource
 	private SocketProperty socketProperty;
 	@Resource
@@ -317,6 +321,37 @@ public class EventBySystemService {
 			log.error(e.getLocalizedMessage(), e);
 		}
 	}
+
+	/**
+	 * 고객 인증 요청 안내 메시지, Called By Operator
+	 */
+	public void sendSync(Issue issue, CounselInflowEnv counselInflowEnv) {
+        try {
+			log.info("Send Customer Kakao-Sync, Issue ID : {}", issue.getId());
+
+			// FIXME : 간이로 인증을 요청하는 버튼 메시지 템플릿 생성
+			// TODO : 추후 channel_env로 DB화 진행
+			String template = "{\n" +
+					"  \"version\" : \"0.1\",\n" +
+					"  \"chapters\" : [ {\n" +
+					"    \"sections\" : [ {\n" +
+					"      \"type\" : \"text\",\n" +
+					"      \"data\" : \"인증이 필요한 서비스입니다. 아래 버튼을 눌러 인증해주세요.\"\n" +
+					"    } ]\n" +
+					"  } ]\n" +
+					"}";
+
+			IssuePayload issuePayload = objectMapper.readValue(template, IssuePayload.class);
+
+			String url = coreProperty.getAuthorizedUri()
+					+ "?state=path_" + counselInflowEnv.getParams()
+					+ "__mid_" + issue.getMember().getId()
+					+ "__issue_" + issue.getId();
+            this.getLinkBtnAddPayload(issuePayload, "고객 인증", url);
+        } catch (Exception e) {
+			log.error(e.getLocalizedMessage(), e);
+        }
+    }
 
 	/**
 	 * 상담종료 안내 메세지, Called by Operator

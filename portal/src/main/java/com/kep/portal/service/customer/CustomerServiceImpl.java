@@ -551,16 +551,19 @@ public class CustomerServiceImpl implements CustomerService {
 	 */
 	@Override
 	public ResponseEntity<? super PostCustomerResponseDto> createCustomer(PostCustomerRequestDto requestDto) {
-		// 고객 등록 시 선택된 그룹 ID로 고객 그룹 조회
-		boolean existedCustomerGroup = customerGroupRepository.existsById(requestDto.getCustomerGroupId());
-		if (!existedCustomerGroup) return ResponseDto.notExistedCustomerGroup(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER_GROUP));
-
-		CustomerGroup customerGroup = customerGroupRepository.findById(requestDto.getCustomerGroupId()).get();
-
+		// 신규 고객 정보 저장
 		Customer customer = customerRepository.save(Customer.builder()
 				.name(requestDto.getName())
-				.customerGroup(customerGroup)
 				.build());
+
+		// 신규 고객 등록 시 선택된 그룹 ID가 있다면 고객에 그룹 적용
+		if (requestDto.getCustomerGroupId() != null) {
+			boolean existedCustomerGroup = customerGroupRepository.existsById(requestDto.getCustomerGroupId());
+			if (!existedCustomerGroup) return ResponseDto.notExistedCustomerGroup(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER_GROUP));
+
+			CustomerGroup customerGroup = customerGroupRepository.findById(requestDto.getCustomerGroupId()).get();
+			customer.setCustomerGroup(customerGroup);
+		}
 
 		// 고객 Contact 데이터 추가
 		List<CustomerContact> contactList = Optional.ofNullable(requestDto.getContacts())
