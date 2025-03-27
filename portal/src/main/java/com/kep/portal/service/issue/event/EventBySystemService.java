@@ -325,7 +325,7 @@ public class EventBySystemService {
 	/**
 	 * 고객 인증 요청 안내 메시지, Called By Operator
 	 */
-	public IssueLog sendSync(Issue issue, CounselInflowEnv counselInflowEnv) {
+	public void sendSync(Issue issue, CounselInflowEnv counselInflowEnv) {
 		String payload = "";
         try {
 			log.info("Send Customer Kakao-Sync, Issue ID : {}", issue.getId());
@@ -348,11 +348,14 @@ public class EventBySystemService {
 					+ "?state=path_" + counselInflowEnv.getParams()
 					+ "__mid_" + issue.getMember().getId()
 					+ "__issue_" + issue.getId();
+			log.info("Send Customer Kakao-Sync, Sync URL : {}", url);
+
 			payload = this.getLinkBtnAddPayload(issuePayload, "고객 인증", url);
+			IssueLog issueLog = saveSystemMessage(issue, payload);
+			sendToPlatformAndSocket(issue, issueLog);
 		} catch (Exception e) {
 			log.error(e.getLocalizedMessage(), e);
         }
-		return saveSystemMessage(issue, payload);
     }
 
 	/**
