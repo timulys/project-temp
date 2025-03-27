@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @Transactional
@@ -35,9 +37,11 @@ public class OperatorEventServiceImpl implements OperatorEventService {
         if (issue.getCustomerId() != null) return PostCustomerSyncResponseDto.existedSync(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER));
 
         // 가장 최초에 선언된 channel inflow를 선택(기본)
-        CounselInflowEnv counselInflowEnv = counselInflowEnvRepository.findAll().get(0);
-
-        eventBySystemService.sendSync(issue, counselInflowEnv);
+        List<CounselInflowEnv> counselInflowEnvList = counselInflowEnvRepository.findAll();
+        if (counselInflowEnvList.size() < 1) {
+            return ResponseDto.databaseErrorMessage(messageUtil.getMessage(MessageCode.NOT_EXISTED_DATA));
+        }
+        eventBySystemService.sendSync(issue, counselInflowEnvList.get(0));
         return PostCustomerSyncResponseDto.success(messageUtil.success());
     }
 }

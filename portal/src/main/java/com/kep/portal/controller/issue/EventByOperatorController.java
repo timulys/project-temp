@@ -5,12 +5,16 @@ import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.issue.IssueCloseType;
 import com.kep.core.model.dto.issue.IssueDto;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
+import com.kep.portal.model.dto.customerGroup.response.PutCustomerGroupResponseDto;
 import com.kep.portal.model.dto.issue.response.PostCustomerSyncResponseDto;
 import com.kep.portal.service.issue.event.EventByOperatorService;
 import com.kep.portal.service.issue.event.OperatorEventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -146,6 +150,8 @@ public class EventByOperatorController {
     /** V2 Apis **/
     @Tag(name = "이벤트 API [오퍼레이터]")
     @Operation(summary = "고객 인증 요청 메시지 송신")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = PostCustomerSyncResponseDto.class)))
     @PostMapping("/sync")
     public ResponseEntity<? super PostCustomerSyncResponseDto> customerSync(@PathVariable("issueId") Long issueId) {
         log.info("Request Customer Kakao Sync, Issue ID : {}", issueId);

@@ -16,6 +16,9 @@ import com.mysema.commons.lang.Assert;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -175,6 +178,8 @@ public class CustomerController {
      */
     @Tag(name = "고객 API")
     @Operation(summary = "(시연용) 고객 정보 저장")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = PostCustomerResponseDto.class)))
     @PostMapping
     public ResponseEntity<? super PostCustomerResponseDto> postCustomer(@RequestBody @Valid PostCustomerRequestDto requestBody) {
         log.info("Customer Create, Body: {}", requestBody);
@@ -191,6 +196,8 @@ public class CustomerController {
      */
     @Tag(name = "고객 API")
     @Operation(summary = "고객 목록 조회(V2)", description = "고객 목록 조회(V2)")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = GetCustomerListResponseDto.class)))
     @GetMapping("/all/{memberId}")
     public ResponseEntity<? super GetCustomerListResponseDto> getAllCustomer(@PathVariable("memberId") Long memberId) {
         log.info("Get Customer All List, Member ID : {}", memberId);
@@ -205,6 +212,8 @@ public class CustomerController {
      */
     @Tag(name = "고객 API")
     @Operation(summary = "고객 정보 단건 조회(V2)", description = "고객 정보 단건 조회(V2)")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = GetCustomerResponseDto.class)))
     @GetMapping("/{customerId}")
     public ResponseEntity<? super GetCustomerResponseDto> getCustomer(@PathVariable("customerId") Long customerId) {
         log.info("Customer Get One, Customer ID : {}", customerId);
@@ -219,6 +228,8 @@ public class CustomerController {
      */
     @Tag(name = "고객 API")
     @Operation(summary = "즐겨찾기 고객 조회(V2)", description = "즐겨찾기 고객 조회(V2)")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = GetFavoriteCustomerListResponseDto.class)))
     @GetMapping("/favorite/{memberId}")
     public ResponseEntity<? super GetFavoriteCustomerListResponseDto> getFavoriteCustomer(@PathVariable("memberId") Long memberId) {
         log.info("Get Favorite Customer List, Member ID : {}", memberId);
@@ -233,6 +244,8 @@ public class CustomerController {
      */
     @Tag(name = "고객 API")
     @Operation(summary = "기념일 고객 목록 조회(V2)", description = "기념일 고객 목록 조회(V2)")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = GetAnniversariesCustomerListResponseDto.class)))
     @GetMapping("/anniversaries/{memberId}")
     public ResponseEntity<? super GetAnniversariesCustomerListResponseDto> getAllAnniversariesCustomer(@PathVariable("memberId") Long memberId) {
         log.info("Get Anniversary Customer List, Member ID : {}", memberId);
@@ -248,6 +261,8 @@ public class CustomerController {
      */
     @Tag(name = "고객 API")
     @Operation(summary = "고객 정보 수정")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = PatchCustomerResponseDto.class)))
     @PatchMapping
     public ResponseEntity<? super PatchCustomerResponseDto> patchCustomer(@RequestBody @Valid PatchCustomerRequestDto requestBody) {
         log.info("Customer Update, Body : {}", requestBody);
@@ -262,6 +277,8 @@ public class CustomerController {
      */
     @Tag(name = "고객 API")
     @Operation(summary = "고객 즐겨찾기 수정(V2)", description = "고객 즐겨찾기 수정(V2)")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = PatchFavoriteCustomerResponseDto.class)))
     @PatchMapping("/v2/favorite")
     public ResponseEntity<? super PatchFavoriteCustomerResponseDto> patchFavoriteCustomer(@RequestBody @Valid PatchFavoriteCustomerRequestDto requestBody) {
         log.info("Register Favorite Customer, Body : {}", requestBody);
@@ -277,7 +294,9 @@ public class CustomerController {
      * @return
      */
     @Tag(name = "고객 API")
-    @Operation(summary = "고객 정보 삭제")
+    @Operation(summary = "고객 정보 삭제(V2)", description = "고객 정보 삭제(V2)")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = DeleteCustomerResponseDto.class)))
     @DeleteMapping("/{customerId}")
     public ResponseEntity<? super DeleteCustomerResponseDto> deleteCustomer(@PathVariable Long customerId) {
         log.info("Customer Delete, Customer ID : {}", customerId);
