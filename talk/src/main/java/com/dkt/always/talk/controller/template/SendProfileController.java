@@ -3,6 +3,9 @@ package com.dkt.always.talk.controller.template;
 import com.dkt.always.talk.service.template.SendProfileExternalService;
 import com.kep.core.model.dto.platform.kakao.bizTalk.response.BizTalkResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,8 @@ public class SendProfileController {
 
     @Tag(name = "프로필 키 조회")
     @Operation(summary = "프로필 키 조회")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = BizTalkResponseDto.class)))
     @GetMapping("/{sendProfileKey}")
     public ResponseEntity<? super BizTalkResponseDto> getSendProfileKey(
             @NotNull @PathVariable(value = "sendProfileKey") String sendProfileKey) {

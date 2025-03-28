@@ -4,6 +4,9 @@ import com.dkt.always.talk.service.alimTalk.AlimTalkExternalService;
 import com.kep.core.model.dto.platform.kakao.KakaoAlertSendEvent;
 import com.kep.core.model.dto.platform.kakao.bizTalk.response.TalkSendResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +29,8 @@ public class AlimTalkController {
 
     @Tag(name = "알림톡 발송 API")
     @Operation(summary = "알림톡 발송", description = "알림톡 발송")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = TalkSendResponseDto.class)))
     @PostMapping("/send")
     public ResponseEntity<List<? super TalkSendResponseDto>> send(@RequestBody @Valid KakaoAlertSendEvent requestDto) throws Exception {
         ResponseEntity<List<? super TalkSendResponseDto>> response = alimTalkExternalService.sendAlimTalk(requestDto);

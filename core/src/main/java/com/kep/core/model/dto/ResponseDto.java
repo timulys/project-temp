@@ -2,7 +2,7 @@ package com.kep.core.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.kep.core.model.dto.common.ResponseCode;
-import com.kep.core.model.dto.common.ResponseMessage;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,10 +17,12 @@ public class ResponseDto {
     /**
      * 결과 코드
      */
+    @Schema(description = "응답 코드")
     private String responseCode;
     /**
      * 결과 메시지
      */
+    @Schema(description = "응답 메시지")
     private String message;
 
     /**

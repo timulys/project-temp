@@ -15,10 +15,13 @@ import com.kep.core.model.dto.env.CounselEnvDto;
 import com.kep.core.model.dto.system.SystemEnvEnum;
 import com.kep.core.model.dto.upload.UploadDto;
 import com.kep.core.model.dto.upload.UploadHistoryDto;
+import com.kep.portal.model.dto.issue.response.PostCustomerSyncResponseDto;
 import com.kep.portal.model.entity.channel.ChannelEnv;
 import com.kep.portal.service.env.CounselEnvService;
 import com.kep.portal.service.upload.UploadHistoryService;
 import com.kep.portal.service.upload.UploadService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -54,9 +57,10 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 상담원 이벤트
  */
+@Slf4j
 @Service
 @Transactional
-@Slf4j
+@RequiredArgsConstructor
 public class EventByOperatorService {
 
     @Resource
@@ -338,5 +342,4 @@ public class EventByOperatorService {
 
         return originalURL;
     }
-
 }

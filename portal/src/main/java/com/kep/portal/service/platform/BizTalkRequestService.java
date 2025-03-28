@@ -168,11 +168,11 @@ public class BizTalkRequestService {
     }
 
     public String store(BizTalkRequestDto dto) throws JsonProcessingException {
-
+        log.info("Biz Talk Request Alim Talk Store");
         String resultMessage = null;
 
         Assert.isNull(dto.getId(), "Already Request");
-
+        log.info("Biz Talk Request DTO : {}", dto);
         //친구톡일 때 발송 가능 시간 검증 volka
         if (dto.getPlatform() == PlatformType.kakao_friend_talk) validFriendTalkTime(dto.getReserveDate());
 
@@ -186,7 +186,7 @@ public class BizTalkRequestService {
                 .customers(dto.getToCustomers())
                 .creator(securityUtils.getMemberId())
                 .modifier(securityUtils.getMemberId());
-
+        log.info("Biz Talk Request Builder : {}", bizTalkRequestBuilder);
         if (!ObjectUtils.isEmpty(dto.getReserveDate())) {
             ZonedDateTime reserveDate = WorkDateTimeUtils.stringToDateTime(dto.getReserveDate());
             bizTalkRequestBuilder.reserved(reserveDate);
@@ -201,7 +201,7 @@ public class BizTalkRequestService {
         }
 
         BizTalkRequest bizTalkRequest = bizTalkRequestBuilder.build();
-
+        log.info("Biz Talk Requeest : {}", bizTalkRequest);
         BizTalkRequest save = bizTalkRequestRepository.save(bizTalkRequest);
 
         CounselEnvDto counselEnv = counselEnvService.get(save.getBranchId());
