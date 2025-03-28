@@ -17,7 +17,7 @@ public class ResponseDto {
     /**
      * 결과 코드
      */
-    @Schema(description = "응답 코드")
+    @Schema(description = "응답 코드", defaultValue = "SUC")
     private String responseCode;
     /**
      * 결과 메시지

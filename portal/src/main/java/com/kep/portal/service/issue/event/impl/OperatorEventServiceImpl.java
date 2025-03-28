@@ -29,6 +29,12 @@ public class OperatorEventServiceImpl implements OperatorEventService {
     private final EventBySystemService eventBySystemService;
     private final CounselInflowEnvRepository counselInflowEnvRepository;
 
+    /**
+     * 고객 인증 요청(Kakao-Sync)
+     * @param issueId
+     * @return
+     */
+    @Override
     public ResponseEntity<? super PostCustomerSyncResponseDto> customerSyncRequest(Long issueId) {
         boolean existedByIssueId = issueRepository.existsById(issueId);
         if (!existedByIssueId) return ResponseDto.databaseErrorMessage(messageUtil.getMessage(MessageCode.NOT_EXISTED_DATA));

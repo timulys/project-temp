@@ -544,8 +544,7 @@ public class CustomerServiceImpl implements CustomerService {
 	}
 
 
-	/** V2 Service Methods **/
-
+	/** V2 Methods **/
 	/**
 	 * 고객 정보 저장
 	 */
@@ -685,11 +684,17 @@ public class CustomerServiceImpl implements CustomerService {
 		return GetFavoriteCustomerListResponseDto.success(favoriteCustomerDtoList, messageUtil.success());
 	}
 
+	/**
+	 * 기념일 7일 기준 고객 전체 조회
+	 * @param memberId
+	 * @return
+	 */
 	@Override
 	public ResponseEntity<? super GetAnniversariesCustomerListResponseDto> findAllAnniversariesCustomerList(Long memberId) {
+		// Validation Logic
 		boolean existedByMemberId = memberRepository.existsById(memberId);
 		if (!existedByMemberId) return ResponseDto.notExistedMember(messageUtil.getMessage(MessageCode.NOT_EXISTED_MEMBER));
-
+		// Biz Logic
 		LocalDate today = LocalDate.now();
 		LocalDate startDate = today.minusDays(7);
 		LocalDate endDate = today.plusDays(7);
