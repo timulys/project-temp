@@ -625,7 +625,14 @@ public class CustomerServiceImpl implements CustomerService {
 		if (!existedByMemberId) return ResponseDto.notExistedMember(messageUtil.getMessage(MessageCode.NOT_EXISTED_MEMBER));
 
 		List<CustomerDto> customerDtoList = customerMemberRepository.findAllByMemberId(memberId)
-				.stream().map(customerMember -> customerMapper.map(customerMember.getCustomer())).collect(Collectors.toList());
+				.stream().map(customerMember -> {
+					CustomerDto dto = customerMapper.map(customerMember.getCustomer());
+					if (customerMember.getCustomer().getCustomerGroup() != null) {
+						dto.setCustomerGroupId(customerMember.getCustomer().getCustomerGroup().getId());
+					}
+					return dto;
+				})
+				.collect(Collectors.toList());
 
 		return GetCustomerListResponseDto.success(customerDtoList, messageUtil.success());
 	}

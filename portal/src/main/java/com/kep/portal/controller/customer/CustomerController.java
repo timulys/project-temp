@@ -279,7 +279,7 @@ public class CustomerController {
     @Operation(summary = "고객 즐겨찾기 수정(V2)", description = "고객 즐겨찾기 수정(V2)")
     @ApiResponse(responseCode = "200", description = "성공",
             content = @Content(schema = @Schema(implementation = PatchFavoriteCustomerResponseDto.class)))
-    @PatchMapping("/v2/favorite")
+    @PatchMapping("/favorite")
     public ResponseEntity<? super PatchFavoriteCustomerResponseDto> patchFavoriteCustomer(@RequestBody @Valid PatchFavoriteCustomerRequestDto requestBody) {
         log.info("Register Favorite Customer, Body : {}", requestBody);
         ResponseEntity<? super PatchFavoriteCustomerResponseDto> response = customerService.patchFavoriteCustomer(requestBody);
