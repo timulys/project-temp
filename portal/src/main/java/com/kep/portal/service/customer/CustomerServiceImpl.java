@@ -702,7 +702,7 @@ public class CustomerServiceImpl implements CustomerService {
 		boolean existedByCustomerId = customerRepository.existsById(requestDto.getId());
 		if (!existedByCustomerId) return ResponseDto.notExistedCustomer(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER));
 
-		Customer customer = customerRepository.findById(requestDto.getId()).get();
+		Customer customer = customerMapper.map(requestDto);
 
 		// 고객 관리 그룹이 추가/변경 되었을 경우에만 데이터 변경
 		if (customer.getCustomerGroup() == null || !customer.getCustomerGroup().getId().equals(requestDto.getCustomerGroupId())) {
