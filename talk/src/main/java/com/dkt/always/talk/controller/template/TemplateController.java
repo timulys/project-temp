@@ -11,6 +11,9 @@ import com.kep.core.model.dto.platform.kakao.bizTalk.response.BizTalkResponseDto
 import com.kep.core.model.dto.platform.kakao.bizTalk.response.TemplateResponseDto;
 import com.kep.core.model.dto.platform.kakao.bizTalk.response.TemplateSearchResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -38,6 +41,8 @@ public class TemplateController {
     /** Create APIs **/
     @Tag(name = "템플릿 등록")
     @Operation(summary = "템플릿 등록")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = BizTalkResponseDto.class)))
     @PostMapping
     public ResponseEntity<? super BizTalkResponseDto> createTemplate(@RequestBody @Valid KakaoBizMessageTemplatePayload requestDto) {
         ResponseEntity<? super BizTalkResponseDto> response = templateExternalService.createTemplate(requestDto);
@@ -74,6 +79,8 @@ public class TemplateController {
 
     @Tag(name = "템플릿 카테고리 전체 조회")
     @Operation(summary = "템플릿 카테고리 전체 조회")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = BizTalkResponseDto.class)))
     @GetMapping("/category/all")
     public ResponseEntity<? super BizTalkResponseDto> getCategory() {
         ResponseEntity<? super BizTalkResponseDto> response = templateExternalService.getCategoryList();
@@ -91,6 +98,8 @@ public class TemplateController {
     /** Update APIs **/
     @Tag(name = "템플릿 수정")
     @Operation(summary = "템플릿 수정")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = BizTalkResponseDto.class)))
     @PutMapping
     public ResponseEntity<? super BizTalkResponseDto> updateTemplate(@RequestBody @Valid KakaoBizMessageTemplatePayload requestDto) {
         ResponseEntity<? super BizTalkResponseDto> response = templateExternalService.updateTemplate(requestDto);
@@ -100,6 +109,8 @@ public class TemplateController {
     /** Delete APIs **/
     @Tag(name = "템플릿 검수요청 취소")
     @Operation(summary = "템플릿 검수요청 취소")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = BizTalkResponseDto.class)))
     @PutMapping("/cancel/request")
     public ResponseEntity<? super BizTalkResponseDto> cancelTemplate(@RequestParam(name = "profileKey") String profileKey,
                                                                @RequestParam(name = "templateCode") String templateCode) {

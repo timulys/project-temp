@@ -13,7 +13,8 @@ import java.util.List;
 @Validated
 @Data
 public class CoreProperty {
-
+	@NotEmpty
+	private String authorizedUri;
 	@NotEmpty
 	private String platformServiceUri;
 	@NotEmpty

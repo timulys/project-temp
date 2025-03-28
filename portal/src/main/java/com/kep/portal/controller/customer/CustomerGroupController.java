@@ -1,5 +1,6 @@
 package com.kep.portal.controller.customer;
 
+import com.kep.portal.model.dto.customer.response.PatchFavoriteCustomerResponseDto;
 import com.kep.portal.model.dto.customerGroup.request.PutCustomerGroupRequestDto;
 import com.kep.portal.model.dto.customerGroup.response.DeleteCustomerGroupResponseDto;
 import com.kep.portal.model.dto.customerGroup.response.GetCustomerGroupListResponseDto;
@@ -8,6 +9,9 @@ import com.kep.portal.model.dto.customerGroup.response.PostCustomerGroupResponse
 import com.kep.portal.model.dto.customerGroup.response.PutCustomerGroupResponseDto;
 import com.kep.portal.service.customer.CustomerGroupService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +31,8 @@ public class CustomerGroupController {
     /** Create APIs **/
     @Tag(name = "고객 그룹 API")
     @Operation(summary = "고객 그룹 등록", description = "고객 관리 그룹 등록")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = PostCustomerGroupResponseDto.class)))
     @PostMapping
     public ResponseEntity<? super PostCustomerGroupResponseDto> createCustomerGroup(
             @RequestBody @Valid PostCustomerGroupRequestDto requestBody) {
@@ -38,6 +44,8 @@ public class CustomerGroupController {
     /** Retrieve APIs **/
     @Tag(name = "고객 그룹 API")
     @Operation(summary = "고객 그룹 목록 전체 조회", description = "고객 관리 그룹 목록 전체 조회")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = GetCustomerGroupListResponseDto.class)))
     @GetMapping("/{memberId}")
     public ResponseEntity<? super GetCustomerGroupListResponseDto> getCustomerGroupList(
             @PathVariable("memberId") Long memberId) {
@@ -49,6 +57,8 @@ public class CustomerGroupController {
     /** Update APIs **/
     @Tag(name = "고객 그룹 API")
     @Operation(summary = "고객 그룹 수정", description = "고객 관리 그룹 수정")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = PutCustomerGroupResponseDto.class)))
     @PatchMapping
     public ResponseEntity<? super PutCustomerGroupResponseDto> patchCustomerGroup(
             @RequestBody @Valid PutCustomerGroupRequestDto requestBody) {
@@ -60,6 +70,8 @@ public class CustomerGroupController {
     /** Delete APIs **/
     @Tag(name = "고객 그룹 API")
     @Operation(summary = "고객 그룹 삭제", description = "고객 관리 그룹 삭제")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = DeleteCustomerGroupResponseDto.class)))
     @DeleteMapping("/{customerGroupId}")
     public ResponseEntity<? super DeleteCustomerGroupResponseDto> deleteCustomerGroup (
             @PathVariable("customerGroupId") Long customerGroupId) {

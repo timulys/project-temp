@@ -13,6 +13,7 @@ public enum MessageCode {
     NOT_EXISTED_CUSTOMER("not_existed_customer"),
     NOT_EXISTED_CUSTOMER_GROUP("not_existed_customer_group"),
     DUPLICATED_DATA("duplicated_data"),
+    DUPLICATED_CUSTOMER("duplicated_customer"),
     NO_PERMISSION("no_permission"),
     DATABASE_ERROR("database_error"),
     BZM_CALL_FAILED("bzm_call_failed"),
