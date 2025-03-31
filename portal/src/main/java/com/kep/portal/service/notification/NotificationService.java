@@ -132,7 +132,7 @@ public class NotificationService {
         List<NotificationDto> notificationList = new ArrayList<>();
         Pageable pageable = PageRequest.of(0, 10);
         if (lastNotificationId != 0) {
-            // 마지막으로 호출한 Notification ID가 있다면 무한 스크롤
+            // 마지막으로 호출한 Notification ID가 있다면 무한 스크롤 실행
             notificationList = notificationRepository.findByMemberIdAndCreatedBetweenAndIdLessThanOrderByIdDesc(
                     securityUtils.getMemberId(),
                     start,
