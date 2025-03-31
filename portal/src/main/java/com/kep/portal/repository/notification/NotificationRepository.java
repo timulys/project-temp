@@ -12,7 +12,9 @@ import java.util.List;
 
 public interface NotificationRepository extends JpaRepository<Notification,Long> {
 
-    List<Notification> findByMemberIdAndCreatedBetweenOrderByIdDesc(Long memberId, ZonedDateTime start, ZonedDateTime  end);
+    List<Notification> findByMemberIdAndCreatedBetweenOrderByIdDesc(Long memberId, ZonedDateTime start, ZonedDateTime end, Pageable pageable);
+    List<Notification> findByMemberIdAndCreatedBetweenAndIdLessThanOrderByIdDesc
+            (Long memberId, ZonedDateTime start, ZonedDateTime end, Long lastNotificationId, Pageable pageable);
 
     Slice<Notification> findAllByMemberId(Pageable pageable, Long memberId);
 

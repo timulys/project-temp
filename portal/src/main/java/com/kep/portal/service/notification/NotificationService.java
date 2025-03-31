@@ -1,12 +1,15 @@
 package com.kep.portal.service.notification;
 
+import com.kep.core.model.dto.ResponseDto;
 import com.kep.core.model.dto.member.MemberDto;
 import com.kep.core.model.dto.notification.NotificationDto;
 import com.kep.core.model.dto.notification.NotificationStatus;
 import com.kep.core.model.dto.notification.NotificationType;
+import com.kep.core.model.enums.MessageCode;
 import com.kep.portal.config.property.SocketProperty;
 import com.kep.portal.config.property.SystemMessageProperty;
 import com.kep.portal.model.dto.notification.NotificationInfoDto;
+import com.kep.portal.model.dto.notification.response.GetNotificationListResponseDto;
 import com.kep.portal.model.entity.customer.Customer;
 import com.kep.portal.model.entity.customer.Guest;
 import com.kep.portal.model.entity.notification.Notification;
@@ -15,25 +18,32 @@ import com.kep.portal.repository.customer.CustomerRepository;
 import com.kep.portal.repository.customer.GuestRepository;
 import com.kep.portal.repository.notification.NotificationRepository;
 import com.kep.portal.service.member.MemberService;
+import com.kep.portal.util.MessageSourceUtil;
 import com.kep.portal.util.SecurityUtils;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.CaseUtils;
 import org.slf4j.Logger;
 import org.springframework.data.domain.*;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
+import javax.annotation.Nullable;
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.Field;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class NotificationService {
 
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(NotificationService.class);
@@ -60,6 +70,9 @@ public class NotificationService {
 
     @Resource
     private SecurityUtils securityUtils;
+
+    /** Autowired Components **/
+    private final MessageSourceUtil messageUtil;
 
     public NotificationDto store(NotificationInfoDto info, NotificationDto requestDto) {
 
@@ -98,8 +111,48 @@ public class NotificationService {
         start = start.truncatedTo(ChronoUnit.DAYS);
         log.info("start = {}, end = {}", start, end);
 
-        List<Notification> items = notificationRepository.findByMemberIdAndCreatedBetweenOrderByIdDesc(securityUtils.getMemberId(), start, end);
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Notification> items = notificationRepository.findByMemberIdAndCreatedBetweenOrderByIdDesc(securityUtils.getMemberId(), start, end, pageable);
         return notificationMapper.map(items);
+    }
+
+    /**
+     * 7일 내 알림 기준 무한 스크롤 API
+     * @param lastNotificationId
+     * @return
+     */
+    // TODO : 추후 Service Interface 로 분리하여 Override 를 통해 구현할 것
+    public ResponseEntity<? super GetNotificationListResponseDto> getNotificationList(Long lastNotificationId) {
+        ZonedDateTime end = ZonedDateTime.now();
+        ZonedDateTime start = end.minusDays(7);
+        start = start.truncatedTo(ChronoUnit.DAYS);
+        log.info("Query Start Day : {}, End Day : {}", start, end);
+
+        // 10개씩만 조회
+        List<NotificationDto> notificationList = new ArrayList<>();
+        Pageable pageable = PageRequest.of(0, 10);
+        if (lastNotificationId != 0) {
+            // 마지막으로 호출한 Notification ID가 있다면 무한 스크롤
+            notificationList = notificationRepository.findByMemberIdAndCreatedBetweenAndIdLessThanOrderByIdDesc(
+                    securityUtils.getMemberId(),
+                    start,
+                    end,
+                    lastNotificationId,
+                    pageable
+            ).stream().map(notification -> notificationMapper.map(notification)).collect(Collectors.toList());
+        } else {
+            // 없다면 최초 조회로 10개만 전달
+            notificationList = notificationRepository.findByMemberIdAndCreatedBetweenOrderByIdDesc(
+                    securityUtils.getMemberId(),
+                    start,
+                    end,
+                    pageable
+            ).stream().map(notification -> notificationMapper.map(notification)).collect(Collectors.toList());
+        }
+
+        if(notificationList.size() == 0) return ResponseDto.databaseErrorMessage(messageUtil.getMessage(MessageCode.NOT_EXISTED_DATA));
+
+        return GetNotificationListResponseDto.success(notificationList, messageUtil.success());
     }
 
     public Integer getMainNotificationNewCount() {

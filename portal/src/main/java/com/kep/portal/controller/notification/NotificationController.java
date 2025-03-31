@@ -6,10 +6,15 @@ import com.kep.core.model.dto.guide.GuideDto;
 import com.kep.core.model.dto.notification.*;
 import com.kep.portal.config.property.SocketProperty;
 import com.kep.portal.model.dto.notification.NotificationPayload;
+import com.kep.portal.model.dto.notification.response.GetNotificationListResponseDto;
 import com.kep.portal.model.entity.notification.Notification;
 import com.kep.portal.service.notification.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -93,6 +98,19 @@ public class NotificationController {
             response.setError("<<SB-CM-P02-001>>");
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
+    }
+
+    @Tag(name = "알림(노티) API")
+    @Operation(summary = "알림 목록 조회(V2)", description = "알림 목록 조회(V2)")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = GetNotificationListResponseDto.class)))
+    @GetMapping("/v2")
+    public ResponseEntity<? super GetNotificationListResponseDto> getNotificationList(
+            @Parameter(description = "마지막 알림 ID(기준점)", in = ParameterIn.QUERY)
+            @RequestParam(name = "last_notification_id", required = false, defaultValue = "0") Long lastNotificationId) {
+        log.info("Find All Notification List Between 7days");
+        ResponseEntity<? super GetNotificationListResponseDto> response = notificationService.getNotificationList(lastNotificationId);
+        return response;
     }
 
     /**
