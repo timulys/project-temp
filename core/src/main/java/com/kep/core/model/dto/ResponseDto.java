@@ -43,6 +43,7 @@ public class ResponseDto {
         ResponseDto result = new ResponseDto(ResponseCode.SERVER_ERROR, message);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
+
     /**
      * Database Error Response
      * @return
@@ -50,6 +51,16 @@ public class ResponseDto {
     public static ResponseEntity<ResponseDto> databaseErrorMessage(String message) {
         ResponseDto result = new ResponseDto(ResponseCode.DATABASE_ERROR, message);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
+
+    /**
+     * No Search Data
+     * @param message
+     * @return
+     */
+    public static ResponseEntity<ResponseDto> noSearchData(String message) {
+        ResponseDto result = new ResponseDto(ResponseCode.SUCCESS, message);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     /**

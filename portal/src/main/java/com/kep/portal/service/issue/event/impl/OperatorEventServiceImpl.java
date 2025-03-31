@@ -44,8 +44,8 @@ public class OperatorEventServiceImpl implements OperatorEventService {
 
         // 가장 최초에 선언된 channel inflow를 선택(기본)
         List<CounselInflowEnv> counselInflowEnvList = counselInflowEnvRepository.findAll();
-        if (counselInflowEnvList.size() < 1) {
-            return ResponseDto.databaseErrorMessage(messageUtil.getMessage(MessageCode.NOT_EXISTED_DATA));
+        if (counselInflowEnvList.isEmpty()) {
+            return ResponseDto.noSearchData(messageUtil.getMessage(MessageCode.NO_SEARCH_DATA));
         }
         eventBySystemService.sendSync(issue, counselInflowEnvList.get(0));
         return PostCustomerSyncResponseDto.success(messageUtil.success());

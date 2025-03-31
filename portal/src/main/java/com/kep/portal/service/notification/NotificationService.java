@@ -10,6 +10,7 @@ import com.kep.portal.config.property.SocketProperty;
 import com.kep.portal.config.property.SystemMessageProperty;
 import com.kep.portal.model.dto.notification.NotificationInfoDto;
 import com.kep.portal.model.dto.notification.response.GetNotificationListResponseDto;
+import com.kep.portal.model.dto.notification.response.PatchNotificationReadAllResponseDto;
 import com.kep.portal.model.entity.customer.Customer;
 import com.kep.portal.model.entity.customer.Guest;
 import com.kep.portal.model.entity.notification.Notification;
@@ -114,45 +115,6 @@ public class NotificationService {
         Pageable pageable = PageRequest.of(0, 10);
         List<Notification> items = notificationRepository.findByMemberIdAndCreatedBetweenOrderByIdDesc(securityUtils.getMemberId(), start, end, pageable);
         return notificationMapper.map(items);
-    }
-
-    /**
-     * 7일 내 알림 기준 무한 스크롤 API
-     * @param lastNotificationId
-     * @return
-     */
-    // TODO : 추후 Service Interface 로 분리하여 Override 를 통해 구현할 것
-    public ResponseEntity<? super GetNotificationListResponseDto> getNotificationList(Long lastNotificationId) {
-        ZonedDateTime end = ZonedDateTime.now();
-        ZonedDateTime start = end.minusDays(7);
-        start = start.truncatedTo(ChronoUnit.DAYS);
-        log.info("Query Start Day : {}, End Day : {}", start, end);
-
-        // 10개씩만 조회
-        List<NotificationDto> notificationList = new ArrayList<>();
-        Pageable pageable = PageRequest.of(0, 10);
-        if (lastNotificationId != 0) {
-            // 마지막으로 호출한 Notification ID가 있다면 무한 스크롤 실행
-            notificationList = notificationRepository.findByMemberIdAndCreatedBetweenAndIdLessThanOrderByIdDesc(
-                    securityUtils.getMemberId(),
-                    start,
-                    end,
-                    lastNotificationId,
-                    pageable
-            ).stream().map(notification -> notificationMapper.map(notification)).collect(Collectors.toList());
-        } else {
-            // 없다면 최초 조회로 10개만 전달
-            notificationList = notificationRepository.findByMemberIdAndCreatedBetweenOrderByIdDesc(
-                    securityUtils.getMemberId(),
-                    start,
-                    end,
-                    pageable
-            ).stream().map(notification -> notificationMapper.map(notification)).collect(Collectors.toList());
-        }
-
-        if(notificationList.size() == 0) return ResponseDto.databaseErrorMessage(messageUtil.getMessage(MessageCode.NOT_EXISTED_DATA));
-
-        return GetNotificationListResponseDto.success(notificationList, messageUtil.success());
     }
 
     public Integer getMainNotificationNewCount() {
@@ -285,5 +247,59 @@ public class NotificationService {
                 simpMessagingTemplate.convertAndSend(socketProperty.getManagerAdminPath() + "." + dto.getCreator().getBranch().getId(), dto);
                 break;
         }
+    }
+
+    /** V2 Methods **/
+    // TODO : 추후 Service Interface 로 분리하여 Override 를 통해 구현할 것
+    /**
+     * 7일 내 알림 기준 무한 스크롤 API(V2)
+     * @param lastNotificationId
+     * @return
+     */
+    public ResponseEntity<? super GetNotificationListResponseDto> getNotificationList(Long lastNotificationId) {
+        ZonedDateTime end = ZonedDateTime.now();
+        ZonedDateTime start = end.minusDays(7);
+        start = start.truncatedTo(ChronoUnit.DAYS);
+        log.info("Query Start Day : {}, End Day : {}", start, end);
+
+        // 10개씩만 조회
+        List<NotificationDto> notificationList = new ArrayList<>();
+        Pageable pageable = PageRequest.of(0, 10);
+        if (lastNotificationId != 0) {
+            // 마지막으로 호출한 Notification ID가 있다면 무한 스크롤 실행
+            notificationList = notificationRepository.findByMemberIdAndCreatedBetweenAndIdLessThanOrderByIdDesc(
+                    securityUtils.getMemberId(),
+                    start,
+                    end,
+                    lastNotificationId,
+                    pageable
+            ).stream().map(notification -> notificationMapper.map(notification)).collect(Collectors.toList());
+        } else {
+            // 없다면 최초 조회로 10개만 전달
+            notificationList = notificationRepository.findByMemberIdAndCreatedBetweenOrderByIdDesc(
+                    securityUtils.getMemberId(),
+                    start,
+                    end,
+                    pageable
+            ).stream().map(notification -> notificationMapper.map(notification)).collect(Collectors.toList());
+        }
+
+        if(notificationList.isEmpty()) return ResponseDto.noSearchData(messageUtil.getMessage(MessageCode.NO_SEARCH_DATA));
+
+        return GetNotificationListResponseDto.success(notificationList, messageUtil.success());
+    }
+
+    /**
+     * 전체 알림 읽음 처리 API(V2)
+     */
+    public ResponseEntity<? super PatchNotificationReadAllResponseDto> patchNotificationReadAll() {
+        List<Notification> notificationList =
+                notificationRepository.findAllByMemberIdAndStatus(securityUtils.getMemberId(), NotificationStatus.unread);
+
+        if (notificationList.isEmpty()) return ResponseDto.noSearchData(messageUtil.getMessage(MessageCode.NO_SEARCH_DATA));
+
+        notificationList.forEach(item -> item.setStatus(NotificationStatus.read));
+
+        return PatchNotificationReadAllResponseDto.success(messageUtil.success());
     }
 }
