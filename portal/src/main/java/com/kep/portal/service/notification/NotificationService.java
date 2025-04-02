@@ -1,16 +1,12 @@
 package com.kep.portal.service.notification;
 
-import com.kep.core.model.dto.ResponseDto;
 import com.kep.core.model.dto.member.MemberDto;
-import com.kep.core.model.dto.notification.NotificationDto;
-import com.kep.core.model.dto.notification.NotificationStatus;
-import com.kep.core.model.dto.notification.NotificationType;
-import com.kep.core.model.enums.MessageCode;
 import com.kep.portal.config.property.SocketProperty;
 import com.kep.portal.config.property.SystemMessageProperty;
+import com.kep.portal.model.dto.notification.NotificationDto;
 import com.kep.portal.model.dto.notification.NotificationInfoDto;
-import com.kep.portal.model.dto.notification.response.GetNotificationListResponseDto;
-import com.kep.portal.model.dto.notification.response.PatchNotificationReadAllResponseDto;
+import com.kep.portal.model.dto.notification.NotificationStatus;
+import com.kep.portal.model.dto.notification.NotificationType;
 import com.kep.portal.model.entity.customer.Customer;
 import com.kep.portal.model.entity.customer.Guest;
 import com.kep.portal.model.entity.notification.Notification;
@@ -24,23 +20,15 @@ import com.kep.portal.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.CaseUtils;
 import org.slf4j.Logger;
-import org.springframework.data.domain.*;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
-import javax.annotation.Nullable;
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
-import javax.validation.constraints.NotNull;
 import java.lang.reflect.Field;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -104,41 +92,6 @@ public class NotificationService {
         }
 
         return requestDto;
-    }
-
-    public List<NotificationDto> getMainNotificationList(Long day) {
-        ZonedDateTime end = ZonedDateTime.now();
-        ZonedDateTime start = end.minusDays(day);
-        start = start.truncatedTo(ChronoUnit.DAYS);
-        log.info("start = {}, end = {}", start, end);
-
-        Pageable pageable = PageRequest.of(0, 10);
-        List<Notification> items = notificationRepository.findByMemberIdAndCreatedBetweenOrderByIdDesc(securityUtils.getMemberId(), start, end, pageable);
-        return notificationMapper.map(items);
-    }
-
-    public Integer getMainNotificationNewCount() {
-        Integer unreadCount = notificationRepository.countNotificationByMemberIdAndStatus(securityUtils.getMemberId(), NotificationStatus.unread);
-        return unreadCount;
-    }
-
-    public Slice<NotificationDto> getItems(@NotNull Pageable pageable) {
-        Slice<Notification> items = notificationRepository.findAllByMemberId(pageable, securityUtils.getMemberId());
-        List<NotificationDto> data = notificationMapper.map(items.getContent());
-        return new SliceImpl<>(data, items.getPageable(), items.hasNext());
-    }
-
-    public void setReadNotificationStatus(Long notificationId) {
-        Notification notification = notificationRepository.findAllByMemberIdAndId(securityUtils.getMemberId(), notificationId);
-        Assert.notNull(notification, "Notification Not Found");
-
-        notification.setStatus(NotificationStatus.read);
-    }
-
-    public void setReadAll() {
-        notificationRepository.findAllByMemberIdAndStatus(securityUtils.getMemberId(), NotificationStatus.unread).forEach(item -> {
-            item.setStatus(NotificationStatus.read);
-        });
     }
 
     public String getTitleTemplate(NotificationType type, NotificationInfoDto info) {
@@ -247,59 +200,5 @@ public class NotificationService {
                 simpMessagingTemplate.convertAndSend(socketProperty.getManagerAdminPath() + "." + dto.getCreator().getBranch().getId(), dto);
                 break;
         }
-    }
-
-    /** V2 Methods **/
-    // TODO : 추후 Service Interface 로 분리하여 Override 를 통해 구현할 것
-    /**
-     * 7일 내 알림 기준 무한 스크롤 API(V2)
-     * @param lastNotificationId
-     * @return
-     */
-    public ResponseEntity<? super GetNotificationListResponseDto> getNotificationList(Long lastNotificationId) {
-        ZonedDateTime end = ZonedDateTime.now();
-        ZonedDateTime start = end.minusDays(7);
-        start = start.truncatedTo(ChronoUnit.DAYS);
-        log.info("Query Start Day : {}, End Day : {}", start, end);
-
-        // 10개씩만 조회
-        List<NotificationDto> notificationList = new ArrayList<>();
-        Pageable pageable = PageRequest.of(0, 10);
-        if (lastNotificationId != 0) {
-            // 마지막으로 호출한 Notification ID가 있다면 무한 스크롤 실행
-            notificationList = notificationRepository.findByMemberIdAndCreatedBetweenAndIdLessThanOrderByIdDesc(
-                    securityUtils.getMemberId(),
-                    start,
-                    end,
-                    lastNotificationId,
-                    pageable
-            ).stream().map(notification -> notificationMapper.map(notification)).collect(Collectors.toList());
-        } else {
-            // 없다면 최초 조회로 10개만 전달
-            notificationList = notificationRepository.findByMemberIdAndCreatedBetweenOrderByIdDesc(
-                    securityUtils.getMemberId(),
-                    start,
-                    end,
-                    pageable
-            ).stream().map(notification -> notificationMapper.map(notification)).collect(Collectors.toList());
-        }
-
-        if(notificationList.isEmpty()) return ResponseDto.noSearchData(messageUtil.getMessage(MessageCode.NO_SEARCH_DATA));
-
-        return GetNotificationListResponseDto.success(notificationList, messageUtil.success());
-    }
-
-    /**
-     * 전체 알림 읽음 처리 API(V2)
-     */
-    public ResponseEntity<? super PatchNotificationReadAllResponseDto> patchNotificationReadAll() {
-        List<Notification> notificationList =
-                notificationRepository.findAllByMemberIdAndStatus(securityUtils.getMemberId(), NotificationStatus.unread);
-
-        if (notificationList.isEmpty()) return ResponseDto.noSearchData(messageUtil.getMessage(MessageCode.NO_SEARCH_DATA));
-
-        notificationList.forEach(item -> item.setStatus(NotificationStatus.read));
-
-        return PatchNotificationReadAllResponseDto.success(messageUtil.success());
     }
 }

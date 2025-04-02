@@ -1,5 +1,0 @@
-package com.kep.portal.model.dto.issue;
-
-public class IssueMemberStatisticsDto {
-
-}

@@ -1,7 +1,6 @@
 package com.kep.portal.model.entity.notification;
 
-import com.kep.core.model.dto.notification.NotificationDto;
-import com.kep.core.model.dto.notification.NotificationType;
+import com.kep.portal.model.dto.notification.NotificationDto;
 import com.kep.portal.model.entity.branch.BranchMapper;
 import com.kep.portal.model.entity.channel.ChannelMapper;
 import com.kep.portal.model.entity.member.MemberMapper;

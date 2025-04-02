@@ -1,7 +1,7 @@
 package com.kep.portal.event;
 
-import com.kep.core.model.dto.notification.NotificationDto;
-import com.kep.core.model.dto.notification.NotificationType;
+import com.kep.portal.model.dto.notification.NotificationDto;
+import com.kep.portal.model.dto.notification.NotificationType;
 import com.kep.core.model.dto.system.SystemEventHistoryActionType;
 import com.kep.portal.config.property.SocketProperty;
 import com.kep.portal.config.property.SystemMessageProperty;

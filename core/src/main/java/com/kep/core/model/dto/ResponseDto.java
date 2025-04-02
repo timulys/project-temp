@@ -60,7 +60,7 @@ public class ResponseDto {
      */
     public static ResponseEntity<ResponseDto> noSearchData(String message) {
         ResponseDto result = new ResponseDto(ResponseCode.SUCCESS, message);
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
     }
 
     /**
