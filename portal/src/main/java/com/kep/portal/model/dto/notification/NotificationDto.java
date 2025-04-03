@@ -132,7 +132,7 @@ public class NotificationDto {
         dto.setIcon(notification.getIcon());
         dto.setTarget(notification.getTarget());
         dto.setUrl(notification.getUrl());
-        dto.setMemberId(notification.getCreator().getId());
+        dto.setMemberId(notification.getCreator() != null ? notification.getCreator().getId() : null);
         dto.setCreated(notification.getCreated());
 
         return dto;
