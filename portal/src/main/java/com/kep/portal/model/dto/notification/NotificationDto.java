@@ -127,6 +127,7 @@ public class NotificationDto {
         dto.setTitle(notification.getTitle());
         dto.setPayload(notification.getPayload());
         dto.setType(notification.getType());
+        dto.setKorType(notification.getType().getKor());
         dto.setDisplayType(notification.getDisplayType());
         dto.setStatus(notification.getStatus());
         dto.setIcon(notification.getIcon());
