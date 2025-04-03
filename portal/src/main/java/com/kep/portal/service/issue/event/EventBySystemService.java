@@ -337,7 +337,7 @@ public class EventBySystemService {
 					"  \"chapters\" : [ {\n" +
 					"    \"sections\" : [ {\n" +
 					"      \"type\" : \"text\",\n" +
-					"      \"data\" : \"인증이 필요한 서비스입니다.\n아래 버튼을 눌러 인증해주세요.\"\n" +
+					"      \"data\" : \"인증이 필요한 서비스입니다.\\n아래 버튼을 눌러 인증해주세요.\"\n" +
 					"    } ]\n" +
 					"  } ]\n" +
 					"}";
