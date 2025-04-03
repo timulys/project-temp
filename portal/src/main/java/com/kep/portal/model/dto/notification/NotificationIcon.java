@@ -1,4 +1,4 @@
-package com.kep.core.model.dto.notification;
+package com.kep.portal.model.dto.notification;
 
 public enum NotificationIcon {
     member,

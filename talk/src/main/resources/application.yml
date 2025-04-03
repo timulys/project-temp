@@ -85,9 +85,7 @@ application:
 
 logging:
   level:
-    com.dkt.always.talk: debug
-    org.springframework.security: debug
-    org.springframework.web.reactive.function.client: debug
+    root: info
   file:
     path: ${LOGGING_PATH:/opt/storage/logs}/always/${spring.application.name}
   pattern:

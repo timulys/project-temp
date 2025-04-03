@@ -1,6 +1,6 @@
 package com.kep.portal.model.entity.notification;
 
-import com.kep.core.model.dto.notification.*;
+import com.kep.portal.model.dto.notification.*;
 import com.kep.portal.model.entity.member.Member;
 import lombok.*;
 import org.hibernate.annotations.Comment;

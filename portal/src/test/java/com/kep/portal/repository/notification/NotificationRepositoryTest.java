@@ -2,26 +2,18 @@ package com.kep.portal.repository.notification;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.member.MemberDto;
-import com.kep.core.model.dto.notification.*;
-import com.kep.portal.config.ObjectMapperConfig;
 import com.kep.portal.config.property.SocketProperty;
-import com.kep.portal.model.dto.notification.NotificationInfoDto;
+import com.kep.portal.model.dto.notification.*;
 import com.kep.portal.model.entity.notification.Notification;
 import com.kep.portal.model.entity.notification.NotificationMapper;
 import com.kep.portal.service.member.MemberService;
 import com.kep.portal.service.notification.NotificationService;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import javax.annotation.Resource;

@@ -1,15 +1,15 @@
-package com.kep.core.model.dto.notification;
+package com.kep.portal.model.dto.notification;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import com.kep.core.model.dto.member.MemberDto;
+import com.kep.portal.model.entity.notification.Notification;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.URL;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -119,4 +119,23 @@ public class NotificationDto {
     @NotNull
     @Schema(description = "생성일시")
     private ZonedDateTime created;
+
+    public static NotificationDto from(Notification notification) {
+        NotificationDto dto = new NotificationDto();
+        dto.setId(notification.getId());
+        dto.setMemberId(notification.getMemberId());
+        dto.setTitle(notification.getTitle());
+        dto.setPayload(notification.getPayload());
+        dto.setType(notification.getType());
+        dto.setKorType(notification.getType().getKor());
+        dto.setDisplayType(notification.getDisplayType());
+        dto.setStatus(notification.getStatus());
+        dto.setIcon(notification.getIcon());
+        dto.setTarget(notification.getTarget());
+        dto.setUrl(notification.getUrl());
+        dto.setMemberId(notification.getCreator() != null ? notification.getCreator().getId() : null);
+        dto.setCreated(notification.getCreated());
+
+        return dto;
+    }
 }

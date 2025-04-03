@@ -1,12 +1,12 @@
 package com.kep.portal.service.notification;
 
 import com.kep.core.model.dto.member.MemberDto;
-import com.kep.core.model.dto.notification.NotificationDto;
-import com.kep.core.model.dto.notification.NotificationStatus;
-import com.kep.core.model.dto.notification.NotificationType;
 import com.kep.portal.config.property.SocketProperty;
 import com.kep.portal.config.property.SystemMessageProperty;
+import com.kep.portal.model.dto.notification.NotificationDto;
 import com.kep.portal.model.dto.notification.NotificationInfoDto;
+import com.kep.portal.model.dto.notification.NotificationStatus;
+import com.kep.portal.model.dto.notification.NotificationType;
 import com.kep.portal.model.entity.customer.Customer;
 import com.kep.portal.model.entity.customer.Guest;
 import com.kep.portal.model.entity.notification.Notification;
@@ -15,10 +15,11 @@ import com.kep.portal.repository.customer.CustomerRepository;
 import com.kep.portal.repository.customer.GuestRepository;
 import com.kep.portal.repository.notification.NotificationRepository;
 import com.kep.portal.service.member.MemberService;
+import com.kep.portal.util.MessageSourceUtil;
 import com.kep.portal.util.SecurityUtils;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.CaseUtils;
 import org.slf4j.Logger;
-import org.springframework.data.domain.*;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -26,14 +27,12 @@ import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
-import javax.validation.constraints.NotNull;
 import java.lang.reflect.Field;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class NotificationService {
 
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(NotificationService.class);
@@ -60,6 +59,9 @@ public class NotificationService {
 
     @Resource
     private SecurityUtils securityUtils;
+
+    /** Autowired Components **/
+    private final MessageSourceUtil messageUtil;
 
     public NotificationDto store(NotificationInfoDto info, NotificationDto requestDto) {
 
@@ -90,40 +92,6 @@ public class NotificationService {
         }
 
         return requestDto;
-    }
-
-    public List<NotificationDto> getMainNotificationList(Long day) {
-        ZonedDateTime end = ZonedDateTime.now();
-        ZonedDateTime start = end.minusDays(day);
-        start = start.truncatedTo(ChronoUnit.DAYS);
-        log.info("start = {}, end = {}", start, end);
-
-        List<Notification> items = notificationRepository.findByMemberIdAndCreatedBetweenOrderByIdDesc(securityUtils.getMemberId(), start, end);
-        return notificationMapper.map(items);
-    }
-
-    public Integer getMainNotificationNewCount() {
-        Integer unreadCount = notificationRepository.countNotificationByMemberIdAndStatus(securityUtils.getMemberId(), NotificationStatus.unread);
-        return unreadCount;
-    }
-
-    public Slice<NotificationDto> getItems(@NotNull Pageable pageable) {
-        Slice<Notification> items = notificationRepository.findAllByMemberId(pageable, securityUtils.getMemberId());
-        List<NotificationDto> data = notificationMapper.map(items.getContent());
-        return new SliceImpl<>(data, items.getPageable(), items.hasNext());
-    }
-
-    public void setReadNotificationStatus(Long notificationId) {
-        Notification notification = notificationRepository.findAllByMemberIdAndId(securityUtils.getMemberId(), notificationId);
-        Assert.notNull(notification, "Notification Not Found");
-
-        notification.setStatus(NotificationStatus.read);
-    }
-
-    public void setReadAll() {
-        notificationRepository.findAllByMemberIdAndStatus(securityUtils.getMemberId(), NotificationStatus.unread).forEach(item -> {
-            item.setStatus(NotificationStatus.read);
-        });
     }
 
     public String getTitleTemplate(NotificationType type, NotificationInfoDto info) {

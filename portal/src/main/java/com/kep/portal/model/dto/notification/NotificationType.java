@@ -1,4 +1,4 @@
-package com.kep.core.model.dto.notification;
+package com.kep.portal.model.dto.notification;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
