@@ -69,7 +69,7 @@ public class CustomerGroupServiceImpl implements CustomerGroupService {
         if (!existedMember) return ResponseDto.notExistedMember(messageUtil.getMessage(MessageCode.NOT_EXISTED_MEMBER));
 
         List<CustomerGroupDto> customerGroupList = customerGroupRepository.findAllByMemberId(memberId)
-                .stream().map(customerGroup -> CustomerGroupDto.of(customerGroup)).collect(Collectors.toList());
+                .stream().map(CustomerGroupDto::of).collect(Collectors.toList());
 
         return GetCustomerGroupListResponseDto.success(messageUtil.success(), customerGroupList);
     }

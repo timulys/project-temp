@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @Getter
 public class GetCustomerGroupListResponseDto extends ResponseDto {
     @Schema(description = "고객 그룹 목록")
-    private List<CustomerGroupDto> customerGroupList;
+    private final List<CustomerGroupDto> customerGroupList;
 
     private GetCustomerGroupListResponseDto(String message, List<CustomerGroupDto> customerGroupList) {
         super(ResponseCode.SUCCESS, message);

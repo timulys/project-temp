@@ -1,5 +1,6 @@
 package com.kep.portal.model.entity.upload;
 
+import com.kep.core.model.dto.upload.UploadDto;
 import lombok.*;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.DynamicInsert;
@@ -65,4 +66,17 @@ public class Upload {
     @NotNull
     private ZonedDateTime created;
 
+    public static Upload of(UploadDto uploadDto) {
+        return Upload.builder()
+                .type(uploadDto.getType())
+                .originalName(uploadDto.getOriginalName())
+                .name(uploadDto.getName())
+                .path(uploadDto.getPath())
+                .url(uploadDto.getUrl())
+                .mimeType(uploadDto.getMimeType())
+                .size(uploadDto.getSize())
+                .creator(uploadDto.getCreator())
+                .created(uploadDto.getCreated())
+                .build();
+    }
 }

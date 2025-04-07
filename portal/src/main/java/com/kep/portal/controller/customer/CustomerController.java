@@ -200,7 +200,7 @@ public class CustomerController {
     @ApiResponse(responseCode = "200", description = "성공",
             content = @Content(schema = @Schema(implementation = GetCustomerListResponseDto.class)))
     @GetMapping("/all/{memberId}")
-    public ResponseEntity<? super GetCustomerListResponseDto> getAllCustomer(@PathVariable("memberId") Long memberId) {
+    public ResponseEntity<? super GetCustomerListResponseDto> getCustomerList(@PathVariable("memberId") Long memberId) {
         log.info("Get Customer All List, Member ID : {}", memberId);
         ResponseEntity<? super GetCustomerListResponseDto> response = customerService.findAllCustomer(memberId);
         log.info("Get Customer All List, Result : {}", response);
@@ -251,7 +251,7 @@ public class CustomerController {
     @ApiResponse(responseCode = "200", description = "성공",
             content = @Content(schema = @Schema(implementation = GetAnniversariesCustomerListResponseDto.class)))
     @GetMapping("/anniversaries/{memberId}")
-    public ResponseEntity<? super GetAnniversariesCustomerListResponseDto> getAllAnniversariesCustomer(@PathVariable("memberId") Long memberId) {
+    public ResponseEntity<? super GetAnniversariesCustomerListResponseDto> getAnniversariesCustomerList(@PathVariable("memberId") Long memberId) {
         log.info("Get Anniversary Customer List, Member ID : {}", memberId);
         ResponseEntity<? super GetAnniversariesCustomerListResponseDto> response = customerService.findAllAnniversariesCustomerList(memberId);
         log.info("Get Anniversary Customer List, Result : {}", response);

@@ -6,6 +6,7 @@
 
 package com.kep.portal.repository.notice;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.validation.constraints.NotNull;
@@ -17,8 +18,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.kep.portal.model.entity.notice.NoticeUpload;
 
 public interface NoticeUploadRepository extends JpaRepository<NoticeUpload, Long>{
- 
 	@Override
 	@EntityGraph(attributePaths = {"upload"})
 	Optional<NoticeUpload> findById(@NotNull @Positive Long id);
+
+	List<NoticeUpload> findAllByNoticeId(Long noticeId);
+	void deleteAllByNoticeId(Long noticeId);
 }

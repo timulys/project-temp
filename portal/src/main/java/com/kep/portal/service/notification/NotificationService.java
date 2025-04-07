@@ -3,16 +3,17 @@ package com.kep.portal.service.notification;
 import com.kep.core.model.dto.member.MemberDto;
 import com.kep.portal.config.property.SocketProperty;
 import com.kep.portal.config.property.SystemMessageProperty;
-import com.kep.portal.model.dto.notification.NotificationDto;
-import com.kep.portal.model.dto.notification.NotificationInfoDto;
-import com.kep.portal.model.dto.notification.NotificationStatus;
-import com.kep.portal.model.dto.notification.NotificationType;
+import com.kep.portal.model.dto.notification.*;
 import com.kep.portal.model.entity.customer.Customer;
 import com.kep.portal.model.entity.customer.Guest;
+import com.kep.portal.model.entity.member.Member;
+import com.kep.portal.model.entity.member.MemberMapper;
 import com.kep.portal.model.entity.notification.Notification;
 import com.kep.portal.model.entity.notification.NotificationMapper;
+import com.kep.portal.repository.branch.BranchRepository;
 import com.kep.portal.repository.customer.CustomerRepository;
 import com.kep.portal.repository.customer.GuestRepository;
+import com.kep.portal.repository.member.MemberRepository;
 import com.kep.portal.repository.notification.NotificationRepository;
 import com.kep.portal.service.member.MemberService;
 import com.kep.portal.util.MessageSourceUtil;
@@ -20,6 +21,7 @@ import com.kep.portal.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.CaseUtils;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -29,6 +31,9 @@ import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.lang.reflect.Field;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -62,6 +67,10 @@ public class NotificationService {
 
     /** Autowired Components **/
     private final MessageSourceUtil messageUtil;
+    private final BranchRepository branchRepository;
+    private final MemberRepository memberRepository;
+    @Autowired
+    private MemberMapper memberMapper;
 
     public NotificationDto store(NotificationInfoDto info, NotificationDto requestDto) {
 
@@ -92,6 +101,35 @@ public class NotificationService {
         }
 
         return requestDto;
+    }
+
+    public void storeNotice(String openType, NotificationType notificationType) {
+        log.info("Create notification for register notice");
+
+        // 공지사항을 전달할 타입에 따라 전파 대상 목록 조회
+        List<MemberDto> memberDtoList = new ArrayList<>();
+        if ("all".equals(openType)) {
+            memberDtoList = memberRepository.findAllByEnabled(true)
+                    .stream().map(member -> memberMapper.map(member)).collect(Collectors.toList());
+        } else {
+            memberDtoList = memberRepository.findAllByBranchIdOrderByBranchIdDesc(securityUtils.getBranchId())
+                    .stream().map(member -> memberMapper.map(member)).collect(Collectors.toList());
+        }
+
+        // 공지사항 등록 알림(Notification 생성 및 전달)
+        memberDtoList.stream().filter(MemberDto::getManaged).forEach(dto -> {
+            NotificationDto notificationDto = NotificationDto.builder()
+                    .displayType(NotificationDisplayType.toast)
+                    .icon(NotificationIcon.system)
+                    .target(NotificationTarget.member)
+                    .type(notificationType)
+                    .build();
+            NotificationInfoDto notificationInfoDto = NotificationInfoDto.builder()
+                    .senderId(securityUtils.getMemberId())
+                    .receiverId(dto.getId())
+                    .build();
+            store(notificationInfoDto, notificationDto);
+        });
     }
 
     public String getTitleTemplate(NotificationType type, NotificationInfoDto info) {

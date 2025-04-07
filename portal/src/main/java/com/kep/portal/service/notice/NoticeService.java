@@ -1,57 +1,65 @@
 package com.kep.portal.service.notice;
 
-import java.io.File;
-import java.time.LocalDate;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-import javax.transaction.Transactional;
-import javax.validation.constraints.NotNull;
-
-import com.kep.core.model.dto.notice.NoticeOpenType;
+import com.kep.core.model.dto.ResponseDto;
+import com.kep.core.model.dto.member.MemberDto;
+import com.kep.core.model.dto.upload.UploadDto;
+import com.kep.core.model.enums.MessageCode;
 import com.kep.portal.config.property.SocketProperty;
+import com.kep.portal.model.dto.notice.NoticeDto;
+import com.kep.portal.model.dto.notice.NoticeOpenType;
+import com.kep.portal.model.dto.notice.request.GetNoticeListRequestDto;
+import com.kep.portal.model.dto.notice.request.PatchNoticeFixationRequestDto;
+import com.kep.portal.model.dto.notice.request.PatchNoticeRequestDto;
+import com.kep.portal.model.dto.notice.request.PostNoticeRequestDto;
+import com.kep.portal.model.dto.notice.response.*;
+import com.kep.portal.model.dto.notice.NoticeUploadDto;
 import com.kep.portal.model.entity.branch.Branch;
+import com.kep.portal.model.entity.member.Member;
+import com.kep.portal.model.entity.member.MemberMapper;
+import com.kep.portal.model.entity.notice.*;
 import com.kep.portal.model.entity.team.Team;
+import com.kep.portal.model.entity.upload.Upload;
+import com.kep.portal.model.entity.upload.UploadMapper;
+import com.kep.portal.repository.member.MemberRepository;
+import com.kep.portal.repository.notice.NoticeReadRepository;
+import com.kep.portal.repository.notice.NoticeRepository;
+import com.kep.portal.repository.notice.NoticeUploadRepository;
+import com.kep.portal.repository.upload.UploadRepository;
 import com.kep.portal.service.branch.BranchService;
+import com.kep.portal.service.notification.NotificationService;
 import com.kep.portal.service.team.TeamService;
+import com.kep.portal.service.upload.UploadService;
+import com.kep.portal.util.CommonUtils;
+import com.kep.portal.util.MessageSourceUtil;
+import com.kep.portal.util.SecurityUtils;
+import com.kep.portal.util.UploadUtils;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.kep.core.model.dto.member.MemberDto;
-import com.kep.core.model.dto.notice.NoticeDto;
-import com.kep.core.model.dto.upload.UploadDto;
-import com.kep.portal.model.dto.notice.NoticeResponseDto;
-import com.kep.portal.model.dto.notice.NoticeUploadDto;
-import com.kep.portal.model.entity.member.MemberMapper;
-import com.kep.portal.model.entity.notice.Notice;
-import com.kep.portal.model.entity.notice.NoticeMapper;
-import com.kep.portal.model.entity.notice.NoticeRead;
-import com.kep.portal.model.entity.notice.NoticeReadPk;
-import com.kep.portal.model.entity.notice.NoticeUpload;
-import com.kep.portal.model.entity.upload.UploadMapper;
-import com.kep.portal.repository.member.MemberRepository;
-import com.kep.portal.repository.notice.NoticeReadRepository;
-import com.kep.portal.repository.notice.NoticeRepository;
-import com.kep.portal.repository.notice.NoticeUploadRepository;
-import com.kep.portal.service.notification.NotificationService;
-import com.kep.portal.service.upload.UploadService;
-import com.kep.portal.util.CommonUtils;
-import com.kep.portal.util.SecurityUtils;
-import com.kep.portal.util.UploadUtils;
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
+import javax.validation.constraints.NotNull;
+import java.io.File;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
+@Slf4j
 @Service
 @Transactional
-@Slf4j
+@RequiredArgsConstructor
 public class NoticeService {
 	@Resource
 	private NoticeRepository noticeRepository;
@@ -100,6 +108,9 @@ public class NoticeService {
 	@Resource
 	private SimpMessagingTemplate simpMessagingTemplate;
 
+	/** Autowired Components **/
+	private final MessageSourceUtil messageUtil;
+    private final UploadRepository uploadRepository;
 
 	/**
 	 * 상담관리 > 공지사항 목록 조회
@@ -151,79 +162,6 @@ public class NoticeService {
 		dto.setCreatorInfo(getMemberInfo(notice.getCreator()));
 
 		return dto;
-	}
-
-	/**
-	 * 상담관리 > 공지사항 등록/수정/ 처리
-	 * 2023.03.28 / philip.lee7		/ MultipartFile 추가
-	 */
-	public NoticeDto store(NoticeDto noticeDto,List<MultipartFile> files){
-		Notice notice = noticeMapper.map(noticeDto);
-
-		// 아이디 목록이 있는 경우 목록에서의 처리
-		// 일괄삭제, 상단고정, 고정해제의 구분을 체크하여 처리
-		if(ObjectUtils.isEmpty(notice.getId())){
-			notice.setCreator(securityUtils.getMemberId());
-			notice.setCreated(ZonedDateTime.now());
-			notice.setBranchId(securityUtils.getBranchId());
-			notice.setEnabled(true);
-
-			if(noticeDto.getFixation() != null){
-				notice.setFixation(noticeDto.getFixation());
-			} else {
-				notice.setFixation(false);
-			}
-
-			notice.setContent(noticeDto.getContent());
-			notice.setTitle(noticeDto.getTitle());
-			// [KICA-406] 공지 사항 등록 시 다른 상담원에게 즉시 count
-			simpMessagingTemplate.convertAndSend(socketProperty.getNoticePath(), this.noticeEntityToDto(notice));
-
-		} else {
-			notice = noticeRepository.findById(notice.getId()).orElse(null);
-
-			Assert.notNull(notice , "notice is null");
-			CommonUtils.copyNotEmptyProperties(noticeMapper.map(noticeDto), notice);
-			notice.setModifier(securityUtils.getMemberId());
-			notice.setModified(ZonedDateTime.now());
-
-			//수정시 파일 삭제리스트 확인
-			if(noticeDto.getIds()!= null) {
-				for(Long noticeUploadId :noticeDto.getIds()) {
-					this.filedeleteOne(NoticeUploadDto.builder()
-										.id(noticeUploadId)
-										.build()
-										);
-
-				}
-			}
-		}
-
-		// open type group 이면 team pk
-		if(NoticeOpenType.group.equals(noticeDto.getOpenType()) && noticeDto.getTeamId() != null){
-			notice.setTeamId(noticeDto.getTeamId());
-		}
-
-		notice = noticeRepository.save(notice);
-
-		//[2023.03.28 / philip.lee7 / 파일 등록]
-		if(files != null) {
-			for(MultipartFile multiFile : files) {
-				  File file = uploadUtils.upload(multiFile);
-			        Assert.notNull(file, "failed upload");
-			        UploadDto uploadDto = UploadDto.builder().originalName(multiFile.getOriginalFilename())
-			        				.mimeType(uploadUtils.getMimeType(multiFile))
-			        				.type("notice")
-			        				.build();
-			        log.info("Upload: {}", uploadDto);
-			         uploadDto = uploadService.store(uploadDto , file);
-			         NoticeUpload noticeupload = NoticeUpload.builder().upload(uploadMapper.map(uploadDto)).notice(notice).build();
-			         noticeUploadRepository.save(noticeupload);
-			}
-
-		}
-
-		return noticeMapper.map(notice);
 	}
 
 	/**
@@ -387,20 +325,117 @@ public class NoticeService {
 		return uploadService.delete(uploadMapper.map(noticeUpload.getUpload()));
 	}
 
-	private NoticeDto noticeEntityToDto(Notice notice){
-		NoticeDto noticeDto = new NoticeDto();
-		noticeDto.setId(notice.getId());
-		noticeDto.setContent(notice.getContent());
-		noticeDto.setOpenType(notice.getOpenType());
-		noticeDto.setFixation(notice.getFixation());
-		noticeDto.setEnabled(notice.getEnabled());
-		noticeDto.setBranchId(notice.getBranchId());
-		noticeDto.setTeamId(notice.getTeamId());
-		noticeDto.setCreator(notice.getCreator());
-		noticeDto.setCreated(notice.getCreated());
-		noticeDto.setModifier(notice.getModifier());
-		noticeDto.setModified(notice.getModified());
-		return noticeDto;
+	/** V2 Methods **/
+	// TODO : 추후 Interface와 Implement Class 분리 예정
+	/**
+	 * 공지사항 등록
+	 * @param dto
+	 * @param files
+	 * @return
+	 */
+	public ResponseEntity<? super PostNoticeResponseDto> createNotice(PostNoticeRequestDto dto, List<MultipartFile> files) {
+		Notice notice = Notice.create(dto.getTitle(), dto.getContent(), dto.getOpenType(), dto.getTeamId(), dto.getFixation());
+		notice.setCreator(securityUtils.getMemberId());
+		notice.setCreated(ZonedDateTime.now());
+		notice.setBranchId(securityUtils.getBranchId());
+		notice.setTeamId(dto.getTeamId());
+		notice.setEnabled(true);
+
+		Notice saveNotice = noticeRepository.save(notice);
+		if (files != null && !files.isEmpty()) {
+			uploadNoticeFiles(saveNotice, files);
+		}
+
+		return PostNoticeResponseDto.success(messageUtil.success());
 	}
 
+	// TODO : 추후 조회 서비스 개선이 필요하면 리팩토링 작업 진행할 것
+	public ResponseEntity<? super GetNoticeListResponseDto> getNoticeList(GetNoticeListRequestDto dto) {
+		return null;
+	}
+
+	/**
+	 * 공지사항 상세 조회
+	 * @param noticeId
+	 * @return
+	 */
+	public ResponseEntity<? super GetNoticeResponseDto> getNotice(Long noticeId) {
+		boolean existedByNoticeId = noticeRepository.existsById(noticeId);
+		if (!existedByNoticeId) return ResponseDto.noSearchData(messageUtil.getMessage(MessageCode.NO_SEARCH_DATA));
+
+		Notice notice = noticeRepository.findById(noticeId).get();
+
+		boolean existedByNoticeDtoGetMemberId = memberRepository.existsById(notice.getCreator());
+		if (!existedByNoticeDtoGetMemberId) return ResponseDto.noSearchData(messageUtil.getMessage(MessageCode.NO_SEARCH_DATA));
+
+		MemberDto memberDto = memberRepository.findById(notice.getCreator()).map(member -> memberMapper.map(member)).get();
+		NoticeResponseDto noticeResponseDto = NoticeResponseDto.from(notice);
+		noticeResponseDto.setCreatorInfo(memberDto);
+
+		return GetNoticeResponseDto.success(noticeResponseDto, messageUtil.success());
+	}
+
+	/**
+	 * 공지사항 수정
+ 	 * @param dto
+	 * @param files
+	 * @return
+	 */
+	public ResponseEntity<? super PatchNoticeResponseDto> updateNotice(PatchNoticeRequestDto dto, List<MultipartFile> files) {
+		boolean existedByNoticeId = noticeRepository.existsById(dto.getId());
+		if (!existedByNoticeId) return ResponseDto.noSearchData(messageUtil.getMessage(MessageCode.NO_SEARCH_DATA));
+
+		Notice newNotice = Notice.of(dto.getId(), dto.getTitle(), dto.getContent(), dto.getOpenType(), dto.getTeamId(), dto.getFixation());
+		Notice notice = noticeRepository.findById(dto.getId()).get();
+		CommonUtils.copyNotEmptyProperties(newNotice, notice);
+
+		notice.setModifier(securityUtils.getMemberId());
+		notice.setModified(ZonedDateTime.now());
+
+		if (files != null && !files.isEmpty()) {
+			List<NoticeUpload> noticeUploadList = noticeUploadRepository.findAllByNoticeId(notice.getId());
+			noticeUploadList.forEach(noticeUpload -> {
+				uploadRepository.deleteById(noticeUpload.getUpload().getId());
+			});
+			noticeUploadRepository.deleteAllByNoticeId(notice.getId());
+
+			uploadNoticeFiles(notice, files);
+		}
+
+		return PatchNoticeResponseDto.success(messageUtil.success());
+	}
+
+	/**
+	 * 공지사항 고정
+	 * @param dto
+	 * @return
+	 */
+	public ResponseEntity<? super PatchNoticeFixationResponseDto> updateNoticeFixation(PatchNoticeFixationRequestDto dto) {
+		for (Long noticeId : dto.getIds()) {
+			noticeRepository.findById(noticeId).ifPresent(notice -> {
+				notice.setModifier(securityUtils.getMemberId());
+				notice.setModified(ZonedDateTime.now());
+                if (notice.getFixation() != null) {
+                    notice.setFixation(dto.getFixation());
+                }
+            });
+		}
+
+		return PatchNoticeFixationResponseDto.success(messageUtil.success());
+	}
+
+	// Notice 업로드 파일 내부 메소드
+	private void uploadNoticeFiles(Notice notice, List<MultipartFile> files) {
+		files.forEach(multipartFile -> {
+			File file = uploadUtils.upload(multipartFile);
+			log.info("Upload File : {} ", multipartFile.getOriginalFilename());
+			UploadDto storeUploadDto = uploadService.store(UploadDto.builder()
+					.originalName(multipartFile.getOriginalFilename())
+					.mimeType(uploadUtils.getMimeType(multipartFile))
+					.type("notice")
+					.build(), file);
+			NoticeUpload noticeUpload = NoticeUpload.builder().upload(Upload.of(storeUploadDto)).notice(notice).build();
+			noticeUploadRepository.save(noticeUpload);
+		});
+	}
 }

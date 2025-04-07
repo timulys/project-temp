@@ -3,15 +3,12 @@ package com.dkt.always.talk.service.friendTalk.impl;
 import com.dkt.always.talk.config.property.PlatformProperty;
 import com.dkt.always.talk.service.BizTalkCommonService;
 import com.dkt.always.talk.service.friendTalk.FriendTalkExternalService;
-import com.dkt.always.talk.utils.MessageSourceUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kep.core.model.dto.ResponseDto;
 import com.kep.core.model.dto.platform.kakao.KakaoFriendSendEvent;
 import com.kep.core.model.dto.platform.kakao.bizTalk.request.TalkSendRequestDto;
 import com.kep.core.model.dto.platform.kakao.bizTalk.response.TalkSendResponseDto;
 import com.kep.core.model.dto.upload.UploadPlatformRequestDto;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -24,7 +21,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,7 +38,6 @@ public class FriendTalkExternalServiceImpl extends BizTalkCommonService implemen
 
     /** Autowired Components **/
     private final ObjectMapper objectMapper;
-    private final MessageSourceUtil messageUtil;
     private final WebClient kakaoBizTalkWebClient;
     private final PlatformProperty platformProperty;
 
@@ -53,7 +48,6 @@ public class FriendTalkExternalServiceImpl extends BizTalkCommonService implemen
      * @throws Exception
      */
     @Override
-    @CircuitBreaker(name = "default", fallbackMethod = "friendTalkExternalCallFailedMethod")
     public ResponseEntity<List<? super TalkSendResponseDto>> sendFriendTalk(KakaoFriendSendEvent requestDto) {
         List<TalkSendResponseDto> responseList = requestDto.getSendMessages().stream().map(message -> {
             try {
@@ -102,11 +96,5 @@ public class FriendTalkExternalServiceImpl extends BizTalkCommonService implemen
         log.info("send image file result response = {}", response);
 
         return ResponseEntity.ok(response);
-    }
-
-    /////////////////////////// private methods ///////////////////////////
-    private ResponseEntity<ResponseDto> friendTalkExternalCallFailedMethod(Throwable throwable) {
-        log.error("BizMessageCenter Friend-Talk API Call Failed Fallback: {}", throwable.getMessage());
-        return ResponseDto.friendTalkFailedMessage(messageUtil.getMessage("friend_talk_call_failed"));
     }
 }

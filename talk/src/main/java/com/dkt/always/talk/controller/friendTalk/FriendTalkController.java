@@ -20,10 +20,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v2/friendtalk")
 @RequiredArgsConstructor
-@Slf4j
 public class FriendTalkController {
     /** Autowired Components **/
     private final FriendTalkExternalService friendTalkExternalService;
@@ -35,7 +35,9 @@ public class FriendTalkController {
             content = @Content(schema = @Schema(implementation = TalkSendResponseDto.class)))
     @PostMapping("/send")
     public ResponseEntity<List<? super TalkSendResponseDto>> send(@RequestBody @Valid KakaoFriendSendEvent requestDto) throws Exception {
+        log.info("Friend Talk Send Event : {}", requestDto);
         ResponseEntity<List<? super TalkSendResponseDto>> response = friendTalkExternalService.sendFriendTalk(requestDto);
+        log.info("Friend Talk Send Response : {}", response);
         return response;
     }
     // 이미지 업로드(와이드/일반)
@@ -45,7 +47,9 @@ public class FriendTalkController {
             content = @Content(schema = @Schema(implementation = TalkSendResponseDto.class)))
     @PostMapping("/upload")
     public ResponseEntity<? super TalkSendResponseDto> upload(UploadPlatformRequestDto requestDto) throws Exception {
+        log.info("Friend Talk Upload Event : {}", requestDto);
         ResponseEntity<? super TalkSendResponseDto> response = friendTalkExternalService.uploadImage(requestDto);
+        log.info("Friend Talk Upload Response : {}", response);
         return response;
     }
 

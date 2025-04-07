@@ -1,12 +1,11 @@
 package com.kep.portal.model.entity.notice;
 
-import com.kep.core.model.dto.notice.NoticeOpenType;
+import com.kep.portal.model.dto.notice.NoticeOpenType;
 import com.kep.portal.model.converter.BooleanConverter;
 import lombok.*;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -97,5 +96,22 @@ public class Notice {
 
 	@Transient
 	private Long readFlag;
+
+	// Post Notice DTO Mapping
+	public static Notice create(String title, String content, String openType, Long teamId, Boolean fixation) {
+		Notice notice = new Notice();
+		notice.setTitle(title);
+		notice.setContent(content);
+		notice.setOpenType(NoticeOpenType.valueOf(openType));
+		notice.setTeamId(teamId);
+		notice.setFixation(fixation);
+		return notice;
+	}
+	// Patch Notice DTO Mapping
+	public static Notice of(Long id, String title, String content, String openType, Long teamId, Boolean fixation) {
+		Notice notice = create(title, content, openType, teamId, fixation);
+		notice.setId(id);
+		return notice;
+	}
 
 }

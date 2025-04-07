@@ -1,7 +1,7 @@
 package com.kep.portal.model.entity.notice;
 
-import com.kep.core.model.dto.notice.NoticeDto;
-import com.kep.portal.model.dto.notice.NoticeResponseDto;
+import com.kep.portal.model.dto.notice.NoticeDto;
+import com.kep.portal.model.dto.notice.response.NoticeResponseDto;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;

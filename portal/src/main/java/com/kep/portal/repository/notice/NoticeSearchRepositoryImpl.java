@@ -14,7 +14,6 @@ import java.util.List;
 import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
 
-import com.kep.core.model.dto.notice.NoticeOpenType;
 import com.kep.portal.util.SecurityUtils;
 import com.querydsl.core.BooleanBuilder;
 import org.springframework.data.domain.Page;
@@ -23,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.ObjectUtils;
 
+import com.kep.portal.model.dto.notice.NoticeOpenType;
 import com.kep.portal.model.entity.notice.Notice;
 import com.kep.portal.model.entity.notice.NoticeUpload;
 import com.kep.portal.model.entity.notice.QNotice;

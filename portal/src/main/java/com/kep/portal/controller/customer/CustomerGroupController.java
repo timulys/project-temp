@@ -34,7 +34,7 @@ public class CustomerGroupController {
     @ApiResponse(responseCode = "200", description = "성공",
             content = @Content(schema = @Schema(implementation = PostCustomerGroupResponseDto.class)))
     @PostMapping
-    public ResponseEntity<? super PostCustomerGroupResponseDto> createCustomerGroup(
+    public ResponseEntity<? super PostCustomerGroupResponseDto> postCustomerGroup(
             @RequestBody @Valid PostCustomerGroupRequestDto requestBody) {
         log.info("Create Customer Group, Body : {}", requestBody);
         ResponseEntity<? super PostCustomerGroupResponseDto> response = customerGroupService.createCustomerGroup(requestBody);
