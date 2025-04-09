@@ -23,6 +23,8 @@ import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 
+// FIXME : 해당 서비스는 서비스레이어가 아닌 Utils 레이어에 포함되어야 함.
+// FIXME : 추후 해당 서비스를 Utils로 리팩토링 이후 레이어 이동시킬 것
 @Service
 @Transactional
 @Slf4j

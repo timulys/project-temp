@@ -2,19 +2,14 @@ package com.kep.portal.controller.notice;
 
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
-import com.kep.portal.model.dto.notice.NoticeDto;
-import com.kep.portal.model.dto.notice.NoticeUploadDto;
-import com.kep.portal.model.dto.notice.request.GetNoticeListRequestDto;
-import com.kep.portal.model.dto.notice.request.PatchNoticeFixationRequestDto;
-import com.kep.portal.model.dto.notice.request.PatchNoticeRequestDto;
-import com.kep.portal.model.dto.notice.request.PostNoticeRequestDto;
+import com.kep.portal.model.dto.notice.request.*;
 import com.kep.portal.model.dto.notice.response.*;
 import com.kep.portal.model.dto.notification.NotificationType;
+import com.kep.portal.service.notice.NoticeSearchService;
 import com.kep.portal.service.notice.NoticeService;
 import com.kep.portal.service.notification.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -30,7 +25,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -49,60 +43,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class NoticeController {
 	/** Autowired Components **/
-	private final NoticeService noticeService;
-	private final NotificationService notificationService; // 공지사항 등록 시 알림 생성을 위해 주입
-
-	/**
-	 * 공지사항 삭제
-	 * @param noticeDto
-	 * @return
- 	 * @수정일자	  / 수정자			 	/ 수정내용
-	 * 2023.03.28 / philip.lee7    	/ RequestHeader 로 수정
-	 */
-	@Tag(name = "공지사항 API")
-	@Operation(summary = "공지사항 삭제")
-	@DeleteMapping("/manager/delete")
-	@PreAuthorize("hasAnyAuthority('WRITE_NOTICE')")
-	public ResponseEntity<ApiResult<String>> put(
-			@RequestBody NoticeDto noticeDto) {
-
-		log.info("NOTICE MANAGER DELETE, POST, BODY : {}", noticeDto);
-
-		Assert.notNull(noticeDto.getIds(), "ids can not be null");
-
-		noticeService.destory(noticeDto);
-
-		ApiResult<String> response = ApiResult.<String>builder()
-				.code(ApiResultCode.succeed)
-				.payload("삭제가 완료 되었습니다.")
-				.build();
-		return new ResponseEntity<>(response, HttpStatus.OK);
-	}
-
-	/**
-	 * 공지사항 파일삭제
-	 * @return ResponseEntity
-	 * @수정일자	  / 수정자			 	/ 수정내용
-	 * 2023.03.28 / philip.lee7    	/ 신규
-	 */
-
-	@Tag(name = "공지사항 API")
-	@Operation(summary = "공지사항 파일 삭제")
-	@PostMapping("/delete/file")
-	@PreAuthorize("hasAnyAuthority('WRITE_NOTICE')")
-	public ResponseEntity<ApiResult<Boolean>> delete(
-			@RequestBody NoticeUploadDto noticeUploadDto
-			) {
-		log.info("NOTICE MANAGER DELETE, POST, ID: {}", noticeUploadDto);
-
-		Boolean result = noticeService.filedeleteOne(noticeUploadDto);
-
-
-		return new ResponseEntity<>(ApiResult.<Boolean>builder()
-				.code(result ? ApiResultCode.succeed : ApiResultCode.failed)
-				.payload(result)
-				.build(), HttpStatus.OK);
-	}
+	private final NoticeService noticeService; 				// 공지사항 관리 전용 서비스
+	private final NoticeSearchService noticeSearchService;	// 공지사항 조회 전용 서비스
+	private final NotificationService notificationService;	// 공지사항 등록 시 알림 생성을 위해 주입
 
 	// TODO : 조회 로직 리팩토링 필요
 	/**
@@ -118,7 +61,7 @@ public class NoticeController {
 			@RequestParam(name = "keyword", required = false) String keyword,
 			@RequestParam(name = "type", required = false) String type,
 			@PageableDefault(size = 100, sort = {"created"}, direction = Sort.Direction.DESC) Pageable pageable) {
-		Page<NoticeResponseDto> entities = noticeService.getList(keyword , type , pageable , true);
+		Page<NoticeResponseDto> entities = noticeSearchService.getList(keyword , type , pageable , true);
 		ApiResult<List<NoticeResponseDto>> response = ApiResult.<List<NoticeResponseDto>>builder()
 				.code(ApiResultCode.succeed)
 				.payload(entities.getContent())
@@ -132,7 +75,6 @@ public class NoticeController {
 	 * @param type : title, content
 	 * @param pageable
 	 * @return
-	 *
 	 * @수정일자	  / 수정자		 	/ 수정내용
 	 * 2023.04.04 / philip.lee7 / sort 파라미터 추가
 	 */
@@ -151,7 +93,7 @@ public class NoticeController {
 
 		log.info("NOTICE MANAGER LIST, GET, KEYWORD: {}", keyword);
 
-		Page<NoticeResponseDto> page = noticeService.getMangerList(keyword,type,pageable);
+		Page<NoticeResponseDto> page = noticeSearchService.getMangerList(keyword,type,pageable);
 
 		ApiResult<List<NoticeResponseDto>> response = ApiResult.<List<NoticeResponseDto>>builder()
 				.code(ApiResultCode.succeed)
@@ -185,11 +127,11 @@ public class NoticeController {
 
 		log.info("NOTICE MANAGER LIST, GET, KEYWORD: {}", keyword);
 
-		Page<NoticeResponseDto> page = noticeService.getList(keyword, type, pageable, fixation);
+		Page<NoticeResponseDto> page = noticeSearchService.getList(keyword, type, pageable, fixation);
 
 		// 미확인 공지사항 카운팅
 		Map<String, Object> map = new HashMap<>();
-		map.put("unreadNotice", noticeService.unreadNotice());
+		map.put("unreadNotice", noticeSearchService.unreadNotice());
 
 		ApiResult<List<NoticeResponseDto>> response = ApiResult.<List<NoticeResponseDto>>builder()
 				.code(ApiResultCode.succeed)
@@ -203,7 +145,6 @@ public class NoticeController {
 	}
 
 	/** V2 APIs **/
-	/** Create APIs **/
 	@Operation(summary = "공지사항 저장(V2)")
 	@ApiResponse(responseCode = "200", description = "성공",
 			content = @Content(schema = @Schema(implementation = PostNoticeResponseDto.class)))
@@ -220,7 +161,6 @@ public class NoticeController {
 		return response;
 	}
 
-	/** Retrieve APIs **/
 	@Operation(summary = "공지사항 목록 조회(V2)")
 	@ApiResponse(responseCode = "200", description = "성공",
 			content = @Content(schema = @Schema(implementation = GetNoticeListResponseDto.class)))
@@ -248,7 +188,6 @@ public class NoticeController {
 		return response;
 	}
 
-	/** Update APIs **/
 	@Operation(summary = "공지사항 수정(V2)")
 	@ApiResponse(responseCode = "200", description = "성공",
 			content = @Content(schema = @Schema(implementation = PatchNoticeResponseDto.class)))
@@ -273,6 +212,32 @@ public class NoticeController {
 		log.info("Patch Notice Fixation, Body : {}", requestBody);
 		ResponseEntity<? super PatchNoticeFixationResponseDto> response = noticeService.updateNoticeFixation(requestBody);
 		log.info("Patch Notice Fixation, Response : {}", response);
+		return response;
+	}
+
+	@Operation(summary = "공지사항 삭제(V2)")
+	@ApiResponse(responseCode = "200", description = "성공",
+			content = @Content(schema = @Schema(implementation = PatchNoticeDisableResponseDto.class)))
+	@PatchMapping("/disable")
+	@PreAuthorize("hasAnyAuthority('WRITE_NOTICE')")
+	public ResponseEntity<? super PatchNoticeDisableResponseDto> patchNoticeDisable(
+			@RequestBody @Valid PatchNoticeDisableRequestDto requestBody) {
+		log.info("Patch Notice Disable, Body : {}", requestBody);
+		ResponseEntity<? super PatchNoticeDisableResponseDto> response = noticeService.updateNoticeDisable(requestBody);
+		log.info("Patch Notice Disable, Response : {}", response);
+		return response;
+	}
+
+	@Operation(summary = "공지사항 파일 삭제(V2)")
+	@ApiResponse(responseCode = "200", description = "성공",
+			content = @Content(schema = @Schema(implementation = DeleteNoticeFileResponseDto.class)))
+	@DeleteMapping("/delete-files")
+	@PreAuthorize("hasAnyAuthority('WRITE_NOTICE')")
+	public ResponseEntity<? super DeleteNoticeFileResponseDto> deleteNoticeFile(
+			@RequestBody Long noticeUploadId) {
+		log.info("Delete Notice File, ID : {}", noticeUploadId);
+		ResponseEntity<? super DeleteNoticeFileResponseDto> response = noticeService.deleteNoticeFile(noticeUploadId);
+		log.info("Delete Notice File, Response : {}", response);
 		return response;
 	}
 }

@@ -12,6 +12,7 @@ import java.util.Optional;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
+import com.kep.portal.model.entity.notice.Notice;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -24,4 +25,9 @@ public interface NoticeUploadRepository extends JpaRepository<NoticeUpload, Long
 
 	List<NoticeUpload> findAllByNoticeId(Long noticeId);
 	void deleteAllByNoticeId(Long noticeId);
+
+    Long notice(Notice notice);
+
+	@NotNull
+	@Positive Long notice(Notice notice);
 }

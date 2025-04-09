@@ -6,15 +6,12 @@
 
 package com.kep.portal.repository.notice;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 import com.kep.portal.model.entity.notice.NoticeRead;
 import com.kep.portal.model.entity.notice.NoticeReadPk;
-
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public interface NoticeReadRepository extends JpaRepository<NoticeRead, NoticeReadPk>{
-	
-	int countByNoticeReadPk(NoticeReadPk noticeReadPk);
-	
+	boolean existsByNoticeReadPk(NoticeReadPk noticeReadPk);
 }
