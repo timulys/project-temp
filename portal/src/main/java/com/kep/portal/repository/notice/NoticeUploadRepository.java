@@ -26,8 +26,6 @@ public interface NoticeUploadRepository extends JpaRepository<NoticeUpload, Long
 	List<NoticeUpload> findAllByNoticeId(Long noticeId);
 	void deleteAllByNoticeId(Long noticeId);
 
-    Long notice(Notice notice);
-
 	@NotNull
 	@Positive Long notice(Notice notice);
 }
