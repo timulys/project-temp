@@ -45,7 +45,7 @@ public class NotificationController {
             content = @Content(schema = @Schema(implementation = GetNotificationListResponseDto.class)))
     @GetMapping
     public ResponseEntity<? super GetNotificationListResponseDto> getNotificationList(
-            @Parameter(description = "마지막 알림 ID(기준점)", in = ParameterIn.QUERY)
+            @Parameter(description = "마지막 알림 ID(기준점)")
             @RequestParam(name = "last_notification_id", required = false, defaultValue = "0") Long lastNotificationId) {
         log.info("Find All Notification List Between 7days");
         ResponseEntity<? super GetNotificationListResponseDto> response = notificationViewService.getNotificationList(lastNotificationId);
@@ -59,7 +59,7 @@ public class NotificationController {
             content = @Content(schema = @Schema(implementation = GetNotificationResponseDto.class)))
     @PatchMapping("/{id}")
     public ResponseEntity<? super GetNotificationResponseDto> patchNotificationReadStatus(
-            @Parameter(description = "알림 ID", in = ParameterIn.QUERY)
+            @Parameter(description = "알림 ID")
             @PathVariable("id") Long id) {
         log.info("Find Notification by Notification ID : {}", id);
         ResponseEntity<? super GetNotificationResponseDto> response = notificationViewService.patchNotificationReadStatus(id);

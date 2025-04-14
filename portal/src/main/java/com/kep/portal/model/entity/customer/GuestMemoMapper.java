@@ -6,7 +6,7 @@
  */
 package com.kep.portal.model.entity.customer;
 
-import com.kep.portal.model.dto.customer.GuestMemoDto;
+import com.kep.portal.model.dto.guestMemo.GuestMemoDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 

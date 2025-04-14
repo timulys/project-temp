@@ -15,7 +15,7 @@ public interface NoticeService {
 
     ResponseEntity<? super PatchNoticeDisableResponseDto> updateNoticeDisable(PatchNoticeDisableRequestDto dto);
     ResponseEntity<? super PatchNoticeFixationResponseDto> updateNoticeFixation(PatchNoticeFixationRequestDto dto);
-    ResponseEntity<? super PatchNoticeResponseDto> updateNotice(PatchNoticeRequestDto dto, List<MultipartFile> files);
+    ResponseEntity<? super PutNoticeResponseDto> updateNotice(PutNoticeRequestDto dto, List<MultipartFile> files);
 
     ResponseEntity<? super DeleteNoticeFileResponseDto> deleteNoticeFile(Long noticeUploadId);
 }

@@ -181,7 +181,7 @@ public class NoticeController {
 	@GetMapping("/{id}")
 	@PreAuthorize("hasAnyAuthority('READ_PORTAL', 'READ_MANAGE', 'READ_SYSTEM', 'WRITE_NOTICE')")
 	public ResponseEntity<? super GetNoticeResponseDto> getNotice(
-			@PathVariable("id") Long noticeId) {
+			@Parameter(description = "공지사항 ID") @PathVariable("id") Long noticeId) {
 		log.info("Get Notice Detail, ID : {}", noticeId);
 		ResponseEntity<? super GetNoticeResponseDto> response = noticeService.getNotice(noticeId);
 		log.info("Get Notice Detail, Response : {}", response);
@@ -190,14 +190,14 @@ public class NoticeController {
 
 	@Operation(summary = "공지사항 수정(V2)")
 	@ApiResponse(responseCode = "200", description = "성공",
-			content = @Content(schema = @Schema(implementation = PatchNoticeResponseDto.class)))
+			content = @Content(schema = @Schema(implementation = PutNoticeResponseDto.class)))
 	@PutMapping(value = "/update", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
 	@PreAuthorize("hasAnyAuthority('WRITE_NOTICE')")
-	public ResponseEntity<? super PatchNoticeResponseDto> putNotice(
-			@RequestBody @Valid PatchNoticeRequestDto requestBody,
+	public ResponseEntity<? super PutNoticeResponseDto> putNotice(
+			@RequestBody @Valid PutNoticeRequestDto requestBody,
 			@RequestPart(required = false) List<MultipartFile> files) {
 		log.info("Update Notice, Body : {}", requestBody);
-		ResponseEntity<? super PatchNoticeResponseDto> response = noticeService.updateNotice(requestBody, files);
+		ResponseEntity<? super PutNoticeResponseDto> response = noticeService.updateNotice(requestBody, files);
 		log.info("Update Notice, Response : {}", response);
 		return response;
 	}

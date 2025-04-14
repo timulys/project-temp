@@ -21,7 +21,7 @@ CREATE TABLE `guest_memo` (
   `created` datetime(6) NOT NULL COMMENT '등록 시간',
   `guest_id` bigint(20) DEFAULT NULL COMMENT '고객 PK',
   `member_id` bigint(20) DEFAULT NULL COMMENT '상담원 PK',
-  `modified` datetime(6) NOT NULL COMMENT '수정 시간',
+  `modified` datetime(6) DEFAULT NULL COMMENT '수정 시간',
   PRIMARY KEY (`id`),
   UNIQUE KEY `UK4wsqnt5yqclxqv97sda2s834u` (`guest_id`,`member_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

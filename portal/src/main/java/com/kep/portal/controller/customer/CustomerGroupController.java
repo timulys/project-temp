@@ -1,10 +1,9 @@
 package com.kep.portal.controller.customer;
 
-import com.kep.portal.model.dto.customer.response.PatchFavoriteCustomerResponseDto;
+import com.kep.portal.model.dto.customerGroup.request.PostCustomerGroupRequestDto;
 import com.kep.portal.model.dto.customerGroup.request.PutCustomerGroupRequestDto;
 import com.kep.portal.model.dto.customerGroup.response.DeleteCustomerGroupResponseDto;
 import com.kep.portal.model.dto.customerGroup.response.GetCustomerGroupListResponseDto;
-import com.kep.portal.model.dto.customerGroup.request.PostCustomerGroupRequestDto;
 import com.kep.portal.model.dto.customerGroup.response.PostCustomerGroupResponseDto;
 import com.kep.portal.model.dto.customerGroup.response.PutCustomerGroupResponseDto;
 import com.kep.portal.service.customer.CustomerGroupService;
@@ -20,17 +19,17 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
+@Tag(name = "고객 그룹 관리 API")
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/customer-group")
 public class CustomerGroupController {
-    /** Services **/
+    // Auwotied Components
     private final CustomerGroupService customerGroupService;
 
-    /** Create APIs **/
-    @Tag(name = "고객 그룹 API")
-    @Operation(summary = "고객 그룹 등록", description = "고객 관리 그룹 등록")
+    // Create APIs
+    @Operation(summary = "고객 그룹 등록")
     @ApiResponse(responseCode = "200", description = "성공",
             content = @Content(schema = @Schema(implementation = PostCustomerGroupResponseDto.class)))
     @PostMapping
@@ -38,12 +37,12 @@ public class CustomerGroupController {
             @RequestBody @Valid PostCustomerGroupRequestDto requestBody) {
         log.info("Create Customer Group, Body : {}", requestBody);
         ResponseEntity<? super PostCustomerGroupResponseDto> response = customerGroupService.createCustomerGroup(requestBody);
+        log.info("Create Customer Group, Response : {}", response);
         return response;
     }
 
-    /** Retrieve APIs **/
-    @Tag(name = "고객 그룹 API")
-    @Operation(summary = "고객 그룹 목록 전체 조회", description = "고객 관리 그룹 목록 전체 조회")
+    // Retrieve APIs
+    @Operation(summary = "고객 그룹 목록 전체 조회")
     @ApiResponse(responseCode = "200", description = "성공",
             content = @Content(schema = @Schema(implementation = GetCustomerGroupListResponseDto.class)))
     @GetMapping("/{memberId}")
@@ -51,12 +50,12 @@ public class CustomerGroupController {
             @PathVariable("memberId") Long memberId) {
         log.info("Find All Group By Member ID : {}", memberId);
         ResponseEntity<? super GetCustomerGroupListResponseDto> response = customerGroupService.findAllCustomerGroupByMemberId(memberId);
+        log.info("Find All Group, Response: {}", response);
         return response;
     }
 
-    /** Update APIs **/
-    @Tag(name = "고객 그룹 API")
-    @Operation(summary = "고객 그룹 수정", description = "고객 관리 그룹 수정")
+    // Update APIs
+    @Operation(summary = "고객 그룹 수정")
     @ApiResponse(responseCode = "200", description = "성공",
             content = @Content(schema = @Schema(implementation = PutCustomerGroupResponseDto.class)))
     @PatchMapping
@@ -64,12 +63,12 @@ public class CustomerGroupController {
             @RequestBody @Valid PutCustomerGroupRequestDto requestBody) {
         log.info("Put Customer Group, Body : {}", requestBody);
         ResponseEntity<? super PutCustomerGroupResponseDto> response = customerGroupService.updateCustomerGroup(requestBody);
+        log.info("Put Customer Group, Response : {}", response);
         return response;
     }
 
-    /** Delete APIs **/
-    @Tag(name = "고객 그룹 API")
-    @Operation(summary = "고객 그룹 삭제", description = "고객 관리 그룹 삭제")
+    // Delete APIs
+    @Operation(summary = "고객 그룹 삭제")
     @ApiResponse(responseCode = "200", description = "성공",
             content = @Content(schema = @Schema(implementation = DeleteCustomerGroupResponseDto.class)))
     @DeleteMapping("/{customerGroupId}")
@@ -77,6 +76,7 @@ public class CustomerGroupController {
             @PathVariable("customerGroupId") Long customerGroupId) {
         log.info("Delete Customer Group, Customer Group Id : {}", customerGroupId);
         ResponseEntity<? super DeleteCustomerGroupResponseDto> response = customerGroupService.deleteCustomerGroup(customerGroupId);
+        log.info("Delete Customer Group, Response : {}", response);
         return response;
     }
 }

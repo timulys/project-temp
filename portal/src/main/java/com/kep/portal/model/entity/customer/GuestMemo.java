@@ -51,8 +51,5 @@ public class GuestMemo {
     private ZonedDateTime created;
 
     @Comment("수정 시간")
-    @NotNull
     private ZonedDateTime modified;
-
-
 }

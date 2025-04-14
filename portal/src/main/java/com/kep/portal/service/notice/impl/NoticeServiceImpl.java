@@ -33,7 +33,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.time.ZonedDateTime;
@@ -57,6 +56,7 @@ public class NoticeServiceImpl implements NoticeService {
 
     private final SimpMessagingTemplate simpMessagingTemplate;
 
+    //FIXME : Upload 관련 Utils 클래스로 리팩토링 예정
     private final UploadUtils uploadUtils;
     private final UploadMapper uploadMapper;
     private final UploadService uploadService;
@@ -125,7 +125,7 @@ public class NoticeServiceImpl implements NoticeService {
      * @return
      */
     @Override
-    public ResponseEntity<? super PatchNoticeResponseDto> updateNotice(PatchNoticeRequestDto dto, List<MultipartFile> files) {
+    public ResponseEntity<? super PutNoticeResponseDto> updateNotice(PutNoticeRequestDto dto, List<MultipartFile> files) {
         boolean existedByNoticeId = noticeRepository.existsById(dto.getId());
         if (!existedByNoticeId) return ResponseDto.noSearchData(messageUtil.getMessage(MessageCode.NO_SEARCH_DATA));
 
@@ -146,7 +146,7 @@ public class NoticeServiceImpl implements NoticeService {
             uploadNoticeFiles(notice, files);
         }
 
-        return PatchNoticeResponseDto.success(messageUtil.success());
+        return PutNoticeResponseDto.success(messageUtil.success());
     }
 
     /**

@@ -4,15 +4,12 @@ import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.customer.CustomerDto;
 import com.kep.core.model.dto.legacy.LegacyCustomerDto;
-import com.kep.portal.model.dto.customer.GuestMemoDto;
 import com.kep.portal.model.dto.customer.request.PatchCustomerRequestDto;
 import com.kep.portal.model.dto.customer.request.PatchFavoriteCustomerRequestDto;
 import com.kep.portal.model.dto.customer.request.PostCustomerRequestDto;
 import com.kep.portal.model.dto.customer.response.*;
 import com.kep.portal.service.customer.CustomerServiceImpl;
-import com.kep.portal.service.customer.GuestMemoService;
 import com.kep.portal.util.SecurityUtils;
-import com.mysema.commons.lang.Assert;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -41,9 +38,6 @@ public class CustomerController {
 
     @Resource
     private SecurityUtils securityUtils;
-
-    @Resource
-    private GuestMemoService guestMemoService;
 
     /**
      * 전체 고객 목록 (접근 권한 룰은 업체마다)
@@ -130,47 +124,8 @@ public class CustomerController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @Tag(name = "고객 API")
-    @Operation(summary = "고객 메모 조회")
-    @GetMapping("/memo/{id}")
-    public ResponseEntity<ApiResult<GuestMemoDto>> getCustomerMemo(
-            @Parameter(description = "고객 아이디", in = ParameterIn.PATH, required = true)
-            @PathVariable Long id
-    ){
-
-
-        GuestMemoDto customerMemoDto = guestMemoService.findCustomerMemo(id);
-
-        ApiResult< GuestMemoDto> response = ApiResult.<GuestMemoDto>builder()
-                .code(ApiResultCode.succeed)
-                .payload(customerMemoDto)
-                .build();
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    @Tag(name = "고객 API")
-    @Operation(summary = "고객 메모 저장")
-    @PostMapping(value="/memo/save")
-    public ResponseEntity<ApiResult<GuestMemoDto>> manageCustomerMemo(@RequestBody GuestMemoDto dto) {
-
-        log.info("NOTICE MANAGER SAVE, POST, BODY guestId: {}", dto.getCustomerId());
-
-        Assert.notNull(dto,"dto is null");
-
-        GuestMemoDto resultDto = guestMemoService.saveCustomerMemo(dto);
-
-
-        ApiResult<GuestMemoDto> response = ApiResult.<GuestMemoDto>builder()
-                .code(ApiResultCode.succeed)
-                .payload(resultDto)
-                .build();
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-
-
     /** V2 **/
-    /** Create Methods **/
+    // Create APIs
     /**
      * TODO: 해당 기능은 원래 기획에 없던 기능임, 이 부분은 추후 상황을 고려하여 삭제되어야 함
      * TODO: 정규 기능으로 유지해야 하는지에 대한 판단 필요 - by, tim.c
@@ -189,7 +144,7 @@ public class CustomerController {
     }
 
 
-    /** Retrieve Methods **/
+    // Retrieve APIs
     /**
      * 고객 정보 전체 조회
      * @param memberId
@@ -260,7 +215,7 @@ public class CustomerController {
 
 
 
-    /** Update Methods **/
+    // Update Methods
     /**
      * 고객 정보 수정
      */
@@ -294,7 +249,7 @@ public class CustomerController {
     }
 
 
-    /** Delete Methods **/
+    // Delete Methods
     /**
      * 고객 정보 삭제
      * @param customerId

@@ -20,11 +20,10 @@ import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @Transactional
-@Slf4j
 public class GuestService {
-
 	@Resource
 	private GuestRepository guestRepository;
 	@Resource
