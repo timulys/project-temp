@@ -2,42 +2,32 @@ package com.kep.portal.service.ai.impl;
 
 import com.kep.core.model.dto.ResponseDto;
 import com.kep.core.model.enums.MessageCode;
-import com.kep.portal.client.ChatCompletionClient;
-import com.kep.portal.model.dto.openai.MessageDto;
-import com.kep.portal.model.dto.openai.request.PostChatRequestDto;
 import com.kep.portal.model.dto.openai.response.PostChatResponseDto;
 import com.kep.portal.model.entity.issue.IssueLog;
 import com.kep.portal.repository.issue.IssueLogRepository;
 import com.kep.portal.repository.issue.IssueRepository;
-import com.kep.portal.service.ai.OpenAiService;
+import com.kep.portal.service.ai.OpenAssistantService;
+import com.kep.portal.util.AssistantUtils;
 import com.kep.portal.util.MessageSourceUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class OpenAiServiceImpl implements OpenAiService {
-    @Value("${openai.model}")
-    private String model;
-    @Value("${openai.api.key}")
-    private String apiKey;
-    private final static String ROLE_USER = "user";
-
-    /** Autowired Components **/
+public class OpenAssistantServiceImpl implements OpenAssistantService {
+    // Autowired Components
     private final MessageSourceUtil messageUtil;
+    private final AssistantUtils assistantUtils;
     private final IssueRepository issueRepository;
     private final IssueLogRepository issueLogRepository;
-    private final ChatCompletionClient chatCompletionClient;
 
     @Override
-    public ResponseEntity<? super PostChatResponseDto> findAiSummary(Long issueId) {
+    public ResponseEntity<? super PostChatResponseDto> findAiAssistantSummary(Long issueId) {
         boolean existedByIssueId = issueRepository.existsById(issueId);
         if(!existedByIssueId) return ResponseDto.databaseErrorMessage(messageUtil.getMessage(MessageCode.NOT_EXISTED_DATA));
 
@@ -75,25 +65,14 @@ public class OpenAiServiceImpl implements OpenAiService {
                 "계정 및 기타 문의 > 계정 관리 > 개인정보 처리방침\n" +
                 "계정 및 기타 문의 > 자주 묻는 질문 > 자주 묻는 질문 찾기\n" +
                 "계정 및 기타 문의 > 분실물 > 분실물 찾기");
-
-        MessageDto messageDto = MessageDto.builder()
-                .role(ROLE_USER)
-                .content(question.toString())
-                .build();
-
-        PostChatRequestDto postChatRequestDto = PostChatRequestDto.builder()
-                .model(model)
-                .messages(Collections.singletonList(messageDto))
-                .build();
-
-        String answer = chatCompletionClient.chatCompletions("Bearer " + apiKey, postChatRequestDto)
-                .getChoices()
-                .stream()
-                .findFirst()
-                .orElse(null)
-                .getMessage()
-                .getContent();
-
+        String answer;
+        try {
+            answer = assistantUtils.chatWithAssistant(String.valueOf(question));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         return PostChatResponseDto.success(answer, messageUtil.success());
     }
+
+
 }
