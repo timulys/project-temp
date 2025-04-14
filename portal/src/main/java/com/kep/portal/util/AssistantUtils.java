@@ -59,7 +59,7 @@ public final class AssistantUtils {
     }
 
     private String createRun(String threadId) throws IOException {
-        HttpPost request = new HttpPost(BASE_URL + "/threads/" + threadId + "/runs");
+        HttpPost request = new HttpPost(baseUrl + "/threads/" + threadId + "/runs");
         setHeaders(request);
 
         ObjectNode runJson = objectMapper.createObjectNode();
@@ -72,7 +72,7 @@ public final class AssistantUtils {
     private void waitForRunCompletion(String threadId, String runId) throws Exception {
         String status = "";
         while (!"completed".equals(status)) {
-            HttpGet request = new HttpGet(BASE_URL + "/threads/" + threadId + "/runs/" + runId);
+            HttpGet request = new HttpGet(baseUrl + "/threads/" + threadId + "/runs/" + runId);
             setHeaders(request);
 
             try (CloseableHttpResponse response = httpClient.execute(request)) {
@@ -85,7 +85,7 @@ public final class AssistantUtils {
     }
 
     private String fetchLatestAssistantReply(String threadId) throws IOException {
-        HttpGet request = new HttpGet(BASE_URL + "/threads/" + threadId + "/messages");
+        HttpGet request = new HttpGet(baseUrl + "/threads/" + threadId + "/messages");
         setHeaders(request);
 
         try (CloseableHttpResponse response = httpClient.execute(request)) {
