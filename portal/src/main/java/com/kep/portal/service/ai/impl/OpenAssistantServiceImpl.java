@@ -91,7 +91,7 @@ public class OpenAssistantServiceImpl implements OpenAssistantService {
         StringBuilder question = new StringBuilder();
         issueExtraList.forEach(issueExtra -> question.append(issueExtra.getSummaryModified() + " : " + issueExtra.getSummary() + "\n"));
         question.append("\n");
-        question.append("위 요약 내용을 일자별로 한 줄로 더 요약해줘. 일자 양식은 yyyy-MM-dd HH:mm:ss 형태로 만들어줘");
+        question.append("위 요약 내용을 일자별로 한 줄로 더 요약해줘. 양식은 'yyyy-MM-dd HH:mm:ss : 요약내용'형태를 지켜서 만들어줘");
 
         String answer;
         try {

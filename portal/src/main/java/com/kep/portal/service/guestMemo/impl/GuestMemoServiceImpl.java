@@ -84,7 +84,7 @@ public class GuestMemoServiceImpl implements GuestMemoService {
                 return ResponseDto.noSearchData(messageUtil.getMessage(MessageCode.NO_SEARCH_DATA));
             guestMemo = guestMemoRepository.findByGuestIdAndMemberId(guestId, securityUtils.getMemberId());
         }
-        if (customerId != null) {
+        if (guestMemo == null && customerId != null) {
             boolean existedByCustomerId = customerRepository.existsById(customerId);
             if (!existedByCustomerId)
                 return ResponseDto.notExistedCustomer(messageUtil.getMessage(MessageCode.NOT_EXISTED_CUSTOMER));
