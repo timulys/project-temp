@@ -1,6 +1,6 @@
 package com.kep.portal.service.ai;
 
-import com.kep.portal.model.dto.openai.response.PostChatResponseDto;
+import com.kep.portal.model.dto.openai.response.GetChatResponseDto;
 import org.springframework.http.ResponseEntity;
 
 public interface OpenAiService {
@@ -8,7 +8,7 @@ public interface OpenAiService {
 
 
     /** Retrieve Methods **/
-    ResponseEntity<? super PostChatResponseDto> findAiSummary(Long issueId);
+    ResponseEntity<? super GetChatResponseDto> findAiSummary(Long issueId);
 
     /** Update Methods **/
 

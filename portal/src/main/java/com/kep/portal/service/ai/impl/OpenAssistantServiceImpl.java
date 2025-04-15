@@ -2,8 +2,11 @@ package com.kep.portal.service.ai.impl;
 
 import com.kep.core.model.dto.ResponseDto;
 import com.kep.core.model.enums.MessageCode;
-import com.kep.portal.model.dto.openai.response.PostChatResponseDto;
+import com.kep.portal.model.dto.openai.response.GetChatResponseDto;
+import com.kep.portal.model.entity.issue.IssueExtra;
 import com.kep.portal.model.entity.issue.IssueLog;
+import com.kep.portal.repository.customer.GuestRepository;
+import com.kep.portal.repository.issue.IssueExtraRepository;
 import com.kep.portal.repository.issue.IssueLogRepository;
 import com.kep.portal.repository.issue.IssueRepository;
 import com.kep.portal.service.ai.OpenAssistantService;
@@ -21,13 +24,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OpenAssistantServiceImpl implements OpenAssistantService {
     // Autowired Components
-    private final MessageSourceUtil messageUtil;
     private final AssistantUtils assistantUtils;
+    private final MessageSourceUtil messageUtil;
+    private final GuestRepository guestRepository;
     private final IssueRepository issueRepository;
     private final IssueLogRepository issueLogRepository;
+    private final IssueExtraRepository issueExtraRepository;
 
     @Override
-    public ResponseEntity<? super PostChatResponseDto> findAiAssistantSummary(Long issueId) {
+    public ResponseEntity<? super GetChatResponseDto> findSummaryAiAssistant(Long issueId) {
         boolean existedByIssueId = issueRepository.existsById(issueId);
         if(!existedByIssueId) return ResponseDto.databaseErrorMessage(messageUtil.getMessage(MessageCode.NOT_EXISTED_DATA));
 
@@ -71,8 +76,29 @@ public class OpenAssistantServiceImpl implements OpenAssistantService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return PostChatResponseDto.success(answer, messageUtil.success());
+        return GetChatResponseDto.success(answer, messageUtil.success());
     }
 
+    @Override
+    public ResponseEntity<? super GetChatResponseDto> findAllSummaryAiAssistant(Long guestId) {
+        boolean existedByGuestId = guestRepository.existsById(guestId);
+        if (!existedByGuestId) return ResponseDto.noSearchData(messageUtil.getMessage(MessageCode.NO_SEARCH_DATA));
 
+        List<IssueExtra> issueExtraList = issueExtraRepository.findAllByGuestIdAndSummaryNotNullOrderBySummaryModifiedDesc(guestId);
+        if (issueExtraList == null || issueExtraList.isEmpty())
+            return ResponseDto.databaseErrorMessage(messageUtil.getMessage(MessageCode.DATABASE_ERROR));
+
+        StringBuilder question = new StringBuilder();
+        issueExtraList.forEach(issueExtra -> question.append(issueExtra.getSummaryModified() + " : " + issueExtra.getSummary() + "\n"));
+        question.append("\n");
+        question.append("위 요약 내용을 일자별로 한 줄로 더 요약해줘. 일자 양식은 yyyy-MM-dd HH:mm:ss 형태로 만들어줘");
+
+        String answer;
+        try {
+            answer = assistantUtils.chatWithAssistant(String.valueOf(question));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return GetChatResponseDto.success(answer, messageUtil.success());
+    }
 }

@@ -5,7 +5,7 @@ import com.kep.core.model.enums.MessageCode;
 import com.kep.portal.client.ChatCompletionClient;
 import com.kep.portal.model.dto.openai.MessageDto;
 import com.kep.portal.model.dto.openai.request.PostChatRequestDto;
-import com.kep.portal.model.dto.openai.response.PostChatResponseDto;
+import com.kep.portal.model.dto.openai.response.GetChatResponseDto;
 import com.kep.portal.model.entity.issue.IssueLog;
 import com.kep.portal.repository.issue.IssueLogRepository;
 import com.kep.portal.repository.issue.IssueRepository;
@@ -37,7 +37,7 @@ public class OpenAiServiceImpl implements OpenAiService {
     private final ChatCompletionClient chatCompletionClient;
 
     @Override
-    public ResponseEntity<? super PostChatResponseDto> findAiSummary(Long issueId) {
+    public ResponseEntity<? super GetChatResponseDto> findAiSummary(Long issueId) {
         boolean existedByIssueId = issueRepository.existsById(issueId);
         if(!existedByIssueId) return ResponseDto.databaseErrorMessage(messageUtil.getMessage(MessageCode.NOT_EXISTED_DATA));
 
@@ -45,7 +45,7 @@ public class OpenAiServiceImpl implements OpenAiService {
         if (issueLogList.size() == 0) return ResponseDto.databaseErrorMessage(messageUtil.getMessage(MessageCode.NOT_EXISTED_DATA));
 
         StringBuilder question = new StringBuilder();
-        issueLogList.stream().forEach(issueLog -> question.append(issueLog.getPayload()));
+        issueLogList.forEach(issueLog -> question.append(issueLog.getPayload()));
         question.append("상담원의 입장에서 위 고객과의 대화 내용들 중 핵심을 뽑아서 3줄 이하로 줄바꿈해서 요약해줘.\n");
         question.append("'[요약]' 이라는 문구 아래 3줄로 요약한 내용을 붙여줘.\n");
         question.append("3줄 요약 이외에 추가적으로 고객의 핵심 요구사항 키워드를 '[핵심 키워드]' 문구 아래에 표시해줘.\n");
@@ -94,6 +94,6 @@ public class OpenAiServiceImpl implements OpenAiService {
                 .getMessage()
                 .getContent();
 
-        return PostChatResponseDto.success(answer, messageUtil.success());
+        return GetChatResponseDto.success(answer, messageUtil.success());
     }
 }
