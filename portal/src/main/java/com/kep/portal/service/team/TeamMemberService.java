@@ -38,6 +38,10 @@ public class TeamMemberService {
 		return teamMemberRepository.findAllByMemberIdIn(memberIds);
 	}
 
+	public List<TeamMember> findAllByMemberId(Long memberId) {
+		return teamMemberRepository.findAllByMemberId(memberId);
+	}
+
 	public List<Member> teamMembers(@NotNull Long teamId){
 
 		List<TeamMember> teamMembers = teamMemberRepository.findByTeamId(teamId);

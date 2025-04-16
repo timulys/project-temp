@@ -1,7 +1,7 @@
 package com.kep.portal.controller.assistant;
 
 import com.kep.portal.model.dto.openai.response.GetChatResponseDto;
-import com.kep.portal.service.ai.OpenAssistantService;
+import com.kep.portal.service.assistant.OpenAssistantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -31,7 +31,7 @@ public class AssistantController {
     public ResponseEntity<? super GetChatResponseDto> getIssueSummaryAssistant(@PathVariable("issueId") Long issueId) {
         log.info("AI Assistant Issue Summary, Issue ID : {}", issueId);
         ResponseEntity<? super GetChatResponseDto> response = openAssistantService.findSummaryAiAssistant(issueId);
-        log.info("AI Assistant Issue Summary, Response : {}", response);
+        log.info("AI Assistant Issue Summary, Response : {}", response.getBody());
         return response;
     }
 
@@ -42,7 +42,7 @@ public class AssistantController {
     public ResponseEntity<? super GetChatResponseDto> getAllIssueSummaryAssistant(@PathVariable("guestId") Long guestId) {
         log.info("AI Assistant All Issue Summary, Guest ID : {}", guestId);
         ResponseEntity<? super GetChatResponseDto> response = openAssistantService.findAllSummaryAiAssistant(guestId);
-        log.info("AI Assistant All Issue Summary, Response : {}", response);
+        log.info("AI Assistant All Issue Summary, Response : {}", response.getBody());
         return response;
     }
 }

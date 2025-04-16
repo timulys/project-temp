@@ -5,10 +5,12 @@ import com.kep.core.model.dto.common.ResponseCode;
 import com.kep.core.model.dto.customer.CustomerDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
+import lombok.ToString;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 @Getter
+@ToString
 public class GetCustomerResponseDto extends ResponseDto {
     @Schema(description = "고객 정보")
     private CustomerDto customer;

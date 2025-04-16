@@ -5,12 +5,14 @@ import com.kep.core.model.dto.common.ResponseCode;
 import com.kep.core.model.dto.customer.CustomerDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
+import lombok.ToString;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
 @Getter
+@ToString
 public class GetAnniversariesCustomerListResponseDto extends ResponseDto {
     @Schema(description = "고객 목록")
     private List<CustomerDto> customerList;

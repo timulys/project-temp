@@ -89,11 +89,6 @@ public class MemberDto {
 	@Schema(description = "")
 	private Long outsourcing;
 
-//	@Deprecated
-//@Schema(description = "
-//	private List<MemberRoleDto> memberRoles;
-
-
 	@JsonIgnoreProperties({ "member", "members" })
 	@Schema(description = "팀 목록")
 	private List<TeamDto> teams;

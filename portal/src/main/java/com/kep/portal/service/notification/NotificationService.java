@@ -66,11 +66,10 @@ public class NotificationService {
     private SecurityUtils securityUtils;
 
     /** Autowired Components **/
+    private final MemberMapper memberMapper;
     private final MessageSourceUtil messageUtil;
     private final BranchRepository branchRepository;
     private final MemberRepository memberRepository;
-    @Autowired
-    private MemberMapper memberMapper;
 
     public NotificationDto store(NotificationInfoDto info, NotificationDto requestDto) {
 

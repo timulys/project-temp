@@ -488,6 +488,7 @@ public class MemberService {
 	/**
 	 * 회원 정보
 	 */
+	@Deprecated
 	public MemberDto get(@NotNull Long id) {
 		Member entity = memberRepository.findById(id).orElse(null);
 		if (entity != null) {
@@ -538,7 +539,12 @@ public class MemberService {
 		return null;
 	}
 
-
+	public List<Long> getMemberRoleIds(Long memberId) {
+		return memberRoleRepository.findAllByMemberId(memberId)
+				.stream()
+				.map(MemberRole::getRoleId)
+				.collect(Collectors.toList());
+	}
 
 
 	public Page<MemberDto> items(Pageable pageable) {

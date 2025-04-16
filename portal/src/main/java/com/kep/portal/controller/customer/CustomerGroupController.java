@@ -37,7 +37,7 @@ public class CustomerGroupController {
             @RequestBody @Valid PostCustomerGroupRequestDto requestBody) {
         log.info("Create Customer Group, Body : {}", requestBody);
         ResponseEntity<? super PostCustomerGroupResponseDto> response = customerGroupService.createCustomerGroup(requestBody);
-        log.info("Create Customer Group, Response : {}", response);
+        log.info("Create Customer Group, Response : {}", response.getBody());
         return response;
     }
 
@@ -63,7 +63,7 @@ public class CustomerGroupController {
             @RequestBody @Valid PutCustomerGroupRequestDto requestBody) {
         log.info("Put Customer Group, Body : {}", requestBody);
         ResponseEntity<? super PutCustomerGroupResponseDto> response = customerGroupService.updateCustomerGroup(requestBody);
-        log.info("Put Customer Group, Response : {}", response);
+        log.info("Put Customer Group, Response : {}", response.getBody());
         return response;
     }
 
@@ -76,7 +76,7 @@ public class CustomerGroupController {
             @PathVariable("customerGroupId") Long customerGroupId) {
         log.info("Delete Customer Group, Customer Group Id : {}", customerGroupId);
         ResponseEntity<? super DeleteCustomerGroupResponseDto> response = customerGroupService.deleteCustomerGroup(customerGroupId);
-        log.info("Delete Customer Group, Response : {}", response);
+        log.info("Delete Customer Group, Response : {}", response.getBody());
         return response;
     }
 }

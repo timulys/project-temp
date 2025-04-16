@@ -36,7 +36,7 @@ public class NotificationController {
     public ResponseEntity<? super GetUnreadNotificationCountResponseDto> getUnreadNotificationCount() {
         log.info("Count Unread Notification");
         ResponseEntity<? super GetUnreadNotificationCountResponseDto> response = notificationViewService.getUnreadNotificationCount();
-        log.info("Get Unread, Result : {}", response);
+        log.info("Get Unread, Response : {}", response.getBody());
         return response;
     }
 
@@ -49,7 +49,7 @@ public class NotificationController {
             @RequestParam(name = "last_notification_id", required = false, defaultValue = "0") Long lastNotificationId) {
         log.info("Find All Notification List Between 7days");
         ResponseEntity<? super GetNotificationListResponseDto> response = notificationViewService.getNotificationList(lastNotificationId);
-        log.info("Get Notification List, Result : {}", response);
+        log.info("Get Notification List, Response : {}", response.getBody());
         return response;
     }
 
@@ -63,7 +63,7 @@ public class NotificationController {
             @PathVariable("id") Long id) {
         log.info("Find Notification by Notification ID : {}", id);
         ResponseEntity<? super GetNotificationResponseDto> response = notificationViewService.patchNotificationReadStatus(id);
-        log.info("Get Notification, Result : {}", response);
+        log.info("Get Notification, Response : {}", response.getBody());
         return response;
     }
 
@@ -74,7 +74,7 @@ public class NotificationController {
     public ResponseEntity<? super PatchNotificationReadAllResponseDto> patchNotificationReadAll() {
         log.info("Patch Read All Notification By Member ID : {}", securityUtils.getMemberId());
         ResponseEntity<? super PatchNotificationReadAllResponseDto> response = notificationViewService.patchNotificationReadAll();
-        log.info("Patch Notification Read All, Result : {}", response);
+        log.info("Patch Notification Read All, Response : {}", response.getBody());
         return response;
     }
 }

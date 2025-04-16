@@ -4,12 +4,14 @@ import com.kep.core.model.dto.ResponseDto;
 import com.kep.core.model.dto.common.ResponseCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
+import lombok.ToString;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
 @Getter
+@ToString
 public class GetNoticeListResponseDto extends ResponseDto {
     @Schema(description = "공지사항 목록")
     private final List<NoticeResponseDto> noticeList;

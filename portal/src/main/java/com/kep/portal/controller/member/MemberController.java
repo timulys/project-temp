@@ -8,12 +8,20 @@ import com.kep.core.model.type.QueryParam;
 import com.kep.portal.model.dto.member.MemberAssignDto;
 import com.kep.portal.model.dto.member.MemberPassDto;
 import com.kep.portal.model.dto.member.MemberSearchCondition;
+import com.kep.portal.model.dto.member.response.GetMemberResponseDto;
+import com.kep.portal.model.dto.notification.response.GetNotificationResponseDto;
 import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.service.member.MemberService;
+import com.kep.portal.service.member.MemberServiceV2;
+import com.kep.portal.service.member.aggregator.MemberAggregation;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -42,9 +50,12 @@ import java.util.Map;
 @Tag(name = "사용자(계정) 관리 API", description = "/api/v1/member")
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/member")
 public class MemberController {
-
+    // Autowired Components
+    private final MemberServiceV2 memberServiceV2;
+    private final MemberAggregation memberAggregation;
     @Resource
     private MemberService memberService;
 
@@ -117,31 +128,6 @@ public class MemberController {
                 .totalPage(page.getTotalPages())
                 .totalElement(page.getTotalElements())
                 .build(), httpStatus);
-    }
-
-    /**
-     * 조회
-     */
-    @Tag(name = "사용자(계정) 관리 API")
-    @Operation(summary = "사용자 계정 상세 조회")
-    @GetMapping(value = "/{id}")
-    public ResponseEntity<ApiResult<MemberDto>> get(
-            @Parameter(description = "사용자(계정) 아이디", in = ParameterIn.PATH, required = true)
-            @PathVariable("id") Long id) {
-
-        log.info("MEMBER, GET, MEMBER: {}", id);
-
-        MemberDto memberDto = memberService.get(id);
-
-        if (memberDto == null) {
-            return new ResponseEntity<>(new ApiResult<>(ApiResultCode.failed), HttpStatus.NOT_FOUND);
-        } else {
-            ApiResult<MemberDto> response = ApiResult.<MemberDto>builder()
-                    .code(ApiResultCode.succeed)
-                    .payload(memberDto)
-                    .build();
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        }
     }
 
     /**
@@ -512,4 +498,18 @@ public class MemberController {
         Page<MemberDto> page = memberService.notIn(condition, pageable);
         return response(page, HttpStatus.OK);
     }
+
+    /** V2 Apis **/
+    @Operation(summary = "사용자 계정 상세 조회(V2)")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = GetMemberResponseDto.class)))
+    @GetMapping("/{id}")
+    public ResponseEntity<? super GetMemberResponseDto> getMember(
+            @Parameter(description = "Member 아이디") @PathVariable("id") Long id) {
+        log.info("Get Member, Member ID : {}", id);
+        ResponseEntity<? super GetMemberResponseDto> response = memberAggregation.getMember(id);
+        log.info("Get Member, Response : {}", response.getBody());
+        return response;
+    }
+
 }

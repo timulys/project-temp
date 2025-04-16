@@ -4,10 +4,12 @@ import com.kep.core.model.dto.ResponseDto;
 import com.kep.core.model.dto.common.ResponseCode;
 import com.kep.core.model.dto.common.ResponseMessage;
 import lombok.Getter;
+import lombok.ToString;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 @Getter
+@ToString
 public class DeleteCustomerGroupResponseDto extends ResponseDto {
     private DeleteCustomerGroupResponseDto(String message) {
         super(ResponseCode.SUCCESS, message);
