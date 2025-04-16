@@ -55,6 +55,7 @@ public class GuestMemoServiceImpl implements GuestMemoService {
 
         if(guestMemo != null) {
             guestMemo.setMemberId(securityUtils.getMemberId());
+            guestMemo.setCustomerId(dto.getCustomerId());
             guestMemo.setContent(dto.getContent());
             guestMemo.setModified(ZonedDateTime.now());
         } else {
@@ -91,7 +92,7 @@ public class GuestMemoServiceImpl implements GuestMemoService {
             guestMemo = guestMemoRepository.findByCustomerIdAndMemberId(customerId, securityUtils.getMemberId());
         }
 
-        if (guestMemo == null) return ResponseDto.databaseErrorMessage(messageUtil.getMessage(MessageCode.DATABASE_ERROR));
+        if (guestMemo == null) return ResponseDto.noSearchData(messageUtil.getMessage(MessageCode.NO_SEARCH_DATA));
 
         return GetGuestMemoResponseDto.success(GuestMemoDto.of(guestMemo), messageUtil.success());
     }
