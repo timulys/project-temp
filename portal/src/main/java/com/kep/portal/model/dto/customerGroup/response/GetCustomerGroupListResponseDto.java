@@ -6,6 +6,7 @@ import com.kep.portal.model.dto.customerGroup.CustomerGroupDto;
 import com.kep.portal.model.entity.customer.CustomerGroup;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
+import lombok.ToString;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
+@ToString
 public class GetCustomerGroupListResponseDto extends ResponseDto {
     @Schema(description = "고객 그룹 목록")
     private final List<CustomerGroupDto> customerGroupList;

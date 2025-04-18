@@ -16,7 +16,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class BranchTeamDto {
-
     @Positive
     @Schema(description = "브랜치 팀 아이디")
     private Long id;
@@ -28,5 +27,4 @@ public class BranchTeamDto {
     private TeamDto team;
     @Schema(description = "사용자 정보")
     private MemberDto member;
-
 }

@@ -16,6 +16,6 @@ public class PostGuestMemoResponseDto extends ResponseDto {
 
     public static ResponseEntity<PostGuestMemoResponseDto> success(String message) {
         PostGuestMemoResponseDto result = new PostGuestMemoResponseDto(message);
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 }

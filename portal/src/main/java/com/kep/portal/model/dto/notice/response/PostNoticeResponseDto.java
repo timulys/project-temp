@@ -16,6 +16,6 @@ public class PostNoticeResponseDto extends ResponseDto {
 
     public static ResponseEntity<PostNoticeResponseDto> success(String message) {
         PostNoticeResponseDto result = new PostNoticeResponseDto(message);
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 }

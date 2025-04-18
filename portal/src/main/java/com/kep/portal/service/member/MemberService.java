@@ -3,7 +3,6 @@ package com.kep.portal.service.member;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kep.core.model.dto.branch.BranchDto;
-import com.kep.core.model.dto.env.CounselEnvDto;
 import com.kep.core.model.dto.env.CounselInflowEnvDto;
 import com.kep.core.model.dto.issue.payload.IssuePayload;
 import com.kep.core.model.dto.member.MemberDto;
@@ -28,7 +27,9 @@ import com.kep.portal.model.entity.privilege.Level;
 import com.kep.portal.model.entity.privilege.Role;
 import com.kep.portal.model.entity.team.Team;
 import com.kep.portal.model.entity.team.TeamMember;
-import com.kep.portal.model.entity.work.*;
+import com.kep.portal.model.entity.work.MemberOfficeHours;
+import com.kep.portal.model.entity.work.OffDutyHours;
+import com.kep.portal.model.entity.work.OfficeHours;
 import com.kep.portal.repository.assign.BranchOfficeHoursRepository;
 import com.kep.portal.repository.assign.MemberOfficeHoursRepository;
 import com.kep.portal.repository.branch.BranchRepository;
@@ -113,9 +114,6 @@ public class MemberService {
 	private BranchService branchService;
 	@Resource
 	private RoleRepository roleRepository;
-
-	@Resource
-	private OfficeHoursMapper officeHoursMapper;
 	@Resource
 	private IssueService issueService;
 	@Resource
@@ -1005,15 +1003,9 @@ public class MemberService {
 	 * 	or
 	 * 같은 그룹 and 팀장 아닌 멤버 and 무소속 매니저
 	 */
+	@Deprecated
 	public Page<MemberDto> notIn(MemberSearchCondition condition, Pageable pageable) {
 		Long teamId = condition.getTeamId();
-//		if (condition.getTeamId() != null) {
-//			List<TeamMember> teamMembers = teamMemberService.findAllByTeamId(condition.getTeamId());
-//			if (teamMembers.isEmpty()) {
-//				return new PageImpl<>(Collections.emptyList());
-//			}
-//			condition.setIds(teamMembers.stream().map(TeamMember::getMemberId).collect(Collectors.toSet()));
-//		}
 
 		if (securityUtils.isManager()) {
 			List<TeamMember> teamMembers = teamMemberRepository.findAllByTeamId(securityUtils.getTeamId());
@@ -1036,23 +1028,6 @@ public class MemberService {
 			Set<Long> memberIds = memberRoles.stream().map(MemberRole::getMemberId).collect(Collectors.toSet());
 			condition.setIds(memberIds);
 		}
-
-
-
-		//기본 조회 매니저 -> 없을 때 어드민 조회
-//		if (!ObjectUtils.isEmpty(condition.getLevelType())) {
-//			List<Role> roles = roleService.findAllByLevelTypeIn(condition.getLevelType());
-//			if (!roles.isEmpty()) {
-//				List<MemberRole> memberRoles = memberRoleRepository.findAllByRoleIdIn(roles.stream().map(Role::getId).collect(Collectors.toSet()));
-//				Set<Long> memberIds = memberRoles.stream().map(MemberRole::getMemberId).collect(Collectors.toSet());
-//				condition.setIds(memberIds);
-//			}
-//		} else {
-//			if (securityUtils.hasRole("ROLE_MANAGER")) {
-//				List<TeamMember> teamMembers = teamMemberRepository.findAllByTeamId(securityUtils.getTeamId());
-//				condition.setIds(teamMembers.stream().map(TeamMember::getMemberId).collect(Collectors.toSet()));
-//			}
-//		}
 		if (condition.getBranchId() == null) {
 			if (!securityUtils.hasRole(Level.ROLE_MASTER)) {
 				condition.setBranchId(securityUtils.getBranchId());

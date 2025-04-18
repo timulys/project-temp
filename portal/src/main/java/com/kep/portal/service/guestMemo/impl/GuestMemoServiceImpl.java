@@ -96,5 +96,4 @@ public class GuestMemoServiceImpl implements GuestMemoService {
 
         return GetGuestMemoResponseDto.success(GuestMemoDto.of(guestMemo), messageUtil.success());
     }
-
 }

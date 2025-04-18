@@ -15,7 +15,7 @@ public class PostCustomerGroupResponseDto extends ResponseDto {
 
     public static ResponseEntity<PostCustomerGroupResponseDto> success(String message) {
         PostCustomerGroupResponseDto result = new PostCustomerGroupResponseDto(message);
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
     public static ResponseEntity<ResponseDto> existedGroupName(String message) {

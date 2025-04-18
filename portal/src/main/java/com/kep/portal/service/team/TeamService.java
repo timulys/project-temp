@@ -4,6 +4,8 @@ import com.kep.core.model.dto.branch.BranchTeamDto;
 import com.kep.core.model.dto.member.MemberDto;
 import com.kep.core.model.dto.team.TeamDto;
 import com.kep.portal.model.dto.team.TeamMembersDto;
+import com.kep.portal.model.dto.team.request.PatchBranchTeamRequestDto;
+import com.kep.portal.model.dto.team.request.PostBranchTeamRequestDto;
 import com.kep.portal.model.entity.branch.Branch;
 import com.kep.portal.model.entity.branch.BranchTeam;
 import com.kep.portal.model.entity.branch.BranchTeamMapper;
@@ -358,4 +360,30 @@ public class TeamService {
         return teamSearchRepository.searchTeamUseMemberId(memberId);
     }
 
+    /** V2 Methods **/
+    // 신규 상담그룹 저장(V2)
+    public TeamDto save(PostBranchTeamRequestDto dto) {
+        Team team = Team.builder()
+                .name(dto.getName())
+                .creator(dto.getMemberId())
+                .created(ZonedDateTime.now())
+                .modifier(dto.getMemberId())
+                .modified(ZonedDateTime.now())
+                .build();
+        Team saveTeam = teamRepository.save(team);
+        return teamMapper.map(saveTeam);
+    }
+
+    // 상담그룹 수정(V2)
+    public TeamDto update(Long teamId, PatchBranchTeamRequestDto dto) {
+        boolean existedByTeamId = teamRepository.existsById(teamId);
+        if (!existedByTeamId) return null;
+
+        Team team = teamRepository.findById(teamId).get();
+        team.setName(dto.getName());
+        team.setModifier(dto.getMemberId());
+        team.setModified(ZonedDateTime.now());
+
+        return teamMapper.map(team);
+    }
 }

@@ -7,11 +7,22 @@ import com.kep.core.model.dto.branch.BranchTeamDto;
 import com.kep.core.model.dto.team.TeamDto;
 import com.kep.core.model.exception.BizException;
 import com.kep.portal.config.property.SystemMessageProperty;
+import com.kep.portal.model.dto.notice.response.PostNoticeResponseDto;
+import com.kep.portal.model.dto.team.request.PatchBranchTeamRequestDto;
+import com.kep.portal.model.dto.team.request.PostBranchTeamRequestDto;
+import com.kep.portal.model.dto.team.response.PatchBranchTeamResponseDto;
+import com.kep.portal.model.dto.team.response.PostBranchTeamResponseDto;
+import com.kep.portal.service.branchTeam.aggregation.BranchTeamServiceAggregation;
 import com.kep.portal.service.team.TeamService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -23,16 +34,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Tag(name = "팀 관리 API", description = "/api/v1/team")
-@RestController
-@RequestMapping("/api/v1/team")
 @Slf4j
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/v1/team")
 public class TeamController {
+    // Autowired Components
+    private final BranchTeamServiceAggregation branchTeamServiceAggregation;
 
     @Resource
     private TeamService teamService;
@@ -133,39 +148,6 @@ public class TeamController {
         return new ResponseEntity<>(response , HttpStatus.OK);
     }
 
-
-    /**
-     * 팀 추가
-     * @param dto
-     * @return
-     * @throws Exception
-     */
-    @Tag(name = "팀 관리 API")
-    @Operation(summary = "팀 추가")
-    @PostMapping(value = {"", "/create"})
-    public ResponseEntity<ApiResult<BranchTeamDto>> create(
-            @RequestBody @NotNull TeamDto dto) throws Exception {
-
-        log.info("TEAM, POST, BODY: {}" , dto);
-
-        BranchTeamDto branchTeamDto = null;
-        try {
-            branchTeamDto = teamService.store(dto);
-        } catch (DataIntegrityViolationException e) {
-            throw new BizException(systemMessageProperty.getValidation().getDuplication().getCounselingGroup());
-            //Map<String, Object> extra = new HashMap<>();
-            //extra.put("name",dto.getName());
-            //throw new BizException("SB-SA-P01-001", "SB-SA-P01-001" , extra);
-        }
-
-        ApiResult<BranchTeamDto> response = ApiResult.<BranchTeamDto>builder()
-                .code(ApiResultCode.succeed)
-                .payload(branchTeamDto)
-                .build();
-
-        return new ResponseEntity<>(response , HttpStatus.CREATED);
-    }
-
     /**
      * 팀 수정
      * @param dto
@@ -258,4 +240,28 @@ public class TeamController {
         return new ResponseEntity<>(response , HttpStatus.OK);
     }
 
+    /** V2 Apis **/
+    @Operation(summary = "상담그룹 추가(V2)")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = PostBranchTeamResponseDto.class)))
+    @PostMapping
+    public ResponseEntity<? super PostBranchTeamResponseDto> postBranchTeam(
+            @RequestBody @Valid PostBranchTeamRequestDto requestBody) {
+        log.info("Create New Branch Team, Request: {}", requestBody);
+        ResponseEntity<? super PostBranchTeamResponseDto> response = branchTeamServiceAggregation.postBranchTeam(requestBody);
+        log.info("Create New Branch Team, Response: {}", response);
+        return response;
+    }
+
+    @Operation(summary = "상담그룹 수정(V2)")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = PatchBranchTeamResponseDto.class)))
+    @PatchMapping
+    public ResponseEntity<? super PatchBranchTeamResponseDto> patchBranchTeam(
+            @RequestBody @Valid PatchBranchTeamRequestDto requestBody) {
+        log.info("Patch Branch Team, Request: {}", requestBody);
+        ResponseEntity<? super PatchBranchTeamResponseDto> response = branchTeamServiceAggregation.patchBranchTeam(requestBody);
+        log.info("Patch Branch Team, Response: {}", response);
+        return response;
+    }
 }

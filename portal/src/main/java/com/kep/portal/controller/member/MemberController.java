@@ -8,12 +8,12 @@ import com.kep.core.model.type.QueryParam;
 import com.kep.portal.model.dto.member.MemberAssignDto;
 import com.kep.portal.model.dto.member.MemberPassDto;
 import com.kep.portal.model.dto.member.MemberSearchCondition;
+import com.kep.portal.model.dto.member.response.GetMemberListResponseDto;
 import com.kep.portal.model.dto.member.response.GetMemberResponseDto;
-import com.kep.portal.model.dto.notification.response.GetNotificationResponseDto;
 import com.kep.portal.model.entity.member.Member;
 import com.kep.portal.service.member.MemberService;
 import com.kep.portal.service.member.MemberServiceV2;
-import com.kep.portal.service.member.aggregator.MemberAggregation;
+import com.kep.portal.service.member.aggregation.MemberServiceAggregation;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -55,7 +55,7 @@ import java.util.Map;
 public class MemberController {
     // Autowired Components
     private final MemberServiceV2 memberServiceV2;
-    private final MemberAggregation memberAggregation;
+    private final MemberServiceAggregation memberServiceAggregation;
     @Resource
     private MemberService memberService;
 
@@ -133,7 +133,7 @@ public class MemberController {
     /**
      * 검색
      */
-    @GetMapping(value = "/search")
+    @GetMapping(value = "/v1/search")
 //  @Tag(name = "사용자(계정) 관리 API")
     @Operation(summary = "사용자 계정 목록 조회")
 //    @PreAuthorize("hasAnyAuthority('READ_MEMBER')")
@@ -485,6 +485,7 @@ public class MemberController {
     /**
      * 계정 관리 > 계정 목록 > 관리 > > 그룹 추가 > 그룹장 선택
      */
+    @Deprecated
     @Tag(name = "사용자(계정) 관리 API")
     @Operation(summary = "그룹장 선택 조회", description = "계정 관리 > 계정 목록 > 관리 > > 그룹 추가 > 그룹장 선택")
     @GetMapping("/not-in")
@@ -505,11 +506,35 @@ public class MemberController {
             content = @Content(schema = @Schema(implementation = GetMemberResponseDto.class)))
     @GetMapping("/{id}")
     public ResponseEntity<? super GetMemberResponseDto> getMember(
-            @Parameter(description = "Member 아이디") @PathVariable("id") Long id) {
+             @Parameter(description = "Member 아이디") @PathVariable("id") Long id) {
         log.info("Get Member, Member ID : {}", id);
-        ResponseEntity<? super GetMemberResponseDto> response = memberAggregation.getMember(id);
-        log.info("Get Member, Response : {}", response.getBody());
+        ResponseEntity<? super GetMemberResponseDto> response = memberServiceAggregation.getMember(id);
+        log.info("Get Member, Response : {}", response);
         return response;
     }
 
+    @Operation(summary = "상담 그룹에 소속된 계정 조회")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = GetMemberListResponseDto.class)))
+    @GetMapping(value = "/search")
+    public ResponseEntity<? super GetMemberListResponseDto> getTeamMember(
+            @Parameter(description = "상담그룹 ID") @RequestParam("team_id") Long teamId) {
+        log.info("Get Member List, Team ID : {}", teamId);
+        ResponseEntity<? super GetMemberListResponseDto> response = memberServiceV2.getTeamMember(teamId);
+        log.info("Get Member List, Response : {}", response);
+        return response;
+    }
+
+    @Operation(summary = "상담 그룹 매니저(그룹장) 대상자 조회")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = GetMemberListResponseDto.class)))
+    @GetMapping("/group-manager")
+    public ResponseEntity<? super GetMemberListResponseDto> getGroupManagerMember(
+            @Parameter(description = "상담원 등급") @RequestParam("level_type") String levelType,
+            @Parameter(description = "Branch ID") @RequestParam("branch_id") Long branchId) {
+        log.info("Get Group Manager, Level Type : {}, Branch ID : {}", levelType, branchId);
+        ResponseEntity<? super GetMemberListResponseDto> response = memberServiceV2.getGroupManagerMember(levelType, branchId);
+        log.info("Get Group Manager, Response : {}", response);
+        return response;
+    }
 }

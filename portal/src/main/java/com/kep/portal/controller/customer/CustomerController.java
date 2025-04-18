@@ -139,7 +139,7 @@ public class CustomerController {
     public ResponseEntity<? super PostCustomerResponseDto> postCustomer(@RequestBody @Valid PostCustomerRequestDto requestBody) {
         log.info("Customer Create, Body : {}", requestBody);
         ResponseEntity<? super PostCustomerResponseDto> response = customerService.createCustomer(requestBody);
-        log.info("Customer Create, Response : {}", response.getBody());
+        log.info("Customer Create, Response : {}", response);
         return response;
     }
 
@@ -158,7 +158,7 @@ public class CustomerController {
     public ResponseEntity<? super GetCustomerListResponseDto> getCustomerList(@PathVariable("memberId") Long memberId) {
         log.info("Get Customer All List, Member ID : {}", memberId);
         ResponseEntity<? super GetCustomerListResponseDto> response = customerService.findAllCustomer(memberId);
-        log.info("Get Customer All List, Response : {}", response.getBody());
+        log.info("Get Customer All List, Response : {}", response);
         return response;
     }
 
@@ -175,7 +175,7 @@ public class CustomerController {
     public ResponseEntity<? super GetCustomerResponseDto> getCustomer(@PathVariable("customerId") Long customerId) {
         log.info("Get One Customer, Customer ID : {}", customerId);
         ResponseEntity<? super GetCustomerResponseDto> response = customerService.findCustomer(customerId);
-        log.info("Get One Customer, Response : {}", response.getBody());
+        log.info("Get One Customer, Response : {}", response);
         return response;
     }
 
@@ -192,7 +192,7 @@ public class CustomerController {
     public ResponseEntity<? super GetFavoriteCustomerListResponseDto> getFavoriteCustomer(@PathVariable("memberId") Long memberId) {
         log.info("Get Favorite Customer List, Member ID : {}", memberId);
         ResponseEntity<? super GetFavoriteCustomerListResponseDto> response = customerService.findAllFavoriteCustomerList(memberId);
-        log.info("Get Favorite Customer List, Response : {}", response.getBody());
+        log.info("Get Favorite Customer List, Response : {}", response);
         return response;
     }
 
@@ -209,7 +209,7 @@ public class CustomerController {
     public ResponseEntity<? super GetAnniversariesCustomerListResponseDto> getAnniversariesCustomerList(@PathVariable("memberId") Long memberId) {
         log.info("Get Anniversary Customer List, Member ID : {}", memberId);
         ResponseEntity<? super GetAnniversariesCustomerListResponseDto> response = customerService.findAllAnniversariesCustomerList(memberId);
-        log.info("Get Anniversary Customer List, Response : {}", response.getBody());
+        log.info("Get Anniversary Customer List, Response : {}", response);
         return response;
     }
 
@@ -227,7 +227,7 @@ public class CustomerController {
     public ResponseEntity<? super PatchCustomerResponseDto> patchCustomer(@RequestBody @Valid PatchCustomerRequestDto requestBody) {
         log.info("Update Customer, Body : {}", requestBody);
         ResponseEntity<? super PatchCustomerResponseDto> response = customerService.updateCustomer(requestBody);
-        log.info("Update Customer, Response : {}", response.getBody());
+        log.info("Update Customer, Response : {}", response);
         return response;
     }
 
@@ -244,7 +244,7 @@ public class CustomerController {
     public ResponseEntity<? super PatchFavoriteCustomerResponseDto> patchFavoriteCustomer(@RequestBody @Valid PatchFavoriteCustomerRequestDto requestBody) {
         log.info("Patch Favorite Customer, Body : {}", requestBody);
         ResponseEntity<? super PatchFavoriteCustomerResponseDto> response = customerService.patchFavoriteCustomer(requestBody);
-        log.info("Patch Favorite Customer, Response : {}", response.getBody());
+        log.info("Patch Favorite Customer, Response : {}", response);
         return response;
     }
 
@@ -263,7 +263,7 @@ public class CustomerController {
     public ResponseEntity<? super DeleteCustomerResponseDto> deleteCustomer(@PathVariable Long customerId) {
         log.info("Customer Delete, Customer ID : {}", customerId);
         ResponseEntity<? super DeleteCustomerResponseDto> response = customerService.deleteCustomer(customerId);
-        log.info("Customer Delete, Response : {}", response.getBody());
+        log.info("Customer Delete, Response : {}", response);
         return response;
     }
 }

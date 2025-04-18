@@ -35,7 +35,7 @@ public class GuestMemoController {
             @RequestBody @Valid PostGuestMemoRequestDto requestBody) {
         log.info("Post Guest Memo, Body: {}", requestBody);
         ResponseEntity<? super PostGuestMemoResponseDto> response = guestMemoService.postGuestMemo(requestBody);
-        log.info("Post Guest Memo, Response: {}", response.getBody());
+        log.info("Post Guest Memo, Response: {}", response);
         return response;
     }
 
@@ -49,7 +49,7 @@ public class GuestMemoController {
             @Parameter(description = "고객 ID") @RequestParam(value = "customer_id", required = false) Long customerId) {
         log.info("Get Guest Memo, guestId : {}, customerId : {}", guestId, customerId);
         ResponseEntity<? super GetGuestMemoResponseDto> response = guestMemoService.findGuestMemo(guestId, customerId);
-        log.info("Get Guest Memo, Response : {}", response.getBody());
+        log.info("Get Guest Memo, Response : {}", response);
         return response;
     }
 }

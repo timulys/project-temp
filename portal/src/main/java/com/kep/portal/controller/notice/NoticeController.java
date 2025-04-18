@@ -39,8 +39,8 @@ import java.util.Map;
 @Tag(name = "공지사항 API", description = "/api/v1/notice")
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/notice")
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/notice")
 public class NoticeController {
 	/** Autowired Components **/
 	private final NoticeService noticeService; 				// 공지사항 관리 전용 서비스
@@ -157,7 +157,7 @@ public class NoticeController {
 		ResponseEntity<? super PostNoticeResponseDto> response = noticeService.createNotice(requestBody, files);
 		// TODO : notificationService의 store 메소드 리팩토링 예정
 		notificationService.storeNotice(requestBody.getOpenType(), NotificationType.notice);
-		log.info("Create New Notice, Response : {}", response.getBody());
+		log.info("Create New Notice, Response : {}", response);
 		return response;
 	}
 
@@ -171,7 +171,7 @@ public class NoticeController {
 		log.info("Get Notice List, Body : {}", requestBody);
 		// TODO : 추후 리팩토링 마무리할 것
 		ResponseEntity<? super GetNoticeListResponseDto> response = noticeService.getNoticeList(requestBody);
-		log.info("Get Notice List, Response : {}", response.getBody());
+		log.info("Get Notice List, Response : {}", response);
 		return response;
 	}
 
@@ -184,7 +184,7 @@ public class NoticeController {
 			@Parameter(description = "공지사항 ID") @PathVariable("id") Long noticeId) {
 		log.info("Get Notice Detail, ID : {}", noticeId);
 		ResponseEntity<? super GetNoticeResponseDto> response = noticeService.getNotice(noticeId);
-		log.info("Get Notice Detail, Response : {}", response.getBody());
+		log.info("Get Notice Detail, Response : {}", response);
 		return response;
 	}
 
@@ -198,7 +198,7 @@ public class NoticeController {
 			@RequestPart(required = false) List<MultipartFile> files) {
 		log.info("Update Notice, Body : {}", requestBody);
 		ResponseEntity<? super PutNoticeResponseDto> response = noticeService.updateNotice(requestBody, files);
-		log.info("Update Notice, Response : {}", response.getBody());
+		log.info("Update Notice, Response : {}", response);
 		return response;
 	}
 
@@ -211,7 +211,7 @@ public class NoticeController {
 			@RequestBody @Valid PatchNoticeFixationRequestDto requestBody) {
 		log.info("Patch Notice Fixation, Body : {}", requestBody);
 		ResponseEntity<? super PatchNoticeFixationResponseDto> response = noticeService.updateNoticeFixation(requestBody);
-		log.info("Patch Notice Fixation, Response : {}", response.getBody());
+		log.info("Patch Notice Fixation, Response : {}", response);
 		return response;
 	}
 
@@ -224,7 +224,7 @@ public class NoticeController {
 			@RequestBody @Valid PatchNoticeDisableRequestDto requestBody) {
 		log.info("Patch Notice Disable, Body : {}", requestBody);
 		ResponseEntity<? super PatchNoticeDisableResponseDto> response = noticeService.updateNoticeDisable(requestBody);
-		log.info("Patch Notice Disable, Response : {}", response.getBody());
+		log.info("Patch Notice Disable, Response : {}", response);
 		return response;
 	}
 
@@ -237,7 +237,7 @@ public class NoticeController {
 			@RequestBody Long noticeUploadId) {
 		log.info("Delete Notice File, ID : {}", noticeUploadId);
 		ResponseEntity<? super DeleteNoticeFileResponseDto> response = noticeService.deleteNoticeFile(noticeUploadId);
-		log.info("Delete Notice File, Response : {}", response.getBody());
+		log.info("Delete Notice File, Response : {}", response);
 		return response;
 	}
 }
