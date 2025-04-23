@@ -16,7 +16,7 @@ import com.kep.portal.repository.statisctics.IssueStatisticsRepository;
 import com.kep.portal.service.branch.BranchService;
 import com.kep.portal.service.env.CounselEnvService;
 import com.kep.portal.service.member.MemberService;
-import com.kep.portal.service.team.TeamMemberService;
+import com.kep.portal.service.team.TeamMemberServiceImpl;
 import com.kep.portal.service.work.BreakTimeService;
 import com.kep.portal.service.work.OfficeHoursService;
 import com.kep.portal.service.work.WorkService;
@@ -62,7 +62,7 @@ public class IssueStatisticsService {
     private BranchOfficeHoursRepository branchOfficeHoursRepository;
 
     @Resource
-    private TeamMemberService teamMemberService;
+    private TeamMemberServiceImpl teamMemberService;
 
     @Resource
     private BreakTimeService breakTimeService;

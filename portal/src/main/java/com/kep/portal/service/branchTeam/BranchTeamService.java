@@ -8,6 +8,6 @@ public interface BranchTeamService {
     // Response Entity Methods
 
     // Aggregation Methods
-    BranchTeamDto postBranchTeam(PostBranchTeamRequestDto dto, Long teamId);
-    BranchTeamDto patchBranchTeam(PatchBranchTeamRequestDto dto);
+    BranchTeamDto saveBranchTeam(PostBranchTeamRequestDto dto, Long teamId);
+    BranchTeamDto modifyBranchTeam(PatchBranchTeamRequestDto dto);
 }

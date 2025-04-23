@@ -14,16 +14,27 @@ import com.kep.core.model.dto.work.WorkType;
 import com.kep.core.model.exception.BizException;
 import com.kep.portal.config.property.SystemMessageProperty;
 import com.kep.portal.model.dto.branch.BranchDtoWithRole;
+import com.kep.portal.model.dto.branch.request.PatchBranchRequestDto;
+import com.kep.portal.model.dto.branch.request.PostBranchRequestDto;
+import com.kep.portal.model.dto.branch.response.PatchBranchResponseDto;
+import com.kep.portal.model.dto.branch.response.PostBranchResponseDto;
+import com.kep.portal.model.dto.guestMemo.response.PostGuestMemoResponseDto;
 import com.kep.portal.model.dto.team.TeamMembersDto;
 import com.kep.portal.model.entity.team.Team;
+import com.kep.portal.service.branch.BranchManageService;
 import com.kep.portal.service.branch.BranchService;
+import com.kep.portal.service.branch.aggregation.BranchServiceAggregation;
 import com.kep.portal.service.env.CounselEnvService;
 import com.kep.portal.service.team.TeamService;
 import com.kep.portal.service.work.OfficeHoursService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -48,54 +59,100 @@ import java.util.Map;
 @Tag(name = "브랜치 API", description = "/api/v1/branch")
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/branch")
 public class BranchController {
+    // Autowired Components
+    private final TeamService teamService;
+    private final BranchService branchService;
+    private final CounselEnvService counselEnvService;
+    private final OfficeHoursService officeHoursService;
+    private final BranchManageService branchManageService;
+    private final BranchServiceAggregation branchServiceAggregation;
 
-    @Resource
-    private BranchService branchService;
-
-    @Resource
-    private TeamService teamService;
-
-    @Resource
-    private OfficeHoursService officeHoursService;
-
-    @Resource
-    private CounselEnvService counselEnvService;
-
-    @Resource
-    private SystemMessageProperty systemMessageProperty;
-
-    /**
-     * 활성 / 비활성
-     * @param id
-     * @return
-     */
-    @Tag(name = "브랜치 API")
-    @Operation(summary = "브랜치 활성/비활성", description = "브랜치 활성/비활성 처리 API")
-    @DeleteMapping(value = "/{id}")
-    public ResponseEntity<ApiResult<BranchDto>> activation(
-            @Parameter(in = ParameterIn.PATH, description = "아이디")
-            @PathVariable("id") Long id,
-            @RequestBody BranchDto dto) {
-
-        boolean enabled = (dto.getEnabled() != null ? dto.getEnabled() : true);
-        dto = branchService.enabled(id,enabled);
-
-        ApiResultCode result = ApiResultCode.failed;
-        if(enabled == dto.getEnabled()){
-            result = ApiResultCode.succeed;
-        }
-
-        ApiResult<BranchDto> response = ApiResult.<BranchDto>builder()
-                .code(result)
-                .payload(dto)
-                .build();
-        return new ResponseEntity<>(response , HttpStatus.ACCEPTED);
-
-    }
-
-
+    private final SystemMessageProperty systemMessageProperty;
+//    /**
+//     * 활성 / 비활성
+//     * @param id
+//     * @return
+//     */
+//    @Deprecated // TODO : 사용 유무 체크 후 불필요 API 면 삭제
+//    @Tag(name = "브랜치 API")
+//    @Operation(summary = "브랜치 활성/비활성", description = "브랜치 활성/비활성 처리 API")
+//    @DeleteMapping(value = "/{id}")
+//    public ResponseEntity<ApiResult<BranchDto>> activation(
+//            @Parameter(in = ParameterIn.PATH, description = "아이디")
+//            @PathVariable("id") Long id,
+//            @RequestBody BranchDto dto) {
+//
+//        boolean enabled = (dto.getEnabled() != null ? dto.getEnabled() : true);
+//        dto = branchService.enabled(id,enabled);
+//
+//        ApiResultCode result = ApiResultCode.failed;
+//        if(enabled == dto.getEnabled()){
+//            result = ApiResultCode.succeed;
+//        }
+//
+//        ApiResult<BranchDto> response = ApiResult.<BranchDto>builder()
+//                .code(result)
+//                .payload(dto)
+//                .build();
+//        return new ResponseEntity<>(response , HttpStatus.ACCEPTED);
+//
+//    }
+//
+//    /**
+//     * 브랜치 생성
+//     * @param branchDto
+//     * @return
+//     * @throws Exception
+//     */
+//    @Deprecated // 사용하지 않는 API 인지 확인 후 제거
+//    @PostMapping
+//    @Tag(name = "브랜치 API")
+//    @Operation(summary = "브랜치 생성", description = "브랜치 생성")
+//    @PreAuthorize("hasAnyRole('ROLE_MASTER')")
+//    public ResponseEntity<ApiResult<BranchDto>> create(@RequestBody @Valid BranchDto branchDto) {
+//        try {
+//            BranchDto branch =  branchService.store(branchDto);
+//            ApiResult<BranchDto> response = ApiResult.<BranchDto>builder().code(ApiResultCode.succeed)
+//                    .payload(branch)
+//                    .build();
+//            return new ResponseEntity<>(response , HttpStatus.CREATED);
+//        } catch (DataIntegrityViolationException e) {
+//            log.info("BRANCH DUPLICATION ERROR :  ", e );
+//            throw new BizException(systemMessageProperty.getValidation().getDuplication().getBranch());
+//        } catch (Exception exception){
+//            log.info("BRANCH Create Exception :  ", exception );
+//            throw new BizException(exception.getMessage());
+//        }
+//    }
+//
+//    /**
+//     * 브랜치 수정
+//     * @param branchId
+//     * @param branchDto
+//     * @return
+//     * @throws Exception
+//     */
+//    @PutMapping(value = "/{id}")
+//    @Tag(name = "브랜치 API")
+//    @Operation(summary = "브랜치 수정", description = "브랜치 수정")
+//    @PreAuthorize("hasAnyRole('ROLE_MASTER')")
+//    public ResponseEntity<ApiResult<BranchDto>> update (
+//            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH)
+//            @PathVariable(name = "id") Long branchId,
+//            @RequestBody @Valid BranchDto branchDto) {
+//        branchDto.setId(branchId);
+//        BranchDto branch = branchService.store(branchDto);
+//        ApiResult<BranchDto> response = ApiResult.<BranchDto>builder()
+//                .code(ApiResultCode.succeed)
+//                .payload(branch)
+//                .build();
+//
+//        return new ResponseEntity<>(response , HttpStatus.ACCEPTED);
+//    }
+    
     /**
      * branch teams
      * @param branchId
@@ -202,58 +259,6 @@ public class BranchController {
                 .build();
         return new ResponseEntity<>(response , HttpStatus.OK);
     }
-
-    /**
-     * 브랜치 생성
-     * @param branchDto
-     * @return
-     * @throws Exception
-     */
-    @PostMapping
-    @Tag(name = "브랜치 API")
-    @Operation(summary = "브랜치 생성", description = "브랜치 생성")
-    @PreAuthorize("hasAnyRole('ROLE_MASTER')")
-    public ResponseEntity<ApiResult<BranchDto>> create(@RequestBody @Valid BranchDto branchDto) {
-        try {
-            BranchDto branch =  branchService.store(branchDto);
-            ApiResult<BranchDto> response = ApiResult.<BranchDto>builder().code(ApiResultCode.succeed)
-                                                                          .payload(branch)
-                                                                          .build();
-            return new ResponseEntity<>(response , HttpStatus.CREATED);
-        } catch (DataIntegrityViolationException e) {
-            log.info("BRANCH DUPLICATION ERROR :  ", e );
-            throw new BizException(systemMessageProperty.getValidation().getDuplication().getBranch());
-        } catch (Exception exception){
-            log.info("BRANCH Create Exception :  ", exception );
-            throw new BizException(exception.getMessage());
-        }
-    }
-
-    /**
-     * 브랜치 수정
-     * @param branchId
-     * @param branchDto
-     * @return
-     * @throws Exception
-     */
-    @PutMapping(value = "/{id}")
-    @Tag(name = "브랜치 API")
-    @Operation(summary = "브랜치 수정", description = "브랜치 수정")
-    @PreAuthorize("hasAnyRole('ROLE_MASTER')")
-    public ResponseEntity<ApiResult<BranchDto>> update (
-            @Parameter(description = "브랜치 아이디", in = ParameterIn.PATH)
-            @PathVariable(name = "id") Long branchId,
-            @RequestBody @Valid BranchDto branchDto) {
-        branchDto.setId(branchId);
-        BranchDto branch = branchService.store(branchDto);
-        ApiResult<BranchDto> response = ApiResult.<BranchDto>builder()
-                .code(ApiResultCode.succeed)
-                .payload(branch)
-                .build();
-
-        return new ResponseEntity<>(response , HttpStatus.ACCEPTED);
-    }
-
 
     /**
      * 브랜치 역할 추가 / 삭제
@@ -544,30 +549,57 @@ public class BranchController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    /**
-     * @param branchDtoList
-     * @return
-     */
-    @PostMapping(value = "/saveAll")
-    @Tag(name = "브랜치 다건 저장 API")
-    @Operation(summary = "브랜치 다건 저장", description = "브랜치 생성")
+//    /**
+//     * @param branchDtoList
+//     * @return
+//     */
+//    @Deprecated
+//    @PostMapping(value = "/saveAll")
+//    @Tag(name = "브랜치 다건 저장 API")
+//    @Operation(summary = "브랜치 다건 저장", description = "브랜치 생성")
+//    @PreAuthorize("hasAnyRole('ROLE_MASTER')")
+//    public ResponseEntity<ApiResult<BranchDto>> saveAll(@RequestBody List<BranchDto> branchDtoList) {
+//        try {
+//            ApiResult<BranchDto> response = null;
+//            for( BranchDto branchDto : branchDtoList ){
+//                BranchDto branch =  branchService.store(branchDto);
+//                response = ApiResult.<BranchDto>builder().code(ApiResultCode.succeed)
+//                        .payload(branch)
+//                        .build();
+//            }
+//            return new ResponseEntity<>(response , HttpStatus.CREATED);
+//        } catch (DataIntegrityViolationException e) {
+//            log.info("BRANCH DUPLICATION ERROR :  ", e );
+//            throw new BizException(systemMessageProperty.getValidation().getDuplication().getBranch());
+//        } catch (Exception exception){
+//            log.info("BRANCH Create Exception :  ", exception );
+//            throw new BizException(exception.getMessage());
+//        }
+//    }
+
+    /** V2 Apis **/
+    @Operation(description = "브랜치 전체 저장")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = PostBranchResponseDto.class)))
+    @PostMapping
     @PreAuthorize("hasAnyRole('ROLE_MASTER')")
-    public ResponseEntity<ApiResult<BranchDto>> saveAll(@RequestBody List<BranchDto> branchDtoList) {
-        try {
-            ApiResult<BranchDto> response = null;
-            for( BranchDto branchDto : branchDtoList ){
-                BranchDto branch =  branchService.store(branchDto);
-                response = ApiResult.<BranchDto>builder().code(ApiResultCode.succeed)
-                        .payload(branch)
-                        .build();
-            }
-            return new ResponseEntity<>(response , HttpStatus.CREATED);
-        } catch (DataIntegrityViolationException e) {
-            log.info("BRANCH DUPLICATION ERROR :  ", e );
-            throw new BizException(systemMessageProperty.getValidation().getDuplication().getBranch());
-        } catch (Exception exception){
-            log.info("BRANCH Create Exception :  ", exception );
-            throw new BizException(exception.getMessage());
-        }
+    public ResponseEntity<? super PostBranchResponseDto> postAllBranch(@RequestBody PostBranchRequestDto requestBody) {
+        log.info("Post All Branch, Request Body : {}", requestBody);
+        ResponseEntity<? super PostBranchResponseDto> response = branchServiceAggregation.postBranch(requestBody);
+        log.info("Post All Branch, Response : {}", response);
+        return response;
+    }
+
+    @Operation(description = "브랜치 수정 V2")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = PatchBranchResponseDto.class)))
+    @PatchMapping
+    @PreAuthorize("hasAnyRole('ROLE_MASTER')")
+    public ResponseEntity<? super PatchBranchResponseDto> patchBranch(@RequestBody PatchBranchRequestDto requestBody) {
+        log.info("Patch Branch, Request Body : {}", requestBody);
+        ResponseEntity<? super PatchBranchResponseDto> response = branchManageService.patchBranch(requestBody);
+        log.info("Patch Branch, Response : {}", response);
+        return response;
     }
 }
+

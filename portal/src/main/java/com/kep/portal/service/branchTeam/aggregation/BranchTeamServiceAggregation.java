@@ -9,7 +9,7 @@ import com.kep.portal.model.dto.team.request.PostBranchTeamRequestDto;
 import com.kep.portal.model.dto.team.response.PatchBranchTeamResponseDto;
 import com.kep.portal.model.dto.team.response.PostBranchTeamResponseDto;
 import com.kep.portal.service.branchTeam.BranchTeamService;
-import com.kep.portal.service.team.TeamMemberService;
+import com.kep.portal.service.team.TeamMemberServiceImpl;
 import com.kep.portal.service.team.TeamService;
 import com.kep.portal.util.MessageSourceUtil;
 import lombok.RequiredArgsConstructor;
@@ -25,16 +25,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class BranchTeamServiceAggregation {
     // Autowired Components
     private final TeamService teamService;
-    private final TeamMemberService teamMemberService;
+    private final TeamMemberServiceImpl teamMemberService;
     private final BranchTeamService branchTeamService;
 
     private final MessageSourceUtil messageUtil;
 
     public ResponseEntity<? super PostBranchTeamResponseDto> postBranchTeam(PostBranchTeamRequestDto dto) {
-        TeamDto teamDto = teamService.save(dto);
-        boolean isSaved = teamMemberService.save(dto.getMemberId(), teamDto.getId());
+        TeamDto teamDto = teamService.saveTeam(dto);
+        boolean isSaved = teamMemberService.saveTeamMember(dto.getMemberId(), teamDto.getId());
         if (!isSaved) return ResponseDto.databaseErrorMessage(messageUtil.getMessage(MessageCode.DATABASE_ERROR));
-        BranchTeamDto branchTeamDto = branchTeamService.postBranchTeam(dto, teamDto.getId());
+        BranchTeamDto branchTeamDto = branchTeamService.saveBranchTeam(dto, teamDto.getId());
         if (branchTeamDto == null)
             return ResponseDto.databaseErrorMessage(messageUtil.getMessage(MessageCode.DATABASE_ERROR));
 
@@ -42,13 +42,13 @@ public class BranchTeamServiceAggregation {
     }
 
     public ResponseEntity<? super PatchBranchTeamResponseDto> patchBranchTeam(PatchBranchTeamRequestDto dto) {
-        BranchTeamDto branchTeamDto = branchTeamService.patchBranchTeam(dto);
+        BranchTeamDto branchTeamDto = branchTeamService.modifyBranchTeam(dto);
         if (branchTeamDto == null)
             return ResponseDto.databaseErrorMessage(messageUtil.getMessage(MessageCode.DATABASE_ERROR));
-        TeamDto teamDto = teamService.update(branchTeamDto.getTeam().getId(), dto);
+        TeamDto teamDto = teamService.modifyTeam(branchTeamDto.getTeam().getId(), dto);
         if (teamDto == null)
             return ResponseDto.databaseErrorMessage(messageUtil.getMessage(MessageCode.DATABASE_ERROR));
-        boolean isSaved = teamMemberService.save(dto.getMemberId(), teamDto.getId());
+        boolean isSaved = teamMemberService.saveTeamMember(dto.getMemberId(), teamDto.getId());
         if (!isSaved) return ResponseDto.databaseErrorMessage(messageUtil.getMessage(MessageCode.DATABASE_ERROR));
 
         return PatchBranchTeamResponseDto.success(messageUtil.success());

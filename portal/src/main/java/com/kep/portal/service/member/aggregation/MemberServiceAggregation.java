@@ -16,7 +16,7 @@ import com.kep.portal.service.branch.BranchService;
 import com.kep.portal.service.env.CounselEnvService;
 import com.kep.portal.service.member.MemberService;
 import com.kep.portal.service.privilege.RoleService;
-import com.kep.portal.service.team.TeamMemberService;
+import com.kep.portal.service.team.TeamMemberServiceImpl;
 import com.kep.portal.service.team.TeamService;
 import com.kep.portal.service.work.OfficeHoursService;
 import com.kep.portal.util.MessageSourceUtil;
@@ -41,7 +41,7 @@ public class MemberServiceAggregation {
     private final MemberService memberService;
     private final BranchService branchService;
     private final CounselEnvService counselEnvService;
-    private final TeamMemberService teamMemberService;
+    private final TeamMemberServiceImpl teamMemberService;
     private final OfficeHoursService officeHoursService;
 
     private final MemberMapper memberMapper;

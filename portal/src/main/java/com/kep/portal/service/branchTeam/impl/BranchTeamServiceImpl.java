@@ -34,7 +34,7 @@ public class BranchTeamServiceImpl implements BranchTeamService {
     private final BranchTeamMapper branchTeamMapper;
 
     @Override
-    public BranchTeamDto postBranchTeam(PostBranchTeamRequestDto dto, Long teamId) {
+    public BranchTeamDto saveBranchTeam(PostBranchTeamRequestDto dto, Long teamId) {
         // TODO : null check 필요
         Team team = teamRepository.findById(teamId).orElse(null);
         Branch branch = branchRepository.findById(dto.getBranchId()).orElse(null);
@@ -55,7 +55,7 @@ public class BranchTeamServiceImpl implements BranchTeamService {
     }
 
     @Override
-    public BranchTeamDto patchBranchTeam(PatchBranchTeamRequestDto dto) {
+    public BranchTeamDto modifyBranchTeam(PatchBranchTeamRequestDto dto) {
         BranchTeam branchTeam = branchTeamRepository.findById(dto.getBranchTeamId()).orElse(null);
         Member member = memberRepository.findById(dto.getMemberId()).orElse(null);
         if (branchTeam == null || member == null) return null;

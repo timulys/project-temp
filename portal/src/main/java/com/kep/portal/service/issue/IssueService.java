@@ -18,7 +18,7 @@ import com.kep.portal.service.channel.ChannelService;
 import com.kep.portal.service.customer.CustomerService;
 import com.kep.portal.service.customer.GuestService;
 import com.kep.portal.service.subject.IssueCategoryService;
-import com.kep.portal.service.team.TeamMemberService;
+import com.kep.portal.service.team.TeamMemberServiceImpl;
 import com.kep.portal.util.CommonUtils;
 import com.kep.portal.util.SecurityUtils;
 import com.querydsl.core.Tuple;
@@ -72,7 +72,7 @@ public class IssueService {
     private SecurityUtils securityUtils;
 
     @Resource
-    private TeamMemberService teamMemberService;
+    private TeamMemberServiceImpl teamMemberService;
 
     @Resource
     private IssueSupportMapper issueSupportMapper;

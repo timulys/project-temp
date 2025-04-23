@@ -45,7 +45,7 @@ import com.kep.portal.service.env.CounselEnvService;
 import com.kep.portal.service.issue.IssueService;
 import com.kep.portal.service.privilege.RoleService;
 import com.kep.portal.service.system.SystemEventService;
-import com.kep.portal.service.team.TeamMemberService;
+import com.kep.portal.service.team.TeamMemberServiceImpl;
 import com.kep.portal.service.team.TeamService;
 import com.kep.portal.service.work.BreakTimeService;
 import com.kep.portal.service.work.OfficeHoursService;
@@ -107,7 +107,7 @@ public class MemberService {
 	@Resource
 	private TeamMemberRepository teamMemberRepository;
 	@Resource
-	private TeamMemberService teamMemberService;
+	private TeamMemberServiceImpl teamMemberService;
 	@Resource
 	private BranchTeamRepository branchTeamRepository;
 	@Resource

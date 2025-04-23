@@ -5,10 +5,8 @@ import com.kep.core.model.dto.system.SystemEventHistoryActionType;
 import com.kep.core.model.dto.team.TeamDto;
 import com.kep.core.model.dto.work.MemberMaxCounselDto;
 import com.kep.core.model.dto.work.WorkType;
-import com.kep.portal.model.dto.issue.IssueMemberStatisticsDto;
 import com.kep.portal.model.entity.branch.Branch;
 import com.kep.portal.model.entity.member.Member;
-import com.kep.portal.model.entity.member.MemberMapper;
 import com.kep.portal.model.entity.work.BranchOfficeHours;
 import com.kep.portal.model.entity.work.MemberOfficeHours;
 import com.kep.portal.model.entity.work.OffDutyHours;
@@ -18,9 +16,8 @@ import com.kep.portal.repository.assign.MemberOfficeHoursRepository;
 import com.kep.portal.repository.member.MemberRepository;
 import com.kep.portal.repository.work.BranchOffDutyHoursRepository;
 import com.kep.portal.service.branch.BranchService;
-import com.kep.portal.service.member.MemberService;
 import com.kep.portal.service.system.SystemEventService;
-import com.kep.portal.service.team.TeamMemberService;
+import com.kep.portal.service.team.TeamMemberServiceImpl;
 import com.kep.portal.service.team.TeamService;
 import com.kep.portal.util.OfficeHoursTimeUtils;
 import com.kep.portal.util.SecurityUtils;
@@ -65,7 +62,7 @@ public class WorkService {
     private OffDutyHoursMapper offDutyHoursMapper;
 
     @Resource
-    private TeamMemberService teamMemberService;
+    private TeamMemberServiceImpl teamMemberService;
 
     @Resource
     private BranchOfficeHoursRepository branchOfficeHoursRepository;

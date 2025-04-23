@@ -1,11 +1,15 @@
 package com.kep.portal.service.team;
 
+import com.kep.core.model.dto.ResponseDto;
 import com.kep.core.model.dto.branch.BranchTeamDto;
+import com.kep.core.model.dto.common.ResponseMessage;
 import com.kep.core.model.dto.member.MemberDto;
 import com.kep.core.model.dto.team.TeamDto;
+import com.kep.core.model.enums.MessageCode;
 import com.kep.portal.model.dto.team.TeamMembersDto;
 import com.kep.portal.model.dto.team.request.PatchBranchTeamRequestDto;
 import com.kep.portal.model.dto.team.request.PostBranchTeamRequestDto;
+import com.kep.portal.model.dto.team.response.GetTeamListResponseDto;
 import com.kep.portal.model.entity.branch.Branch;
 import com.kep.portal.model.entity.branch.BranchTeam;
 import com.kep.portal.model.entity.branch.BranchTeamMapper;
@@ -20,11 +24,14 @@ import com.kep.portal.repository.member.MemberRepository;
 import com.kep.portal.repository.team.TeamMemberRepository;
 import com.kep.portal.repository.team.TeamRepository;
 import com.kep.portal.repository.team.TeamSearchRepository;
+import com.kep.portal.util.MessageSourceUtil;
 import com.kep.portal.util.SecurityUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -41,9 +48,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @Transactional
-@Slf4j
+@RequiredArgsConstructor
 public class TeamService {
 
     @Resource
@@ -75,6 +83,8 @@ public class TeamService {
 
     @Resource
     private TeamSearchRepository teamSearchRepository;
+
+    private final MessageSourceUtil messageUtil;
 
     @Nullable
     public Team findById(@NotNull @Positive Long id) {
@@ -342,27 +352,28 @@ public class TeamService {
         return deleted;
     }
 
-
-    public List<TeamDto> getBranchTeamMembers(@NotNull Long channelId) {
-        return this.findBranchTeamMembersUseChannelId(channelId);
-    }
-
-    private  List<TeamDto> findBranchTeamMembersUseChannelId(Long channelId) {
-        List<TeamDto> teamDtoList = teamSearchRepository.searchTeamUseChannelId(channelId);
-        for(TeamDto teamDto  : teamDtoList ){
-            List<MemberDto> memberDtoList = memberRepository.findMemberUseTeamId(teamDto.getId());
-            teamDto.setMembers(memberDtoList);
-        }
-        return teamDtoList;
-    }
-
     public List<TeamDto> getTeamListUseMemberId(Long memberId) {
         return teamSearchRepository.searchTeamUseMemberId(memberId);
     }
 
-    /** V2 Methods **/
+    /** V2 API Methods **/
+    // 팀 멤버 조회
+    public ResponseEntity<? super GetTeamListResponseDto> getTeamMembersWithChannelId(Long channelId) {
+        List<TeamDto> teamDtoList = teamSearchRepository.searchTeamUseChannelId(channelId);
+        if (teamDtoList == null || teamDtoList.isEmpty())
+            return ResponseDto.noSearchData(messageUtil.getMessage(MessageCode.NO_SEARCH_DATA));
+
+        teamDtoList.forEach(teamDto -> {
+            List<MemberDto> memberDtoList = memberRepository.findMemberUseTeamId(teamDto.getId());
+            teamDto.setMembers(memberDtoList);
+        });
+
+        return GetTeamListResponseDto.success(teamDtoList, messageUtil.success());
+    }
+
+    /** V2 Aggregation Methods **/
     // 신규 상담그룹 저장(V2)
-    public TeamDto save(PostBranchTeamRequestDto dto) {
+    public TeamDto saveTeam(PostBranchTeamRequestDto dto) {
         Team team = Team.builder()
                 .name(dto.getName())
                 .creator(dto.getMemberId())
@@ -375,7 +386,7 @@ public class TeamService {
     }
 
     // 상담그룹 수정(V2)
-    public TeamDto update(Long teamId, PatchBranchTeamRequestDto dto) {
+    public TeamDto modifyTeam(Long teamId, PatchBranchTeamRequestDto dto) {
         boolean existedByTeamId = teamRepository.existsById(teamId);
         if (!existedByTeamId) return null;
 
