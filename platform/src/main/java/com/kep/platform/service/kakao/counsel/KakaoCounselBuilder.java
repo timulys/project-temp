@@ -161,17 +161,17 @@ public class KakaoCounselBuilder {
 							event.setAutoAnswer("S3");
 						} else if (IssuePayload.PlatformAnswer.wait.name().equals(section.getData())) {
 							event.setAutoAnswer("S4");
-						} else {
-							event.setAutoAnswer("S3");
-							log.info("INVALID PLATFORM ANSWER: {}, USE 'S3'", section.getData());
-						}
-
-//						if (ObjectUtils.isEmpty(section.getExtra())) {
+//						} else {
 //							event.setAutoAnswer("S3");
 //							log.info("INVALID PLATFORM ANSWER: {}, USE 'S3'", section.getData());
-//						} else {
-//							event.setAutoAnswer(section.getExtra());
 //						}
+
+						} else if (ObjectUtils.isEmpty(section.getExtra())) {
+							event.setAutoAnswer("S3");
+							log.info("INVALID PLATFORM ANSWER: {}, USE 'S3'", section.getData());
+						} else {
+							event.setAutoAnswer(section.getExtra());
+						}
 						break;
 
 					default:
