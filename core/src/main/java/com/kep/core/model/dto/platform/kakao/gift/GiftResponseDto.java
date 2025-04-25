@@ -1,5 +1,6 @@
 package com.kep.core.model.dto.platform.kakao.gift;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
@@ -20,13 +21,20 @@ public class GiftResponseDto<T> {
     private final String message;
     private final T data;
 
-    protected GiftResponseDto(String code, String message) {
+    protected GiftResponseDto(
+            @JsonProperty("code") String code,
+            @JsonProperty("message") String message
+    ) {
         this.code = code;
         this.message = message;
         this.data = null;
     }
 
-    protected GiftResponseDto(String code, String message, T data) {
+    protected GiftResponseDto(
+            @JsonProperty("code") String code,
+            @JsonProperty("message") String message,
+            @JsonProperty("data") T data
+    ) {
         this.code = code;
         this.message = message;
         this.data = data;
