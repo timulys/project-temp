@@ -17,12 +17,9 @@ import com.kep.core.model.dto.platform.kakao.gift.vo.send.KakaoPostOrderResponse
 import com.kep.core.model.dto.platform.kakao.gift.vo.template.KakaoGetTemplateDtlResponseV1;
 import com.kep.core.model.dto.platform.kakao.gift.vo.template.KakaoGetTemplateRequestV1;
 import com.kep.core.model.dto.platform.kakao.gift.vo.template.KakaoGetTemplateResponseV1;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.SpringQueryMap;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -34,37 +31,27 @@ import java.util.List;
 public interface GiftServiceClient {
 
     @PostMapping("/api/v1/gifts/find")
-    @ResponseStatus(HttpStatus.OK)
-    GiftResponseDto<List<KakaoPostOrderGiftResponseV3>> findOrderGifts(
-            @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
+    GiftResponseDto<? super List<KakaoPostOrderGiftResponseV3>> findOrderGifts(
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @Valid @RequestBody KakaoPostOrderGiftRequestV3 request);
 
     @PutMapping("/api/v1/gifts")
-    @ResponseStatus(HttpStatus.OK)
-    GiftResponseDto<List<KakaoPostCancelGiftResponseV1>> cancelOrderGift(
-            @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
+    GiftResponseDto<? super List<KakaoPostCancelGiftResponseV1>> cancelOrderGift(
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @RequestBody @Valid KakaoPostCancelGiftRequestV1 request);
 
     @PostMapping("/api/v1/gifts")
-    @ResponseStatus(HttpStatus.OK)
-    GiftResponseDto<KakaoPostOrderResponseV1> send(
-            @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
+    GiftResponseDto<? super KakaoPostOrderResponseV1> send(
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @Valid @RequestBody KakaoPostOrderRequestV1 request);
 
     @GetMapping("/api/v1/gifts/complete")
-    @ResponseStatus(HttpStatus.OK)
-    GiftResponseDto<KakaoGetOrderCompleteResponseV3> getOrderComplete(
-            @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
+    GiftResponseDto<? super KakaoGetOrderCompleteResponseV3> getOrderComplete(
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @SpringQueryMap @ParameterObject @Valid KakaoGetOrderCompleteRequestV3 params);
 
     @GetMapping("/api/v1/gifts/status")
-    @ResponseStatus(HttpStatus.OK)
-    GiftResponseDto<KakaoGetOrderReserveStatusResponseV1> getOrderReserveStatus(
-            @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
+    GiftResponseDto<? super KakaoGetOrderReserveStatusResponseV1> getOrderReserveStatus(
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @SpringQueryMap @ParameterObject @Valid KakaoGetOrderReserveStatusRequestV1 params);
 
@@ -73,9 +60,7 @@ public interface GiftServiceClient {
 
 
     @GetMapping("/api/v1/cash/balance")
-    @ResponseStatus(HttpStatus.OK)
-    GiftResponseDto<KakaoGetCashBalanceResponseV1> getCashBalance(
-            @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
+    GiftResponseDto<? super KakaoGetCashBalanceResponseV1> getCashBalance(
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken);
 
 
@@ -84,24 +69,19 @@ public interface GiftServiceClient {
 
 
     @GetMapping("/api/v1/templates")
-    @ResponseStatus(HttpStatus.OK)
-    GiftResponseDto<KakaoGetTemplateResponseV1> getTemplates(
-            @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
+    GiftResponseDto<? super KakaoGetTemplateResponseV1> getTemplates(
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @SpringQueryMap @ParameterObject @Valid KakaoGetTemplateRequestV1 params);
 
     @GetMapping("/api/v1/templates/{templateToken}")
-    @ResponseStatus(HttpStatus.OK)
-    GiftResponseDto<KakaoGetTemplateDtlResponseV1> getTemplates(
-            @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
+    GiftResponseDto<? super KakaoGetTemplateDtlResponseV1> getTemplate(
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @PathVariable("templateToken") @NotBlank final String templateToken);
 
     @GetMapping("/api/v1/templates/{templateToken}/send-history")
-    @ResponseStatus(HttpStatus.OK)
-    GiftResponseDto<KakaoGetOrderDailyResponseV1> getSendHistoryDaily(
-            @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
+    GiftResponseDto<? super KakaoGetOrderDailyResponseV1> getSendHistoryDaily(
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @PathVariable("templateToken") @NotBlank final String templateToken,
             @SpringQueryMap @ParameterObject @Valid KakaoGetOrderDailyRequestV1 params);
 }
+

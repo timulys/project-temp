@@ -43,8 +43,8 @@ public class KakaoGetTemplateResponseV1 implements GiftExternalResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     @EqualsAndHashCode(callSuper = false)
-        @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-        public static class Content {
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+    public static class Content {
         @Schema(description = "템플릿명")
         private @NotNull String templateName;
         @Schema(description = "템플릿 ID")

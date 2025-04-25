@@ -1,5 +1,6 @@
 package com.kep.portal.controller.gift;
 
+import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.ResponseDto;
 import com.kep.core.model.dto.platform.kakao.gift.GiftResponseDto;
 import com.kep.core.model.dto.platform.kakao.gift.vo.cancel.KakaoPostCancelGiftRequestV1;
@@ -49,7 +50,7 @@ public class KakaoGiftController {
     @Operation(summary = "선물 상세 조회")
     @PostMapping("/find")
     @ResponseStatus(HttpStatus.OK)
-    public KakaoGiftResponseDto<List<KakaoPostOrderGiftResponseV3>> findOrderGifts(
+    public KakaoGiftResponseDto<? super List<KakaoPostOrderGiftResponseV3>> findOrderGifts(
             @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @Valid @RequestBody KakaoPostOrderGiftRequestV3 request
@@ -59,9 +60,9 @@ public class KakaoGiftController {
 
     @Tag(name = "선포비 선물 API")
     @Operation(summary = "선물 취소 요청")
-    @PutMapping("")
+    @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public KakaoGiftResponseDto<List<KakaoPostCancelGiftResponseV1>> cancelOrderGift(
+    public KakaoGiftResponseDto<? super List<KakaoPostCancelGiftResponseV1>> cancelOrderGift(
             @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @RequestBody @Valid KakaoPostCancelGiftRequestV1 request
@@ -71,9 +72,9 @@ public class KakaoGiftController {
 
     @Tag(name = "선포비 선물 API")
     @Operation(summary = "선물 발송 요청")
-    @PostMapping("")
+    @PostMapping
     @ResponseStatus(HttpStatus.OK)
-    public KakaoGiftResponseDto<KakaoPostOrderResponseV1> send(
+    public KakaoGiftResponseDto<? super KakaoPostOrderResponseV1> send(
             @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @Valid @RequestBody KakaoPostOrderRequestV1 request
@@ -85,7 +86,7 @@ public class KakaoGiftController {
     @Operation(summary = "완료 주문 조회")
     @GetMapping("/complete")
     @ResponseStatus(HttpStatus.OK)
-    public KakaoGiftResponseDto<KakaoGetOrderCompleteResponseV3> getOrderComplete(
+    public KakaoGiftResponseDto<? super KakaoGetOrderCompleteResponseV3> getOrderComplete(
             @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @SpringQueryMap @ParameterObject @Valid KakaoGetOrderCompleteRequestV3 params
@@ -97,7 +98,7 @@ public class KakaoGiftController {
     @Operation(summary = "주문 상태 조회(발송 요청 주문 상태 확인)")
     @GetMapping("/status")
     @ResponseStatus(HttpStatus.OK)
-    public KakaoGiftResponseDto<KakaoGetOrderReserveStatusResponseV1> getOrderReserveStatus(
+    public KakaoGiftResponseDto<? super KakaoGetOrderReserveStatusResponseV1> getOrderReserveStatus(
             @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @SpringQueryMap @ParameterObject @Valid KakaoGetOrderReserveStatusRequestV1 params
@@ -113,7 +114,7 @@ public class KakaoGiftController {
     @Operation(summary = "잔여 캐시 확인")
     @GetMapping("/balance")
     @ResponseStatus(HttpStatus.OK)
-    public KakaoGiftResponseDto<KakaoGetCashBalanceResponseV1> getCashBalance(
+    public KakaoGiftResponseDto<? super KakaoGetCashBalanceResponseV1> getCashBalance(
             @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken
     ) {
@@ -127,29 +128,30 @@ public class KakaoGiftController {
     @Tag(name = "선포비 선물 API")
     @GetMapping("/templates")
     @ResponseStatus(HttpStatus.OK)
-    public KakaoGiftResponseDto<KakaoGetTemplateResponseV1> getTemplates(
+    public KakaoGiftResponseDto<? super KakaoGetTemplateResponseV1> getTemplates(
             @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @ParameterObject @Valid KakaoGetTemplateRequestV1 params
     ) {
+//        return KakaoGiftResponseDto.success(giftServiceClient.getTemplates(kakaoApiToken, params);
         return KakaoGiftResponseDto.success(giftServiceClient.getTemplates(kakaoApiToken, params));
     }
 
     @Tag(name = "선포비 선물 API")
     @GetMapping("/templates/{templateToken}")
     @ResponseStatus(HttpStatus.OK)
-    public KakaoGiftResponseDto<KakaoGetTemplateDtlResponseV1> getTemplates(
+    public KakaoGiftResponseDto<? super KakaoGetTemplateDtlResponseV1> getTemplates(
             @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @PathVariable("templateToken") @NotBlank final String templateToken
     ) {
-        return KakaoGiftResponseDto.success(giftServiceClient.getTemplates(kakaoApiToken, templateToken));
+        return KakaoGiftResponseDto.success(giftServiceClient.getTemplate(kakaoApiToken, templateToken));
     }
 
     @Tag(name = "선포비 선물 API")
     @GetMapping("/templates/{templateToken}/send-history")
     @ResponseStatus(HttpStatus.OK)
-    public KakaoGiftResponseDto<KakaoGetOrderDailyResponseV1> getSendHistoryDaily(
+    public KakaoGiftResponseDto<? super KakaoGetOrderDailyResponseV1> getSendHistoryDaily(
             @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @PathVariable("templateToken") @NotBlank final String templateToken,
@@ -157,7 +159,6 @@ public class KakaoGiftController {
     ) {
         return KakaoGiftResponseDto.success(giftServiceClient.getSendHistoryDaily(kakaoApiToken, templateToken, params));
     }
-
 
     @Getter
     @ToString
@@ -171,7 +172,7 @@ public class KakaoGiftController {
         }
 
         public static <T> KakaoGiftResponseDto<T> success(GiftResponseDto<T> giftResponseDto) {
-            return new KakaoGiftResponseDto<>(giftResponseDto.getCode(), giftResponseDto.getMessage(), giftResponseDto.getData());
+            return new KakaoGiftResponseDto<>(ApiResultCode.succeed.name(), ApiResultCode.succeed.name(), giftResponseDto.getData());
         }
     }
 }

@@ -17,18 +17,21 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
  */
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class GiftResponseDto<T> {
+    @JsonProperty("code")
     private final String code;
+    @JsonProperty("message")
     private final String message;
+    @JsonProperty("data")
     private final T data;
 
-    protected GiftResponseDto(
-            @JsonProperty("code") String code,
-            @JsonProperty("message") String message
-    ) {
-        this.code = code;
-        this.message = message;
-        this.data = null;
-    }
+//    protected GiftResponseDto(
+//            @JsonProperty("code") String code,
+//            @JsonProperty("message") String message
+//    ) {
+//        this.code = code;
+//        this.message = message;
+//        this.data = null;
+//    }
 
     protected GiftResponseDto(
             @JsonProperty("code") String code,
@@ -40,9 +43,9 @@ public class GiftResponseDto<T> {
         this.data = data;
     }
 
-    public static <T> GiftResponseDto<T> create(String code, String message) {
-        return new GiftResponseDto<T>(code, message);
-    }
+//    public static <T> GiftResponseDto<T> create(String code, String message) {
+//        return new GiftResponseDto<T>(code, message);
+//    }
 
     public static <T> GiftResponseDto<T> create(String code, String message, T data) {
         return new GiftResponseDto<T>(code, message, data);
