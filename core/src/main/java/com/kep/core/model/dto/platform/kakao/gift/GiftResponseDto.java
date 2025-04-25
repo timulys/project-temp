@@ -1,7 +1,7 @@
 package com.kep.core.model.dto.platform.kakao.gift;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
 /**
  * TODO :: volka
@@ -14,20 +14,19 @@ import lombok.EqualsAndHashCode;
  *
  * @author volka
  */
-@Data
-@EqualsAndHashCode(callSuper = false)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class GiftResponseDto<T> {
     private final String code;
     private final String message;
     private final T data;
 
-    private GiftResponseDto(String code, String message) {
+    protected GiftResponseDto(String code, String message) {
         this.code = code;
         this.message = message;
         this.data = null;
     }
 
-    private GiftResponseDto(String code, String message, T data) {
+    protected GiftResponseDto(String code, String message, T data) {
         this.code = code;
         this.message = message;
         this.data = data;
