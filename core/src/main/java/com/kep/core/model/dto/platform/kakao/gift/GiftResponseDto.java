@@ -14,20 +14,18 @@ import lombok.EqualsAndHashCode;
  *
  * @author volka
  */
-@Data
-@EqualsAndHashCode(callSuper = false)
 public class GiftResponseDto<T> {
     private final String code;
     private final String message;
     private final T data;
 
-    private GiftResponseDto(String code, String message) {
+    protected GiftResponseDto(String code, String message) {
         this.code = code;
         this.message = message;
         this.data = null;
     }
 
-    private GiftResponseDto(String code, String message, T data) {
+    protected GiftResponseDto(String code, String message, T data) {
         this.code = code;
         this.message = message;
         this.data = data;
