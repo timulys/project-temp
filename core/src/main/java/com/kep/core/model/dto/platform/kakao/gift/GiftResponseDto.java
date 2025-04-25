@@ -1,5 +1,8 @@
 package com.kep.core.model.dto.platform.kakao.gift;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+
 /**
  * TODO :: volka
  * TODO :: 모든 요청과 응답은 불변으로 사용.
@@ -11,6 +14,7 @@ package com.kep.core.model.dto.platform.kakao.gift;
  *
  * @author volka
  */
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class GiftResponseDto<T> {
     private final String code;
     private final String message;
