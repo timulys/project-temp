@@ -29,6 +29,9 @@ spring:
             talk-service:
               - uri: http://localhost:8080/talk
               - uri: http://127.0.0.1:8080/talk
+            gift-service:
+              - uri: http://localhost:9090/gift
+              - uri: http://127.0.0.1:9090/gift
 
   #mq, redis -> lookup dev third party server
   rabbitmq:

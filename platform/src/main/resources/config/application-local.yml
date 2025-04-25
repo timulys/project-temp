@@ -28,9 +28,6 @@ spring:
             talk-service:
               - uri: http://localhost:8090/talk
               - uri: http://localhost:8090/talk
-            gift-service:
-              - uri: http://localhost:9090/gift
-              - uri: http://localhost:9090/gift
   #lookup third party server
   rabbitmq:
     host: localhost

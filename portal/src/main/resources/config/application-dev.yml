@@ -31,6 +31,9 @@ spring:
             talk-service:
               - uri: http://172.17.0.3:8090/talk
               - uri: http://172.17.0.3:8090/talk
+            gift-service:
+              - uri: http://172.17.0.3:9090/gift
+              - uri: http://172.17.0.3:9090/gift
 
   #mq, redis -> lookup dev third party server
   rabbitmq:
