@@ -1,8 +1,5 @@
 package com.kep.core.model.dto.platform.kakao.gift;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 /**
  * TODO :: volka
  * TODO :: 모든 요청과 응답은 불변으로 사용.
