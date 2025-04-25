@@ -88,7 +88,7 @@ public interface GiftServiceClient {
     GiftResponseDto<KakaoGetTemplateResponseV1> getTemplates(
             @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
-            @ParameterObject @Valid KakaoGetTemplateRequestV1 params);
+            @SpringQueryMap @ParameterObject @Valid KakaoGetTemplateRequestV1 params);
 
     @GetMapping("/api/v1/templates/{templateToken}")
     @ResponseStatus(HttpStatus.OK)
@@ -103,5 +103,5 @@ public interface GiftServiceClient {
             @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @PathVariable("templateToken") @NotBlank final String templateToken,
-            @ParameterObject @Valid KakaoGetOrderDailyRequestV1 params);
+            @SpringQueryMap @ParameterObject @Valid KakaoGetOrderDailyRequestV1 params);
 }
