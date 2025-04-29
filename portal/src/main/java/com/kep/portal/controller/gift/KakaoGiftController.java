@@ -60,7 +60,7 @@ public class KakaoGiftController {
 
     @Tag(name = "선포비 선물 API")
     @Operation(summary = "선물 취소 요청")
-    @PutMapping
+    @PostMapping("/cancel")
     @ResponseStatus(HttpStatus.OK)
     public KakaoGiftResponseDto<? super List<KakaoPostCancelGiftResponseV1>> cancelOrderGift(
             @Parameter(in = ParameterIn.HEADER, description = "카카오 인증 API KEY")
@@ -160,6 +160,10 @@ public class KakaoGiftController {
         return KakaoGiftResponseDto.success(giftServiceClient.getSendHistoryDaily(kakaoApiToken, templateToken, params));
     }
 
+    /**
+     * FIXME :: 추후 기획 정의 시 리팩토링 필요하기 때문에 임시로 이너 클래스로 정의함. 기획 정의 후 수정
+     * @param <T>
+     */
     @Getter
     @ToString
     public static class KakaoGiftResponseDto<T> extends ResponseDto {
