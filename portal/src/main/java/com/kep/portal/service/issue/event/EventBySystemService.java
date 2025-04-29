@@ -116,8 +116,7 @@ public class EventBySystemService {
 	}
 
 	/**
-	 * 자동메세지, 배정대기 (상담접수, Issue.status == open) / 상담대기 (배정완료, Issue.status ==
-	 * assign) 중 고객메세지 자동응답
+	 * 자동메세지, 배정대기 (상담접수, Issue.status == open) / 상담대기 (배정완료, Issue.status == assign) 중 고객메세지 자동응답
 	 */
 	public void sendReplyWhenOpenedAndAssigned(@NotNull Issue issue) {
 
@@ -125,6 +124,7 @@ public class EventBySystemService {
 
 		ChannelEnvDto channelEnv = channelEnvService.getByChannel(issue.getChannel());
 		try {
+			// FIXME : Absence는 상담원 부재로 메시지를 보낼 수 없는 경우에 해당하는데 현 시점에 이 메시지가 맞는지는 확인이 필요함
 			log.info("SEND REPLY WHEN OPENED AND ASSIGNED, CONFIG: {}", channelEnv.getStart().getAbsence());
 			boolean enabled = channelEnv.getStart().getAbsence().getEnabled();
 			if (enabled) {

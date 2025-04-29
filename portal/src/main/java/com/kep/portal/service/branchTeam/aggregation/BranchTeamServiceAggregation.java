@@ -30,6 +30,11 @@ public class BranchTeamServiceAggregation {
 
     private final MessageSourceUtil messageUtil;
 
+    /**
+     * 브랜치 팀 저장
+     * @param dto
+     * @return
+     */
     public ResponseEntity<? super PostBranchTeamResponseDto> postBranchTeam(PostBranchTeamRequestDto dto) {
         TeamDto teamDto = teamService.saveTeam(dto);
         boolean isSaved = teamMemberService.saveTeamMember(dto.getMemberId(), teamDto.getId());
@@ -41,6 +46,11 @@ public class BranchTeamServiceAggregation {
         return PostBranchTeamResponseDto.success(branchTeamDto, messageUtil.success());
     }
 
+    /**
+     * 브랜치 팀 수정
+     * @param dto
+     * @return
+     */
     public ResponseEntity<? super PatchBranchTeamResponseDto> patchBranchTeam(PatchBranchTeamRequestDto dto) {
         BranchTeamDto branchTeamDto = branchTeamService.modifyBranchTeam(dto);
         if (branchTeamDto == null)

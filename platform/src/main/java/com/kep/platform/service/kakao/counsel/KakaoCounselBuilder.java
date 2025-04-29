@@ -161,14 +161,11 @@ public class KakaoCounselBuilder {
 							event.setAutoAnswer("S3");
 						} else if (IssuePayload.PlatformAnswer.wait.name().equals(section.getData())) {
 							event.setAutoAnswer("S4");
-//						} else {
-//							event.setAutoAnswer("S3");
-//							log.info("INVALID PLATFORM ANSWER: {}, USE 'S3'", section.getData());
-//						}
-
 						} else if (ObjectUtils.isEmpty(section.getExtra())) {
-							event.setAutoAnswer("S3");
-							log.info("INVALID PLATFORM ANSWER: {}, USE 'S3'", section.getData());
+							// 시스템 메시지 동기화가 되지 않은 경우 Extra가 비어있음 -> ChannelEnvService에서 메시지 동기화
+							// 작업이 되지 않은 경우 S4로 메시지 송신(상담 대기)
+							event.setAutoAnswer("S4");
+							log.info("INVALID PLATFORM ANSWER: {}, USE 'S4'", section.getData());
 						} else {
 							event.setAutoAnswer(section.getExtra());
 						}
