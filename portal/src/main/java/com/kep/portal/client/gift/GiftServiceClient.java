@@ -35,7 +35,7 @@ public interface GiftServiceClient {
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @Valid @RequestBody KakaoPostOrderGiftRequestV3 request);
 
-    @PutMapping("/api/v1/gifts")
+    @PostMapping("/api/v1/gifts/cancel")
     GiftResponseDto<? super List<KakaoPostCancelGiftResponseV1>> cancelOrderGift(
             @RequestHeader("X-Kakao-AK") @NotBlank final String kakaoApiToken,
             @RequestBody @Valid KakaoPostCancelGiftRequestV1 request);
