@@ -73,30 +73,31 @@ public class BranchController {
 
     private final SystemMessageProperty systemMessageProperty;
 
-    /**
-     * branch teams
-     * @param branchId
-     * @return
-     */
-    @Tag(name = "브랜치 API")
-    @Operation(summary = "브랜치 아이디로 팀 목록 조회", description = "브랜치 아이디로 팀 목록 조회")
-    @GetMapping(value = "/{id}/team")
-    public ResponseEntity<ApiResult<List<BranchTeamDto>>> teams(
-            @Parameter(in = ParameterIn.PATH, description = "브랜치 아이디", required = true)
-            @PathVariable(name = "id") @NotNull Long branchId,
-            @SortDefault.SortDefaults({
-                    @SortDefault(sort = {"id"}, direction = Sort.Direction.ASC)}) Pageable pageable) {
-
-        Page<BranchTeamDto> items = teamService.getAll(pageable,branchId);
-        ApiResult<List<BranchTeamDto>> response = ApiResult.<List<BranchTeamDto>>builder()
-                .code(ApiResultCode.succeed)
-                .payload(items.getContent())
-                .currentPage(items.getNumber())
-                .totalPage(items.getTotalPages())
-                .totalElement(items.getTotalElements())
-                .build();
-        return new ResponseEntity<>(response , HttpStatus.OK);
-    }
+//    /**
+//     * branch teams
+//     * @param branchId
+//     * @return
+//     */
+//    @Deprecated
+//    @Tag(name = "브랜치 API")
+//    @Operation(summary = "브랜치 아이디로 팀 목록 조회", description = "브랜치 아이디로 팀 목록 조회")
+//    @GetMapping(value = "/{id}/team")
+//    public ResponseEntity<ApiResult<List<BranchTeamDto>>> teams(
+//            @Parameter(in = ParameterIn.PATH, description = "브랜치 아이디", required = true)
+//            @PathVariable(name = "id") @NotNull Long branchId,
+//            @SortDefault.SortDefaults({
+//                    @SortDefault(sort = {"id"}, direction = Sort.Direction.ASC)}) Pageable pageable) {
+//
+//        Page<BranchTeamDto> items = teamService.getAll(pageable,branchId);
+//        ApiResult<List<BranchTeamDto>> response = ApiResult.<List<BranchTeamDto>>builder()
+//                .code(ApiResultCode.succeed)
+//                .payload(items.getContent())
+//                .currentPage(items.getNumber())
+//                .totalPage(items.getTotalPages())
+//                .totalElement(items.getTotalElements())
+//                .build();
+//        return new ResponseEntity<>(response , HttpStatus.OK);
+//    }
 
     /**
      * 브랜치 팀 회원 목록
@@ -471,7 +472,7 @@ public class BranchController {
 
     /** V2 Apis **/
     @Operation(description = "브런치 팀 목록 조회 V2")
-    @GetMapping("/team-list/{id}")
+    @GetMapping("/{id}/team-list")
     public ResponseEntity<? super GetBranchTeamListResponseDto> getBranchTeamList(
             @Parameter(description = "브랜치 ID") @PathVariable("id") Long branchId) {
         log.info("Get Branch Team List, Branch ID : {}", branchId);

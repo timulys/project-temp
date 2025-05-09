@@ -62,7 +62,7 @@ public class ResponseDto {
      */
     public static ResponseEntity<ResponseDto> noSearchData(String message) {
         ResponseDto result = new ResponseDto(ResponseCode.SUCCESS, message);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(result);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     /**
@@ -107,7 +107,7 @@ public class ResponseDto {
      */
     public static ResponseEntity<ResponseDto> notExistedMember(String message) {
         ResponseDto result = new ResponseDto(ResponseCode.NOT_EXISTED_MEMBER, message);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(result);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     /**
@@ -116,7 +116,7 @@ public class ResponseDto {
      */
     public static ResponseEntity<ResponseDto> notExistedCustomer(String message) {
         ResponseDto result = new ResponseDto(ResponseCode.NOT_EXISTED_CUSTOMER, message);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(result);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     /**
@@ -125,7 +125,7 @@ public class ResponseDto {
      */
     public static ResponseEntity<ResponseDto> notExistedCustomerGroup(String message) {
         ResponseDto result = new ResponseDto(ResponseCode.NOT_EXISTED_CUSTOMER_GROUP, message);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(result);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     /**

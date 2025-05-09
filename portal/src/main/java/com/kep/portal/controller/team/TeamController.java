@@ -6,11 +6,10 @@ import com.kep.core.model.dto.ApiResultCode;
 import com.kep.core.model.dto.branch.BranchTeamDto;
 import com.kep.core.model.dto.team.TeamDto;
 import com.kep.portal.config.property.SystemMessageProperty;
+import com.kep.portal.model.dto.team.request.DeleteBranchTeamRequestDto;
 import com.kep.portal.model.dto.team.request.PatchBranchTeamRequestDto;
 import com.kep.portal.model.dto.team.request.PostBranchTeamRequestDto;
-import com.kep.portal.model.dto.team.response.GetTeamListResponseDto;
-import com.kep.portal.model.dto.team.response.PatchBranchTeamResponseDto;
-import com.kep.portal.model.dto.team.response.PostBranchTeamResponseDto;
+import com.kep.portal.model.dto.team.response.*;
 import com.kep.portal.service.branchTeam.aggregation.BranchTeamServiceAggregation;
 import com.kep.portal.service.team.TeamService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +21,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -168,6 +170,18 @@ public class TeamController {
         return response;
     }
 
+    /** V2 Apis **/
+    @Operation(summary = "브랜치 팀 목록 조회(V2)")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = GetBranchTeamListResponseDto.class)))
+    @GetMapping
+    public ResponseEntity<? super GetBranchTeamListResponseDto> getBranchTeamList() {
+        log.info("Get Branch Team List");
+        ResponseEntity<? super GetBranchTeamListResponseDto> response = teamService.getBranchTeamList();
+        log.info("Get Branch Team List, Response: {}", response);
+        return response;
+    }
+
     @Operation(summary = "상담 배분 설정 > 상담직원 조회(V2)")
     @ApiResponse(responseCode = "200", description = "성공",
             content = @Content(schema = @Schema(implementation = GetTeamListResponseDto.class)))
@@ -191,4 +205,17 @@ public class TeamController {
         log.info("Patch Branch Team, Response: {}", response);
         return response;
     }
+
+    @Operation(description = "상담그룹 삭제(V2)")
+    @ApiResponse(responseCode = "200", description = "성공",
+            content = @Content(schema = @Schema(implementation = DeleteBranchTeamResponseDto.class)))
+    @DeleteMapping
+    public ResponseEntity<? super DeleteBranchTeamResponseDto> deleteBranchTeam(
+            @RequestBody @Valid DeleteBranchTeamRequestDto requestBody) {
+        log.info("Delete Branch Team, Request: {}", requestBody);
+        ResponseEntity<? super DeleteBranchTeamResponseDto> response = teamService.deleteBranchTeam(requestBody);
+        log.info("Delete Branch Team Response: {}", response);
+        return response;
+    }
+
 }

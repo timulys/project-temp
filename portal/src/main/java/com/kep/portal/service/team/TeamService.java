@@ -7,8 +7,11 @@ import com.kep.core.model.dto.member.MemberDto;
 import com.kep.core.model.dto.team.TeamDto;
 import com.kep.core.model.enums.MessageCode;
 import com.kep.portal.model.dto.team.TeamMembersDto;
+import com.kep.portal.model.dto.team.request.DeleteBranchTeamRequestDto;
 import com.kep.portal.model.dto.team.request.PatchBranchTeamRequestDto;
 import com.kep.portal.model.dto.team.request.PostBranchTeamRequestDto;
+import com.kep.portal.model.dto.team.response.DeleteBranchTeamResponseDto;
+import com.kep.portal.model.dto.team.response.GetBranchTeamListResponseDto;
 import com.kep.portal.model.dto.team.response.GetTeamListResponseDto;
 import com.kep.portal.model.entity.branch.Branch;
 import com.kep.portal.model.entity.branch.BranchTeam;
@@ -113,6 +116,7 @@ public class TeamService {
         return new PageImpl<>(branchTeams, branchTeamList.getPageable(), branchTeamList.getTotalElements());
     }
 
+    @Deprecated
     public List<BranchTeamDto> getAll() {
         List<BranchTeam> branchTeamList = null;
 
@@ -357,7 +361,14 @@ public class TeamService {
     }
 
     /** V2 API Methods **/
-    // 팀 멤버 조회
+    // 팀 삭제(V2)
+    public ResponseEntity<? super DeleteBranchTeamResponseDto> deleteBranchTeam(DeleteBranchTeamRequestDto dto) {
+
+
+        return DeleteBranchTeamResponseDto.success(messageUtil.success());
+    }
+
+    // 팀 멤버 조회(V2)
     public ResponseEntity<? super GetTeamListResponseDto> getTeamMembersWithChannelId(Long channelId) {
         List<TeamDto> teamDtoList = teamSearchRepository.searchTeamUseChannelId(channelId);
         if (teamDtoList == null || teamDtoList.isEmpty())
@@ -371,7 +382,27 @@ public class TeamService {
         return GetTeamListResponseDto.success(teamDtoList, messageUtil.success());
     }
 
-    /** V2 Aggregation Methods **/
+    // 브랜치 팀 조회(V2)
+    public ResponseEntity<? super GetBranchTeamListResponseDto> getBranchTeamList() {
+        List<BranchTeam> branchTeamList = null;
+
+        if (securityUtils.isMaster()) {
+            branchTeamList = branchTeamRepository.findAllByOrderByIdDesc();
+        } else if (securityUtils.hasRole("ROLE_ADMIN")) {
+            branchTeamList = branchTeamRepository.findAllByBranchIdOrderByIdDesc(securityUtils.getBranchId());
+        } else if (securityUtils.hasRole("ROLE_MANAGER")) {
+            branchTeamList = branchTeamRepository.findAllByBranchIdOrderByIdDesc(securityUtils.getBranchId());
+            List<TeamMember> teamMemberList = teamMemberRepository.findAllByMemberId(securityUtils.getMemberId());
+            List<Long> teamIds = teamMemberList.stream().map(item -> item.getTeam().getId()).collect(Collectors.toList());
+            branchTeamList = branchTeamList.stream().filter(item -> teamIds.contains(item.getTeam().getId())).collect(Collectors.toList());
+        }
+
+        if (branchTeamList == null || branchTeamList.isEmpty())
+            return ResponseDto.noSearchData(messageUtil.getMessage(MessageCode.NO_SEARCH_DATA));
+
+        return GetBranchTeamListResponseDto.success(branchTeamMapper.map(branchTeamList), messageUtil.success());
+    }
+
     // 신규 상담그룹 저장(V2)
     public TeamDto saveTeam(PostBranchTeamRequestDto dto) {
         Team team = Team.builder()
