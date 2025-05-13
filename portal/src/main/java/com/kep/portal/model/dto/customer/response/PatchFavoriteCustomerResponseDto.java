@@ -18,7 +18,7 @@ public class PatchFavoriteCustomerResponseDto extends ResponseDto {
         PatchFavoriteCustomerResponseDto result = new PatchFavoriteCustomerResponseDto(message);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
-
+ 
     public static ResponseEntity<ResponseDto> notExistedCustomerMember(String message) {
         ResponseDto result = new ResponseDto(ResponseCode.NOT_EXISTED_DATA, message);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
