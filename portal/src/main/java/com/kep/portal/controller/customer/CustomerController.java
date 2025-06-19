@@ -2,7 +2,6 @@ package com.kep.portal.controller.customer;
 
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
-import com.kep.core.model.dto.channel.ChannelDto;
 import com.kep.core.model.dto.customer.CustomerDto;
 import com.kep.core.model.dto.legacy.LegacyCustomerDto;
 import com.kep.portal.model.dto.customer.request.PatchCustomerRequestDto;
@@ -193,7 +192,7 @@ public class CustomerController {
     public ResponseEntity<ApiResult<List<IssueExtra>>> getCustomerInflows(@PathVariable("customerId") Long customerId, Pageable pageable) {
         log.info("Get One Customer, Customer ID : {}", customerId);
 //        ResponseEntity<? super GetCustomerResponseDto> response =
-        Page<IssueExtra> page = customerService.getAllInflow(customerId, pageable);
+        Page<IssueExtra> page = customerService.getInflow(customerId, pageable);
         ApiResult<List<IssueExtra>> response = ApiResult.<List<IssueExtra>>builder()
             .code(ApiResultCode.succeed)
             .payload(page.getContent())

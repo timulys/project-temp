@@ -123,8 +123,8 @@ public class CustomerServiceImpl implements CustomerService {
 			customer.setContacts(this.contactsGetAll(customer));
 			customer.setAuthorizeds(this.authorizedGetAll(customer));
 			customer.setPlatformSubscribes(platformSubscribeService.getAll(this.getAllPlatformUserId(customer.getAuthorizeds())));
-			List<IssueExtra> extras = this.getAllInflow(customer);
-			customer.setInflows(this.getAllInflow(customer));
+			List<IssueExtra> extras = this.getInflow(customer);
+			customer.setInflows(this.getInflow(customer));
 
 			// 싱크없는 고객 체크
 			CustomerDto customerDto = customerMapper.map(customer);
@@ -203,7 +203,7 @@ public class CustomerServiceImpl implements CustomerService {
 	 * @param customer
 	 * @return
 	 */
-	public List<IssueExtra> getAllInflow(@NotNull Customer customer){
+	public List<IssueExtra> getInflow(@NotNull Customer customer){
 		List<Guest> guests = guestRepository.findAll(Example.of(Guest.builder().customer(customer).build()));
 		if(!guests.isEmpty()){
 			return issueRepository.findAllByGuestInAndIssueExtraIsNotNullOrderByCreatedDesc(guests)
@@ -216,14 +216,14 @@ public class CustomerServiceImpl implements CustomerService {
 		return Collections.emptyList();
 	}
 
-	public Page<IssueExtra> getAllInflow(@NotNull Long customerId, Pageable pageable){
-		List<Guest> guests = guestRepository.findAllByCustomerId(customerId);
+	public Page<IssueExtra> getInflow(@NotNull Long customerId, Pageable pageable){
+		Optional<Guest> guest = guestRepository.findByCustomerId(customerId);
 
-		if (guests.isEmpty()) {
+		if (!guest.isPresent()) {
 			return Page.empty(pageable);
 		}
 
-		Page<Issue> issuesPage = issueRepository.findAllWithInflow(guests, pageable);
+		Page<Issue> issuesPage = issueRepository.findAllWithInflow(guest, pageable);
 
 		List<IssueExtra> filteredIssueExtras = issuesPage
 				.stream()
@@ -667,7 +667,7 @@ public class CustomerServiceImpl implements CustomerService {
 		customer.setContacts(this.contactsGetAll(customer));
 		customer.setAuthorizeds(this.authorizedGetAll(customer));
 		customer.setPlatformSubscribes(platformSubscribeService.getAll(this.getAllPlatformUserId(customer.getAuthorizeds())));
-		customer.setInflows(this.getAllInflow(customer));
+		customer.setInflows(this.getInflow(customer));
 
 		CustomerDto customerDto = customerMapper.map(customer);
 		if(!ObjectUtils.isEmpty(customerDto.getAuthorizeds()) && customerDto.getAuthorizeds().size() > 0){
