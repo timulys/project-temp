@@ -87,8 +87,8 @@ public interface IssueRepository extends JpaRepository<Issue, Long>, IssueSearch
 
 	List<Issue> findAllByGuestInAndIssueExtraIsNotNullOrderByCreatedDesc(List<Guest> entities);
 
-	@Query("SELECT i FROM Issue i WHERE i.guest = :guests AND i.issueExtra IS NOT NULL AND i.issueExtra.inflow IS NOT NULL ORDER BY i.created DESC")
-	Page<Issue> findAllWithInflow(@Param("guests") Optional<Guest> guests, Pageable pageable);
+	@Query("SELECT i FROM Issue i WHERE i.guest IN :guests AND i.issueExtra IS NOT NULL AND i.issueExtra.inflow IS NOT NULL ORDER BY i.created DESC")
+	Page<Issue> findAllWithInflow(@Param("guests") List<Guest> guests, Pageable pageable);
 
 	List<Issue> findByCreatedGreaterThanEqualAndCreatedLessThanAndMemberIsNotNull(ZonedDateTime startDateTime, ZonedDateTime endDateTime);
 
