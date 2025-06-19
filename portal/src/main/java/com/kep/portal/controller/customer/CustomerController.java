@@ -2,12 +2,14 @@ package com.kep.portal.controller.customer;
 
 import com.kep.core.model.dto.ApiResult;
 import com.kep.core.model.dto.ApiResultCode;
+import com.kep.core.model.dto.channel.ChannelDto;
 import com.kep.core.model.dto.customer.CustomerDto;
 import com.kep.core.model.dto.legacy.LegacyCustomerDto;
 import com.kep.portal.model.dto.customer.request.PatchCustomerRequestDto;
 import com.kep.portal.model.dto.customer.request.PatchFavoriteCustomerRequestDto;
 import com.kep.portal.model.dto.customer.request.PostCustomerRequestDto;
 import com.kep.portal.model.dto.customer.response.*;
+import com.kep.portal.model.entity.issue.IssueExtra;
 import com.kep.portal.service.customer.CustomerServiceImpl;
 import com.kep.portal.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +20,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -170,13 +173,36 @@ public class CustomerController {
     @Tag(name = "고객 API")
     @Operation(summary = "고객 정보 단건 조회(V2)", description = "고객 정보 단건 조회(V2)")
     @ApiResponse(responseCode = "200", description = "성공",
-            content = @Content(schema = @Schema(implementation = GetCustomerResponseDto.class)))
+        content = @Content(schema = @Schema(implementation = GetCustomerResponseDto.class)))
     @GetMapping("/{customerId}")
     public ResponseEntity<? super GetCustomerResponseDto> getCustomer(@PathVariable("customerId") Long customerId) {
         log.info("Get One Customer, Customer ID : {}", customerId);
         ResponseEntity<? super GetCustomerResponseDto> response = customerService.findCustomer(customerId);
         log.info("Get One Customer, Response : {}", response);
         return response;
+    }
+
+    /**
+     * 고객 유입경로 조회
+     * @param customerId
+     * @return
+     */
+    @Tag(name = "고객 API")
+    @Operation(summary = "고객 유입경로 조회(V2)", description = "고객 유입경로 조회(V2)")
+    @GetMapping("/{customerId}/inflows")
+    public ResponseEntity<ApiResult<List<IssueExtra>>> getCustomerInflows(@PathVariable("customerId") Long customerId, Pageable pageable) {
+        log.info("Get One Customer, Customer ID : {}", customerId);
+//        ResponseEntity<? super GetCustomerResponseDto> response =
+        Page<IssueExtra> page = customerService.getAllInflow(customerId, pageable);
+        ApiResult<List<IssueExtra>> response = ApiResult.<List<IssueExtra>>builder()
+            .code(ApiResultCode.succeed)
+            .payload(page.getContent())
+            .totalPage(page.getTotalPages())
+            .totalElement(page.getTotalElements())
+            .currentPage(page.getNumber())
+            .build();
+        return new ResponseEntity<>(response, HttpStatus.OK);
+//        log.info("Get One Customer, Response : {}", response);
     }
 
     /**
