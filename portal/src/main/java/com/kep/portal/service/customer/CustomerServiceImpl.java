@@ -216,24 +216,6 @@ public class CustomerServiceImpl implements CustomerService {
 		return Collections.emptyList();
 	}
 
-	public Page<IssueExtra> getAllInflow(@NotNull Long customerId, Pageable pageable){
-		List<Guest> guests = guestRepository.findAllByCustomerId(customerId);
-
-		if (guests.isEmpty()) {
-			return Page.empty(pageable);
-		}
-
-		Page<Issue> issuesPage = issueRepository.findAllWithInflow(guests, pageable);
-
-		List<IssueExtra> filteredIssueExtras = issuesPage
-				.stream()
-				.map(Issue::getIssueExtra)
-				.filter(issueExtra -> issueExtra.getInflow() != null)
-				.collect(Collectors.toList());
-
-		return new PageImpl<>(filteredIssueExtras, pageable, issuesPage.getTotalElements());
-	}
-
 	public Page<Customer> getAllCustomer(@NotNull Pageable pageable){
 		return customerRepository.findAll(pageable);
 	}
