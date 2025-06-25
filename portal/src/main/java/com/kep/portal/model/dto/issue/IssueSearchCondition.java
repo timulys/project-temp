@@ -28,6 +28,9 @@ import java.util.List;
 @Builder
 public class IssueSearchCondition {
 
+	@Schema(description = "키워드" , requiredMode = Schema.RequiredMode.REQUIRED)
+	private String keyword;
+
 	@Schema(description = "브랜치 아이디")
 	private Long branchId;
 

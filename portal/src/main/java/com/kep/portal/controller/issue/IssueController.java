@@ -181,14 +181,11 @@ public class IssueController {
 	@GetMapping(value = "/search/history/{guestId}")
 	public ResponseEntity<ApiResult<List<IssueDto>>> searchHistoryByGuest(
 			@PathVariable(value = "guestId") Long guestId,
+			@ParameterObject @QueryParam @Valid IssueSearchCondition condition,
 			@SortDefault.SortDefaults({
 				@SortDefault(sort = {"created"}, direction = Sort.Direction.DESC)}) Pageable pageable) throws Exception {
 		log.info("ISSUE, GET HISTORY BY GUEST, GUEST: {}", guestId);
-
-		IssueSearchCondition condition = IssueSearchCondition.builder()
-				.guestId(guestId)
-				.status(Collections.singletonList(IssueStatus.close))
-				.build();
+		condition.setGuestId(guestId);
 
 		Page<IssueDto> page = issueService.searchHistory(condition, pageable);
 		return response(page, HttpStatus.OK);

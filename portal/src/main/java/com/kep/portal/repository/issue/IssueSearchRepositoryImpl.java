@@ -17,6 +17,7 @@ import com.kep.portal.repository.customer.GuestRepository;
 import com.kep.portal.util.ZonedDateTimeUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.NullExpression;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -323,8 +324,21 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
             mainBuilder.and(channelBuilder);
         }
         mainBuilder.and(dateBetween(condition.getDateSubject(), condition.getStartDate(), condition.getEndDate()));
+        mainBuilder.and(keywordContains(condition.getKeyword()));
 
         return mainBuilder;
+    }
+
+    private BooleanBuilder keywordContains(String keyword) {
+        if (!StringUtils.hasText(keyword)) return null;
+
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.or(issue.id.eq(Long.valueOf(keyword)));
+//        builder.or(guest.name.containsIgnoreCase(keyword));
+//        builder.or(member.username.containsIgnoreCase(keyword));
+//        builder.or(issueExtra.summary.containsIgnoreCase(keyword));
+//        builder.or(issueExtra.memo.containsIgnoreCase(keyword));
+        return builder;
     }
 
     @Override
@@ -465,7 +479,9 @@ public class IssueSearchRepositoryImpl implements IssueSearchRepository {
             ZonedDateTime to = endDate.plusDays(1L).atStartOfDay(ZoneId.systemDefault());
             if ("created".equals(dateSubject)) {
                 return issue.created.between(from, to);
-            } else if ("closed".equals(dateSubject)) {
+            } if ("modified".equals(dateSubject)) {
+                return issue.modified.between(from, to);
+            }  else if ("closed".equals(dateSubject)) {
                 return issue.closed.between(from, to);
             }
         }
