@@ -11,6 +11,8 @@ package com.kep.portal.repository.hotkey;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -22,6 +24,8 @@ public interface HotkeyRepository extends JpaRepository<Hotkey,Long>{
 
     //직원기준 자주사용하는 문구 가져오기
     public List<Hotkey> findByMemberIdOrderBySortAsc(Long id);
+
+    List<Hotkey> findByMemberIdOrderBySortAsc(Long id, Pageable pageable);
 
     Optional<Hotkey> findByIdAndMemberId(Long id, Long memberId);
 
