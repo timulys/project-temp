@@ -4,8 +4,10 @@ spring:
 #    username: ${DB_USER:always}
 #    password: ${DB_PASSWD:always2023!}
     url: jdbc:mysql://always-dev-db-mysql-cluster-rw.dbe.dktechin.in:3306/always?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&allowMultiQueries=true
-    username: ${DB_USER:always_dev_service}
-    password: ${DB_PASSWD:i9raq3JZlqK6E2hJTO@GfJan:@=CxW}
+#    username: ${DB_USER:always_dev_service}
+#    password: ${DB_PASSWD:i9raq3JZlqK6E2hJTO@GfJan:@=CxW}
+    username: ${DB_USER:always_sbox_service}
+    password: ${DB_PASSWD:IVx9@q8sW@G3SgMl9@+l}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 30
