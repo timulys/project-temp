@@ -3,7 +3,7 @@ spring:
 #    url: jdbc:mysql://connectalways-dev.622b1134.3e8321497bc841aea852dd9d5ac0cc6d.mysql.managed-service.kr-central-1.kakaokic.com:3306/always?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&allowMultiQueries=true
 #    username: ${DB_USER:always}
 #    password: ${DB_PASSWD:always2023!}
-    url: jdbc:mysql://always-dev-db-mysql-cluster-rw.dbe.dktechin.in:3306/always?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&allowMultiQueries=true
+    url: jdbc:mysql://kica-sbox-always-db-mysql-cluster-rw.dbe.dktechin.in:3306/always?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&allowMultiQueries=true
 #    username: ${DB_USER:always_dev_service}
 #    password: ${DB_PASSWD:i9raq3JZlqK6E2hJTO@GfJan:@=CxW}
     username: ${DB_USER:always_sbox_service}
