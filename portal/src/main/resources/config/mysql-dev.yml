@@ -16,7 +16,7 @@ spring:
       mode: never
       platform: mysql
   jpa:
-    database-platform: org.hibernate.dialect.MySQL57Dialect
+    database-platform: org.hibernate.dialect.MySQLDialect
     show-sql: false
     open-in-view: false
     defer-datasource-initialization: true
