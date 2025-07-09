@@ -37,8 +37,8 @@ spring:
 
   #mq, redis -> lookup dev third party server
   rabbitmq:
-#    host: 10.111.25.211
-    host: 10.206.16.58
+    host: 10.111.25.211
+#    host: 10.206.16.58
     port: 5672
     virtual-host: /${spring.application.name}
     username: ${spring.application.name}
@@ -47,8 +47,8 @@ spring:
     connection-timeout: 3600000
 
   redis:
-#    host: 10.111.25.211
-    host: 10.206.16.58
+    host: 10.111.25.211
+#    host: 10.206.16.58
     port: 6379
     password: ${REDIS_PASSWORD:}
     cluster:
