@@ -35,3 +35,4 @@ docker/up.cmd
 portal/run.cmd
 portal/src/main/resources/config/acl.yml.bak
 /.metadata/
+portal/src/main/resources/config/application.yml
