@@ -21,8 +21,6 @@ public class BranchTeamDto {
     private Long id;
     @Schema(description = "브랜치 정보")
     private BranchDto branch;
-    @Schema(description = "팀 목록")
-    private List<TeamDto> teams;
     @Schema(description = "팀 정보")
     private TeamDto team;
     @Schema(description = "사용자 정보")
