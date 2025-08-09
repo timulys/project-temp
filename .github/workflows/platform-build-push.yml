@@ -1,4 +1,4 @@
-name: Build & Push platform (Kakao Cloud CR)
+name: Build & Push platform
 
 on:
   workflow_dispatch:
