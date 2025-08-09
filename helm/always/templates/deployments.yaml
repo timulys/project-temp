@@ -1,0 +1,62 @@
+{{- $ns := .Release.Namespace -}}
+{{- range $app := .Values.apps }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $app.name }}
+  namespace: {{ $ns }}
+  labels:
+    app.kubernetes.io/name: {{ $app.name }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+spec:
+  replicas: {{ $app.replicaCount | default 3 }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ $app.name }}
+      app.kubernetes.io/instance: {{ $.Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ $app.name }}
+        app.kubernetes.io/instance: {{ $.Release.Name }}
+    spec:
+      {{- with $.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ $app.name }}
+          image: "{{ $.Values.image.registry }}/{{ $app.image.name }}:{{ $app.image.tag }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ $app.service.port }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "{{ $app.env.SPRING_PROFILES_ACTIVE | default "sandbox" }}"
+            # 앱이 컨텍스트 패스를 환경변수로 읽을 경우에만 사용
+            - name: SERVER_SERVLET_CONTEXT_PATH
+              value: "{{ $app.contextPath }}"
+          envFrom:
+            # MySQL Secret 주입 없음 (application-sandbox.yml의 고정값 사용)
+            {{- if $.Values.secrets.rabbitmq }}
+            - secretRef: { name: {{ $.Values.secrets.rabbitmq }} }
+            {{- end }}
+            {{- if $.Values.secrets.redis }}
+            - secretRef: { name: {{ $.Values.secrets.redis }} }
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              path: "{{ $app.probes.path }}"
+              port: {{ $app.service.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: "{{ $app.probes.path }}"
+              port: {{ $app.service.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            {{- toYaml ($app.resources | default dict) | nindent 12 }}
+---
+{{- end }}
