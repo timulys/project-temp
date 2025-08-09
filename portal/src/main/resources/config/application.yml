@@ -1,0 +1,160 @@
+debug: false
+spring:
+  application:
+    name: portal
+  profiles:
+    active: sandbox
+  # Zipkin 설정 추가
+  #  zipkin:
+  #    base-url: http://localhost:9411
+  #    enabled: true
+  config:
+    import:
+      - optional:./code.yml
+      - optional:./system-message.yml
+      - optional:./mode-fp.yml
+      - optional:./acl.yml
+  security:
+    debug: true
+  mvc:
+    throwExceptionIfNoHandlerFound: true
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+  jmx:
+    enabled: false
+  devtools:
+    livereload:
+      enabled: false
+    restart:
+      enabled: false
+    add-properties: false
+  thymeleaf:
+    cache: true
+
+  cloud:
+    loadbalancer:
+      health-check:
+        path:
+          default: /actuator/health
+        interval: 10000
+      retry:
+        enabled: true
+        max-retries-on-next-service-instance: 1
+        max-retries-on-same-service-instance: 0
+        retryable-status-codes: 404, 503
+        backoff:
+          enabled: true
+          jitter: 0.5
+
+  datasource:
+    hikari:
+      maximum-pool-size: 5
+  sql:
+    init:
+      mode: never
+      platform: h2
+      schema-locations: classpath*:db/${spring.sql.init.platform}/schema.sql
+      data-locations: classpath*:db/${spring.sql.init.platform}/data.sql
+  jpa:
+    show-sql: true
+    open-in-view: false
+    defer-datasource-initialization: false
+    hibernate:
+      ddl-auto: none
+    generate-ddl: false
+    properties:
+      hibernate:
+        hbm2dll:
+          create_namespaces: false
+        #        default_schema: ${DB_DEFAULT_SCHEMA:kep_talk}
+        globally_quoted_identifiers: false
+        format_sql: true
+        use_sql_comments: true
+        default_batch_fetch_size: 1000
+        temp:
+          use_jdbc_metadata_defaults: false
+  data:
+    redis:
+      repositories:
+        enabled: false
+  session:
+    # 변경시, Redis 세션 데이터 삭제 필요
+    timeout: 1800
+    store-type: redis
+    redis:
+      namespace: session:${spring.application.name}
+    hazelcast:
+      flush-mode: immediate
+      save-mode: always
+      map-name: session:${spring.application.name}
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+  messages:
+    encoding: UTF-8
+
+jasypt:
+  encryptor:
+    bean: propertyEncryptor
+
+logging:
+  level:
+    root: info
+  pattern:
+    correlation: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'
+
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /${spring.application.name}
+  error:
+    whitelabel:
+      enabled: false
+    include-exception: true
+  tomcat:
+    max-http-request-size: 100MB
+
+#  tomcat:
+#    remoteip:
+#      protocol-header-https-value: https
+#      protocol-header: X-Forwarded-Proto
+#      remote-ip-header: X-Forwarded-For
+#      host-header: X-Forwarded-Host
+#      port-header: X-Forwarded-Port
+#    redirect-context-root: false
+#  forward-headers-strategy: native
+
+management:
+  #  tracing:
+  #    sampling:
+  #      probability: 1.0
+  #    propagation:
+  #      consume: B3
+  #      produce: B3
+  #  zipkin:
+  #    tracing:
+  #      endpoint: http://localhost:9411/api/v2/spans
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: '*'
+
+application:
+  core:
+    authorized-uri: https://always-talk.kakaoiconnect.ai/portal/api/v1/auth/getSync
+    platform-service-uri: http://platform-service/platform
+
+watcher:
+  api-base-url: http://api.noti.daumkakao.io
+  group-kakaowork: /send/messenger/group/kakaowork
+  group-id : 20642
