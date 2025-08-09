@@ -15,7 +15,7 @@ env:
   # Dockerfile build-args
   MODULE: talk
   ENVIRONMENT: ${{ github.event.inputs.environment || 'sandbox' }}
-  CHART_PATH: ./helm   # helm chart 경로
+  CHART_PATH: ./helm/always   # helm chart 경로
   RELEASE_NAME: always
   NAMESPACE: sbox
 
