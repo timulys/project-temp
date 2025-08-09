@@ -1,0 +1,125 @@
+spring:
+  cloud:
+    discovery:
+      client:
+        health-indicator:
+          enabled: false
+        simple:
+          instances:
+            portal-service:
+              - uri: http://portal-service:8080/portal
+            talk-service:
+              - uri: http://talk-service:8080/talk
+
+  security:
+    debug: true
+    oauth2:
+      client:
+        registration:
+          kakao-bizmsg:
+            authorization-grant-type: client_credentials
+            client-id: RCDKCI0000
+            client-secret: RCDKCI0000_FdZGtR0uTcecOX7PVwVW+g
+            scope:
+              - read
+              - write
+          kakao-template:
+            authorization-grant-type: client_credentials
+            client-id: RCDKCI0000_001
+            client-secret: RCDKCI0000_DGGMsl6CR8S+UJLjpoHKUQ
+            scope:
+              - read
+              - write
+          kakao-sync:
+            authorization-grant-type: authorization_code
+            client-id: 4685173414465be4d355d1a205ef52ad
+            client-secret: cK4Um8RpUIc7KIreVG5DULdRKJIqOvnE
+            redirect-uri: ${KAKAO_SYNC_RETURN_URL:https://always-talk.kakaoiconnect.ai/portal/api/v1/auth/authorized}
+            scope:
+              - read
+              - write
+        provider:
+          kakao-bizmsg:
+            token-uri: https://web1.dktechinmsg.com/v1/oauth/token
+          kakao-template:
+            token-uri: https://web1.dktechinmsg.com/mng/v1/oauth/token
+          kakao-sync:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+  #lookup third party server
+  rabbitmq:
+    host: rabbitmq.rabbitmq.svc.cluster.local
+    port: 5672
+    virtual-host: /${spring.application.name}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    requested-heartbeat: 30
+    connection-timeout: 3600000
+    address-shuffle-mode: random
+
+  redis:
+    host: redis.redis.svc.cluster.local
+    port: 6379
+    password: ${REDIS_PASSWORD}
+# prod 에선 master 3개로 cluster 설정 예정
+#    cluster:
+#      nodes:
+#        - redis-node-0.redis.redis.svc.cluster.local:6379
+#        - redis-node-1.redis.redis.svc.cluster.local:6379
+
+logging:
+  file:
+    path: ${LOGGING_PATH:/opt/storage/logs}/always/${spring.application.name}
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 7
+
+application:
+  talk: http://talk-service:8080/talk
+  platform:
+    whitelist:
+      - 192.168.0/24
+      - 127.0.0.1
+      - ::1
+      - 0:0:0:0:0:0:0:1
+      - 10.182.100.179
+      - 203.133.162.185
+      - 203.133.162.195
+      - 203.133.162.196
+      - 10.100.0.193
+    platforms:
+      kakao_alert_talk:
+        api-base-url: https://bzm-api.kakao.com
+        api-key: ${KAKAO_BIZ_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
+      kakao_friend_talk:
+        api-base-url: https://bzm-api.kakao.com
+        api-key: ${KAKAO_BIZ_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
+      kakao_template:
+        api-base-url: https://bzm-center.kakao.com/api
+        api-key: ${KAKAO_BIZ_API_KEY:aedfb3082a49eb15cbcfa6f4a87927816573b071}
+serviceIdKey:
+  always: /@ntezrdc3njvlvcb
+
+#Swagger
+springdoc:
+  swagger-ui:
+    groups-order: DESC
+    tags-sorter: alpha
+    operations-sorter: method
+    disable-swagger-default-url: true
+    display-request-duration: true
+    defaultModelsExpandDepth: 2
+    defaultModelExpandDepth: 2
+  api-docs:
+    path: /api-docs
+  show-actuator: true
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  writer-with-default-pretty-printer: true
+  model-and-view-allowed: true
+  paths-to-match:
+    - /api/v1/**

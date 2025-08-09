@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: talk
+  config:
+    import:
+      - optional:./mysql-sandbox.yml
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+  cloud:
+    discovery:
+      client:
+        health-indicator:
+          enabled: false
+        simple:
+          instances:
+            platform-service:
+              - uri: http://platform-service:8080/platform
+            portal-service:
+              - uri: http://portal-service:8080/portal

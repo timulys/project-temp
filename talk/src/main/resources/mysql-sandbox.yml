@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/always
+    username: always
+    password: always23!
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 30
+    sql:
+      init:
+        mode: never
+        platform: mysql
+    jpa:
+      database-platform: org.hibernate.dialect.MySQL57Dialect
+      show-sql: true
+      open-in-view: false
+      defer-datasource-initialization: true
+      hibernate:
+        ddl-auto: update
+      generate-ddl: true
+      properties:
+        hibernate:
+          globally_quoted_identifiers: true
+          format_sql: true
+          use_sql_comments: true
+          default_batch_fetch_size: 1000
+          temp:
+            use_jdbc_metadata_defaults: false

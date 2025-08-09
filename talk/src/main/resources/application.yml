@@ -2,15 +2,15 @@ spring:
   application:
     name: talk
   profiles:
-    active: dev
+    active: sandbox
   config:
     import:
       - optional:./mysql-local.yml
   jackson:
     property-naming-strategy: SNAKE_CASE
-#  zipkin:
-#    base-url: http://localhost:9411
-#    enabled: true
+  #  zipkin:
+  #    base-url: http://localhost:9411
+  #    enabled: true
   cloud:
     discovery:
       client:
@@ -92,15 +92,15 @@ logging:
     correlation: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'
 
 management:
-#  tracing:
-#    sampling:
-#      probability: 1.0
-#    propagation:
-#      consume: B3
-#      produce: B3
-#  zipkin:
-#    tracing:
-#      endpoint: http://localhost:9411/api/v2/spans
+  #  tracing:
+  #    sampling:
+  #      probability: 1.0
+  #    propagation:
+  #      consume: B3
+  #      produce: B3
+  #  zipkin:
+  #    tracing:
+  #      endpoint: http://localhost:9411/api/v2/spans
   endpoints:
     web:
       exposure:
