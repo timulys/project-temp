@@ -12,10 +12,12 @@ env:
   # Docker Hub
   DOCKERHUB_NAMESPACE: timulys # ex) timulys (Repo → Settings → Variables에 등록)
   IMAGE_NAME: portal
-
   # Dockerfile build-args
   MODULE: portal
   ENVIRONMENT: ${{ github.event.inputs.environment || 'sandbox' }}
+  CHART_PATH: ./helm   # helm chart 경로
+  RELEASE_NAME: always
+  NAMESPACE: sbox
 
 jobs:
   build-and-push-portal:
@@ -62,3 +64,25 @@ jobs:
           cache-to: type=gha,mode=max
           sbom: false
           provenance: false
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.30.0'
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: '3.15.0'
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_CONTENTS }}" > ~/.kube/config
+
+      - name: Helm upgrade (update only image tag)
+        run: |
+          helm upgrade ${{ env.RELEASE_NAME }} ${{ env.CHART_PATH }} \
+            --namespace ${{ env.NAMESPACE }} \
+            --reuse-values \
+            --set apps[0].image.tag=${{ steps.meta.outputs.version }}
