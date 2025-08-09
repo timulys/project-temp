@@ -56,9 +56,14 @@ jobs:
           file: ./Dockerfile
           push: true
           build-args: |
-            MODULE=platform
-            ENVIRONMENT=sandbox
+            MODULE=${{ env.MODULE }}
+            ENVIRONMENT=${{ env.ENVIRONMENT }}
           tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          sbom: false
+          provenance: false
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
