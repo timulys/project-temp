@@ -1,8 +1,8 @@
 spring:
   config:
     import:
-      - optional:./portal-crane-dev.yml
-      - optional:./mysql-crane-dev.yml
+      - optional:./portal-sandbox.yml
+      - optional:./mysql-sandbox.yml
 
   security:
     debug: true
@@ -18,37 +18,35 @@ spring:
   cloud:
     discovery:
       client:
+        health-indicator:
+          enabled: false
         simple:
           instances:
             platform-service:
-              - uri: http://localhost:8080/platform
-              - uri: http://127.0.0.1:8080/platform
-            legacy-service:
-              - uri: http://localhost:8080/legacy
-              - uri: http://localhost:8080/legacy
+              - uri: http://platform-service:8080/platform
             talk-service:
-              - uri: http://localhost:8080/talk
-              - uri: http://127.0.0.1:8080/talk
-            gift-service:
-              - uri: http://localhost:9090/gift
-              - uri: http://127.0.0.1:9090/gift
+              - uri: http://talk-service.talk:8080/talk
 
   #mq, redis -> lookup dev third party server
   rabbitmq:
-    host: 10.202.25.216
+    host: rabbitmq.rabbitmq.svc.cluster.local
     port: 5672
     virtual-host: /${spring.application.name}
-    username: ${spring.application.name}
-    # TODO: encrypt
-    password: portal!#%135
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    requested-heartbeat: 30
     connection-timeout: 3600000
+    address-shuffle-mode: random
 
   redis:
-    host: 10.202.25.216
+    host: redis.redis.svc.cluster.local
     port: 6379
-    password: ${REDIS_PASSWORD:}
-    cluster:
-      nodes:
+    password: ${REDIS_PASSWORD}
+# prod 에선 master 3개로 cluster 설정 예정
+#    cluster:
+#      nodes:
+#        - redis-node-0.redis.redis.svc.cluster.local:6379
+#        - redis-node-1.redis.redis.svc.cluster.local:6379
 
 logging:
   pattern:
@@ -61,11 +59,11 @@ logging:
       max-history: 7
   level:
     root: info
-    org.hibernate.SQL: debug
-#    org.hibernate.type: trace
-    org.hibernate.type.descriptor.sql.BasicBinder: trace
-    jdbc.sqlonly: debug
-    jdbc.resultsettable: debug
+    org.hibernate.SQL: info
+    #    org.hibernate.type: trace
+    org.hibernate.type.descriptor.sql.BasicBinder: info
+    jdbc.sqlonly: info
+    jdbc.resultsettable: info
     com.kep.portal.config.debug.DebugFilter: info
 
 application:

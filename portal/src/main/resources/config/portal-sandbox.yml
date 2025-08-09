@@ -1,37 +1,34 @@
 application:
-  #  core:
-  #    internal-service-host: internal-service
-  #    servers:
-  #      -
-  #        id: 001
-  #        host: localhost
-  #        port: 8080
-  #      -
-  #        id: 002
-  #        host: 127.0.0.1
-  #        port: 8080
   portal:
     api-version: 1
     api-base-path: /api/v${application.portal.api-version}
-    service-url: https://connect-always-fe-cl.codeclick.co.kr
-    service-domain: connect-always-fe-cl.codeclick.co.kr
+    service-url: https://always-talk.kakaoiconnect.ai
+    service-domain: always-talk.kakaoiconnect.ai
     # upload
     storage-path: ${STORAGE_PATH:/opt/storage}
     upload-path: ${application.portal.storage-path}/upload
     upload-url: ${application.portal.service-url}/upload
+    allowed-extension:
+      - ".xlsx"
+      - ".jpg"
+      - ".jpeg"
     system-member-id: 9000000001
     kakao-bot-member-id: 9000000002
-    break-time-start: "12:00"
-    break-time-end: "13:00"
+    # TODO : 실 사용 시 점심시간 변경 필요
+    break-time-start: "21:00"
+    break-time-end: "22:00"
+    # FIXME : 인증 URL 변경 필요
+    bnk-kakao-talk-url: https://always-talk.kakaoiconnect.ai/platform/auth/kakao-sync/getSync?state=
     dashboad:
       search-interval-minutes: 60
       batch-cron: 5 0/10 * * * *
+      #FIXME : local 동일하게 추가 20240719 volka
+      data-interval-minutes: 10
     # redis mode
-    redis-mode: ${REDIS_MODE:cluster}
-    # eddie.j download api url 추가
+    redis-mode: ${REDIS_MODE:standalone}
     # download
-    download-api-url: /portal/api/v1/download
-    evaluation-link-url : https://always-talk.kakaoiconnect.ai
+    download-api-url: https://always-talk.kakaoiconnect.ai/portal/api/v1/download
+    evaluation-link-url : https://forms.gle/nRqDiAkKV7RmRwgs9
     # 친구톡 발송 불가 시간 (카카오 스펙) 추가 volka
     friend-talk-enable-start-time: "08:00"
     friend-talk-enable-end-time: "20:50"
@@ -40,14 +37,19 @@ application:
     api-base-path: /api/v${application.customer.api-version}
   platform:
     api-version: 1
-    api-base-path: /api/v1/portal
+    #FIXME :: api-base-path :: platform에서 리스닝 컨트롤러 path 20240719 volka
+    api-base-path: /api/v1/counsel-portal
+    #    api-base-path: /api/v1/portal
     #    api-key-name: X-API-Key
     api-key-name: Authorization
     api-key-method: APIKey
     message-path: /message
     close-path: /close
     relay-path: /relay
-    redis-mode: ${REDIS_MODE:cluster}
+    redis-mode: ${REDIS_MODE:standalone}
+  talk:
+    api-version: 2
+    api-base-path: /api/v${application.talk.api-version}
   socket:
     endpoint: /${spring.application.name}-ws
     general-path: /topic/general
@@ -60,22 +62,9 @@ application:
     notice-path: /topic/notice
     upload-path: /topic/upload
     message-broker:
-      addresses:
-        - 10.0.1.116:61613
-        - 10.0.3.90:61613
-        - 10.0.2.23:61613
-      host: not.exist.host
-      port: 44444
+      host: rabbitmq.rabbitmq.svc.cluster.local
+      port: 61613
       virtual-host: /${spring.application.name}
-      username: ${spring.application.name}
-      # TODO: encrypt
-      password: portal!#%135
+      username: ${RABBITMQ_USERNAME:admin}
+      password: ${RABBITMQ_PASSWORD:Dlzpdk123!@}
       heartbeat-interval: 5000
-#
-#
-#server:
-#  servlet:
-#    session:
-#      cookie:
-#        path: /
-#        domain: codeclick.co.kr
