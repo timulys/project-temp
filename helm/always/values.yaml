@@ -16,17 +16,17 @@ apps:
     replicaCount: 3
     image:
       name: platform
-      tag: ''
+      tag: 'platform-0106cda'
     service: {name: platform-service, port: 8080}
     contextPath: /platform
     env: {SPRING_PROFILES_ACTIVE: sandbox}
     resources: {}
     probes: {path: /platform/actuator/health}
   - name: portal
-    replicaCount: 3<<<<<<< HEAD
+    replicaCount: 3
     image:
       name: portal
-      tag: ''
+      tag: 'portal-2090daa'
     service: {name: portal-service, port: 8080}
     contextPath: /portal
     env: {SPRING_PROFILES_ACTIVE: sandbox}
@@ -36,7 +36,7 @@ apps:
     replicaCount: 3
     image:
       name: talk
-      tag: ''
+      tag: 'talk-d2a04c7'
     service: {name: talk-service, port: 8080}
     contextPath: /talk
     env: {SPRING_PROFILES_ACTIVE: sandbox}
