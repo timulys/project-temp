@@ -16,7 +16,7 @@ apps:
     replicaCount: 3
     image:
       name: platform
-      tag: ''
+      tag: 'platform-5f1a150'
     service: {name: platform-service, port: 8080}
     contextPath: /platform
     env: {SPRING_PROFILES_ACTIVE: sandbox}
@@ -45,7 +45,7 @@ apps:
     replicaCount: 3
     image:
       name: portal
-      tag: ''
+      tag: 'portal-f2e0087'
     service: {name: portal-service, port: 8080}
     contextPath: /portal
     env: {SPRING_PROFILES_ACTIVE: sandbox}
@@ -74,7 +74,7 @@ apps:
     replicaCount: 3
     image:
       name: talk
-      tag: ''
+      tag: 'talk-64729fe'
     service: {name: talk-service, port: 8080}
     contextPath: /talk
     env: {SPRING_PROFILES_ACTIVE: sandbox}
