@@ -101,7 +101,6 @@ public class SecurityConfig {
 				.hasAnyRole("SYS")
 
 				.mvcMatchers("/api-docs/**" , "/swagger-ui/**").permitAll()
-				.mvcMatchers("/actuator/health", "/actuator/health/**", "/healthz", "/platform/healthz", "/").permitAll()
 				.mvcMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 				.anyRequest()
 				.authenticated()

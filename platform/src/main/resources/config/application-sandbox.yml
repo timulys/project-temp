@@ -91,6 +91,9 @@ application:
       - 203.133.162.195
       - 203.133.162.196
       - 10.100.0.193
+      - 10.244.0.1
+      - 10.244.0.0/16
+      - 10.96.0.0/12
     platforms:
       kakao_alert_talk:
         api-base-url: https://bzm-api.kakao.com

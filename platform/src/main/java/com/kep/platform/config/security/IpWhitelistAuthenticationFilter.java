@@ -22,6 +22,12 @@ public class IpWhitelistAuthenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 		System.out.println("IP White List Check : " + request.getRemoteAddr());
+
+		if (request.getRequestURI().startsWith("/healthz") || request.getRequestURI().startsWith("/actuator/health") || request.getRequestURI().equals("/error")) {
+			filterChain.doFilter(request, response);
+			return;
+		}
+
 		// 카카오 상담톡
 		if (request.getRequestURI().contains("/api/v1/kakao-counsel-talk/")) {
 			// TODO: X-Origin-Host 등 헤더 파싱
