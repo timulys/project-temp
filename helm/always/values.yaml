@@ -45,7 +45,7 @@ apps:
     replicaCount: 3
     image:
       name: portal
-      tag: 'portal-2090daa'
+      tag: ''
     service: {name: portal-service, port: 8080}
     contextPath: /portal
     env: {SPRING_PROFILES_ACTIVE: sandbox}
