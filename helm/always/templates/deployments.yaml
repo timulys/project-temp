@@ -51,6 +51,9 @@ spec:
                 secretKeyRef:
                   name: redis-cred
                   key: redis-password
+            # placeholder 에러 방지용 (클러스터 안 쓸 때는 빈 값으로)
+            - name: SPRING_REDIS_CLUSTER_NODES
+              value: ""
                   
           envFrom:
             # MySQL Secret 주입 없음 (application-sandbox.yml의 고정값 사용)
