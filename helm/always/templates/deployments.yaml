@@ -65,27 +65,30 @@ spec:
             # placeholder 에러 방지용 (클러스터 안 쓸 때는 빈 값으로)
             - name: SPRING_REDIS_CLUSTER_NODES
               value: ""
+              
+            {{- if $app.extraEnv }}
+            {{- toYaml $app.extraEnv | nindent 12 }}
+            {{- end }}
                   
-          envFrom:
-            # MySQL Secret 주입 없음 (application-sandbox.yml의 고정값 사용)
-            {{- if $.Values.secrets.rabbitmq }}
-            - secretRef: { name: {{ $.Values.secrets.rabbitmq }} }
-            {{- end }}
-            {{- if $.Values.secrets.redis }}
-            - secretRef: { name: {{ $.Values.secrets.redis }} }
-            {{- end }}
+          # ====== Probes (경로/타이밍 values로 조절) ======
           readinessProbe:
             httpGet:
-              path: "{{ $app.probes.path }}"
+              path: {{ default "/" $app.probes.path | quote }}
               port: {{ $app.service.port }}
-            initialDelaySeconds: 5
-            periodSeconds: 5
+            initialDelaySeconds: {{ default 40 $app.probes.readinessInitialDelay }}
+            periodSeconds:       {{ default 10 $app.probes.readinessPeriod }}
+            timeoutSeconds:      {{ default 5  $app.probes.readinessTimeout }}
+            failureThreshold:    {{ default 6  $app.probes.readinessFailures }}
+
           livenessProbe:
             httpGet:
-              path: "{{ $app.probes.path }}"
+              path: {{ default "/" $app.probes.path | quote }}
               port: {{ $app.service.port }}
-            initialDelaySeconds: 15
-            periodSeconds: 10
+            initialDelaySeconds: {{ default 120 $app.probes.livenessInitialDelay }}
+            periodSeconds:       {{ default 10  $app.probes.livenessPeriod }}
+            timeoutSeconds:      {{ default 5   $app.probes.livenessTimeout }}
+            failureThreshold:    {{ default 6   $app.probes.livenessFailures }}
+
           resources:
             {{- toYaml ($app.resources | default dict) | nindent 12 }}
 ---
