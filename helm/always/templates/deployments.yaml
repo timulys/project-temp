@@ -26,7 +26,7 @@ spec:
       {{- end }}
       containers:
         - name: {{ $app.name }}
-          image: "{{ $.Values.image.registry }}/{{ $app.image.name }}:{{ $app.image.tag }}"
+          image: "{{ $.Values.image.registry }}/{{ $app.image.name }}{{ if $app.image.tag }}:{{ $app.image.tag }}{{ end }}"
           imagePullPolicy: {{ $.Values.image.pullPolicy }}
           ports:
             - containerPort: {{ $app.service.port }}
