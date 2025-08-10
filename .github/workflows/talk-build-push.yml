@@ -45,14 +45,14 @@ jobs:
             docker.io/${{ env.DOCKERHUB_NAMESPACE }}/${{ env.IMAGE_NAME }}
           flavor: latest=false
           tags: |
-            type=sha,format=short,prefix=portal-
+            type=sha,format=short,prefix=talk-
 
       # 첫 번째 태그에서 ":<tag>"만 추출
       - name: Extract image tag from metadata
         id: tag
         run: |
           FIRST_TAG="$(echo "${{ steps.meta.outputs.tags }}" | head -n1)"
-          # 예: FIRST_TAG = docker.io/timulys/platform:platform-abcdef0
+          # 예: FIRST_TAG = docker.io/timulys/talk:talk-abcdef0
           TAG="${FIRST_TAG##*:}"
           echo "tag=$TAG"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
@@ -77,15 +77,15 @@ jobs:
 
       - name: Bump image tag in values.yaml
         run: |
-          NEW_TAG="${{ steps.tag.outputs.tag }}"  # 예: platform-abcdef0
-          yq -i '( .apps[] | select(.name=="platform") ).image.tag = strenv(NEW_TAG)' "${{ env.VALUES_FILE }}"
+          NEW_TAG="${{ steps.tag.outputs.tag }}"  # 예: talk-abcdef0
+          yq -i '( .apps[] | select(.name=="talk") ).image.tag = strenv(NEW_TAG)' "${{ env.VALUES_FILE }}"
           echo "New tag set to: ${NEW_TAG}"
-          yq '( .apps[] | select(.name=="platform") ).image.tag' "${{ env.VALUES_FILE }}"
+          yq '( .apps[] | select(.name=="talk") ).image.tag' "${{ env.VALUES_FILE }}"
 
       - name: Commit & Push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "${{ env.VALUES_FILE }}"
-          git commit -m "chore(platform): bump image tag to ${{ steps.tag.outputs.tag }}" || echo "No changes to commit"
+          git commit -m "chore(talk): bump image tag to ${{ steps.tag.outputs.tag }}" || echo "No changes to commit"
           git push
