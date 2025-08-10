@@ -22,7 +22,7 @@ apps:
     probes: {path: /platform/actuator/health}
   - name: portal
     replicaCount: 3
-    image: {name: portal, tag: portal-<sha>}
+    image: {name: portal, tag: ""}
     service: {name: portal-service, port: 8080}
     contextPath: /portal
     env: {SPRING_PROFILES_ACTIVE: sandbox}
