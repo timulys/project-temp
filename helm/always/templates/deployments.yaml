@@ -26,7 +26,7 @@ spec:
       {{- end }}
       containers:
         - name: {{ $app.name }}
-          image: "{{ $.Values.image.registry }}/{{ $app.image.name }}{{ if $app.image.tag }}:{{ $app.image.tag }}{{ end }}"
+          image: "{{ $.Values.image.registry }}/{{ $app.image.name }}:{{ required (printf "%s image tag missing for %s" $.Chart.Name $app.name) $app.image.tag }}"
           imagePullPolicy: {{ $.Values.image.pullPolicy }}
           ports:
             - containerPort: {{ $app.service.port }}
