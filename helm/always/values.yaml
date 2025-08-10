@@ -40,7 +40,7 @@ apps:
         memory: 1Gi
     extraEnv:
       - name: JAVA_TOOL_OPTIONS
-        value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=20 -XX:+ExitOnOutOfMemoryError -Xss256k"
+        value: "-Xms256m -Xmx768m -Xss256k -XX:+ExitOnOutOfMemoryError"
   - name: portal
     replicaCount: 3
     image:
@@ -69,7 +69,7 @@ apps:
         memory: 1Gi
     extraEnv:
       - name: JAVA_TOOL_OPTIONS
-        value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=20 -XX:+ExitOnOutOfMemoryError -Xss256k"
+        value: "-Xms256m -Xmx768m -Xss256k -XX:+ExitOnOutOfMemoryError"
   - name: talk
     replicaCount: 3
     image:
