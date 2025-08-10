@@ -16,7 +16,7 @@ apps:
     replicaCount: 3
     image:
       name: platform
-      tag: 'platform-f0207a8'
+      tag: ''
     service: {name: platform-service, port: 8080}
     contextPath: /platform
     env: {SPRING_PROFILES_ACTIVE: sandbox}
@@ -41,13 +41,8 @@ apps:
     extraEnv:
       - name: JAVA_TOOL_OPTIONS
         value: >
-          -XX:+UnlockExperimentalVMOptions
-          -XX:+UseCGroupMemoryLimitForHeap
-          -Xms512m -Xmx512m
-          -XX:MaxMetaspaceSize=128m
-          -XX:+ExitOnOutOfMemoryError
-          -Xss256k
-    
+          -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Xms512m -Xmx512m -XX:MaxMetaspaceSize=128m -XX:+ExitOnOutOfMemoryError -Xss256k
+
   - name: portal
     replicaCount: 3
     image:
@@ -77,13 +72,8 @@ apps:
     extraEnv:
       - name: JAVA_TOOL_OPTIONS
         value: >
-          -XX:+UnlockExperimentalVMOptions
-          -XX:+UseCGroupMemoryLimitForHeap
-          -Xms512m -Xmx512m
-          -XX:MaxMetaspaceSize=128m
-          -XX:+ExitOnOutOfMemoryError
-          -Xss256k
-          
+          -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Xms512m -Xmx512m -XX:MaxMetaspaceSize=128m -XX:+ExitOnOutOfMemoryError -Xss256k
+
   - name: talk
     replicaCount: 3
     image:
