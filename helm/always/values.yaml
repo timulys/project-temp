@@ -74,7 +74,7 @@ apps:
     replicaCount: 3
     image:
       name: talk
-      tag: 'talk-d2a04c7'
+      tag: ''
     service: {name: talk-service, port: 8080}
     contextPath: /talk
     env: {SPRING_PROFILES_ACTIVE: sandbox}
