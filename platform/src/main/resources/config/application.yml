@@ -161,6 +161,7 @@ application:
       - 203.133.162.185
       - 203.133.162.195
       - 203.133.162.196
+      - 10.244.0.1
   portal:
     api-base-path: /api/v1/event-by-platform
     open-path: /open
