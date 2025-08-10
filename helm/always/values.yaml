@@ -16,7 +16,7 @@ apps:
     replicaCount: 3
     image:
       name: platform
-      tag: 'platform-e1bf950'
+      tag: ''
     service: {name: platform-service, port: 8080}
     contextPath: /platform
     env: {SPRING_PROFILES_ACTIVE: sandbox}
