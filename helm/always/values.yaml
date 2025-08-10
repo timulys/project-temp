@@ -22,9 +22,25 @@ apps:
     env: {SPRING_PROFILES_ACTIVE: sandbox}
     resources: {}
     probes:
-      path: "/"
-      readinessInitialDelay: 40
-      livenessInitialDelay: 120
+      path: "/"                 # actuator 없으면 200 주는 경로
+      readinessInitialDelay: 60
+      livenessInitialDelay: 180
+      readinessPeriod: 10
+      livenessPeriod: 10
+      readinessTimeout: 5
+      livenessTimeout: 5
+      readinessFailures: 6
+      livenessFailures: 6
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+    extraEnv:
+      - name: JAVA_TOOL_OPTIONS
+        value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=20 -XX:+ExitOnOutOfMemoryError -Xss256k"
   - name: portal
     replicaCount: 3
     image:
@@ -35,9 +51,25 @@ apps:
     env: {SPRING_PROFILES_ACTIVE: sandbox}
     resources: {}
     probes:
-      path: "/"
-      readinessInitialDelay: 40
-      livenessInitialDelay: 120
+      path: "/"                 # actuator 없으면 200 주는 경로
+      readinessInitialDelay: 60
+      livenessInitialDelay: 180
+      readinessPeriod: 10
+      livenessPeriod: 10
+      readinessTimeout: 5
+      livenessTimeout: 5
+      readinessFailures: 6
+      livenessFailures: 6
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+    extraEnv:
+      - name: JAVA_TOOL_OPTIONS
+        value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=20 -XX:+ExitOnOutOfMemoryError -Xss256k"
   - name: talk
     replicaCount: 3
     image:
@@ -48,6 +80,22 @@ apps:
     env: {SPRING_PROFILES_ACTIVE: sandbox}
     resources: {}
     probes:
-      path: "/"
-      readinessInitialDelay: 40
-      livenessInitialDelay: 120
+      path: "/"                 # actuator 없으면 200 주는 경로
+      readinessInitialDelay: 60
+      livenessInitialDelay: 180
+      readinessPeriod: 10
+      livenessPeriod: 10
+      readinessTimeout: 5
+      livenessTimeout: 5
+      readinessFailures: 6
+      livenessFailures: 6
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+    extraEnv:
+      - name: JAVA_TOOL_OPTIONS
+        value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=60 -XX:InitialRAMPercentage=20 -XX:+ExitOnOutOfMemoryError -Xss256k"
