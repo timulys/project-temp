@@ -41,11 +41,17 @@ spec:
                 secretKeyRef:
                   name: rabbitmq-cred
                   key: rabbitmq-password
-            - name: REDIS_PASSWORD
+            # Redis 접속 (standalone/replication)
+            - name: SPRING_REDIS_HOST
+              value: "redis-master.redis.svc.cluster.local"
+            - name: SPRING_REDIS_PORT
+              value: "6379"
+            - name: SPRING_REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: redis-cred
                   key: redis-password
+                  
           envFrom:
             # MySQL Secret 주입 없음 (application-sandbox.yml의 고정값 사용)
             {{- if $.Values.secrets.rabbitmq }}
