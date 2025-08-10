@@ -45,8 +45,18 @@ jobs:
             docker.io/${{ env.DOCKERHUB_NAMESPACE }}/${{ env.IMAGE_NAME }}
           flavor: latest=false
           tags: |
-            type=sha,format=short,prefix=portal-
+            type=sha,format=short,prefix=talk-
 
+      # 첫 번째 태그에서 ":<tag>"만 추출
+      - name: Extract image tag from metadata
+        id: tag
+        run: |
+          FIRST_TAG="$(echo "${{ steps.meta.outputs.tags }}" | head -n1)"
+          # 예: FIRST_TAG = docker.io/timulys/talk:talk-abcdef0
+          TAG="${FIRST_TAG##*:}"
+          echo "tag=$TAG"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          
       - name: Build & Push (talk)
         uses: docker/build-push-action@v5
         with:
@@ -65,27 +75,17 @@ jobs:
           sbom: false
           provenance: false
 
-      # values.yaml 의 apps[0] (platform) 이미지 태그만 최신으로 교체
-      - name: Install yq
-        run: |
-          sudo curl -L https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64 -o /usr/local/bin/yq
-          sudo chmod +x /usr/local/bin/yq
-
       - name: Bump image tag in values.yaml
         run: |
-          NEW_TAG="${{ steps.meta.outputs.version }}"  # e.g. platform-abcdef0
-          yq -i '.apps[0].image.tag = strenv(NEW_TAG)' "${{ env.VALUES_FILE }}"
+          NEW_TAG="${{ steps.tag.outputs.tag }}"  # 예: talk-abcdef0
+          yq -i '( .apps[] | select(.name=="talk") ).image.tag = strenv(NEW_TAG)' "${{ env.VALUES_FILE }}"
           echo "New tag set to: ${NEW_TAG}"
-          git diff -- "${{ env.VALUES_FILE }}"
+          yq '( .apps[] | select(.name=="talk") ).image.tag' "${{ env.VALUES_FILE }}"
 
       - name: Commit & Push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "${{ env.VALUES_FILE }}"
-          git commit -m "chore(platform): bump image tag to ${{ steps.meta.outputs.version }}" || echo "No changes to commit"
+          git commit -m "chore(talk): bump image tag to ${{ steps.tag.outputs.tag }}" || echo "No changes to commit"
           git push
-
-      - name: Verify new tag in values.yaml
-        run: |
-          yq '.apps[2].image.tag' helm/always/values.yaml

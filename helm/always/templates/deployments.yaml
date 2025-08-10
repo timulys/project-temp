@@ -26,7 +26,7 @@ spec:
       {{- end }}
       containers:
         - name: {{ $app.name }}
-          image: "{{ $.Values.image.registry }}/{{ $app.image.name }}{{ if $app.image.tag }}:{{ $app.image.tag }}{{ end }}"
+          image: "{{ $.Values.image.registry }}/{{ $app.image.name }}:{{ required (printf "%s image tag missing for %s" $.Chart.Name $app.name) $app.image.tag }}"
           imagePullPolicy: {{ $.Values.image.pullPolicy }}
           ports:
             - containerPort: {{ $app.service.port }}
@@ -36,6 +36,16 @@ spec:
             # 앱이 컨텍스트 패스를 환경변수로 읽을 경우에만 사용
             - name: SERVER_SERVLET_CONTEXT_PATH
               value: "{{ $app.contextPath }}"
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-cred
+                  key: rabbitmq-password
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-cred
+                  key: redis-password
           envFrom:
             # MySQL Secret 주입 없음 (application-sandbox.yml의 고정값 사용)
             {{- if $.Values.secrets.rabbitmq }}
