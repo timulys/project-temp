@@ -14,25 +14,33 @@ ingress:
 apps:
   - name: platform
     replicaCount: 3
-    image: {name: platform, tag: ""}
-    service: {name: platform-service, port: 8080}
+    image:
+      name: platform
+      tag: ""                       
+    service: { name: platform-service, port: 8080 }
     contextPath: /platform
-    env: {SPRING_PROFILES_ACTIVE: sandbox}
+    env: { SPRING_PROFILES_ACTIVE: sandbox }
     resources: {}
-    probes: {path: /platform/actuator/health}
+    probes: { path: /platform/actuator/health }
+
   - name: portal
     replicaCount: 3
-    image: {name: portal, tag: portal-<sha>}
-    service: {name: portal-service, port: 8080}
+    image:
+      name: portal
+      tag: ""                       
+    service: { name: portal-service, port: 8080 }
     contextPath: /portal
-    env: {SPRING_PROFILES_ACTIVE: sandbox}
+    env: { SPRING_PROFILES_ACTIVE: sandbox }
     resources: {}
-    probes: {path: /portal/actuator/health}
+    probes: { path: /portal/actuator/health }
+
   - name: talk
     replicaCount: 3
-    image: {name: talk, tag: talk-<sha>}
-    service: {name: talk-service, port: 8080}
+    image:
+      name: talk
+      tag: ""                       
+    service: { name: talk-service, port: 8080 }
     contextPath: /talk
-    env: {SPRING_PROFILES_ACTIVE: sandbox}
+    env: { SPRING_PROFILES_ACTIVE: sandbox }
     resources: {}
-    probes: {path: /talk/actuator/health}
+    probes: { path: /talk/actuator/health }
