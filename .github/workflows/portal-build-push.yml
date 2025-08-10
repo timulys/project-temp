@@ -83,3 +83,7 @@ jobs:
           git add "${{ env.VALUES_FILE }}"
           git commit -m "chore(portal): bump image tag to ${{ steps.meta.outputs.version }}" || echo "No changes to commit"
           git push
+          
+      - name: Verify new tag in values.yaml
+        run: |
+          yq '.apps[1].image.tag' helm/always/values.yaml
