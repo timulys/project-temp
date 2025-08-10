@@ -36,7 +36,16 @@ spec:
             # 앱이 컨텍스트 패스를 환경변수로 읽을 경우에만 사용
             - name: SERVER_SERVLET_CONTEXT_PATH
               value: "{{ $app.contextPath }}"
-            - name: RABBITMQ_PASSWORD
+            - name: SPRING_RABBITMQ_HOST
+              value: "rabbitmq.rabbitmq.svc.cluster.local"
+            - name: SPRING_RABBITMQ_PORT
+              value: "5672"
+            - name: SPRING_RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-cred
+                  key: rabbitmq-username   # ← Secret 키 이름 확인 필요(아래 참고)
+            - name: SPRING_RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: rabbitmq-cred
