@@ -37,10 +37,17 @@ apps:
         memory: 512Mi
       limits:
         cpu: "1"
-        memory: 1Gi
+        memory: 2Gi
     extraEnv:
       - name: JAVA_TOOL_OPTIONS
-        value: "-Xms256m -Xmx768m -Xss256k -XX:+ExitOnOutOfMemoryError"
+        value: >
+          -XX:+UnlockExperimentalVMOptions
+          -XX:+UseCGroupMemoryLimitForHeap
+          -Xms512m -Xmx512m
+          -XX:MaxMetaspaceSize=128m
+          -XX:+ExitOnOutOfMemoryError
+          -Xss256k
+    
   - name: portal
     replicaCount: 3
     image:
@@ -66,10 +73,17 @@ apps:
         memory: 512Mi
       limits:
         cpu: "1"
-        memory: 1Gi
+        memory: 2Gi
     extraEnv:
       - name: JAVA_TOOL_OPTIONS
-        value: "-Xms256m -Xmx768m -Xss256k -XX:+ExitOnOutOfMemoryError"
+        value: >
+          -XX:+UnlockExperimentalVMOptions
+          -XX:+UseCGroupMemoryLimitForHeap
+          -Xms512m -Xmx512m
+          -XX:MaxMetaspaceSize=128m
+          -XX:+ExitOnOutOfMemoryError
+          -Xss256k
+          
   - name: talk
     replicaCount: 3
     image:
