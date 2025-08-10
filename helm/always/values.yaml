@@ -21,7 +21,7 @@ apps:
     contextPath: /platform
     env: {SPRING_PROFILES_ACTIVE: sandbox}
     resources: {}
-    probes: {path: /platform/actuator/health}
+    probes: {path: /}
   - name: portal
     replicaCount: 3
     image:
@@ -31,7 +31,7 @@ apps:
     contextPath: /portal
     env: {SPRING_PROFILES_ACTIVE: sandbox}
     resources: {}
-    probes: {path: /portal/actuator/health}
+    probes: {path: /}
   - name: talk
     replicaCount: 3
     image:
@@ -41,4 +41,4 @@ apps:
     contextPath: /talk
     env: {SPRING_PROFILES_ACTIVE: sandbox}
     resources: {}
-    probes: {path: /talk/actuator/health}
+    probes: {path: /}
