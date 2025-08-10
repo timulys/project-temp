@@ -16,13 +16,13 @@ apps:
     replicaCount: 3
     image:
       name: platform
-      tag: 'platform-0106cda'
+      tag: ''
     service: {name: platform-service, port: 8080}
     contextPath: /platform
     env: {SPRING_PROFILES_ACTIVE: sandbox}
     resources: {}
     probes:
-      path: "/"                 # actuator 없으면 200 주는 경로
+      path: "/" # actuator 없으면 200 주는 경로
       readinessInitialDelay: 60
       livenessInitialDelay: 180
       readinessPeriod: 10
@@ -51,7 +51,7 @@ apps:
     env: {SPRING_PROFILES_ACTIVE: sandbox}
     resources: {}
     probes:
-      path: "/"                 # actuator 없으면 200 주는 경로
+      path: "/" # actuator 없으면 200 주는 경로
       readinessInitialDelay: 60
       livenessInitialDelay: 180
       readinessPeriod: 10
@@ -80,7 +80,7 @@ apps:
     env: {SPRING_PROFILES_ACTIVE: sandbox}
     resources: {}
     probes:
-      path: "/"                 # actuator 없으면 200 주는 경로
+      path: "/" # actuator 없으면 200 주는 경로
       readinessInitialDelay: 60
       livenessInitialDelay: 180
       readinessPeriod: 10
