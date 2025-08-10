@@ -4,7 +4,6 @@ import com.kep.platform.config.property.PlatformProperty;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -16,8 +15,6 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.OrRequestMatcher;
 
 import javax.annotation.Resource;
 
@@ -69,29 +66,6 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	@Order(1)
-	public SecurityFilterChain probeChain(HttpSecurity http) throws Exception {
-		// Only match health/readiness/liveness and simple root healthz
-		http
-				.requestMatcher(new OrRequestMatcher(
-						new AntPathRequestMatcher("/"),
-						new AntPathRequestMatcher("/healthz"),
-						new AntPathRequestMatcher("/platform/healthz"),
-						new AntPathRequestMatcher("/actuator/health"),
-						new AntPathRequestMatcher("/actuator/health/**")
-				))
-				.csrf().disable()
-				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-				.and()
-				.authorizeRequests()
-				.anyRequest().permitAll();
-
-		// IMPORTANT: do NOT register custom filters here (ip whitelist, api key)
-		return http.build();
-	}
-
-	@Bean
-	@Order(2)
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
 		// @formatter:off
@@ -108,7 +82,8 @@ public class SecurityConfig {
 
 				.and()
 				.authorizeRequests()
-
+				// 헬스/프로브 경로는 무조건 허용
+				.mvcMatchers("/", "/healthz", "/readyz", "/livez", "/actuator/health").permitAll()
 				.mvcMatchers("/api/v1/kakao-counsel-talk/**")
 				.permitAll()
 
