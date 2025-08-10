@@ -21,7 +21,10 @@ apps:
     contextPath: /platform
     env: {SPRING_PROFILES_ACTIVE: sandbox}
     resources: {}
-    probes: {path: /}
+    probes:
+      path: "/"
+      readinessInitialDelay: 40
+      livenessInitialDelay: 120
   - name: portal
     replicaCount: 3
     image:
@@ -31,7 +34,10 @@ apps:
     contextPath: /portal
     env: {SPRING_PROFILES_ACTIVE: sandbox}
     resources: {}
-    probes: {path: /}
+    probes:
+      path: "/"
+      readinessInitialDelay: 40
+      livenessInitialDelay: 120
   - name: talk
     replicaCount: 3
     image:
@@ -41,4 +47,7 @@ apps:
     contextPath: /talk
     env: {SPRING_PROFILES_ACTIVE: sandbox}
     resources: {}
-    probes: {path: /}
+    probes:
+      path: "/"
+      readinessInitialDelay: 40
+      livenessInitialDelay: 120
